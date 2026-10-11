@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { CalendarDays, ChevronLeft, ChevronRight, CalendarX2, MapPin, UserRound, Building2, Clock } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, CalendarX2, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -8,7 +8,8 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import Button from '../components/ui/Button'
 import JobModal from '../components/JobModal'
-import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, jobTitle, jobSite, dateRange, timeRange, type JobRow } from '../lib/jobs'
+import CalendarTimeGrid from '../components/CalendarTimeGrid'
+import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, jobTitle, jobSite, timeRange, type JobRow } from '../lib/jobs'
 
 interface CompanyUser { id: string; first_name: string; last_name: string }
 type View = 'month' | 'week' | 'day'
@@ -20,7 +21,7 @@ const L = {
     daysLong: ['Ponedeljek', 'Torek', 'Sreda', 'Četrtek', 'Petek', 'Sobota', 'Nedelja'],
     views: { month: 'Mesec', week: 'Teden', day: 'Dan' } as Record<View, string>,
     today: 'Danes', unscheduled: 'Brez termina', unscheduledHint: 'Kliknite delo in mu določite začetek in konec.', allScheduled: 'Vsa dela imajo termin.',
-    assignee: 'Izvajalec', noAssignee: 'Ni določen', status: 'Status', all: 'Vsi', noJobsDay: 'Na ta dan ni načrtovanih del.',
+    assignee: 'Izvajalec', noAssignee: 'Ni določen', status: 'Status', all: 'Vsi', allDay: 'Ves dan', newJob: 'Novo delo',
   },
   en: {
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -28,7 +29,7 @@ const L = {
     daysLong: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     views: { month: 'Month', week: 'Week', day: 'Day' } as Record<View, string>,
     today: 'Today', unscheduled: 'Not scheduled', unscheduledHint: 'Click a job to set its start and end date.', allScheduled: 'Every job is scheduled.',
-    assignee: 'Assigned to', noAssignee: 'Not assigned', status: 'Status', all: 'All', noJobsDay: 'No work planned for this day.',
+    assignee: 'Assigned to', noAssignee: 'Not assigned', status: 'Status', all: 'All', allDay: 'All day', newJob: 'New job',
   },
 }
 
@@ -57,6 +58,7 @@ export default function CalendarPage() {
   const [assigneeFilter, setAssigneeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [open, setOpen] = useState<JobRow | null>(null)
+  const [preset, setPreset] = useState<{ start_date: string; end_date: string; start_time: string | null; end_time: string | null } | null>(null)
 
   function changeView(v: View) { setView(v); try { localStorage.setItem(VIEW_KEY, v) } catch { /* private mode */ } }
 
@@ -125,12 +127,11 @@ export default function CalendarPage() {
   if (!permLoading && !hasPerm('quotes', 'view')) return <Navigate to="/dashboard" replace />
 
   const isMonth = view === 'month'
-  const dayJobs = scheduled.filter(j => jobStart(j) <= iso(cursor) && jobEnd(j) >= iso(cursor))
-    .sort((a, b) => (a.start_time ?? '99').localeCompare(b.start_time ?? '99'))
 
   return (
     <div>
-      <PageHeader title={lang === 'sl' ? 'Koledar' : 'Calendar'} icon={CalendarDays} />
+      <PageHeader title={lang === 'sl' ? 'Koledar' : 'Calendar'} icon={CalendarDays}
+        action={canEdit && <Button onClick={() => { const d = iso(view === 'month' ? new Date() : cursor); setPreset({ start_date: d, end_date: d, start_time: null, end_time: null }) }} className="gap-2"><Plus className="w-4 h-4" />{T.newJob}</Button>} />
       <div className="p-4">
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -157,51 +158,25 @@ export default function CalendarPage() {
 
         <div className="flex flex-col xl:flex-row gap-4">
           <div className="flex-1 min-w-0">
-            {view === 'day' ? (
-              /* ── Day: list of the work going on that day ── */
-              <div className="rounded-xl border border-gray-200 p-3">
-                {dayJobs.length === 0
-                  ? <div className="flex flex-col items-center justify-center h-48 text-center"><CalendarDays className="w-10 h-10 text-gray-200 mb-3" /><p className="text-sm text-gray-400">{T.noJobsDay}</p></div>
-                  : <div className="flex flex-col gap-2.5">
-                      {dayJobs.map(j => {
-                        const c = JOB_STATUS_COLOR[j.status]
-                        return (
-                          <button key={j.id} type="button" onClick={() => setOpen(j)}
-                            className="text-left rounded-xl border border-gray-200 bg-white p-3.5 hover:border-gray-300 hover:shadow-[0_2px_6px_rgba(16,24,40,0.06)] transition-all flex gap-3">
-                            <span className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: c.dot }} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-900 truncate">{jobTitle(j)}</span>
-                                <span className="ml-auto px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={{ backgroundColor: c.bg, color: c.text }}>{JOB_STATUS_LABEL[lang][j.status]}</span>
-                              </div>
-                              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-gray-600">
-                                {timeRange(j) && <span className="inline-flex items-center gap-1.5 font-medium text-gray-900"><Clock className="w-4 h-4 text-gray-400" />{timeRange(j)}</span>}
-                                <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-4 h-4 text-gray-400" />{dateRange(j.start_date, j.end_date)}</span>
-                                {j.customers?.name && j.customers.name !== jobTitle(j) && <span className="inline-flex items-center gap-1.5"><Building2 className="w-4 h-4 text-gray-400" />{j.customers.name}</span>}
-                                {jobSite(j) && <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-gray-400" />{jobSite(j)}</span>}
-                                <span className="inline-flex items-center gap-1.5"><UserRound className="w-4 h-4 text-gray-400" />{who(j) ?? <span className="text-gray-400">{T.noAssignee}</span>}</span>
-                              </div>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>}
-              </div>
+            {!isMonth ? (
+              <CalendarTimeGrid
+                days={view === 'day' ? [new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate())] : Array.from({ length: 7 }, (_, i) => addDays(mondayOf(cursor), i))}
+                jobs={scheduled} dayLabels={T.days} allDayLabel={T.allDay} canCreate={canEdit}
+                onOpen={setOpen}
+                onCreate={(date, time) => {
+                  const [h, m] = time.split(':').map(Number)
+                  const end = `${String(Math.min(h + 2, 22)).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+                  setPreset({ start_date: date, end_date: date, start_time: time, end_time: end })
+                }}
+                onDayClick={view === 'week' ? d => { setCursor(d); changeView('day') } : undefined} />
             ) : (
-              /* ── Month / week grid ── */
+              /* ── Month grid ── */
               <div className="overflow-x-auto">
                 <div className="min-w-[700px] rounded-xl border border-gray-200 overflow-hidden">
                   <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
-                    {T.days.map((d, i) => {
-                      const date = !isMonth ? addDays(mondayOf(cursor), i) : null
-                      const isToday = date && iso(date) === today
-                      return (
-                        <button key={d} type="button" disabled={!date} onClick={() => { if (date) { setCursor(date); changeView('day') } }}
-                          className={`px-2 py-2 text-xs font-medium text-left ${i >= 5 ? 'text-gray-400' : 'text-gray-500'} ${date ? 'hover:text-gray-900' : ''}`}>
-                          {d}{date && <span className={`ml-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full text-xs ${isToday ? 'bg-blue-600 text-white font-semibold' : 'text-gray-900'}`}>{date.getDate()}</span>}
-                        </button>
-                      )
-                    })}
+                    {T.days.map((d, i) => (
+                      <div key={d} className={`px-2 py-2 text-xs font-medium ${i >= 5 ? 'text-gray-400' : 'text-gray-500'}`}>{d}</div>
+                    ))}
                   </div>
                   {weeks().map((week, wi, all) => {
                     const segs = segmentsFor(week)
@@ -281,7 +256,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {company && <JobModal job={open} companyId={company.id} onClose={() => setOpen(null)} onSaved={load}
+      {company && <JobModal job={open} creating={!!preset} preset={preset ?? undefined} companyId={company.id} onClose={() => { setOpen(null); setPreset(null) }} onSaved={load}
         users={users} canEdit={canEdit} isAdmin={isAdmin} lang={lang} />}
     </div>
   )

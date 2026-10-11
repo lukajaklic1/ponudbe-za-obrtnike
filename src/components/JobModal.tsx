@@ -14,6 +14,7 @@ import type { JobStatus } from '../types/database'
 interface Props {
   job: JobRow | null          // job to edit
   creating?: boolean          // or a new job added by hand (no quote)
+  preset?: { start_date: string; end_date: string; start_time: string | null; end_time: string | null }   // new job from a calendar slot
   companyId: string
   onClose: () => void
   onSaved: () => void
@@ -52,7 +53,7 @@ const DEFAULT_TO = '15:00'
 const selectCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50'
 const labelCls = 'text-xs font-medium'
 
-export default function JobModal({ job, creating = false, companyId, onClose, onSaved, users, canEdit, isAdmin = false, lang }: Props) {
+export default function JobModal({ job, creating = false, preset, companyId, onClose, onSaved, users, canEdit, isAdmin = false, lang }: Props) {
   const T = L[lang]
   const navigate = useNavigate()
   const open = creating || !!job
@@ -75,9 +76,9 @@ export default function JobModal({ job, creating = false, companyId, onClose, on
 
   useEffect(() => {
     if (!open) return
-    setStatus(job?.status ?? 'planned'); setStart(job?.start_date ?? ''); setEnd(job?.end_date ?? '')
+    setStatus(job?.status ?? 'planned'); setStart(job?.start_date ?? preset?.start_date ?? ''); setEnd(job?.end_date ?? preset?.end_date ?? '')
     // default working day 08:00–15:00 when no hours were set yet
-    setFromTime(job?.start_time?.slice(0, 5) ?? DEFAULT_FROM); setToTime(job?.end_time?.slice(0, 5) ?? DEFAULT_TO)
+    setFromTime(job?.start_time?.slice(0, 5) ?? preset?.start_time ?? DEFAULT_FROM); setToTime(job?.end_time?.slice(0, 5) ?? preset?.end_time ?? DEFAULT_TO)
     setAssignee(job?.assignee_id ?? ''); setNotes(job?.notes ?? '')
     // quote jobs start from the quote's details; any change is stored on the job
     setTitle(job ? jobTitle(job) : ''); setCustomerId(job?.customer_id ?? ''); setSite(job ? (jobSite(job) ?? '') : '')
