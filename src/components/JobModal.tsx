@@ -29,7 +29,7 @@ const L = {
     title: 'Naziv dela', titleHint: 'npr. Beljenje stopnišča', customer: 'Stranka', noCustomer: 'Brez stranke', site: 'Lokacija del', siteHint: 'npr. Celovška 12, Ljubljana', value: 'Vrednost brez DDV',
     plan: 'Razporeditev', status: 'Status', start: 'Začetek del', end: 'Konec del', assignee: 'Izvajalec', none: 'Ni določen',
     notes: 'Opombe', notesHint: 'npr. material naročen, ključ pri hišniku', openQuote: 'Odpri ponudbo', fromQuote: 'Iz ponudbe', save: 'Shrani', create: 'Dodaj delo', cancel: 'Prekliči',
-    saved: 'Shranjeno', badRange: 'Konec del ne more biti pred začetkom.', fromTime: 'Od ure (neobvezno)', toTime: 'Do ure (neobvezno)', badTime: 'Ura konca mora biti po uri začetka.', manual: 'Dodano ročno',
+    saved: 'Shranjeno', badRange: 'Konec del ne more biti pred začetkom.', fromTime: 'Od ure', toTime: 'Do ure', badTime: 'Ura konca mora biti po uri začetka.', manual: 'Dodano ročno',
     del: 'Izbriši', delTitle: 'Izbriši delo', delConfirm: 'Ali res želite izbrisati to delo? Tega ni mogoče razveljaviti.', deleted: 'Izbrisano',
     missing: 'Določite termin in izvajalca, da se delo prikaže v koledarju.',
   },
@@ -38,11 +38,16 @@ const L = {
     title: 'Job title', titleHint: 'e.g. Painting the staircase', customer: 'Customer', noCustomer: 'No customer', site: 'Site', siteHint: 'e.g. 12 Main St, Ljubljana', value: 'Value excl. VAT',
     plan: 'Scheduling', status: 'Status', start: 'Start', end: 'End', assignee: 'Assigned to', none: 'Not assigned',
     notes: 'Notes', notesHint: 'e.g. material ordered, key with the caretaker', openQuote: 'Open quote', fromQuote: 'From quote', save: 'Save', create: 'Add job', cancel: 'Cancel',
-    saved: 'Saved', badRange: 'The end date cannot be before the start date.', fromTime: 'From (optional)', toTime: 'To (optional)', badTime: 'The end time must be after the start time.', manual: 'Added by hand',
+    saved: 'Saved', badRange: 'The end date cannot be before the start date.', fromTime: 'From', toTime: 'To', badTime: 'The end time must be after the start time.', manual: 'Added by hand',
     del: 'Delete', delTitle: 'Delete job', delConfirm: 'Delete this job? This cannot be undone.', deleted: 'Deleted',
     missing: 'Set the dates and who does the work so the job shows in the calendar.',
   },
 }
+
+// Working hours in 15-minute steps, 05:00–22:00
+const TIMES = Array.from({ length: (22 - 5) * 4 + 1 }, (_, i) => `${String(5 + Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`)
+const DEFAULT_FROM = '08:00'
+const DEFAULT_TO = '15:00'
 
 const selectCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50'
 const labelCls = 'text-xs font-medium'
@@ -71,7 +76,8 @@ export default function JobModal({ job, creating = false, companyId, onClose, on
   useEffect(() => {
     if (!open) return
     setStatus(job?.status ?? 'planned'); setStart(job?.start_date ?? ''); setEnd(job?.end_date ?? '')
-    setFromTime(job?.start_time?.slice(0, 5) ?? ''); setToTime(job?.end_time?.slice(0, 5) ?? '')
+    // default working day 08:00–15:00 when no hours were set yet
+    setFromTime(job?.start_time?.slice(0, 5) ?? DEFAULT_FROM); setToTime(job?.end_time?.slice(0, 5) ?? DEFAULT_TO)
     setAssignee(job?.assignee_id ?? ''); setNotes(job?.notes ?? '')
     // quote jobs start from the quote's details; any change is stored on the job
     setTitle(job ? jobTitle(job) : ''); setCustomerId(job?.customer_id ?? ''); setSite(job ? (jobSite(job) ?? '') : '')
@@ -183,8 +189,8 @@ export default function JobModal({ job, creating = false, companyId, onClose, on
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input id="job-start" type="date" label={T.start} value={start} max={end || undefined} disabled={!canEdit} onChange={e => setStart(e.target.value)} />
               <Input id="job-end" type="date" label={T.end} value={end} min={start || undefined} disabled={!canEdit} onChange={e => setEnd(e.target.value)} error={badRange ? T.badRange : undefined} />
-              <Input id="job-from" type="time" label={T.fromTime} value={fromTime} disabled={!canEdit} onChange={e => setFromTime(e.target.value)} />
-              <Input id="job-to" type="time" label={T.toTime} value={toTime} disabled={!canEdit} onChange={e => setToTime(e.target.value)} error={badTime ? T.badTime : undefined} />
+              <TimeSelect id="job-from" label={T.fromTime} value={fromTime} disabled={!canEdit} onChange={setFromTime} />
+              <TimeSelect id="job-to" label={T.toTime} value={toTime} disabled={!canEdit} onChange={setToTime} error={badTime ? T.badTime : undefined} />
               <div className="flex flex-col gap-1 sm:col-span-2">
                 <label htmlFor="job-assignee" className={labelCls} style={{ color: '#7f7f7f' }}>{T.assignee}</label>
                 <select id="job-assignee" className={selectCls} value={assignee} disabled={!canEdit} onChange={e => setAssignee(e.target.value)}>
@@ -215,5 +221,20 @@ export default function JobModal({ job, creating = false, companyId, onClose, on
       <ConfirmDialog open={confirmDel} onClose={() => setConfirmDel(false)} onConfirm={remove}
         title={T.delTitle} message={T.delConfirm} confirmLabel={T.del} danger />
     </>
+  )
+}
+
+function TimeSelect({ id, label, value, onChange, disabled, error }: { id: string; label: string; value: string; onChange: (v: string) => void; disabled?: boolean; error?: string }) {
+  // keep an off-grid time (set earlier) selectable
+  const options = value && !TIMES.includes(value) ? [...TIMES, value].sort() : TIMES
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className={labelCls} style={{ color: '#7f7f7f' }}>{label}</label>
+      <select id={id} className={`${selectCls} ${error ? 'border-red-400 bg-red-50' : ''}`} value={value} disabled={disabled} onChange={e => onChange(e.target.value)}>
+        <option value="">—</option>
+        {options.map(t => <option key={t} value={t}>{t}</option>)}
+      </select>
+      {error && <p className="text-xs text-red-600">{error}</p>}
+    </div>
   )
 }
