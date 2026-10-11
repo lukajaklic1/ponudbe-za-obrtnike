@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown,
+  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown, HardHat, CalendarDays,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -10,7 +10,7 @@ import { useLanguage } from '../../hooks/useLanguage'
 import { cn } from '../../lib/cn'
 import AppLogo from '../ui/AppLogo'
 
-type NavKey = 'dashboard' | 'quotes' | 'customers' | 'priceList'
+type NavKey = 'dashboard' | 'quotes' | 'customers' | 'priceList' | 'jobs' | 'calendar'
 type PermModule = 'quotes' | 'customers' | 'price_list'
 interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?: PermModule }
 
@@ -18,11 +18,15 @@ interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?:
 const TOP: NavItem[] = [
   { to: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
 ]
-const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [
+const SECTIONS: { id: 'sales' | 'work'; items: NavItem[] }[] = [
   { id: 'sales', items: [
     { to: '/quotes',     icon: FileText, key: 'quotes',    mod: 'quotes' },
     { to: '/customers',  icon: Users,    key: 'customers', mod: 'customers' },
     { to: '/price-list', icon: Tags,     key: 'priceList', mod: 'price_list' },
+  ] },
+  { id: 'work', items: [
+    { to: '/jobs',       icon: HardHat,      key: 'jobs',     mod: 'quotes' },
+    { to: '/calendar',   icon: CalendarDays, key: 'calendar', mod: 'quotes' },
   ] },
 ]
 

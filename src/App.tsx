@@ -13,6 +13,8 @@ import CustomersPage from './pages/CustomersPage'
 import PriceListPage from './pages/PriceListPage'
 import QuotesPage from './pages/QuotesPage'
 import QuoteFormPage from './pages/QuoteFormPage'
+import JobsPage from './pages/JobsPage'
+import CalendarPage from './pages/CalendarPage'
 import SettingsPage from './pages/SettingsPage'
 import UsersPage from './pages/UsersPage'
 import PrivacyPage from './pages/PrivacyPage'
@@ -66,6 +68,8 @@ export default function Root() {
             <Route path="/quotes/:id"            element={<App><QuoteFormPage readOnly /></App>} />
             <Route path="/customers"             element={<App><CustomersPage /></App>} />
             <Route path="/price-list"            element={<App><PriceListPage /></App>} />
+            <Route path="/jobs"                  element={<App><JobsPage /></App>} />
+            <Route path="/calendar"              element={<App><CalendarPage /></App>} />
             <Route path="/users"                 element={<App><UsersPage /></App>} />
             <Route path="/settings"             element={<App><SettingsPage /></App>} />
 
