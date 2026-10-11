@@ -253,22 +253,28 @@ export interface Database {
       quotes: { Row: Quote; Insert: Omit<Quote, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Quote, 'id'>> }
       price_items: { Row: PriceItem; Insert: Omit<PriceItem, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<PriceItem, 'id'>> }
       quote_lines: { Row: QuoteLine; Insert: Omit<QuoteLine, 'id' | 'created_at'>; Update: Partial<Omit<QuoteLine, 'id'>> }
-      jobs: { Row: Job; Insert: Partial<Job> & Pick<Job, 'company_id' | 'quote_id'>; Update: Partial<Omit<Job, 'id'>> }
+      jobs: { Row: Job; Insert: Partial<Job> & Pick<Job, 'company_id'>; Update: Partial<Omit<Job, 'id'>> }
       quote_attachments: { Row: QuoteAttachment; Insert: Omit<QuoteAttachment, 'id' | 'created_at'>; Update: Partial<Omit<QuoteAttachment, 'id'>> }
     }
   }
 }
 
-export type JobStatus = 'planned' | 'in_progress' | 'done' | 'invoiced'
+export type JobStatus = 'planned' | 'in_progress' | 'done' | 'invoiced' | 'cancelled'
 
 export interface Job {
   id: string
   company_id: string
-  quote_id: string
+  quote_id: string | null      // null = added by hand, not from a quote
+  title: string | null
+  site_address: string | null
+  value: number | null
+  created_by: string | null
   customer_id: string | null
   status: JobStatus
   start_date: string | null   // yyyy-mm-dd
   end_date: string | null
+  start_time: string | null  // 'HH:MM' or 'HH:MM:SS' — optional working hours
+  end_time: string | null
   assignee_id: string | null
   notes: string | null
   started_at: string | null

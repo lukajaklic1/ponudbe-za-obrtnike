@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown, HardHat, CalendarDays,
+  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown, ClipboardCheck, CalendarDays,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -25,7 +25,7 @@ const SECTIONS: { id: 'sales' | 'work'; items: NavItem[] }[] = [
     { to: '/price-list', icon: Tags,     key: 'priceList', mod: 'price_list' },
   ] },
   { id: 'work', items: [
-    { to: '/jobs',       icon: HardHat,      key: 'jobs',     mod: 'quotes' },
+    { to: '/jobs',       icon: ClipboardCheck, key: 'jobs',   mod: 'quotes' },
     { to: '/calendar',   icon: CalendarDays, key: 'calendar', mod: 'quotes' },
   ] },
 ]

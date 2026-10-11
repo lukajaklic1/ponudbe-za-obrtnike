@@ -8,11 +8,11 @@ export interface JobRow extends Job {
   assignee: { first_name: string; last_name: string } | null
 }
 
-export const JOB_STATUSES: JobStatus[] = ['planned', 'in_progress', 'done', 'invoiced']
+export const JOB_STATUSES: JobStatus[] = ['planned', 'in_progress', 'done', 'invoiced', 'cancelled']
 
 export const JOB_STATUS_LABEL: Record<'sl' | 'en', Record<JobStatus, string>> = {
-  sl: { planned: 'Planirano', in_progress: 'V izvajanju', done: 'Končano', invoiced: 'Zaračunano' },
-  en: { planned: 'Planned', in_progress: 'In progress', done: 'Done', invoiced: 'Invoiced' },
+  sl: { planned: 'Planirano', in_progress: 'V izvajanju', done: 'Končano', invoiced: 'Zaračunano', cancelled: 'Odpovedano' },
+  en: { planned: 'Planned', in_progress: 'In progress', done: 'Done', invoiced: 'Invoiced', cancelled: 'Cancelled' },
 }
 
 // dot = solid colour (column headers, legend); bg/text = calendar bars
@@ -21,6 +21,7 @@ export const JOB_STATUS_COLOR: Record<JobStatus, { dot: string; bg: string; text
   in_progress: { dot: '#3b82f6', bg: '#e5eeff', text: '#215bcf' },
   done:        { dot: '#10b981', bg: '#e0fced', text: '#098259' },
   invoiced:    { dot: '#9ca3af', bg: '#f3f4f6', text: '#4b5563' },
+  cancelled:   { dot: '#f97316', bg: '#feeee1', text: '#9e3f00' },
 }
 
 export async function loadJobs(companyId: string): Promise<JobRow[]> {
@@ -41,8 +42,14 @@ export function statusPatch(job: Job, to: JobStatus): Partial<Job> {
   return patch
 }
 
+// A job's own title / site / value win (manual jobs, or later changes); otherwise they come from the quote
 export const jobTitle = (j: JobRow) =>
-  j.quotes?.title && j.quotes.title !== j.customers?.name ? j.quotes.title : (j.customers?.name ?? j.quotes?.quote_number ?? '—')
+  j.title ?? (j.quotes?.title && j.quotes.title !== j.customers?.name ? j.quotes.title : (j.customers?.name ?? j.quotes?.quote_number ?? '—'))
+export const jobSite = (j: JobRow) => j.site_address ?? j.quotes?.site_address ?? null
+export const jobValue = (j: JobRow) => Number(j.value ?? j.quotes?.total_net ?? 0)
+// Still waiting to be scheduled: no dates or nobody assigned (only while the work is ahead)
+export const needsPlanning = (j: JobRow) =>
+  (j.status === 'planned' || j.status === 'in_progress') && (!j.start_date || !j.assignee_id)
 
 // "12. 10." or "12. 10. – 15. 10. 2026"
 export function dateRange(start: string | null, end: string | null): string | null {
@@ -50,4 +57,11 @@ export function dateRange(start: string | null, end: string | null): string | nu
   if (!start && !end) return null
   if (start && end && start !== end) return `${f(start, false)} – ${f(end, true)}`
   return f((start ?? end)!, true)
+}
+
+// "08:00–12:00" / "od 08:00" (optional working hours)
+export function timeRange(j: Pick<JobRow, 'start_time' | 'end_time'>): string | null {
+  const s = j.start_time?.slice(0, 5), e = j.end_time?.slice(0, 5)
+  if (s && e) return `${s}–${e}`
+  return s ?? (e ? `–${e}` : null)
 }

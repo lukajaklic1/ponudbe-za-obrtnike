@@ -159,7 +159,7 @@ const DEFAULTS: Record<string, () => Row> = {
   price_items: () => ({ is_active: true, vat_rate: 22, unit: 'm2' }),
   customers: () => ({ status: 'active' }),
   users: () => ({ is_active: true, is_admin: false }),
-  jobs: () => ({ status: 'planned', start_date: null, end_date: null, assignee_id: null, notes: null, started_at: null, finished_at: null }),
+  jobs: () => ({ status: 'planned', quote_id: null, customer_id: null, title: null, site_address: null, value: null, start_date: null, end_date: null, start_time: null, end_time: null, assignee_id: null, notes: null, started_at: null, finished_at: null }),
 }
 
 // ─── Query builder ───────────────────────────────────────────

@@ -1,114 +1,219 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ExternalLink, MapPin, Euro } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
 import Input from './ui/Input'
+import NumberInput from './ui/NumberInput'
+import ConfirmDialog from './ui/ConfirmDialog'
 import { supabase } from '../lib/supabase'
 import { toast } from './ui/Toast'
-import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, statusPatch, jobTitle, type JobRow } from '../lib/jobs'
+import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, statusPatch, jobTitle, jobSite, jobValue, type JobRow } from '../lib/jobs'
 import type { JobStatus } from '../types/database'
 
 interface Props {
-  job: JobRow | null
+  job: JobRow | null          // job to edit
+  creating?: boolean          // or a new job added by hand (no quote)
+  companyId: string
   onClose: () => void
   onSaved: () => void
   users: { id: string; first_name: string; last_name: string }[]
   canEdit: boolean
+  isAdmin?: boolean
   lang: 'sl' | 'en'
-  money: (n: number) => string
 }
 
 const L = {
-  sl: { status: 'Status', start: 'Začetek del', end: 'Konec del', assignee: 'Izvajalec', none: 'Ni določen', notes: 'Opombe', notesHint: 'npr. material naročen, ključ pri hišniku', openQuote: 'Odpri ponudbo', save: 'Shrani', cancel: 'Prekliči', saved: 'Shranjeno', badRange: 'Konec del ne more biti pred začetkom.' },
-  en: { status: 'Status', start: 'Start', end: 'End', assignee: 'Assigned to', none: 'Not assigned', notes: 'Notes', notesHint: 'e.g. material ordered, key with the caretaker', openQuote: 'Open quote', save: 'Save', cancel: 'Cancel', saved: 'Saved', badRange: 'The end date cannot be before the start date.' },
+  sl: {
+    newJob: 'Novo delo', newHint: 'Delo, za katerega niste izdali ponudbe (npr. manjše popravilo ali dogovor po telefonu).',
+    title: 'Naziv dela', titleHint: 'npr. Beljenje stopnišča', customer: 'Stranka', noCustomer: 'Brez stranke', site: 'Lokacija del', siteHint: 'npr. Celovška 12, Ljubljana', value: 'Vrednost brez DDV',
+    plan: 'Razporeditev', status: 'Status', start: 'Začetek del', end: 'Konec del', assignee: 'Izvajalec', none: 'Ni določen',
+    notes: 'Opombe', notesHint: 'npr. material naročen, ključ pri hišniku', openQuote: 'Odpri ponudbo', fromQuote: 'Iz ponudbe', save: 'Shrani', create: 'Dodaj delo', cancel: 'Prekliči',
+    saved: 'Shranjeno', badRange: 'Konec del ne more biti pred začetkom.', fromTime: 'Od ure (neobvezno)', toTime: 'Do ure (neobvezno)', badTime: 'Ura konca mora biti po uri začetka.', manual: 'Dodano ročno',
+    del: 'Izbriši', delTitle: 'Izbriši delo', delConfirm: 'Ali res želite izbrisati to delo? Tega ni mogoče razveljaviti.', deleted: 'Izbrisano',
+    missing: 'Določite termin in izvajalca, da se delo prikaže v koledarju.',
+  },
+  en: {
+    newJob: 'New job', newHint: 'Work you did not send a quote for (e.g. a small repair or a phone agreement).',
+    title: 'Job title', titleHint: 'e.g. Painting the staircase', customer: 'Customer', noCustomer: 'No customer', site: 'Site', siteHint: 'e.g. 12 Main St, Ljubljana', value: 'Value excl. VAT',
+    plan: 'Scheduling', status: 'Status', start: 'Start', end: 'End', assignee: 'Assigned to', none: 'Not assigned',
+    notes: 'Notes', notesHint: 'e.g. material ordered, key with the caretaker', openQuote: 'Open quote', fromQuote: 'From quote', save: 'Save', create: 'Add job', cancel: 'Cancel',
+    saved: 'Saved', badRange: 'The end date cannot be before the start date.', fromTime: 'From (optional)', toTime: 'To (optional)', badTime: 'The end time must be after the start time.', manual: 'Added by hand',
+    del: 'Delete', delTitle: 'Delete job', delConfirm: 'Delete this job? This cannot be undone.', deleted: 'Deleted',
+    missing: 'Set the dates and who does the work so the job shows in the calendar.',
+  },
 }
 
-export default function JobModal({ job, onClose, onSaved, users, canEdit, lang, money }: Props) {
+const selectCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50'
+const labelCls = 'text-xs font-medium'
+
+export default function JobModal({ job, creating = false, companyId, onClose, onSaved, users, canEdit, isAdmin = false, lang }: Props) {
   const T = L[lang]
   const navigate = useNavigate()
+  const open = creating || !!job
+  const manual = creating || (!!job && !job.quote_id)
   const [status, setStatus] = useState<JobStatus>('planned')
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
+  const [fromTime, setFromTime] = useState('')
+  const [toTime, setToTime] = useState('')
   const [assignee, setAssignee] = useState('')
   const [notes, setNotes] = useState('')
+  // manual jobs only
+  const [title, setTitle] = useState('')
+  const [customerId, setCustomerId] = useState('')
+  const [site, setSite] = useState('')
+  const [value, setValue] = useState<number | null>(null)
+  const [customers, setCustomers] = useState<{ id: string; name: string; address_street: string | null; address_city: string | null }[]>([])
   const [saving, setSaving] = useState(false)
+  const [confirmDel, setConfirmDel] = useState(false)
 
   useEffect(() => {
-    if (!job) return
-    setStatus(job.status); setStart(job.start_date ?? ''); setEnd(job.end_date ?? '')
-    setAssignee(job.assignee_id ?? ''); setNotes(job.notes ?? '')
-  }, [job])
+    if (!open) return
+    setStatus(job?.status ?? 'planned'); setStart(job?.start_date ?? ''); setEnd(job?.end_date ?? '')
+    setFromTime(job?.start_time?.slice(0, 5) ?? ''); setToTime(job?.end_time?.slice(0, 5) ?? '')
+    setAssignee(job?.assignee_id ?? ''); setNotes(job?.notes ?? '')
+    // quote jobs start from the quote's details; any change is stored on the job
+    setTitle(job ? jobTitle(job) : ''); setCustomerId(job?.customer_id ?? ''); setSite(job ? (jobSite(job) ?? '') : '')
+    setValue(job ? (job.value != null || job.quotes ? jobValue(job) : null) : null)
+  }, [open, job])
+
+  useEffect(() => {
+    if (!open || customers.length) return
+    supabase.from('customers').select('id, name, address_street, address_city').eq('company_id', companyId).order('name')
+      .then(({ data }) => setCustomers((data as typeof customers) ?? []))
+  }, [open])
 
   const badRange = !!start && !!end && end < start
+  const badTime = !!fromTime && !!toTime && toTime <= fromTime
+  const canSave = !badRange && !badTime && !!title.trim()
+
+  function pickCustomer(id: string) {
+    setCustomerId(id)
+    // prefill the site with the customer's address when it is still empty
+    const c = customers.find(x => x.id === id)
+    if (c && !site.trim()) setSite([c.address_street, c.address_city].filter(Boolean).join(', '))
+  }
 
   async function save() {
-    if (!job || badRange) return
+    if (!canSave) return
     setSaving(true)
-    const patch = {
-      ...(status !== job.status ? statusPatch(job, status) : { updated_at: new Date().toISOString() }),
-      start_date: start || null, end_date: end || null, assignee_id: assignee || null, notes: notes.trim() || null,
+    const common = { start_date: start || null, end_date: end || null, start_time: fromTime || null, end_time: toTime || null, assignee_id: assignee || null, notes: notes.trim() || null }
+    // For a quote job, keep null where nothing changed so later quote edits still show through
+    const fromQuote = job?.quotes
+    const quoteTitle = job && fromQuote ? jobTitle({ ...job, title: null }) : null
+    const own = {
+      title: fromQuote && title.trim() === quoteTitle ? null : title.trim(),
+      customer_id: customerId || null,
+      site_address: fromQuote && site.trim() === (fromQuote.site_address ?? '') ? null : (site.trim() || null),
+      value: fromQuote && value === Number(fromQuote.total_net) ? null : value,
     }
-    const { error } = await supabase.from('jobs').update(patch).eq('id', job.id)
+    let error
+    if (creating) {
+      const uid = (await supabase.auth.getUser()).data.user?.id ?? null
+      const stamps = statusPatch({ started_at: null, finished_at: null } as never, status)
+      ;({ error } = await supabase.from('jobs').insert({ company_id: companyId, quote_id: null, created_by: uid, ...stamps, status, ...common, ...own }))
+    } else if (job) {
+      const patch = { ...(status !== job.status ? statusPatch(job, status) : { updated_at: new Date().toISOString() }), ...common, ...own }
+      ;({ error } = await supabase.from('jobs').update(patch).eq('id', job.id))
+    }
     setSaving(false)
     if (error) { toast.error(error.message); return }
     toast.success(T.saved); onSaved(); onClose()
   }
 
-  const selectCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50'
+  async function remove() {
+    if (!job) return
+    const { error } = await supabase.from('jobs').delete().eq('id', job.id)
+    setConfirmDel(false)
+    if (error) { toast.error(error.message); return }
+    toast.success(T.deleted); onSaved(); onClose()
+  }
 
   return (
-    <Modal open={!!job} onClose={onClose} title={job ? jobTitle(job) : ''} size="lg">
-      {job && (
+    <>
+      <Modal open={open} onClose={onClose} title={creating ? T.newJob : job ? jobTitle(job) : ''} size="lg">
         <div className="flex flex-col gap-4">
-          {/* What the job is */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-600">
-            <span className="text-gray-400">{job.quotes?.quote_number}</span>
-            {job.customers?.name && job.customers.name !== jobTitle(job) && <span>{job.customers.name}</span>}
-            {job.quotes?.site_address && <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400" />{job.quotes.site_address}</span>}
-            <span className="inline-flex items-center gap-1.5 text-gray-900 font-medium"><Euro className="w-3.5 h-3.5 text-gray-400" />{money(Number(job.quotes?.total_net ?? 0))}</span>
-            <button type="button" onClick={() => navigate(`/quotes/${job.quote_id}`)} className="ml-auto inline-flex items-center gap-1 text-blue-600 hover:text-blue-800">
-              {T.openQuote}<ExternalLink className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          {creating && <p className="text-sm text-gray-500 -mt-1">{T.newHint}</p>}
 
-          {/* Status as a segmented control */}
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{T.status}</span>
-            <div className="inline-flex flex-wrap self-start rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-              {JOB_STATUSES.map(st => (
-                <button key={st} type="button" disabled={!canEdit} onClick={() => setStatus(st)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${status === st ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: JOB_STATUS_COLOR[st].dot }} />
-                  {JOB_STATUS_LABEL[lang][st]}
-                </button>
-              ))}
+          {/* Job from a quote: link back to it */}
+          {job && !manual && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-600 -mt-1">
+              <span className="text-gray-400">{T.fromQuote} {job.quotes?.quote_number}</span>
+              <button type="button" onClick={() => navigate(`/quotes/${job.quote_id}`)} className="ml-auto inline-flex items-center gap-1 text-blue-600 hover:text-blue-800">
+                {T.openQuote}<ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Details — editable for every job, so later changes can be recorded */}
+          {(
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2"><Input id="job-title" label={T.title} placeholder={T.titleHint} value={title} disabled={!canEdit} onChange={e => setTitle(e.target.value)} autoFocus={creating} /></div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="job-customer" className={labelCls} style={{ color: '#7f7f7f' }}>{T.customer}</label>
+                <select id="job-customer" className={selectCls} value={customerId} disabled={!canEdit} onChange={e => pickCustomer(e.target.value)}>
+                  <option value="">{T.noCustomer}</option>
+                  {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <NumberInput id="job-value" label={T.value} value={value} onValue={setValue} unit="€" decimals={2} />
+              <div className="sm:col-span-2"><Input id="job-site" label={T.site} placeholder={T.siteHint} value={site} disabled={!canEdit} onChange={e => setSite(e.target.value)} /></div>
+            </div>
+          )}
+
+          {/* Scheduling */}
+          <div className="pt-4 border-t border-gray-100 flex flex-col gap-4">
+            {!creating && job && (!job.start_date || !job.assignee_id) && (job.status === 'planned' || job.status === 'in_progress') && (
+              <div className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }}>{T.missing}</div>
+            )}
+            <div className="flex flex-col gap-1">
+              <span className={labelCls} style={{ color: '#7f7f7f' }}>{T.status}</span>
+              <div className="inline-flex flex-wrap self-start rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+                {JOB_STATUSES.map(st => (
+                  <button key={st} type="button" disabled={!canEdit} onClick={() => setStatus(st)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${status === st ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: JOB_STATUS_COLOR[st].dot }} />
+                    {JOB_STATUS_LABEL[lang][st]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input id="job-start" type="date" label={T.start} value={start} max={end || undefined} disabled={!canEdit} onChange={e => setStart(e.target.value)} />
+              <Input id="job-end" type="date" label={T.end} value={end} min={start || undefined} disabled={!canEdit} onChange={e => setEnd(e.target.value)} error={badRange ? T.badRange : undefined} />
+              <Input id="job-from" type="time" label={T.fromTime} value={fromTime} disabled={!canEdit} onChange={e => setFromTime(e.target.value)} />
+              <Input id="job-to" type="time" label={T.toTime} value={toTime} disabled={!canEdit} onChange={e => setToTime(e.target.value)} error={badTime ? T.badTime : undefined} />
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <label htmlFor="job-assignee" className={labelCls} style={{ color: '#7f7f7f' }}>{T.assignee}</label>
+                <select id="job-assignee" className={selectCls} value={assignee} disabled={!canEdit} onChange={e => setAssignee(e.target.value)}>
+                  <option value="">{T.none}</option>
+                  {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <label htmlFor="job-notes" className={labelCls} style={{ color: '#7f7f7f' }}>{T.notes}</label>
+                <textarea id="job-notes" rows={3} value={notes} disabled={!canEdit} onChange={e => setNotes(e.target.value)} placeholder={T.notesHint}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50" />
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input id="job-start" type="date" label={T.start} value={start} max={end || undefined} disabled={!canEdit} onChange={e => setStart(e.target.value)} />
-            <Input id="job-end" type="date" label={T.end} value={end} min={start || undefined} disabled={!canEdit} onChange={e => setEnd(e.target.value)} error={badRange ? T.badRange : undefined} />
-            <div className="flex flex-col gap-1 sm:col-span-2">
-              <label htmlFor="job-assignee" className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{T.assignee}</label>
-              <select id="job-assignee" className={selectCls} value={assignee} disabled={!canEdit} onChange={e => setAssignee(e.target.value)}>
-                <option value="">{T.none}</option>
-                {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}
-              </select>
+          <div className="flex items-center justify-between gap-3 pt-4 -mx-6 px-6 border-t border-gray-200">
+            <div>
+              {/* Only hand-added jobs can be deleted; a quote's job follows the quote */}
+              {job && manual && isAdmin && <Button variant="danger" onClick={() => setConfirmDel(true)}>{T.del}</Button>}
             </div>
-            <div className="flex flex-col gap-1 sm:col-span-2">
-              <label htmlFor="job-notes" className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{T.notes}</label>
-              <textarea id="job-notes" rows={3} value={notes} disabled={!canEdit} onChange={e => setNotes(e.target.value)} placeholder={T.notesHint}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50" />
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={onClose}>{T.cancel}</Button>
+              {canEdit && <Button loading={saving} onClick={save} disabled={!canSave}>{creating ? T.create : T.save}</Button>}
             </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 -mx-6 px-6 border-t border-gray-200">
-            <Button variant="secondary" onClick={onClose}>{T.cancel}</Button>
-            {canEdit && <Button loading={saving} onClick={save} disabled={badRange}>{T.save}</Button>}
           </div>
         </div>
-      )}
-    </Modal>
+      </Modal>
+      <ConfirmDialog open={confirmDel} onClose={() => setConfirmDel(false)} onConfirm={remove}
+        title={T.delTitle} message={T.delConfirm} confirmLabel={T.del} danger />
+    </>
   )
 }
