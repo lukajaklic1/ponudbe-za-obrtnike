@@ -1,6 +1,6 @@
 -- Obrtdesk namestitev — KORAK 6 od 6
 -- Samo za PRAZEN Supabase projekt. Prilepi celoto v SQL Editor in klikni Run.
--- vsebuje: 20261010000004_customer_person_company.sql … 20261011000001_quote_defaults.sql
+-- vsebuje: 20261010000004_customer_person_company.sql … 20261011000002_company_legal_details.sql
 
 -- ===== 20261010000004_customer_person_company.sql =====
 -- ============================================================
@@ -42,6 +42,23 @@ ALTER TABLE companies ADD COLUMN IF NOT EXISTS payment_terms_list jsonb NOT NULL
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS default_payment_terms text;
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS default_valid_days integer NOT NULL DEFAULT 30;
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS default_parity text;
+
+NOTIFY pgrst, 'reload schema';
+
+
+-- ===== 20261011000002_company_legal_details.sql =====
+-- ============================================================
+-- 20261011000002_company_legal_details.sql
+-- Company details required on business documents (ZGD-1):
+--  * s.p.:          firma, sedež, matična številka
+--  * d.o.o. / d.d.: + registrski organ, osnovni kapital (+ nevplačani del)
+-- ============================================================
+
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS legal_form text;               -- sp / doo / dd / other
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS registration_number text;      -- matična številka
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS registry_authority text;       -- registrski organ (npr. Okrožno sodišče v Ljubljani)
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS share_capital numeric(14,2);   -- osnovni kapital
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS unpaid_capital numeric(14,2);  -- nevplačani osnovni kapital
 
 NOTIFY pgrst, 'reload schema';
 

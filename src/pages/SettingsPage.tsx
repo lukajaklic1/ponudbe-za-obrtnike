@@ -8,6 +8,7 @@ import { toast } from '../components/ui/Toast'
 import Button from '../components/ui/Button'
 import { PageHeader } from '../components/ui/PageHeader'
 import Input from '../components/ui/Input'
+import NumberInput from '../components/ui/NumberInput'
 import { currencySymbol } from '../lib/currency'
 import { INCOTERMS } from '../lib/incoterms'
 import type { Company } from '../types/database'
@@ -75,15 +76,34 @@ export default function SettingsPage() {
         <Section icon={Building2} title={s.companyProfile}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2"><Input id="name" label={s.companyName} {...field('name')} /></div>
-            <Input id="email" label={t.common.email} type="email" {...field('email')} />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-[#7f7f7f]">{o.legalForm}</label>
+              <select value={form.legal_form ?? ''} onChange={e => setForm(f => ({ ...f, legal_form: (e.target.value || null) as Company['legal_form'] }))}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">{t.common.select}</option>
+                <option value="sp">s.p.</option>
+                <option value="doo">d.o.o.</option>
+                <option value="dd">d.d.</option>
+                <option value="other">{o.legalFormOther}</option>
+              </select>
+            </div>
+            <Input id="registration_number" label={o.registrationNumber} {...field('registration_number')} />
+            <Input id="tax_id" label={s.vatNumber} {...field('tax_id')} />
             <Input id="phone" label={t.common.phone} {...field('phone')} />
-            <div className="col-span-2"><Input id="tax_id" label={s.vatNumber} {...field('tax_id')} /></div>
+            <div className="col-span-2"><Input id="email" label={t.common.email} type="email" {...field('email')} /></div>
             <Input id="address_street" label={t.common.streetAddress} {...field('address_street')} />
             <Input id="address_city" label={t.common.city} {...field('address_city')} />
             <Input id="address_postal_code" label={t.common.postalCode} {...field('address_postal_code')} />
             <Input id="address_country" label={t.common.country} {...field('address_country')} />
+            {/* Companies (d.o.o., d.d.) must also state the registry and share capital on business documents */}
+            {(form.legal_form === 'doo' || form.legal_form === 'dd') && <>
+              <div className="col-span-2"><Input id="registry_authority" label={o.registryAuthority} placeholder={o.registryAuthorityHint} {...field('registry_authority')} /></div>
+              <NumberInput label={o.shareCapital} unit="€" value={form.share_capital ?? null} decimals={2} onValue={v => setForm(f => ({ ...f, share_capital: v }))} />
+              <NumberInput label={o.unpaidCapital} unit="€" value={form.unpaid_capital ?? null} decimals={2} onValue={v => setForm(f => ({ ...f, unpaid_capital: v }))} />
+            </>}
           </div>
-          {isAdmin && <SaveRow loading={saving === 'profile'} onClick={() => save('profile', ['name', 'email', 'phone', 'tax_id', 'address_street', 'address_city', 'address_postal_code', 'address_country'])} label={t.common.save} />}
+          <p className="text-xs text-gray-400 mt-3">{o.legalHint}</p>
+          {isAdmin && <SaveRow loading={saving === 'profile'} onClick={() => save('profile', ['name', 'email', 'phone', 'tax_id', 'address_street', 'address_city', 'address_postal_code', 'address_country', 'legal_form', 'registration_number', 'registry_authority', 'share_capital', 'unpaid_capital'])} label={t.common.save} />}
         </Section>
 
         {/* Quote settings */}

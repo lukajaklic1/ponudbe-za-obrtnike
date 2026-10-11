@@ -22,7 +22,7 @@ const c = {
 }
 
 const s = StyleSheet.create({
-  page: { fontFamily: 'Roboto', fontSize: 9, color: c.text, paddingHorizontal: 40, paddingTop: 36, paddingBottom: 56, backgroundColor: c.white },
+  page: { fontFamily: 'Roboto', fontSize: 9, color: c.text, paddingHorizontal: 40, paddingTop: 36, paddingBottom: 80, backgroundColor: c.white },
 
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18, borderBottomWidth: 1, borderBottomColor: c.border, paddingBottom: 14 },
   companyBlock: { flex: 1 },
@@ -40,9 +40,9 @@ const s = StyleSheet.create({
   partyDetail: { fontSize: 8.5, color: c.muted, lineHeight: 1.5 },
 
   termsRow: { flexDirection: 'row', backgroundColor: c.strip, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, marginBottom: 18, borderWidth: 1, borderColor: c.border },
-  termItem: { flex: 1, alignItems: 'center' },
-  termLabel: { fontSize: 7, color: c.muted, marginBottom: 2 },
-  termValue: { fontSize: 9, fontWeight: 700 },
+  termItem: { flex: 1, alignItems: 'center', paddingHorizontal: 10 },
+  termLabel: { fontSize: 7, color: c.muted, marginBottom: 2, textAlign: 'center' },
+  termValue: { fontSize: 9, fontWeight: 700, textAlign: 'center', lineHeight: 1.35 },
   termDivider: { width: 1, backgroundColor: c.border, marginVertical: 2 },
 
   tableHeader: { flexDirection: 'row', backgroundColor: c.strip, paddingVertical: 6, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: c.border },
@@ -80,13 +80,12 @@ const s = StyleSheet.create({
   termsBox: { marginTop: 14, borderTopWidth: 1, borderTopColor: c.border, paddingTop: 10 },
   termsText: { fontSize: 7.5, color: c.muted, lineHeight: 1.5 },
 
-  signRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 34 },
-  signBox: { width: 200, borderTopWidth: 1, borderTopColor: c.muted, paddingTop: 4 },
-  signText: { fontSize: 7.5, color: c.muted },
 
   footer: { position: 'absolute', bottom: 18, left: 40, right: 40, borderTopWidth: 1, borderTopColor: c.border, paddingTop: 6 },
-  footerTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
-  footerText: { fontSize: 7, color: c.muted },
+  footerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  footerLines: { flex: 1, paddingRight: 16 },
+  // same line height for every footer line → even spacing
+  footerText: { fontSize: 7, color: c.muted, marginBottom: 2 },
 })
 
 function fmtNum(n: number, decimals = 2) {
@@ -110,18 +109,18 @@ const UNIT = {
 const L = {
   sl: {
     title: 'PONUDBA', date: 'Datum', customer: 'Naročnik', site: 'Lokacija del', contractor: 'Izvajalec',
-    vatId: 'ID za DDV', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
+    vatId: 'ID za DDV', regNo: 'Matična št.', registry: 'Registrski organ', shareCapital: 'Osnovni kapital', unpaid: 'nevplačani', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
     pos: 'Poz.', item: 'Opis del', qty: 'Kol.', unit: 'EM', price: 'Cena/EM', disc: 'Pop.', vat: 'DDV', total: 'Vrednost',
     general: 'Splošno', subtotal: 'Skupaj postavke', discount: 'Popust', net: 'Skupaj brez DDV', vatLine: (r: string) => `DDV ${r}`,
-    gross: 'ZA PLAČILO', notes: 'Opombe', terms: 'Pogoji', signContractor: 'Izvajalec (podpis, žig)', signCustomer: 'Naročnik – potrditev ponudbe',
+    gross: 'ZA PLAČILO', notes: 'Opombe', terms: 'Pogoji',
     page: (n: number, t: number) => `Stran ${n} / ${t}`,
   },
   en: {
     title: 'QUOTATION', date: 'Date', customer: 'Client', site: 'Job site', contractor: 'Contractor',
-    vatId: 'VAT ID', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
+    vatId: 'VAT ID', regNo: 'Reg. no.', registry: 'Registry', shareCapital: 'Share capital', unpaid: 'unpaid', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
     pos: 'Pos.', item: 'Description of work', qty: 'Qty', unit: 'Unit', price: 'Unit price', disc: 'Disc.', vat: 'VAT', total: 'Amount',
     general: 'General', subtotal: 'Items total', discount: 'Discount', net: 'Total excl. VAT', vatLine: (r: string) => `VAT ${r}`,
-    gross: 'TOTAL DUE', notes: 'Notes', terms: 'Terms', signContractor: 'Contractor (signature)', signCustomer: 'Client – acceptance',
+    gross: 'TOTAL DUE', notes: 'Notes', terms: 'Terms',
     page: (n: number, t: number) => `Page ${n} / ${t}`,
   },
 }
@@ -143,7 +142,14 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
   const showGroups = groups.length > 1 || !!groups[0]?.room
 
   const bankLine = [company.bank_iban && `IBAN: ${company.bank_iban}`, company.bank_name].filter(Boolean).join(' · ')
-  const footerLeft = [company.name, company.tax_id && `${T.vatId}: ${company.tax_id}`].filter(Boolean).join(' · ')
+  // Legally required company details (ZGD-1): firma, sedež, matična št.; d.o.o./d.d. also registry + share capital
+  const footerLeft = [company.name, company.address].filter(Boolean).join(' · ')
+  const idLine = [company.registration_number && `${T.regNo}: ${company.registration_number}`, company.tax_id && `${T.vatId}: ${company.tax_id}`].filter(Boolean).join(' · ')
+  const isCapitalCompany = company.legal_form === 'doo' || company.legal_form === 'dd'
+  const legalLine = isCapitalCompany ? [
+    company.registry_authority && `${T.registry}: ${company.registry_authority}`,
+    company.share_capital != null && `${T.shareCapital}: ${eur(company.share_capital)}` + (company.unpaid_capital ? ` (${T.unpaid}: ${eur(company.unpaid_capital)})` : ''),
+  ].filter(Boolean).join(' · ') : ''
   const terms = lang === 'en' ? company.quote_terms_en : company.quote_terms
   let pos = 0
 
@@ -186,7 +192,7 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
 
         <View style={s.termsRow}>
           {([[T.validity, fmtDate(offer.valid_until)], [T.execution, offer.lead_time || '—'], [T.paymentTerms, offer.payment_terms || '—'], ...(offer.parity ? [[T.parity, offer.parity]] : [])] as [string, string][]).map(([lbl, val], i) => (
-            <View key={lbl} style={{ flex: 1, flexDirection: 'row' }}>
+            <View key={lbl} style={{ flex: lbl === T.paymentTerms ? 1.6 : 1, flexDirection: 'row' }}>
               {i > 0 && <View style={s.termDivider} />}
               <View style={s.termItem}>
                 <Text style={s.termLabel}>{lbl}</Text>
@@ -265,17 +271,17 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
           </View>
         )}
 
-        <View style={s.signRow} wrap={false}>
-          <View style={s.signBox}><Text style={s.signText}>{T.signContractor}</Text></View>
-          <View style={s.signBox}><Text style={s.signText}>{T.signCustomer}</Text></View>
-        </View>
 
         <View style={s.footer} fixed>
-          <View style={s.footerTop}>
-            <Text style={s.footerText}>{footerLeft}</Text>
+          <View style={s.footerRow}>
+            <View style={s.footerLines}>
+              <Text style={s.footerText}>{footerLeft}</Text>
+              {idLine ? <Text style={s.footerText}>{idLine}</Text> : null}
+              {legalLine ? <Text style={s.footerText}>{legalLine}</Text> : null}
+              {bankLine ? <Text style={s.footerText}>{bankLine}</Text> : null}
+            </View>
             <Text style={s.footerText} render={({ pageNumber, totalPages }) => T.page(pageNumber, totalPages)} />
           </View>
-          {bankLine ? <Text style={s.footerText}>{bankLine}</Text> : null}
         </View>
       </Page>
     </Document>

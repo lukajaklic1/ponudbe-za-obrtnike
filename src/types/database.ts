@@ -35,6 +35,11 @@ export interface Company {
   quote_terms: string | null
   quote_terms_en: string | null
   payment_terms_list: string[]
+  legal_form: 'sp' | 'doo' | 'dd' | 'other' | null
+  registration_number: string | null
+  registry_authority: string | null
+  share_capital: number | null
+  unpaid_capital: number | null
   default_payment_terms: string | null
   default_valid_days: number
   default_parity: string | null
@@ -251,7 +256,7 @@ export interface Quote {
 export interface OfferSnapshot {
   offer: { number: string; title?: string | null; issued_at: string; valid_until: string | null; lead_time: string | null; payment_terms: string | null; parity: string | null; notes: string | null; currency: string; site_address?: string | null; discount_pct?: number }
   customer: { name: string; vat_number: string | null; address: string | null; contact_person: string | null; contact_email: string | null; contact_phone: string | null }
-  company: { name: string; address: string | null; tax_id: string | null; email: string | null; phone: string | null; bank_name: string | null; bank_iban: string | null; logo_url: string | null; quote_terms: string | null; quote_terms_en: string | null }
+  company: { name: string; address: string | null; tax_id: string | null; legal_form?: string | null; registration_number?: string | null; registry_authority?: string | null; share_capital?: number | null; unpaid_capital?: number | null; email: string | null; phone: string | null; bank_name: string | null; bank_iban: string | null; logo_url: string | null; quote_terms: string | null; quote_terms_en: string | null }
   lines: OfferSnapshotLine[]
   subtotal: number          // sum of line totals (after line discounts)
   discount_amount: number   // quote-level discount

@@ -37,7 +37,11 @@ export default function OfferPdfPreview({ snap, lang, errorLabel }: { snap: Offe
     ;(async () => {
       try {
         const blob = await offerPdfBlob(snap, lang)
-        const doc = await pdfjsLib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise
+        // never spin forever: if pdf.js stalls (e.g. worker blocked), show the error instead
+        const doc = await Promise.race([
+          pdfjsLib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise,
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('PDF preview timed out')), 20000)),
+        ])
         const el = host.current
         if (!el || cancelled) return
         el.innerHTML = ''

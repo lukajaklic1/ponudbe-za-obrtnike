@@ -41,6 +41,7 @@ function seed(): DB {
     email: 'info@pleskarstvo-novak.si', phone: '041 555 123', tax_id: 'SI12345678', logo_url: null,
     bank_name: 'NLB d.d.', bank_iban: 'SI56 0201 0001 2345 678',
     quote_prefix: 'P', quote_counter: 4,
+    legal_form: 'sp', registration_number: '1234567000', registry_authority: null, share_capital: null, unpaid_capital: null,
     payment_terms_list: ['30 % avans, ostalo po končanju del', '8 dni po izstavitvi računa', 'Takoj ob končanju del'],
     default_payment_terms: '30 % avans, ostalo po končanju del', default_valid_days: 30, default_parity: null,
     quote_terms: 'Cene so brez DDV, razen kjer je navedeno drugače. Material je vključen v ceno postavk. Dodatna dela se obračunajo po dejanskih količinah in veljavnem ceniku.',
