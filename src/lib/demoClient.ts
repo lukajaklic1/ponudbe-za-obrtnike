@@ -159,6 +159,8 @@ const DEFAULTS: Record<string, () => Row> = {
   price_items: () => ({ is_active: true, vat_rate: 22, unit: 'm2' }),
   customers: () => ({ status: 'active' }),
   users: () => ({ is_active: true, is_admin: false }),
+  invoices: () => ({ kind: 'invoice', status: 'draft', invoice_number: null, discount_pct: 0, total_net: 0, total_vat: 0, total_gross: 0, paid_at: null, sent_at: null, issued_at: null, snapshot: null, reference: null }),
+  purchase_invoices: () => ({ status: 'unpaid', category: 'material', paid_at: null, job_id: null, file_path: null, file_name: null }),
   jobs: () => ({ status: 'planned', quote_id: null, customer_id: null, title: null, site_address: null, value: null, start_date: null, end_date: null, start_time: null, end_time: null, assignee_id: null, notes: null, started_at: null, finished_at: null }),
 }
 
@@ -183,6 +185,11 @@ class Query implements PromiseLike<{ data: any; error: any; count?: number }> {
   update(patch: any) { this.op = 'update'; this.payload = patch; return this }
   delete() { this.op = 'delete'; return this }
   eq(c: string, v: any) { this.filters.push(r => r[c] === v); return this }
+  // "a.eq.1,b.eq.2" (only eq is needed by the app)
+  or(expr: string) {
+    const parts = expr.split(',').map(p => { const [c, , ...v] = p.split('.'); return [c, v.join('.')] as const })
+    this.filters.push(r => parts.some(([c, v]) => String(r[c]) === v)); return this
+  }
   neq(c: string, v: any) { this.filters.push(r => r[c] !== v); return this }
   in(c: string, vs: any[]) { this.filters.push(r => vs.includes(r[c])); return this }
   is(c: string, v: any) { this.filters.push(r => (r[c] ?? null) === v); return this }
@@ -244,6 +251,7 @@ class Query implements PromiseLike<{ data: any; error: any; count?: number }> {
       out = this.rows().filter(r => this.match(r))
       for (const r of out) Object.assign(r, this.payload)
       if (this.table === 'quotes') syncJobs()
+      if (this.table === 'invoices') for (const r of out) invoiceMarksJob(r)
       persist()
     } else if (this.op === 'delete') {
       out = this.rows().filter(r => this.match(r))
@@ -295,6 +303,15 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
       db.companies.push({ id: companyId, name: a.p_company_name, currency: 'EUR', po_prefix: 'PO', po_next_number: 1, address_street: null, address_city: null, address_postal_code: null, address_country: null, email: null, phone: null, tax_id: null, logo_url: null, bank_name: null, bank_iban: null, quote_prefix: 'P', quote_counter: 0, quote_terms: null, quote_terms_en: null, is_active: true, created_at: now(), updated_at: now() })
       db.users.push({ id: session.user.id, company_id: companyId, first_name: a.p_first_name, last_name: a.p_last_name, email: session.user.email, phone: null, is_admin: true, is_active: true, department_id: null, job_title: null, is_super_admin: false, created_at: now(), updated_at: now() })
       persist(); return { data: companyId, error: null }
+    }
+    case 'generate_invoice_number': {
+      const c = db.companies.find(x => x.id === a.p_company_id)
+      if (!c) return { data: null, error: { message: 'forbidden' } }
+      const y = new Date().getFullYear()
+      c.invoice_counter = c.invoice_year === y ? (c.invoice_counter ?? 0) + 1 : 1
+      c.invoice_year = y
+      persist()
+      return { data: `${c.invoice_prefix || 'R'}-${y}-${String(c.invoice_counter).padStart(4, '0')}`, error: null }
     }
     case 'generate_quote_number': {
       const c = db.companies.find(x => x.id === a.p_company_id)
@@ -405,3 +422,25 @@ function syncJobs() {
 }
 
 syncJobs()   // older demo databases have no jobs yet
+
+// Mirrors the invoice_issued_marks_job trigger
+function invoiceMarksJob(inv: Row) {
+  if (!inv.job_id || inv.kind !== 'invoice' || !['issued', 'sent', 'paid'].includes(inv.status)) return
+  const job = (db.jobs ?? []).find(j => j.id === inv.job_id)
+  if (job && ['planned', 'in_progress', 'done'].includes(job.status)) { job.status = 'invoiced'; job.finished_at ??= now(); persist() }
+}
+
+// Older demo databases: invoice settings + a few supplier invoices to look at
+;(function ensureInvoiceDemo() {
+  const c = db.companies?.[0]
+  if (!c || c.invoice_prefix) return
+  Object.assign(c, { invoice_prefix: 'R', invoice_counter: 0, invoice_year: null, invoice_due_days: 8, vat_payer: true, invoice_note: 'Hvala za zaupanje! Pri plačilu navedite sklic.' })
+  const job = (db.jobs ?? [])[0]
+  db.invoices ??= []; db.invoice_lines ??= []
+  db.purchase_invoices = [
+    { supplier_name: 'Jub d.o.o.', invoice_number: '2026-04512', category: 'material', issue_date: new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10), due_date: new Date(Date.now() + 24 * 864e5).toISOString().slice(0, 10), total_gross: 412.3, total_vat: 74.35, total_net: 337.95, status: 'unpaid', job_id: job?.id ?? null },
+    { supplier_name: 'Merkur trgovina d.o.o.', invoice_number: 'MR-88213', category: 'tools', issue_date: new Date(Date.now() - 20 * 864e5).toISOString().slice(0, 10), due_date: new Date(Date.now() - 5 * 864e5).toISOString().slice(0, 10), total_gross: 129.9, total_vat: 23.42, total_net: 106.48, status: 'unpaid', job_id: null },
+    { supplier_name: 'Petrol d.d.', invoice_number: 'P-55102', category: 'fuel', issue_date: new Date(Date.now() - 12 * 864e5).toISOString().slice(0, 10), due_date: null, total_gross: 86.4, total_vat: 15.58, total_net: 70.82, status: 'paid', paid_at: new Date(Date.now() - 12 * 864e5).toISOString().slice(0, 10), job_id: null },
+  ].map((b, i) => ({ ...DEFAULTS.purchase_invoices(), id: `demo-bill-${i + 1}`, company_id: c.id, supplier_vat: null, notes: null, file_path: null, file_name: null, created_by: 'demo-user', created_at: now(), updated_at: now(), ...b }))
+  persist()
+})()

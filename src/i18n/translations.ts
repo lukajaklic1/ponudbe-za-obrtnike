@@ -5,7 +5,9 @@ export const translations = {
     // Nav
     nav: {
       dashboard: 'Reports',
-      sections: { sales: 'Sales', work: 'Work' },
+      sections: { sales: 'Sales', work: 'Work', finance: 'Finance' },
+      invoices: 'Invoices',
+      bills: 'Received invoices',
       jobs: 'Jobs',
       calendar: 'Calendar',
       priceList: 'Services',
@@ -1048,7 +1050,9 @@ export const translations = {
     // Nav
     nav: {
       dashboard: 'Poročila',
-      sections: { sales: 'Prodaja', work: 'Izvedba' },
+      sections: { sales: 'Prodaja', work: 'Izvedba', finance: 'Finance' },
+      invoices: 'Izdani računi',
+      bills: 'Prejeti računi',
       jobs: 'Realizacija',
       calendar: 'Koledar',
       priceList: 'Storitve',

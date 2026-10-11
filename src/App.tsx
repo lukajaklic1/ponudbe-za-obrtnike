@@ -15,6 +15,9 @@ import QuotesPage from './pages/QuotesPage'
 import QuoteFormPage from './pages/QuoteFormPage'
 import JobsPage from './pages/JobsPage'
 import CalendarPage from './pages/CalendarPage'
+import InvoicesPage from './pages/InvoicesPage'
+import InvoiceFormPage from './pages/InvoiceFormPage'
+import BillsPage from './pages/BillsPage'
 import SettingsPage from './pages/SettingsPage'
 import UsersPage from './pages/UsersPage'
 import PrivacyPage from './pages/PrivacyPage'
@@ -70,6 +73,11 @@ export default function Root() {
             <Route path="/price-list"            element={<App><PriceListPage /></App>} />
             <Route path="/jobs"                  element={<App><JobsPage /></App>} />
             <Route path="/calendar"              element={<App><CalendarPage /></App>} />
+            <Route path="/invoices"              element={<App><InvoicesPage /></App>} />
+            <Route path="/invoices/new"          element={<App><InvoiceFormPage /></App>} />
+            <Route path="/invoices/:id/edit"     element={<App><InvoiceFormPage /></App>} />
+            <Route path="/invoices/:id"          element={<App><InvoiceFormPage readOnly /></App>} />
+            <Route path="/bills"                 element={<App><BillsPage /></App>} />
             <Route path="/users"                 element={<App><UsersPage /></App>} />
             <Route path="/settings"             element={<App><SettingsPage /></App>} />
 

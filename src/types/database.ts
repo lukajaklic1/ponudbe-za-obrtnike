@@ -43,6 +43,11 @@ export interface Company {
   default_payment_terms: string | null
   default_valid_days: number
   default_parity: string | null
+  invoice_prefix: string
+  invoice_counter: number
+  invoice_due_days: number
+  vat_payer: boolean
+  invoice_note: string | null
   oh_updated_by: string | null
   is_active: boolean
   created_at: string
@@ -255,6 +260,9 @@ export interface Database {
       quote_lines: { Row: QuoteLine; Insert: Omit<QuoteLine, 'id' | 'created_at'>; Update: Partial<Omit<QuoteLine, 'id'>> }
       jobs: { Row: Job; Insert: Partial<Job> & Pick<Job, 'company_id'>; Update: Partial<Omit<Job, 'id'>> }
       quote_attachments: { Row: QuoteAttachment; Insert: Omit<QuoteAttachment, 'id' | 'created_at'>; Update: Partial<Omit<QuoteAttachment, 'id'>> }
+      invoices: { Row: Invoice; Insert: Partial<Invoice> & Pick<Invoice, 'company_id'>; Update: Partial<Omit<Invoice, 'id'>> }
+      invoice_lines: { Row: InvoiceLine; Insert: Partial<InvoiceLine> & Pick<InvoiceLine, 'company_id' | 'invoice_id' | 'name'>; Update: Partial<Omit<InvoiceLine, 'id'>> }
+      purchase_invoices: { Row: PurchaseInvoice; Insert: Partial<PurchaseInvoice> & Pick<PurchaseInvoice, 'company_id' | 'supplier_name'>; Update: Partial<Omit<PurchaseInvoice, 'id'>> }
     }
   }
 }
@@ -279,6 +287,101 @@ export interface Job {
   notes: string | null
   started_at: string | null
   finished_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+// ─── Računi ─────────────────────────────────────────────────
+export type InvoiceStatus = 'draft' | 'issued' | 'sent' | 'paid' | 'cancelled'
+export type InvoiceKind = 'invoice' | 'advance'
+
+export interface Invoice {
+  id: string
+  company_id: string
+  invoice_number: string | null      // set when issued
+  kind: InvoiceKind
+  status: InvoiceStatus
+  customer_id: string | null
+  quote_id: string | null
+  job_id: string | null
+  title: string | null
+  issue_date: string                 // yyyy-mm-dd
+  service_date: string | null
+  service_date_to: string | null
+  due_date: string | null
+  reference: string | null
+  notes: string | null
+  discount_pct: number
+  total_net: number
+  total_vat: number
+  total_gross: number
+  paid_at: string | null
+  sent_at: string | null
+  issued_at: string | null
+  snapshot: InvoiceSnapshot | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface InvoiceLine {
+  id: string
+  invoice_id: string
+  company_id: string
+  position: number
+  price_item_id: string | null
+  advance_invoice_id: string | null
+  name: string
+  description: string | null
+  unit: string
+  quantity: number
+  unit_price: number
+  discount_pct: number
+  vat_rate: number
+  total_net: number
+  created_at: string
+}
+
+// Frozen copy of an issued invoice — the PDF only reads this
+export interface InvoiceSnapshot {
+  invoice: {
+    number: string; kind: InvoiceKind; title: string | null
+    issue_date: string; service_date: string | null; service_date_to: string | null; due_date: string | null
+    reference: string | null; notes: string | null; currency: string; discount_pct: number
+    quote_number: string | null; site_address: string | null
+  }
+  customer: { name: string; vat_number: string | null; street: string | null; city: string | null; address: string | null; email: string | null }
+  company: OfferSnapshot['company'] & { street: string | null; city: string | null; vat_payer: boolean; invoice_note: string | null }
+  lines: { name: string; description: string | null; unit: string; quantity: number; unit_price: number; discount_pct: number; vat_rate: number; total: number }[]
+  subtotal: number
+  discount_amount: number
+  total_net: number
+  vat: { rate: number; base: number; amount: number }[]
+  total_vat: number
+  total_gross: number
+}
+
+export type PurchaseCategory = 'material' | 'tools' | 'subcontract' | 'fuel' | 'rent' | 'other'
+
+export interface PurchaseInvoice {
+  id: string
+  company_id: string
+  supplier_name: string
+  supplier_vat: string | null
+  invoice_number: string | null
+  category: PurchaseCategory
+  issue_date: string | null
+  due_date: string | null
+  total_net: number | null
+  total_vat: number | null
+  total_gross: number
+  status: 'unpaid' | 'paid'
+  paid_at: string | null
+  job_id: string | null
+  file_path: string | null
+  file_name: string | null
+  notes: string | null
+  created_by: string | null
   created_at: string
   updated_at: string
 }

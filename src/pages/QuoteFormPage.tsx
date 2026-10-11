@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { ChevronLeft, Plus, Trash2, Pencil, Download, Send, Check, X, Ruler, Search, Paperclip, FileText, UploadCloud } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pencil, Download, Send, Check, X, Ruler, Search, Paperclip, FileText, UploadCloud, Receipt } from 'lucide-react'
 import OfferPdfPreview, { downloadOfferPdf } from '../components/OfferPdfPreview'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -39,10 +39,10 @@ const boxCls = 'w-full text-sm border border-gray-200 rounded-lg hover:border-gr
 const num = (l: LineRow) => ({ quantity: l.quantity ?? 0, unit_price: l.unit_price ?? 0, discount_pct: l.discount_pct ?? 0, vat_rate: l.vat_rate })
 
 // Storage keys must be plain ASCII: "Ponudba Barve Čebela.pdf" → "Ponudba_Barve_Cebela.pdf"
-const safeFileName = (n: string) => n.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]+/g, '_')
+export const safeFileName = (n: string) => n.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]+/g, '_')
 
 // Compact de-DE number cell (raw while focused, formatted on blur).
-function NumCell({ value, onValue, decimals = 2, disabled }: { value: number | null; onValue: (v: number | null) => void; decimals?: number; disabled?: boolean }) {
+export function NumCell({ value, onValue, decimals = 2, disabled }: { value: number | null; onValue: (v: number | null) => void; decimals?: number; disabled?: boolean }) {
   const [focused, setFocused] = useState(false)
   const [draft, setDraft] = useState('')
   const shown = focused ? draft : value == null ? '' : value.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
@@ -61,7 +61,7 @@ function NumCell({ value, onValue, decimals = 2, disabled }: { value: number | n
 }
 
 // Inline service search per line (like the catalog search on purchase orders).
-function ServiceSearch({ items, onSelect, placeholder, money, units }: {
+export function ServiceSearch({ items, onSelect, placeholder, money, units }: {
   items: PriceItem[]; onSelect: (p: PriceItem) => void; placeholder: string
   money: (n: number) => string; units: Record<string, string>
 }) {
@@ -98,7 +98,7 @@ function ServiceSearch({ items, onSelect, placeholder, money, units }: {
 }
 
 // Customer picker: type to filter (name, e-mail, phone, city), pick from the list.
-function CustomerSearch({ customers, value, onChange, placeholder, emptyText, labels }: {
+export function CustomerSearch({ customers, value, onChange, placeholder, emptyText, labels }: {
   customers: Customer[]; value: string; onChange: (id: string) => void; placeholder: string; emptyText: string
   labels: { person: string; company: string }
 }) {
@@ -476,6 +476,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               <Button onClick={() => setConfirm('won')} className="gap-1.5"><Check className="w-3.5 h-3.5" />{s.markAccepted}</Button>
               <Button variant="secondary" onClick={() => setConfirm('lost')} className="gap-1.5"><X className="w-3.5 h-3.5" />{s.markRejected}</Button>
             </>}
+            {/* Invoices straight from the quote: an advance once it is sent / won, the invoice once won */}
+            {hasPerm('quotes', 'create') && (status === 'sent' || status === 'won') &&
+              <Button variant="secondary" onClick={() => navigate(`/invoices/new?quote=${id}&kind=advance`)} className="gap-1.5"><Receipt className="w-3.5 h-3.5" />{lang === 'sl' ? 'Avansni račun' : 'Advance invoice'}</Button>}
+            {hasPerm('quotes', 'create') && status === 'won' &&
+              <Button variant="secondary" onClick={() => navigate(`/invoices/new?quote=${id}`)} className="gap-1.5"><Receipt className="w-3.5 h-3.5" />{lang === 'sl' ? 'Izdaj račun' : 'Issue invoice'}</Button>}
             {(status === 'won' || status === 'lost') && isAdmin &&
               <Button variant="secondary" onClick={() => changeStatus('sent')} className="gap-1.5">{s.adminRevert}</Button>}
           </>}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Building2, Receipt, CreditCard, Settings, Plus, X, Wallet, Check } from 'lucide-react'
+import { Building2, Receipt, CreditCard, Settings, Plus, X, Wallet, Check, FileText } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -9,6 +9,7 @@ import Button from '../components/ui/Button'
 import { PageHeader } from '../components/ui/PageHeader'
 import Input from '../components/ui/Input'
 import NumberInput from '../components/ui/NumberInput'
+import Checkbox from '../components/ui/Checkbox'
 import { currencySymbol } from '../lib/currency'
 import { INCOTERMS } from '../lib/incoterms'
 import type { Company } from '../types/database'
@@ -17,7 +18,7 @@ const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK
 
 export default function SettingsPage() {
   const { company, loading, refetch, isAdmin } = useCompany()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const s = t.qp
   const o = t.od
   const [form, setForm] = useState<Partial<Company>>({})
@@ -136,6 +137,31 @@ export default function SettingsPage() {
           </div>
 
           {isAdmin && <SaveRow loading={saving === 'quote'} onClick={() => save('quote', ['currency', 'quote_prefix', 'quote_counter', 'default_valid_days', 'default_parity'])} label={t.common.save} />}
+        </Section>
+
+        {/* Invoice settings */}
+        <Section icon={FileText} title={lang === 'sl' ? 'Računi' : 'Invoices'}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Input id="invoice_prefix" label={lang === 'sl' ? 'Predpona računa' : 'Invoice prefix'} {...field('invoice_prefix')} />
+            <Input id="invoice_due_days" label={lang === 'sl' ? 'Rok plačila (dni)' : 'Payment due (days)'} type="number" min={0} value={String(form.invoice_due_days ?? 8)}
+              onChange={e => setForm(f => ({ ...f, invoice_due_days: Math.max(0, parseInt(e.target.value) || 0) }))} />
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-[#7f7f7f]">{lang === 'sl' ? 'Naslednji račun' : 'Next invoice'}</span>
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">{(form.invoice_prefix || 'R')}-{new Date().getFullYear()}-0001 …</div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">{lang === 'sl' ? 'Številke računov tečejo zaporedno in se vsako leto začnejo znova. Sklic za plačilo se ustvari samodejno (SI00).' : 'Invoice numbers run sequentially and restart every year. The payment reference is created automatically (SI00).'}</p>
+          <div className="mt-5 flex flex-col gap-4">
+            <Checkbox checked={form.vat_payer === false} onChange={v => setForm(f => ({ ...f, vat_payer: !v }))}
+              label={lang === 'sl' ? 'Nisem zavezanec za DDV (na računu se izpiše: »DDV ni obračunan na podlagi 1. odstavka 94. člena ZDDV-1.«)' : 'Not VAT registered (invoices state that no VAT is charged under Art. 94(1) ZDDV-1)'} />
+            <div className="flex flex-col gap-1">
+              <label htmlFor="invoice_note" className="text-xs font-medium text-[#7f7f7f]">{lang === 'sl' ? 'Opomba na vsakem računu (neobvezno)' : 'Note on every invoice (optional)'}</label>
+              <textarea id="invoice_note" rows={2} value={form.invoice_note ?? ''} onChange={e => setForm(f => ({ ...f, invoice_note: e.target.value || null }))}
+                placeholder={lang === 'sl' ? 'npr. Hvala za zaupanje! Pri plačilu navedite sklic.' : 'e.g. Thank you for your business!'}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+            </div>
+          </div>
+          {isAdmin && <SaveRow loading={saving === 'invoice'} onClick={() => save('invoice', ['invoice_prefix', 'invoice_due_days', 'vat_payer', 'invoice_note'])} label={t.common.save} />}
         </Section>
 
         {/* Payment terms — the company's list; one is preselected on new quotes */}
