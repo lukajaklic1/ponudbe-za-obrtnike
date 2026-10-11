@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.text-label { color: #7f7f7f; }
+
+/* ── Landing page animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-6px) rotate(1deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes growBar {
+  from { width: 0; }
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+.animate-fade-up        { animation: fadeUp 0.6s ease both; }
+.animate-fade-in        { animation: fadeIn 0.8s ease both; }
+.animate-float          { animation: float 4s ease-in-out infinite; }
+.animate-float-slow     { animation: floatSlow 6s ease-in-out infinite; }
+.animate-float-delay    { animation: float 4s ease-in-out infinite 0.8s; }
+.animate-count-up       { animation: countUp 0.5s ease both; }
+.animate-slide-right    { animation: slideRight 0.5s ease both; }
+
+.gradient-text {
+  background: linear-gradient(135deg, #266df0 0%, #60a5fa 50%, #818cf8 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
+}
+.gradient-text-static {
+  background: linear-gradient(135deg, #266df0 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.glow-blue {
+  box-shadow: 0 0 60px rgba(38,109,240,.25), 0 0 120px rgba(38,109,240,.1);
+}
+
+.in-view { animation: fadeUp 0.65s ease both; }
+.in-view-delay-1 { animation: fadeUp 0.65s 0.1s ease both; }
+.in-view-delay-2 { animation: fadeUp 0.65s 0.2s ease both; }
+.in-view-delay-3 { animation: fadeUp 0.65s 0.3s ease both; }
+.in-view-delay-4 { animation: fadeUp 0.65s 0.4s ease both; }
+.not-in-view { opacity: 0; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04', 'cv09', 'cv10';
+}
+
+/* Browsers dim disabled selects (opacity .7) and keep the arrow — read-only selects
+   should look exactly like the read-only inputs next to them. */
+select:disabled {
+  opacity: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+/* Disabled inputs/selects/textareas in read-only fieldset */
+fieldset:disabled input,
+fieldset:disabled textarea {
+  background-color: #f9fafb !important;
+  color: #52525b !important;
+  border-color: #eeeff1 !important;
+  cursor: not-allowed;
+}
+
+fieldset:disabled select {
+  background-color: #f9fafb !important;
+  color: #52525b !important;
+  -webkit-text-fill-color: #52525b !important;
+  border-color: #eeeff1 !important;
+  cursor: not-allowed;
+}
+
+fieldset:disabled input:hover,
+fieldset:disabled select:hover,
+fieldset:disabled textarea:hover,
+fieldset:disabled input:focus,
+fieldset:disabled select:focus,
+fieldset:disabled textarea:focus {
+  border-color: #eeeff1 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
