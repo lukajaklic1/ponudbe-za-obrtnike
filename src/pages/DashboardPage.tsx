@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, TrendingUp, Trophy, FileText, CheckCircle2, Search, X, CalendarDays, BarChart3, Users } from 'lucide-react'
+import { LayoutDashboard, Trophy, FileText, Search, X, CalendarDays, BarChart3, Users, Layers, Send, XCircle, Tags } from 'lucide-react'
 import { SortIcon } from '../components/ui/SortIcon'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
 import { supabase } from '../lib/supabase'
+import { countQuotes } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -61,6 +62,73 @@ export default function DashboardPage() {
   const [searchText, setSearchText] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
 
+  // Current state per status (value + count) — not limited to the period; refreshed live
+  type StatusKey = 'all' | 'issued' | 'sent' | 'won' | 'lost'
+  const [statusStats, setStatusStats] = useState<Record<StatusKey, { value: number; count: number }> | null>(null)
+
+  // Top services: lines of non-draft quotes, filtered by the chart's own status picker (default: won)
+  const [serviceLines, setServiceLines] = useState<{ name: string; value: number; status: string }[]>([])
+  const [serviceStatus, setServiceStatus] = useState<'won' | 'lost' | 'sent' | 'issued' | 'all'>('won')
+  const topServices = useMemo(() => {
+    const byName = new Map<string, { name: string; value: number; count: number }>()
+    for (const l of serviceLines) {
+      if (serviceStatus !== 'all' && l.status !== serviceStatus) continue
+      const key = l.name.toLowerCase()
+      const row = byName.get(key) ?? { name: l.name, value: 0, count: 0 }
+      row.value += l.value; row.count++
+      byName.set(key, row)
+    }
+    return [...byName.values()].sort((a, b) => b.value - a.value).slice(0, 6)
+  }, [serviceLines, serviceStatus])
+
+  async function loadStatusStats() {
+    if (!company) return
+    const [{ data }, { data: lineData }] = await Promise.all([
+      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id').eq('company_id', company.id),
+      supabase.from('quote_lines').select('quote_id, name, total_net').eq('company_id', company.id),
+    ])
+    const acc: Record<StatusKey, { value: number; count: number }> = {
+      all: { value: 0, count: 0 }, issued: { value: 0, count: 0 }, sent: { value: 0, count: 0 }, won: { value: 0, count: 0 }, lost: { value: 0, count: 0 },
+    }
+    const statusOf = new Map<string, string>()   // included quote id → status
+    for (const q of (data as { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null }[]) ?? []) {
+      if (filterCustomerId && q.customer_id !== filterCustomerId) continue
+      if (assigneeFilter && q.assignee_id !== assigneeFilter) continue
+      if (q.status === 'draft') continue          // drafts are work in progress, not offers
+      statusOf.set(q.id, q.status)
+      const v = Number(q.total_net) || 0
+      acc.all.value += v; acc.all.count++
+      if (q.status in acc) { acc[q.status as StatusKey].value += v; acc[q.status as StatusKey].count++ }
+    }
+    setStatusStats(acc)
+
+    setServiceLines(((lineData as { quote_id: string; name: string; total_net: number }[]) ?? [])
+      .filter(l => statusOf.has(l.quote_id))
+      .map(l => ({ name: l.name.trim(), value: Number(l.total_net) || 0, status: statusOf.get(l.quote_id)! })))
+  }
+
+  useEffect(() => { if (company) loadStatusStats() }, [company, filterCustomerId, assigneeFilter])
+
+  // Live: refresh when any quote of this company changes (other users too) and when the tab regains focus
+  useEffect(() => {
+    if (!company) return
+    const refresh = () => { loadStatusStats(); load() }
+    const onFocus = () => document.visibilityState === 'visible' && refresh()
+    document.addEventListener('visibilitychange', onFocus)
+    window.addEventListener('focus', onFocus)
+    const sb = supabase as any
+    const channel = typeof sb.channel === 'function'
+      ? sb.channel(`dashboard-quotes-${company.id}`)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'quotes', filter: `company_id=eq.${company.id}` }, refresh)
+          .subscribe()
+      : null
+    return () => {
+      document.removeEventListener('visibilitychange', onFocus)
+      window.removeEventListener('focus', onFocus)
+      if (channel) sb.removeChannel(channel)
+    }
+  }, [company, filterCustomerId, assigneeFilter, period])
+
   useEffect(() => {
     if (company) {
       load()
@@ -101,10 +169,6 @@ export default function DashboardPage() {
   const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / pageSize))
   const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  const totalSentValue = trends.reduce((s, t) => s + (t.sent_value || 0), 0)
-  const totalRealizedValue = trends.reduce((s, t) => s + (t.realized_value || 0), 0)
-  const totalSentCount = trends.reduce((s, t) => s + (t.sent_count || 0), 0)
-  const totalRealizedCount = trends.reduce((s, t) => s + (t.realized_count || 0), 0)
 
 
   const formatPeriod = (date: string) => {
@@ -116,12 +180,14 @@ export default function DashboardPage() {
 
   const sl = lang === 'sl'
 
+  const st = statusStats
   const kpis = [
-    { label: sl ? 'Vrednost poslanih' : 'Sent value', value: money(totalSentValue), icon: TrendingUp, bg: 'bg-blue-50', iconColor: 'text-blue-500' },
-    { label: sl ? 'Vrednost dobljenih' : 'Won value', value: money(totalRealizedValue), icon: CheckCircle2, bg: 'bg-[#e0fced]', iconColor: 'text-[#007d53]' },
-    { label: sl ? 'Poslane ponudbe' : 'Sent quotes', value: String(totalSentCount), icon: FileText, bg: 'bg-blue-50', iconColor: 'text-blue-400' },
-    { label: sl ? 'Dobljene ponudbe' : 'Won quotes', value: String(totalRealizedCount), icon: Trophy, bg: 'bg-[#e0fced]', iconColor: 'text-[#007d53]' },
-  ]
+    { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#e5eeff]',   iconColor: 'text-[#215bcf]' },
+    { key: 'issued', label: sl ? 'Izdane' : 'Issued',            icon: FileText,     bg: 'bg-[#f3edff]',   iconColor: 'text-[#6b3fc9]' },
+    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-blue-50',     iconColor: 'text-blue-500' },
+    { key: 'won',    label: sl ? 'Dobljene' : 'Won',             icon: Trophy,       bg: 'bg-[#e0fced]',   iconColor: 'text-[#007d53]' },
+    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#feeee1]',   iconColor: 'text-[#9e3f00]' },
+  ] as const
 
   const periods = [
     { v: 1 as const, sl: '30 dni', en: '30 days' },
@@ -220,17 +286,22 @@ export default function DashboardPage() {
       <div className="p-4 space-y-6">
 
         {/* KPI cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {kpis.map(k => (
-            <div key={k.label} className="bg-white rounded-xl border border-gray-200 p-5">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${k.bg}`}>
-                <k.icon className={`w-4 h-4 ${k.iconColor}`} />
+            <div key={k.key} className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${k.bg}`}>
+                  <k.icon className={`w-4 h-4 ${k.iconColor}`} />
+                </div>
+                {/* count as a quiet chip, same style as the page-header counters */}
+                <span className="text-[13px] font-medium text-gray-600 px-2 py-0.5 rounded bg-gray-50" title={countQuotes(lang, st?.[k.key].count ?? 0)}>{st?.[k.key].count ?? 0}</span>
               </div>
               <p className="text-xs font-medium text-label">{k.label}</p>
-              <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight">{k.value}</p>
+              <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight">{money(st?.[k.key].value ?? 0)}</p>
             </div>
           ))}
         </div>
+
 
         {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -268,6 +339,92 @@ export default function DashboardPage() {
             </div>
           </div>
 
+
+        {/* Status breakdown (donut) + top services */}
+        {(() => {
+          const slices = [
+            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: '#a78bfa' },
+            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#60a5fa' },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#00d17e' },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#fb923c' },
+          ].map(x => ({ ...x, count: st?.[x.key as StatusKey].count ?? 0, value: st?.[x.key as StatusKey].value ?? 0 }))
+          const total = st?.all.count ?? 0
+          const servicesTotal = topServices.reduce((a, x) => a + x.value, 0)
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-sm font-medium text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
+                {total === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[220px] text-center">
+                    <BarChart3 className="w-10 h-10 text-gray-200 mb-3" />
+                    <p className="text-sm text-gray-400">{sl ? 'Še ni izdanih ponudb.' : 'No issued quotes yet.'}</p>
+                  </div>
+                ) : (<>
+                  <div className="flex items-center gap-6 h-[240px]">
+                  <div className="relative w-[220px] h-[220px] shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none">
+                          {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
+                        </Pie>
+                        <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-2xl font-semibold text-gray-900">{total}</span>
+                      <span className="text-xs text-gray-500">{countQuotes(lang, total).replace(/^\d+ /, '')}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-col gap-2">
+                    {slices.map(x => (
+                      <div key={x.key} className="flex items-center gap-2 text-xs">
+                        <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: x.color }} />
+                        <span className="text-gray-600 flex-1">{x.name}</span>
+                        <span className="text-gray-900 font-medium tabular-nums">{x.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                  </div>
+                </>)}
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
+                <div className="flex items-center justify-between gap-3 mb-5 -mt-1">
+                  <h2 className="text-sm font-medium text-gray-900">
+                    {sl ? 'Storitve po vrednosti' : 'Services by value'}
+                  </h2>
+                  <FilterSelect label={sl ? 'Status ponudb' : 'Quote status'} value={serviceStatus === 'all' ? '' : serviceStatus} allLabel={sl ? 'Vse' : 'All'}
+                    options={[
+                      { value: 'won', label: sl ? 'Dobljene' : 'Won' },
+                      { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' },
+                      { value: 'sent', label: sl ? 'Poslane' : 'Sent' },
+                      { value: 'issued', label: sl ? 'Izdane' : 'Issued' },
+                    ]}
+                    onChange={v => setServiceStatus((v || 'all') as typeof serviceStatus)} />
+                </div>
+                {topServices.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[260px] text-center">
+                    <Tags className="w-10 h-10 text-gray-200 mb-3" />
+                    <p className="text-sm text-gray-400">{sl ? 'Še ni podatkov o storitvah.' : 'No service data yet.'}</p>
+                  </div>
+                ) : (
+                  /* Same look as the other charts: dashed grid, grey axis labels, blue rounded bars, shared tooltip */
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }} barCategoryGap={8}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false}
+                        tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
+                      <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0} %)`, sl ? 'Vrednost' : 'Value']}
+                        cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                      <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} maxBarSize={22} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Customer table */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

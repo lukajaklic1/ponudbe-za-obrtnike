@@ -1,6 +1,6 @@
 -- Obrtdesk namestitev — KORAK 6 od 6
 -- Samo za PRAZEN Supabase projekt. Prilepi celoto v SQL Editor in klikni Run.
--- vsebuje: 20261010000004_customer_person_company.sql … 20261011000002_company_legal_details.sql
+-- vsebuje: 20261010000004_customer_person_company.sql … 20261011000003_realtime_quotes.sql
 
 -- ===== 20261010000004_customer_person_company.sql =====
 -- ============================================================
@@ -61,5 +61,23 @@ ALTER TABLE companies ADD COLUMN IF NOT EXISTS share_capital numeric(14,2);   --
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS unpaid_capital numeric(14,2);  -- nevplačani osnovni kapital
 
 NOTIFY pgrst, 'reload schema';
+
+
+-- ===== 20261011000003_realtime_quotes.sql =====
+-- ============================================================
+-- 20261011000003_realtime_quotes.sql
+-- Live dashboard: broadcast changes on quotes via Supabase Realtime.
+-- (RLS still applies — users only receive their own company's rows.)
+-- ============================================================
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'quotes'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.quotes;
+  END IF;
+END $$;
 
 
