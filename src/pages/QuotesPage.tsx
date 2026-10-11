@@ -12,6 +12,7 @@ import Pagination from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
+import { DateFilter } from '../components/ui/DateFilter'
 import { PersonBadge } from '../components/ui/PersonBadge'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
@@ -64,6 +65,8 @@ export default function QuotesPage() {
   const [customerFilter, setCustomerFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const [dateFrom, setDateFrom] = useState('')   // created_at range, yyyy-mm-dd
+  const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<'quote_number' | 'customer' | 'status' | 'waiting' | 'value' | 'created_at'>('created_at')
@@ -105,6 +108,8 @@ export default function QuotesPage() {
     return (
       (statusFilter === 'all' || r.status === statusFilter) &&
       (customerFilter === 'all' || r.customer_id === customerFilter) &&
+      (!dateFrom || format(new Date(r.created_at), 'yyyy-MM-dd') >= dateFrom) &&
+      (!dateTo || format(new Date(r.created_at), 'yyyy-MM-dd') <= dateTo) &&
       (assigneeFilter === 'all' || (assigneeFilter === 'unassigned' ? !r.assignee_id : r.assignee_id === assigneeFilter)) &&
       (!search || r.quote_number.toLowerCase().includes(q) ||
         (r.customers?.name ?? '').toLowerCase().includes(q) ||
@@ -180,6 +185,8 @@ export default function QuotesPage() {
         <FilterSelect label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
           options={[{ value: 'unassigned', label: s.noAssignee }, ...companyUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))]}
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
+        <DateFilter label={sl ? 'Ustvarjeno od' : 'Created from'} value={dateFrom} allLabel={t.common.all} max={dateTo || undefined} onChange={v => { setDateFrom(v); setPage(1) }} />
+        <DateFilter label={sl ? 'Ustvarjeno do' : 'Created to'} value={dateTo} allLabel={t.common.all} min={dateFrom || undefined} onChange={v => { setDateTo(v); setPage(1) }} />
         <div className="ml-auto inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
