@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Plus, Tags, Search, CalendarDays, MoreVertical } from 'lucide-react'
+import { Plus, Tags, Tag, Search, CalendarDays, MoreVertical, Upload } from 'lucide-react'
+import PriceImportModal from '../components/PriceImportModal'
 import { SortIcon } from '../components/ui/SortIcon'
 import { format } from 'date-fns'
 import { supabase } from '../lib/supabase'
@@ -29,7 +30,7 @@ const empty: Form = { code: '', name: '', description: '', unit: 'm2', price: nu
 export default function PriceListPage() {
   const { company, hasPerm, isAdmin, loading: permLoading } = useCompany()
   const canEdit = hasPerm('price_list', 'create')
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const o = t.od
   type Row = PriceItem & { editor: { first_name: string; last_name: string } | null }
   const [rows, setRows] = useState<Row[]>([])
@@ -40,6 +41,8 @@ export default function PriceListPage() {
   const [form, setForm] = useState<Form>(empty)
   const [saving, setSaving] = useState(false)
   const [toDelete, setToDelete] = useState<PriceItem | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
+  const [used, setUsed] = useState<Set<string>>(new Set()) // services on any quote → deactivate only, no delete
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [sortKey, setSortKey] = useState<'code' | 'name' | 'unit' | 'price' | 'vat_rate' | 'is_active' | 'updated_at'>('code')
@@ -50,10 +53,12 @@ export default function PriceListPage() {
   async function load() {
     if (!company) return
     // spinner only on first load (initial state) — reloads keep the current view on screen
-    const [{ data: items }, { data: companyUsers }] = await Promise.all([
+    const [{ data: items }, { data: companyUsers }, { data: lineRefs }] = await Promise.all([
       supabase.from('price_items').select('*').eq('company_id', company.id).order('code'),
       supabase.from('users').select('id, first_name, last_name').eq('company_id', company.id),
+      supabase.from('quote_lines').select('price_item_id').eq('company_id', company.id).not('price_item_id', 'is', null),
     ])
+    setUsed(new Set(((lineRefs ?? []) as { price_item_id: string }[]).map(l => l.price_item_id)))
     const userMap: Record<string, { first_name: string; last_name: string }> = {}
     for (const u of companyUsers ?? []) userMap[u.id] = { first_name: u.first_name, last_name: u.last_name }
     setRows(((items ?? []) as PriceItem[]).map(p => ({ ...p, editor: userMap[p.updated_by ?? p.created_by ?? ''] ?? null })))
@@ -84,6 +89,7 @@ export default function PriceListPage() {
   }
   async function doDelete() {
     if (!toDelete) return
+    if (used.has(toDelete.id)) { toast.error(o.cannotDeleteUsedService); setToDelete(null); return }
     const { error } = await supabase.from('price_items').delete().eq('id', toDelete.id)
     if (error) { toast.error(error.message); return }
     toast.success(t.common.deleted); setToDelete(null); load()
@@ -110,7 +116,10 @@ export default function PriceListPage() {
 
   return (
     <div>
-      <PageHeader title={o.priceList} icon={Tags} count={rows.length} action={canEdit && <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{o.newPriceItem}</Button>} />
+      <PageHeader title={o.priceList} icon={Tags} count={rows.length} action={canEdit && <div className="flex gap-2">
+        <Button variant="secondary" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />{o.importServices}</Button>
+        <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{o.newPriceItem}</Button>
+      </div>} />
       <div className="p-4">
 
       <div className="flex flex-wrap gap-3 mb-4">
@@ -147,7 +156,14 @@ export default function PriceListPage() {
             <tbody className="divide-y divide-gray-200">
               {paginated.map(p => (
                 <tr key={p.id} className={`hover:bg-gray-50 ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && openEdit(p)}>
-                  <td className="px-4 py-2.5 text-gray-700">{p.code || '—'}</td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff' }}>
+                        <Tag className="w-3.5 h-3.5" style={{ color: '#215bcf' }} />
+                      </div>
+                      <span className="text-gray-700">{p.code || '—'}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-2.5">
                     <div className="font-medium text-gray-900">{p.name}</div>
                     {p.description && <div className="text-xs text-gray-400 truncate max-w-xs">{p.description}</div>}
@@ -204,9 +220,10 @@ export default function PriceListPage() {
           </div>
         </div>
         <div className="mt-4"><Checkbox checked={form.is_active} onChange={v => setForm(f => ({ ...f, is_active: v }))} label={t.common.activeF} /></div>
+        {editing && used.has(editing.id) && <p className="text-sm text-gray-400 mt-5">{o.cannotDeleteUsedService}</p>}
         <div className="flex items-center justify-between mt-4 pt-4 -mx-6 px-6 border-t border-gray-200">
           <div>
-            {editing && isAdmin && (
+            {editing && isAdmin && !used.has(editing.id) && (
               <Button variant="danger" onClick={() => { setOpen(false); setToDelete(editing) }}>{t.common.delete}</Button>
             )}
           </div>
@@ -216,6 +233,9 @@ export default function PriceListPage() {
           </div>
         </div>
       </Modal>
+
+      {company && <PriceImportModal open={importOpen} onClose={() => setImportOpen(false)} companyId={company.id}
+        lang={lang} units={o.units} money={money} onDone={load} />}
 
       <ConfirmDialog open={!!toDelete} onClose={() => setToDelete(null)} onConfirm={doDelete}
         title={o.deletePriceItem} message={o.deletePriceItemConfirm} confirmLabel={t.common.delete} danger />

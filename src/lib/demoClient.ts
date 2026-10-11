@@ -94,7 +94,7 @@ function seed(): DB {
     const created = daysAgo(d.age)
     const lines = d.lines.map(([room, code, qty]) => {
       const p = pi(code)
-      return { room, name: p.name, description: null, unit: p.unit, quantity: qty, unit_price: p.price, discount_pct: 0, vat_rate: d.vat }
+      return { room, priceItemId: p.id as string, name: p.name, description: null, unit: p.unit, quantity: qty, unit_price: p.price, discount_pct: 0, vat_rate: d.vat }
     })
     const tot = quoteTotals(lines, d.disc)
     const cust = customers[d.cust]
@@ -113,7 +113,7 @@ function seed(): DB {
       q.snapshot.offer.issued_at = created
     }
     quotes.push(q)
-    lines.forEach((l, i) => quote_lines.push({ id: `${id}-l${i + 1}`, quote_id: id, company_id: companyId, position: i + 1, price_item_id: null, ...l, total_net: lineTotal(l), created_at: created }))
+    lines.forEach(({ priceItemId, ...l }, i) => quote_lines.push({ id: `${id}-l${i + 1}`, quote_id: id, company_id: companyId, position: i + 1, price_item_id: priceItemId, ...l, total_net: lineTotal(l), created_at: created }))
   })
 
   return { companies: [company], users: [user], user_permissions: [], user_invitations: [], customers, price_items, quotes, quote_lines, quote_attachments: [] }

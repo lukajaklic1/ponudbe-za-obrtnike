@@ -36,9 +36,19 @@ interface Row extends Quote { customers: { name: string } | null; assignee: { fi
 export default function QuotesPage() {
   const { company, hasPerm, loading: permLoading } = useCompany()
   const canEdit = hasPerm('quotes', 'create')
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const s = t.qp
   const navigate = useNavigate()
+  const sl = lang === 'sl'
+  // Days a sent quote has been waiting for the customer's answer (null = not waiting)
+  const waitingDays = (q: Quote) => {
+    if (q.status !== 'sent') return null
+    const from = q.sent_at ?? q.issued_at ?? q.updated_at
+    return Math.max(0, Math.floor((Date.now() - Date.parse(from)) / 86400000))
+  }
+  const daysLabel = (d: number) => sl
+    ? `${d} ${d === 1 ? 'dan' : d === 2 ? 'dneva' : d === 3 || d === 4 ? 'dnevi' : 'dni'}`
+    : `${d} ${d === 1 ? 'day' : 'days'}`
   const [rows, setRows] = useState<Row[]>([])
   const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,7 +58,7 @@ export default function QuotesPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
-  const [sortKey, setSortKey] = useState<'quote_number' | 'customer' | 'status' | 'value' | 'created_at'>('created_at')
+  const [sortKey, setSortKey] = useState<'quote_number' | 'customer' | 'status' | 'waiting' | 'value' | 'created_at'>('created_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   function handleSort(k: typeof sortKey) { setSortKey(k); setSortDir(d => k === sortKey ? (d === 'asc' ? 'desc' : 'asc') : 'asc'); setPage(1) }
 
@@ -97,6 +107,12 @@ export default function QuotesPage() {
     if (sortKey === 'quote_number') return a.quote_number.localeCompare(b.quote_number) * mul
     if (sortKey === 'customer') return (a.customers?.name ?? '').localeCompare(b.customers?.name ?? '') * mul
     if (sortKey === 'status') return a.status.localeCompare(b.status) * mul
+    if (sortKey === 'waiting') {
+      // quotes that aren't waiting always go last, whatever the direction
+      const wa = waitingDays(a), wb = waitingDays(b)
+      if (wa == null || wb == null) return wa == null ? (wb == null ? 0 : 1) : -1
+      return (wa - wb) * mul
+    }
     if (sortKey === 'value') return ((Number(a.total_net) || 0) - (Number(b.total_net) || 0)) * mul
     if (sortKey === 'created_at') return a.created_at.localeCompare(b.created_at) * mul
     return 0
@@ -137,7 +153,7 @@ export default function QuotesPage() {
         ) : (
           <div className="overflow-x-auto"><table className="w-full text-sm min-w-[920px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
-              {([['quote_number', s.quoteNumber], ['', t.od.quoteTitle], ['customer', s.customer], ['', s.contactPerson], ['', t.od.siteAddress], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
+              {([['quote_number', s.quoteNumber], ['', t.od.quoteTitle], ['customer', s.customer], ['', s.contactPerson], ['', t.od.siteAddress], ['status', t.common.status], ['waiting', sl ? 'Čaka' : 'Waiting'], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
@@ -163,6 +179,14 @@ export default function QuotesPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-600 max-w-[220px] truncate">{q.site_address || '—'}</td>
                   <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: STATUS_STYLE[q.status].bg, border: `1px solid ${STATUS_STYLE[q.status].border}`, color: STATUS_STYLE[q.status].color }}>{s.status[q.status]}</span></td>
+                  <td className="px-4 py-3">{(() => {
+                    const d = waitingDays(q)
+                    if (d == null) return <span className="text-gray-400">—</span>
+                    const style = d >= 14 ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
+                      : d >= 7 ? { backgroundColor: '#fff3cc', border: '1px solid #ffe5a0', color: '#874d00' }
+                      : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }
+                    return <span className="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={style}>{daysLabel(d)}</span>
+                  })()}</td>
                   <td className="px-4 py-3 text-gray-700">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
                   <td className="px-4 py-3 text-gray-500">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
