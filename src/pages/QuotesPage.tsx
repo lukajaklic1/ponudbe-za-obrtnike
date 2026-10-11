@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Plus, FileText, Search, Check, X, ChevronDown, MoreVertical } from 'lucide-react'
+import { Plus, FileText, Search, Check, X, ChevronDown, MoreVertical, List, Columns3 } from 'lucide-react'
+import QuotesKanban from '../components/QuotesKanban'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
+import { toast } from '../components/ui/Toast'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -31,6 +34,8 @@ const STATUS_STYLE: Record<QuoteStatus, { bg: string; border: string; color: str
   frozen:   { bg: '#e5eeff', border: '#d6e5ff', color: '#215bcf' },
 }
 
+const VIEW_KEY = 'obrtdesk-quotes-view'
+
 interface Row extends Quote { customers: { name: string } | null; assignee: { first_name: string; last_name: string } | null }
 
 export default function QuotesPage() {
@@ -40,10 +45,13 @@ export default function QuotesPage() {
   const s = t.qp
   const navigate = useNavigate()
   const sl = lang === 'sl'
-  // Days a sent quote has been waiting for the customer's answer (null = not waiting)
+  // Days an open quote has been in its current status (null = final status: won / lost)
   const waitingDays = (q: Quote) => {
-    if (q.status !== 'sent') return null
-    const from = q.sent_at ?? q.issued_at ?? q.updated_at
+    const from = q.status === 'draft' ? q.created_at
+      : q.status === 'issued' ? (q.issued_at ?? q.updated_at)
+      : q.status === 'sent' ? (q.sent_at ?? q.issued_at ?? q.updated_at)
+      : null
+    if (!from) return null
     return Math.max(0, Math.floor((Date.now() - Date.parse(from)) / 86400000))
   }
   const daysLabel = (d: number) => sl
@@ -61,6 +69,11 @@ export default function QuotesPage() {
   const [sortKey, setSortKey] = useState<'quote_number' | 'customer' | 'status' | 'waiting' | 'value' | 'created_at'>('created_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   function handleSort(k: typeof sortKey) { setSortKey(k); setSortDir(d => k === sortKey ? (d === 'asc' ? 'desc' : 'asc') : 'asc'); setPage(1) }
+  const [view, setView] = useState<'list' | 'kanban'>(() => {
+    try { return localStorage.getItem(VIEW_KEY) === 'kanban' ? 'kanban' : 'list' } catch { return 'list' }
+  })
+  function changeView(v: 'list' | 'kanban') { setView(v); try { localStorage.setItem(VIEW_KEY, v) } catch { /* private mode */ } }
+  const [pendingMove, setPendingMove] = useState<{ quote: Row; to: QuoteStatus } | null>(null)
 
   useEffect(() => { if (company) { load(); loadUsers() } }, [company])
   useEffect(() => {
@@ -118,6 +131,33 @@ export default function QuotesPage() {
     return 0
   })
   const paged = sortedFiltered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const money = (n: number) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })
+  const openQuote = (q: Quote) => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)
+
+  const waitingBadge = (q: Quote) => {
+    const d = waitingDays(q)
+    if (d == null) return null
+    const style = d >= 14 ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
+      : d >= 7 ? { backgroundColor: '#fff3cc', border: '1px solid #ffe5a0', color: '#874d00' }
+      : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }
+    return <span className="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={style}>{daysLabel(d)}</span>
+  }
+
+  // Dropped on another column. Won / lost lock the offer, so ask first (same as the buttons on the offer).
+  function requestMove(q: Row, to: QuoteStatus) {
+    if (to === 'won' || to === 'lost') setPendingMove({ quote: q, to })
+    else moveQuote(q, to)
+  }
+
+  async function moveQuote(q: Row, to: QuoteStatus) {
+    const now = new Date().toISOString()
+    const patch: Partial<Quote> = { status: to, updated_at: now }
+    if (to === 'sent') patch.sent_at = now
+    setRows(prev => prev.map(r => r.id === q.id ? { ...r, ...patch } : r))   // optimistic
+    const { error } = await supabase.from('quotes').update(patch).eq('id', q.id)
+    if (error) { toast.error(error.message); setRows(prev => prev.map(r => r.id === q.id ? q : r)); return }
+    toast.success(t.common.saved)
+  }
 
   if (!permLoading && !hasPerm('quotes', 'view')) return <Navigate to="/dashboard" replace />
 
@@ -140,8 +180,27 @@ export default function QuotesPage() {
         <FilterSelect label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
           options={[{ value: 'unassigned', label: s.noAssignee }, ...companyUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))]}
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
+        <div className="ml-auto inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+          {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
+            <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
+              className={`p-1 rounded-md transition-colors ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}>
+              <Icon className="w-4 h-4" />
+            </button>
+          ))}
+        </div>
       </div>
 
+      {view === 'kanban' && !loading ? (
+        <QuotesKanban
+          statuses={STATUSES.filter(st => statusFilter === 'all' || st === statusFilter)}
+          quotes={sortedFiltered} canEdit={canEdit} statusLabels={s.status} money={money} waitingDays={waitingDays}
+          labels={{
+            empty: sl ? 'Ni ponudb' : 'No quotes', total: sl ? 'Skupaj brez DDV' : 'Total excl. VAT',
+            created: t.common.created, validUntil: sl ? 'Velja do' : 'Valid until', value: t.od.totalNet,
+            assignee: s.assignee, noAssignee: s.noAssignee, customer: s.customer, site: t.od.siteAddress, inStatus: sl ? 'Dni v trenutnem statusu' : 'Days in current status',
+          }}
+          onOpen={openQuote} onMove={requestMove} />
+      ) : (<>
       <div className="-mx-4 border-t border-b border-gray-200">
         {loading ? (
           <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
@@ -179,14 +238,7 @@ export default function QuotesPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-600 max-w-[220px] truncate">{q.site_address || '—'}</td>
                   <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: STATUS_STYLE[q.status].bg, border: `1px solid ${STATUS_STYLE[q.status].border}`, color: STATUS_STYLE[q.status].color }}>{s.status[q.status]}</span></td>
-                  <td className="px-4 py-3">{(() => {
-                    const d = waitingDays(q)
-                    if (d == null) return <span className="text-gray-400">—</span>
-                    const style = d >= 14 ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
-                      : d >= 7 ? { backgroundColor: '#fff3cc', border: '1px solid #ffe5a0', color: '#874d00' }
-                      : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }
-                    return <span className="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={style}>{daysLabel(d)}</span>
-                  })()}</td>
+                  <td className="px-4 py-3">{waitingBadge(q) ?? <span className="text-gray-400">—</span>}</td>
                   <td className="px-4 py-3 text-gray-700">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
                   <td className="px-4 py-3 text-gray-500">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
@@ -215,6 +267,13 @@ export default function QuotesPage() {
       </div>
 
       <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onChange={setPage} />
+      </>)}
+
+      <ConfirmDialog open={!!pendingMove} onClose={() => setPendingMove(null)}
+        onConfirm={() => { if (pendingMove) moveQuote(pendingMove.quote, pendingMove.to); setPendingMove(null) }}
+        title={pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted}
+        message={`${pendingMove?.quote.quote_number ?? ''}: ${pendingMove?.to === 'lost' ? s.confirmLost : s.confirmWon}`}
+        confirmLabel={pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted} danger={pendingMove?.to === 'lost'} />
     </div>
     </div>
   )

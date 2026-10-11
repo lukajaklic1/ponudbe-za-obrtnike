@@ -294,7 +294,7 @@ export default function DashboardPage() {
                   <k.icon className={`w-4 h-4 ${k.iconColor}`} />
                 </div>
                 {/* count as a quiet chip, same style as the page-header counters */}
-                <span className="text-[13px] font-medium text-gray-600 px-2 py-0.5 rounded bg-gray-50" title={countQuotes(lang, st?.[k.key].count ?? 0)}>{st?.[k.key].count ?? 0}</span>
+                <span className="text-[13px] font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }} title={countQuotes(lang, st?.[k.key].count ?? 0)}>{st?.[k.key].count ?? 0}</span>
               </div>
               <p className="text-xs font-medium text-label">{k.label}</p>
               <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight">{money(st?.[k.key].value ?? 0)}</p>

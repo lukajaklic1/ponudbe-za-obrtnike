@@ -21,7 +21,7 @@ export const TEMPLATE_EXAMPLE = [
 ]
 
 // Split one CSV line, honouring "quoted; fields" and doubled quotes.
-function splitLine(line: string, sep: string): string[] {
+export function splitLine(line: string, sep: string): string[] {
   const out: string[] = []
   let cur = '', q = false
   for (let i = 0; i < line.length; i++) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Plus, Users, Search, CalendarDays, Building2, User, MoreVertical } from 'lucide-react'
+import { Plus, Users, Search, CalendarDays, Building2, User, MoreVertical, Upload } from 'lucide-react'
+import CustomerImportModal from '../components/CustomerImportModal'
 import { SortIcon } from '../components/ui/SortIcon'
 import { format } from 'date-fns'
 import { supabase } from '../lib/supabase'
@@ -42,7 +43,7 @@ const PAGE_SIZE = 20
 export default function CustomersPage() {
   const { company, hasPerm, isAdmin, loading: permLoading } = useCompany()
   const canEdit = hasPerm('customers', 'create')
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const s = t.qp
   const o = t.od
   const [rows, setRows] = useState<Customer[]>([])
@@ -58,6 +59,7 @@ export default function CustomersPage() {
   const [saving, setSaving] = useState(false)
   const [toDelete, setToDelete] = useState<Customer | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [sortKey, setSortKey] = useState<'created' | 'name' | 'type' | 'city' | 'status' | 'quotes'>('created')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc') // default: newest first
@@ -157,7 +159,10 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <PageHeader title={s.customers} icon={Users} count={rows.length} action={canEdit && <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{s.newCustomer}</Button>} />
+      <PageHeader title={s.customers} icon={Users} count={rows.length} action={canEdit && <div className="flex gap-2">
+        <Button variant="secondary" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />{o.importServices}</Button>
+        <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{s.newCustomer}</Button>
+      </div>} />
       <div className="p-4">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -287,6 +292,9 @@ export default function CustomersPage() {
           </div>
         </div>
       </Modal>
+
+      {company && <CustomerImportModal open={importOpen} onClose={() => setImportOpen(false)} companyId={company.id}
+        lang={lang} typeLabels={{ person: o.typePerson, company: o.typeCompany }} onDone={load} />}
 
       <ConfirmDialog open={!!toDelete} onClose={() => setToDelete(null)} onConfirm={doDelete}
         title={s.deleteCustomer} message={s.deleteCustomerConfirm} confirmLabel={t.common.delete} danger loading={deleting} />
