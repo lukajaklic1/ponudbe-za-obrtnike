@@ -17,7 +17,7 @@ import { PersonBadge } from '../components/ui/PersonBadge'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
 
-interface CompanyUser { id: string; first_name: string; last_name: string }
+interface CompanyUser { id: string; first_name: string; last_name: string; is_active?: boolean }
 
 
 const PAGE_SIZE = 20
@@ -59,11 +59,12 @@ export default function QuotesPage() {
     ? `${d} ${d === 1 ? 'dan' : d === 2 ? 'dneva' : d === 3 || d === 4 ? 'dnevi' : 'dni'}`
     : `${d} ${d === 1 ? 'day' : 'days'}`
   const [rows, setRows] = useState<Row[]>([])
-  const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([])
+  const [allUsers, setAllUsers] = useState<CompanyUser[]>([])   // incl. inactive (they may have created quotes)
+  const companyUsers = allUsers.filter(u => u.is_active !== false)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>('all')
   const [customerFilter, setCustomerFilter] = useState('all')
-  const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [creatorFilter, setCreatorFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')   // created_at range, yyyy-mm-dd
   const [dateTo, setDateTo] = useState('')
@@ -87,8 +88,8 @@ export default function QuotesPage() {
   }, [openMenu])
 
   async function loadUsers() {
-    const { data } = await supabase.from('users').select('id, first_name, last_name').eq('company_id', company!.id).eq('is_active', true).order('first_name')
-    if (data) setCompanyUsers(data as CompanyUser[])
+    const { data } = await supabase.from('users').select('id, first_name, last_name, is_active').eq('company_id', company!.id).order('first_name')
+    if (data) setAllUsers(data as CompanyUser[])
   }
 
   async function load() {
@@ -110,7 +111,7 @@ export default function QuotesPage() {
       (customerFilter === 'all' || r.customer_id === customerFilter) &&
       (!dateFrom || format(new Date(r.created_at), 'yyyy-MM-dd') >= dateFrom) &&
       (!dateTo || format(new Date(r.created_at), 'yyyy-MM-dd') <= dateTo) &&
-      (assigneeFilter === 'all' || (assigneeFilter === 'unassigned' ? !r.assignee_id : r.assignee_id === assigneeFilter)) &&
+      (creatorFilter === 'all' || r.created_by === creatorFilter) &&
       (!search || r.quote_number.toLowerCase().includes(q) ||
         (r.customers?.name ?? '').toLowerCase().includes(q) ||
         (r.contact_person ?? '').toLowerCase().includes(q) ||
@@ -182,9 +183,9 @@ export default function QuotesPage() {
         <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
           onChange={v => { setStatusFilter((v || 'all') as QuoteStatus | 'all'); setPage(1) }} />
-        <FilterSelect label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
-          options={[{ value: 'unassigned', label: s.noAssignee }, ...companyUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))]}
-          onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
+        <FilterSelect label={sl ? 'Ustvaril ponudbo' : 'Created by'} value={creatorFilter === 'all' ? '' : creatorFilter} allLabel={t.common.all}
+          options={allUsers.filter(u => rows.some(r => r.created_by === u.id)).map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))}
+          onChange={v => { setCreatorFilter(v || 'all'); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno od' : 'Created from'} value={dateFrom} allLabel={t.common.all} max={dateTo || undefined} onChange={v => { setDateFrom(v); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno do' : 'Created to'} value={dateTo} allLabel={t.common.all} min={dateFrom || undefined} onChange={v => { setDateTo(v); setPage(1) }} />
         <div className="ml-auto inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
