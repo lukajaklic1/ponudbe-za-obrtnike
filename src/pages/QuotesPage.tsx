@@ -37,7 +37,7 @@ const STATUS_STYLE: Record<QuoteStatus, { bg: string; border: string; color: str
 
 const VIEW_KEY = 'obrtdesk-quotes-view'
 
-interface Row extends Quote { customers: { name: string } | null; assignee: { first_name: string; last_name: string } | null }
+interface Row extends Quote { customers: { name: string; phone?: string | null } | null; assignee: { first_name: string; last_name: string } | null }
 
 export default function QuotesPage() {
   const { company, hasPerm, loading: permLoading } = useCompany()
@@ -95,7 +95,7 @@ export default function QuotesPage() {
   async function load() {
     if (!company) return
     // spinner only on first load (initial state) — reloads keep the current view on screen
-    const { data: q } = await supabase.from('quotes').select('*, customers(name), assignee:users!assignee_id(first_name, last_name)').eq('company_id', company.id).order('created_at', { ascending: false })
+    const { data: q } = await supabase.from('quotes').select('*, customers(name, phone), assignee:users!assignee_id(first_name, last_name)').eq('company_id', company.id).order('created_at', { ascending: false })
     setRows((q as Row[]) ?? [])
     setLoading(false)
   }
@@ -205,7 +205,7 @@ export default function QuotesPage() {
           labels={{
             empty: sl ? 'Ni ponudb' : 'No quotes', total: sl ? 'Skupaj brez DDV' : 'Total excl. VAT',
             created: t.common.created, validUntil: sl ? 'Velja do' : 'Valid until', value: t.od.totalNet,
-            assignee: s.assignee, noAssignee: s.noAssignee, customer: s.customer, site: t.od.siteAddress, inStatus: sl ? 'Dni v trenutnem statusu' : 'Days in current status',
+            assignee: s.assignee, noAssignee: s.noAssignee, customer: s.customer, site: t.od.siteAddress, phone: t.common.phone, inStatus: sl ? 'Dni v trenutnem statusu' : 'Days in current status',
           }}
           onOpen={openQuote} onMove={requestMove} />
       ) : (<>

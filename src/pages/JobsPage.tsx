@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { ClipboardCheck, Search, Building2, MapPin, Euro, CalendarDays, UserRound, Clock, Plus, List, Columns3, CalendarPlus, MoreVertical } from 'lucide-react'
+import { ClipboardCheck, Search, Building2, MapPin, Phone, Euro, CalendarDays, UserRound, Clock, Plus, List, Columns3, CalendarPlus, MoreVertical } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -11,7 +11,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { SortIcon } from '../components/ui/SortIcon'
 import JobModal from '../components/JobModal'
-import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, statusPatch, jobTitle, jobSite, jobValue, needsPlanning, dateRange, timeRange, type JobRow } from '../lib/jobs'
+import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, statusPatch, jobTitle, jobSite, jobValue, jobPhone, needsPlanning, dateRange, timeRange, type JobRow } from '../lib/jobs'
 import type { JobStatus } from '../types/database'
 
 interface CompanyUser { id: string; first_name: string; last_name: string }
@@ -20,13 +20,13 @@ const L = {
   sl: {
     newJob: 'Novo delo', empty: 'Ni del', noJobs: 'Ko ponudbo označite kot pridobljeno, se delo samodejno pojavi tukaj. Delo brez ponudbe dodate z gumbom »Novo delo«.',
     total: 'Skupaj brez DDV', noDate: 'Ni termina', setDate: 'Določi termin', addAssignee: 'Dodaj izvajalca', schedule: 'Razporedi delo',
-    noAssignee: 'Ni določen', assignee: 'Izvajalec', inStatus: 'Dni v trenutnem statusu', customer: 'Stranka', site: 'Lokacija del', value: 'Vrednost', dates: 'Termin',
+    noAssignee: 'Ni določen', assignee: 'Izvajalec', inStatus: 'Dni v trenutnem statusu', customer: 'Stranka', phone: 'Telefon', site: 'Lokacija del', value: 'Vrednost', dates: 'Termin',
     job: 'Delo', status: 'Status', days: 'V statusu', manual: 'Brez ponudbe', toPlan: 'Za razporeditev',
   },
   en: {
     newJob: 'New job', empty: 'No jobs', noJobs: 'When you mark a quote as won, the job appears here automatically. Add work without a quote with "New job".',
     total: 'Total excl. VAT', noDate: 'Not scheduled', setDate: 'Set dates', addAssignee: 'Assign someone', schedule: 'Schedule job',
-    noAssignee: 'Not assigned', assignee: 'Assigned to', inStatus: 'Days in current status', customer: 'Customer', site: 'Site', value: 'Value', dates: 'Dates',
+    noAssignee: 'Not assigned', assignee: 'Assigned to', inStatus: 'Days in current status', customer: 'Customer', phone: 'Phone', site: 'Site', value: 'Value', dates: 'Dates',
     job: 'Job', status: 'Status', days: 'In status', manual: 'No quote', toPlan: 'To schedule',
   },
 }
@@ -195,7 +195,10 @@ export default function JobsPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-gray-900">{j.customers?.name ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-900">
+                            <div>{j.customers?.name ?? '—'}</div>
+                            {jobPhone(j) && <div className="text-xs"><a href={`tel:${jobPhone(j)!.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-500 hover:text-blue-600 hover:underline">{jobPhone(j)!}</a></div>}
+                          </td>
                           <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{jobSite(j) ?? '—'}</td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             {range
@@ -276,6 +279,7 @@ export default function JobsPage() {
                           </div>
                           <div className="flex flex-col gap-2.5 mt-3 text-sm text-gray-900">
                             {j.customers?.name && j.customers.name !== title && <Row icon={Building2} title={T.customer}>{j.customers.name}</Row>}
+                            {jobPhone(j) && <Row icon={Phone} title={T.phone}><a href={`tel:${jobPhone(j)!.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-900 hover:text-blue-600 hover:underline">{jobPhone(j)!}</a></Row>}
                             {jobSite(j) && <Row icon={MapPin} title={T.site}>{jobSite(j)}</Row>}
                             <Row icon={CalendarDays} title={T.dates}>
                               {range ? <>{range}{timeRange(j) && <span className="text-gray-500"> · {timeRange(j)}</span>}</> : (active && canEdit ? <span className="font-medium text-blue-600">+ {T.setDate}</span> : <span className="text-gray-400">{T.noDate}</span>)}

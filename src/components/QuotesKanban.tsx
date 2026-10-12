@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Euro, MapPin, UserRound, Building2, FileText, Clock } from 'lucide-react'
+import { Euro, MapPin, UserRound, Building2, FileText, Clock, Phone } from 'lucide-react'
 import type { Quote, QuoteStatus } from '../types/database'
 
 export interface KanbanQuote extends Quote {
-  customers: { name: string } | null
+  customers: { name: string; phone?: string | null } | null
   assignee: { first_name: string; last_name: string } | null
 }
 
@@ -23,7 +23,7 @@ interface Props {
   quotes: KanbanQuote[]
   canEdit: boolean
   statusLabels: Record<string, string>
-  labels: { empty: string; total: string; created: string; validUntil: string; value: string; assignee: string; noAssignee: string; customer: string; site: string; inStatus: string }
+  labels: { empty: string; total: string; created: string; validUntil: string; value: string; assignee: string; noAssignee: string; customer: string; site: string; phone: string; inStatus: string }
   money: (n: number) => string
   waitingDays: (q: Quote) => number | null
   onOpen: (q: KanbanQuote) => void
@@ -68,6 +68,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
               {cards.map(q => {
                 const movable = canEdit && !!ALLOWED_MOVES[q.status]
                 const hasTitle = !!q.title && q.title !== q.customers?.name
+                const phone = q.contact_phone || q.customers?.phone || null
                 const assignee = q.assignee ? `${q.assignee.first_name} ${q.assignee.last_name}` : null
                 return (
                   <div key={q.id} draggable={movable}
@@ -87,6 +88,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                     {/* Details */}
                     <div className="flex flex-col gap-2.5 mt-3 text-sm text-gray-900">
                       {hasTitle && <CardRow icon={Building2} title={labels.customer}>{q.customers?.name ?? '—'}</CardRow>}
+                      {phone && <CardRow icon={Phone} title={labels.phone}><a href={`tel:${phone.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-900 hover:text-blue-600 hover:underline">{phone}</a></CardRow>}
                       {q.site_address && <CardRow icon={MapPin} title={labels.site}>{q.site_address}</CardRow>}
                       <CardRow icon={Euro} title={labels.value}><span className="font-medium">{money(Number(q.total_net))}</span></CardRow>
                       <CardRow icon={UserRound} title={labels.assignee}>

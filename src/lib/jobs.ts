@@ -3,8 +3,8 @@ import type { Job, JobStatus } from '../types/database'
 
 // A job (realizacija) with what the board and calendar show from its quote
 export interface JobRow extends Job {
-  quotes: { quote_number: string; title: string | null; site_address: string | null; total_net: number } | null
-  customers: { name: string } | null
+  quotes: { quote_number: string; title: string | null; site_address: string | null; total_net: number; contact_phone?: string | null } | null
+  customers: { name: string; phone?: string | null } | null
   assignee: { first_name: string; last_name: string } | null
 }
 
@@ -26,7 +26,7 @@ export const JOB_STATUS_COLOR: Record<JobStatus, { dot: string; bg: string; text
 
 export async function loadJobs(companyId: string): Promise<JobRow[]> {
   const { data } = await supabase.from('jobs')
-    .select('*, quotes(quote_number, title, site_address, total_net), customers(name), assignee:users!assignee_id(first_name, last_name)')
+    .select('*, quotes(quote_number, title, site_address, total_net, contact_phone), customers(name, phone), assignee:users!assignee_id(first_name, last_name)')
     .eq('company_id', companyId)
     .order('created_at', { ascending: false })
   return (data as JobRow[]) ?? []
@@ -46,6 +46,7 @@ export function statusPatch(job: Job, to: JobStatus): Partial<Job> {
 export const jobTitle = (j: JobRow) =>
   j.title ?? (j.quotes?.title && j.quotes.title !== j.customers?.name ? j.quotes.title : (j.customers?.name ?? j.quotes?.quote_number ?? '—'))
 export const jobSite = (j: JobRow) => j.site_address ?? j.quotes?.site_address ?? null
+export const jobPhone = (j: JobRow) => j.quotes?.contact_phone || j.customers?.phone || null
 export const jobValue = (j: JobRow) => Number(j.value ?? j.quotes?.total_net ?? 0)
 // Still waiting to be scheduled: no dates or nobody assigned (only while the work is ahead)
 export const needsPlanning = (j: JobRow) =>
