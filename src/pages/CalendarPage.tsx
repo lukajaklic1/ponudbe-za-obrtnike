@@ -10,7 +10,7 @@ import { FilterSelect } from '../components/ui/FilterSelect'
 import Button from '../components/ui/Button'
 import JobModal from '../components/JobModal'
 import CalendarTimeGrid, { jobDuration } from '../components/CalendarTimeGrid'
-import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, jobTitle, jobSite, jobValue, timeRange, type JobRow } from '../lib/jobs'
+import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, jobTitle, jobSite, jobValue, timeRange, jobWorkerIds, jobWorkers, type JobRow } from '../lib/jobs'
 
 interface CompanyUser { id: string; first_name: string; last_name: string }
 type View = 'month' | 'week' | 'day'
@@ -84,7 +84,7 @@ export default function CalendarPage() {
   // Cancelled work is hidden unless asked for explicitly
   const visible = jobs.filter(j =>
     (statusFilter ? j.status === statusFilter : j.status !== 'cancelled') &&
-    (!assigneeFilter || (assigneeFilter === 'none' ? !j.assignee_id : j.assignee_id === assigneeFilter)))
+    (!assigneeFilter || (assigneeFilter === 'none' ? !jobWorkerIds(j).length : jobWorkerIds(j).includes(assigneeFilter))))
   const scheduled = visible.filter(j => j.start_date || j.end_date)
   const unscheduled = visible.filter(j => !j.start_date && !j.end_date && (j.status === 'planned' || j.status === 'in_progress'))
 
@@ -190,7 +190,7 @@ export default function CalendarPage() {
               <CalendarTimeGrid
                 days={view === 'day' ? [new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate())] : Array.from({ length: 7 }, (_, i) => addDays(mondayOf(cursor), i))}
                 jobs={scheduled} dayLabels={T.days} allDayLabel={T.allDay} canEdit={canEdit}
-                dragJob={dragJob} onDragJob={setDragJob}
+                dragJob={dragJob} onDragJob={setDragJob} workerNames={j => jobWorkers(j, users).map(w => `${w.first_name} ${w.last_name}`).join(', ') || null}
                 onOpen={setOpen}
                 onPlace={(j, date, time) => placeJob(j, date, time)}
                 onCreate={(date, time) => setPreset({ start_date: date, end_date: date, start_time: time, end_time: fmt(Math.min(22 * 60, toMin(time) + 120)) })}
@@ -337,7 +337,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {company && <JobModal job={open} creating={!!preset} preset={preset ?? undefined} companyId={company.id} onClose={() => { setOpen(null); setPreset(null) }} onSaved={load}
+      {company && <JobModal job={open} creating={!!preset} preset={preset ?? undefined} companyId={company.id} allJobs={jobs} onClose={() => { setOpen(null); setPreset(null) }} onSaved={load}
         users={users} canEdit={canEdit} isAdmin={isAdmin} lang={lang} />}
     </div>
   )

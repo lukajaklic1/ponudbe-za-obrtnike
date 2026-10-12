@@ -17,6 +17,7 @@ interface Props {
   onCreate: (date: string, time: string) => void
   onPlace: (j: JobRow, date: string, time: string | null) => void   // time null = all day
   onDayClick?: (d: Date) => void
+  workerNames: (j: JobRow) => string | null
 }
 
 const HOUR_H = 52                    // px per hour
@@ -29,7 +30,7 @@ export const jobDuration = (j: JobRow) => j.start_time && j.end_time ? Math.max(
 
 interface Block { job: JobRow; top: number; height: number; col: number; cols: number; from: number; to: number }
 
-export default function CalendarTimeGrid({ days, jobs, dayLabels, allDayLabel, canEdit, dragJob, onDragJob, onOpen, onCreate, onPlace, onDayClick }: Props) {
+export default function CalendarTimeGrid({ days, jobs, dayLabels, allDayLabel, canEdit, dragJob, onDragJob, onOpen, onCreate, onPlace, onDayClick, workerNames }: Props) {
   const scroller = useRef<HTMLDivElement>(null)
   const [now, setNow] = useState(() => new Date())
   const [hover, setHover] = useState<{ day: number; min: number } | null>(null)   // drop preview
@@ -174,7 +175,7 @@ export default function CalendarTimeGrid({ days, jobs, dayLabels, allDayLabel, c
                 style={{ backgroundImage: `linear-gradient(to bottom, #eef0f2 1px, transparent 1px), linear-gradient(to bottom, transparent ${HOUR_H / 2}px, #f6f7f8 ${HOUR_H / 2}px, #f6f7f8 ${HOUR_H / 2 + 1}px, transparent ${HOUR_H / 2 + 1}px)`, backgroundSize: `100% ${HOUR_H}px` }}>
                 {blocksFor(d).map(b => {
                   const c = JOB_STATUS_COLOR[b.job.status]
-                  const who = b.job.assignee ? `${b.job.assignee.first_name} ${b.job.assignee.last_name}` : null
+                  const who = workerNames(b.job)
                   const short = b.height < 46
                   return (
                     <button key={b.job.id} type="button" onClick={() => onOpen(b.job)}

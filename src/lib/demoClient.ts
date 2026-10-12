@@ -120,7 +120,7 @@ function seed(): DB {
   const day = (d: number) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10)
   const jobs: Row[] = quotes.filter(q => q.status === 'won').map((q, i) => ({
     id: `demo-job-${i + 1}`, company_id: companyId, quote_id: q.id, customer_id: q.customer_id, status: 'in_progress',
-    start_date: day(-2), end_date: day(3), assignee_id: userId, notes: null, started_at: daysAgo(2), finished_at: null, created_at: q.created_at, updated_at: daysAgo(2),
+    start_date: day(-2), end_date: day(3), assignee_id: userId, assignee_ids: [userId], notes: null, started_at: daysAgo(2), finished_at: null, created_at: q.created_at, updated_at: daysAgo(2),
   }))
 
   return { companies: [company], users: [user], user_permissions: [], user_invitations: [], customers, price_items, quotes, quote_lines, quote_attachments: [], jobs }
@@ -161,7 +161,7 @@ const DEFAULTS: Record<string, () => Row> = {
   users: () => ({ is_active: true, is_admin: false }),
   invoices: () => ({ kind: 'invoice', status: 'draft', invoice_number: null, discount_pct: 0, total_net: 0, total_vat: 0, total_gross: 0, paid_at: null, sent_at: null, issued_at: null, snapshot: null, reference: null }),
   purchase_invoices: () => ({ status: 'unpaid', category: 'material', paid_at: null, job_id: null, file_path: null, file_name: null }),
-  jobs: () => ({ status: 'planned', quote_id: null, customer_id: null, title: null, site_address: null, value: null, start_date: null, end_date: null, start_time: null, end_time: null, assignee_id: null, notes: null, started_at: null, finished_at: null }),
+  jobs: () => ({ status: 'planned', quote_id: null, customer_id: null, title: null, site_address: null, value: null, start_date: null, end_date: null, start_time: null, end_time: null, assignee_id: null, assignee_ids: [], notes: null, started_at: null, finished_at: null }),
 }
 
 // ─── Query builder ───────────────────────────────────────────
@@ -413,7 +413,7 @@ function syncJobs() {
   for (const q of db.quotes ?? []) {
     const job = jobs.find(j => j.quote_id === q.id)
     if (q.status === 'won' && !job) {
-      jobs.push({ ...DEFAULTS.jobs(), id: uid(), company_id: q.company_id, quote_id: q.id, customer_id: q.customer_id, assignee_id: q.assignee_id, created_at: now(), updated_at: now() })
+      jobs.push({ ...DEFAULTS.jobs(), id: uid(), company_id: q.company_id, quote_id: q.id, customer_id: q.customer_id, assignee_id: q.assignee_id, assignee_ids: q.assignee_id ? [q.assignee_id] : [], created_at: now(), updated_at: now() })
     } else if (q.status !== 'won' && job && job.status === 'planned' && !job.start_date && !job.end_date) {
       db.jobs = (db.jobs ?? []).filter(j => j !== job)
     }
@@ -425,9 +425,12 @@ syncJobs()   // older demo databases have no jobs yet
 
 // Mirrors the invoice_issued_marks_job trigger
 function invoiceMarksJob(inv: Row) {
-  if (!inv.job_id || inv.kind !== 'invoice' || !['issued', 'sent', 'paid'].includes(inv.status)) return
+  if (!inv.job_id || inv.kind !== 'invoice') return
   const job = (db.jobs ?? []).find(j => j.id === inv.job_id)
-  if (job && ['planned', 'in_progress', 'done'].includes(job.status)) { job.status = 'invoiced'; job.finished_at ??= now(); persist() }
+  if (!job) return
+  if (['issued', 'sent', 'paid'].includes(inv.status) && ['planned', 'in_progress', 'done'].includes(job.status)) { job.status = 'invoiced'; job.finished_at ??= now(); persist() }
+  const live = (db.invoices ?? []).some(i => i.job_id === job.id && i.kind === 'invoice' && i.id !== inv.id && ['issued', 'sent', 'paid'].includes(i.status))
+  if (inv.status === 'cancelled' && job.status === 'invoiced' && !live) { job.status = 'done'; persist() }
 }
 
 // Older demo databases: invoice settings + a few supplier invoices to look at
@@ -442,5 +445,15 @@ function invoiceMarksJob(inv: Row) {
     { supplier_name: 'Merkur trgovina d.o.o.', invoice_number: 'MR-88213', category: 'tools', issue_date: new Date(Date.now() - 20 * 864e5).toISOString().slice(0, 10), due_date: new Date(Date.now() - 5 * 864e5).toISOString().slice(0, 10), total_gross: 129.9, total_vat: 23.42, total_net: 106.48, status: 'unpaid', job_id: null },
     { supplier_name: 'Petrol d.d.', invoice_number: 'P-55102', category: 'fuel', issue_date: new Date(Date.now() - 12 * 864e5).toISOString().slice(0, 10), due_date: null, total_gross: 86.4, total_vat: 15.58, total_net: 70.82, status: 'paid', paid_at: new Date(Date.now() - 12 * 864e5).toISOString().slice(0, 10), job_id: null },
   ].map((b, i) => ({ ...DEFAULTS.purchase_invoices(), id: `demo-bill-${i + 1}`, company_id: c.id, supplier_vat: null, notes: null, file_path: null, file_name: null, created_by: 'demo-user', created_at: now(), updated_at: now(), ...b }))
+  persist()
+})()
+
+// Demo team: two more workers so several people can be put on one job
+;(function ensureDemoTeam() {
+  const c = db.companies?.[0]
+  if (!c || (db.users ?? []).length > 1) return
+  for (const [i, [fn, ln]] of [['Marko', 'Kralj'], ['Ana', 'Zupan']].entries()) {
+    db.users.push({ id: `demo-worker-${i + 1}`, company_id: c.id, first_name: fn, last_name: ln, email: `${fn.toLowerCase()}@pleskarstvo-novak.si`, phone: null, is_admin: false, is_active: true, department_id: null, job_title: null, is_super_admin: false, created_at: now(), updated_at: now() })
+  }
   persist()
 })()

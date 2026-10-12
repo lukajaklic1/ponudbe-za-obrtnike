@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { ClipboardCheck, Search, Building2, MapPin, Phone, Euro, CalendarDays, UserRound, Clock, Plus, List, Columns3, CalendarPlus, MoreVertical } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -11,7 +12,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { SortIcon } from '../components/ui/SortIcon'
 import JobModal from '../components/JobModal'
-import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, statusPatch, jobTitle, jobSite, jobValue, jobPhone, needsPlanning, dateRange, timeRange, type JobRow } from '../lib/jobs'
+import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, loadJobs, statusPatch, jobTitle, jobSite, jobValue, jobPhone, jobWorkers, jobWorkerIds, isLate, lateDays, mapsUrl, needsPlanning, dateRange, timeRange, type JobRow } from '../lib/jobs'
 import type { JobStatus } from '../types/database'
 
 interface CompanyUser { id: string; first_name: string; last_name: string }
@@ -21,13 +22,17 @@ const L = {
     newJob: 'Novo delo', empty: 'Ni del', noJobs: 'Ko ponudbo označite kot pridobljeno, se delo samodejno pojavi tukaj. Delo brez ponudbe dodate z gumbom »Novo delo«.',
     total: 'Skupaj brez DDV', noDate: 'Ni termina', setDate: 'Določi termin', addAssignee: 'Dodaj izvajalca', schedule: 'Razporedi delo',
     noAssignee: 'Ni določen', assignee: 'Izvajalec', inStatus: 'Dni v trenutnem statusu', customer: 'Stranka', phone: 'Telefon', site: 'Lokacija del', value: 'Vrednost', dates: 'Termin',
-    job: 'Delo', status: 'Status', days: 'V statusu', manual: 'Brez ponudbe', toPlan: 'Za razporeditev',
+    job: 'Delo', status: 'Status', navigate: 'Navigacija do lokacije', late: (n: number) => `zamuda ${n} d`,
+    cancelTitle: 'Odpovej delo', cancelText: (t: string) => `Ali res želite označiti delo »${t}« kot odpovedano?`, cancelOk: 'Odpovej',
+    invoiceTitle: 'Delo je končano', invoiceText: 'Ali želite zdaj izdati račun za to delo?', invoiceOk: 'Izdaj račun', later: 'Kasneje', days: 'V statusu', manual: 'Brez ponudbe', toPlan: 'Za razporeditev',
   },
   en: {
     newJob: 'New job', empty: 'No jobs', noJobs: 'When you mark a quote as won, the job appears here automatically. Add work without a quote with "New job".',
     total: 'Total excl. VAT', noDate: 'Not scheduled', setDate: 'Set dates', addAssignee: 'Assign someone', schedule: 'Schedule job',
     noAssignee: 'Not assigned', assignee: 'Assigned to', inStatus: 'Days in current status', customer: 'Customer', phone: 'Phone', site: 'Site', value: 'Value', dates: 'Dates',
-    job: 'Job', status: 'Status', days: 'In status', manual: 'No quote', toPlan: 'To schedule',
+    job: 'Job', status: 'Status', navigate: 'Directions to the site', late: (n: number) => `${n} d late`,
+    cancelTitle: 'Cancel job', cancelText: (t: string) => `Mark "${t}" as cancelled?`, cancelOk: 'Cancel job',
+    invoiceTitle: 'Job finished', invoiceText: 'Do you want to issue the invoice for this job now?', invoiceOk: 'Issue invoice', later: 'Later', days: 'In status', manual: 'No quote', toPlan: 'To schedule',
   },
 }
 
@@ -49,6 +54,9 @@ export default function JobsPage() {
   const [dragging, setDragging] = useState<JobRow | null>(null)
   const [overCol, setOverCol] = useState<JobStatus | null>(null)
   const [open, setOpen] = useState<JobRow | null>(null)
+  const navigate = useNavigate()
+  const [confirmCancel, setConfirmCancel] = useState<JobRow | null>(null)   // dragged to "Odpovedano"
+  const [askInvoice, setAskInvoice] = useState<JobRow | null>(null)         // just moved to "Končano"
   const [creating, setCreating] = useState(false)
   const [page, setPage] = useState(1)
   const [sortKey, setSortKey] = useState<SortKey>('dates')
@@ -80,6 +88,12 @@ export default function JobsPage() {
   }
   const daysColor = (d: number) => d >= 14 ? '#9e3f00' : d >= 7 ? '#874d00' : '#6b7280'
 
+  function requestMove(j: JobRow, to: JobStatus) {
+    if (j.status === to || to === 'invoiced' || j.status === 'invoiced') return
+    if (to === 'cancelled') { setConfirmCancel(j); return }
+    move(j, to)
+  }
+
   async function move(j: JobRow, to: JobStatus) {
     if (j.status === to) return
     const patch = statusPatch(j, to)
@@ -87,12 +101,13 @@ export default function JobsPage() {
     const { error } = await supabase.from('jobs').update(patch).eq('id', j.id)
     if (error) { toast.error(error.message); setRows(prev => prev.map(r => r.id === j.id ? j : r)); return }
     toast.success(t.common.saved)
+    if (to === 'done' && canEdit) setAskInvoice(j)
   }
 
   const q = search.toLowerCase()
   const filtered = rows.filter(j =>
     (!statusFilter || (statusFilter === 'toPlan' ? needsPlanning(j) : j.status === statusFilter)) &&
-    (!assigneeFilter || (assigneeFilter === 'none' ? !j.assignee_id : j.assignee_id === assigneeFilter)) &&
+    (!assigneeFilter || (assigneeFilter === 'none' ? !jobWorkerIds(j).length : jobWorkerIds(j).includes(assigneeFilter))) &&
     (!search || [j.quotes?.quote_number, jobTitle(j), jobSite(j), j.customers?.name].some(v => (v ?? '').toLowerCase().includes(q))))
 
   const sorted = [...filtered].sort((a, b) => {
@@ -111,15 +126,26 @@ export default function JobsPage() {
   })
   const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
+  // Workers: overlapping initials + first names ("Janez, Marko")
   const assigneeChip = (j: JobRow) => {
-    const who = j.assignee ? `${j.assignee.first_name} ${j.assignee.last_name}` : null
-    return who
-      ? <span className="inline-flex items-center gap-1.5 min-w-0">
-          <span className="flex items-center justify-center rounded-full text-white font-bold shrink-0" style={{ backgroundColor: '#00d17e', width: 18, height: 18, fontSize: 10 }}>{who[0].toUpperCase()}</span>
-          <span className="truncate">{who}</span>
+    const ws = jobWorkers(j, users)
+    if (!ws.length) return null
+    return (
+      <span className="inline-flex items-center gap-1.5 min-w-0" title={ws.map(w => `${w.first_name} ${w.last_name}`).join(', ')}>
+        <span className="flex -space-x-1 shrink-0">
+          {ws.slice(0, 3).map(w => (
+            <span key={w.id} className="flex items-center justify-center rounded-full text-white font-bold ring-2 ring-white" style={{ backgroundColor: '#00d17e', width: 18, height: 18, fontSize: 10 }}>{w.first_name[0]?.toUpperCase()}</span>
+          ))}
         </span>
-      : null
+        <span className="truncate">{ws.length === 1 ? `${ws[0].first_name} ${ws[0].last_name}` : ws.map(w => w.first_name).join(', ')}</span>
+      </span>
+    )
   }
+  const siteLink = (addr: string, cls = 'text-gray-900') => (
+    <a href={mapsUrl(addr)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} draggable={false} title={T.navigate}
+      className={`${cls} hover:text-blue-600 hover:underline`}>{addr}</a>
+  )
+  const lateTag = (j: JobRow) => isLate(j) ? <span className="text-[#9e3f00] font-medium"> · {T.late(lateDays(j))}</span> : null
 
   if (!permLoading && !hasPerm('quotes', 'view')) return <Navigate to="/dashboard" replace />
 
@@ -199,10 +225,10 @@ export default function JobsPage() {
                             <div>{j.customers?.name ?? '—'}</div>
                             {jobPhone(j) && <div className="text-xs"><a href={`tel:${jobPhone(j)!.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-500 hover:text-blue-600 hover:underline">{jobPhone(j)!}</a></div>}
                           </td>
-                          <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{jobSite(j) ?? '—'}</td>
+                          <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{jobSite(j) ? siteLink(jobSite(j)!, 'text-gray-600') : '—'}</td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             {range
-                              ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-200 text-xs text-gray-900" style={{ backgroundColor: '#fbfbfb' }}><CalendarDays className="w-3 h-3 text-gray-500" />{range}{timeRange(j) && ` · ${timeRange(j)}`}</span>
+                              ? <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs ${isLate(j) ? 'border-[#fee0c8] bg-[#feeee1] text-[#9e3f00]' : 'border-gray-200 bg-[#fbfbfb] text-gray-900'}`}><CalendarDays className="w-3 h-3 opacity-70" />{range}{timeRange(j) && ` · ${timeRange(j)}`}{isLate(j) && ` · ${T.late(lateDays(j))}`}</span>
                               : active && canEdit
                                 ? <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600"><CalendarPlus className="w-3.5 h-3.5" />{T.setDate}</span>
                                 : <span className="text-gray-400">—</span>}
@@ -242,12 +268,12 @@ export default function JobsPage() {
             {JOB_STATUSES.filter(st => !statusFilter || statusFilter === 'toPlan' || st === statusFilter).map(st => {
               const cards = sorted.filter(j => j.status === st)
               const total = cards.reduce((s, j) => s + jobValue(j), 0)
-              const droppable = !!dragging && canEdit && dragging.status !== st
+              const droppable = !!dragging && canEdit && dragging.status !== st && st !== 'invoiced' && dragging.status !== 'invoiced'
               return (
                 <div key={st}
                   onDragOver={e => { if (droppable) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOverCol(st) } }}
                   onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol(c => (c === st ? null : c)) }}
-                  onDrop={e => { e.preventDefault(); const j = dragging; setDragging(null); setOverCol(null); if (j && droppable) move(j, st) }}
+                  onDrop={e => { e.preventDefault(); const j = dragging; setDragging(null); setOverCol(null); if (j && droppable) requestMove(j, st) }}
                   className={`flex flex-col flex-1 min-w-[250px] max-h-[calc(100vh-210px)] rounded-xl transition-all duration-150
                     ${overCol === st ? 'bg-[#e6eefc] ring-2 ring-inset ring-blue-300' : droppable ? 'bg-[#eef3fc]' : 'bg-gray-50'}`}>
                   <div className="flex items-center gap-2 px-3.5 pt-3.5 pb-2.5">
@@ -264,13 +290,13 @@ export default function JobsPage() {
                       const active = j.status === 'planned' || j.status === 'in_progress'
                       const plan = canEdit && needsPlanning(j)
                       return (
-                        <div key={j.id} draggable={canEdit}
+                        <div key={j.id} draggable={canEdit && j.status !== 'invoiced'}
                           onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragging(j) }}
                           onDragEnd={() => { setDragging(null); setOverCol(null) }}
                           onClick={() => setOpen(j)}
                           className={`rounded-xl border bg-white p-3.5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:shadow-[0_2px_6px_rgba(16,24,40,0.06)] transition-all
                             ${plan ? 'border-[#c9dafd] hover:border-[#a9c4fb]' : 'border-gray-200 hover:border-gray-300'}
-                            ${canEdit ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragging?.id === j.id ? 'opacity-40' : ''}`}>
+                            ${canEdit && j.status !== 'invoiced' ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragging?.id === j.id ? 'opacity-40' : ''}`}>
                           <div className="flex items-start gap-2">
                             <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff' }}>
                               <ClipboardCheck className="w-3 h-3" style={{ color: '#215bcf' }} />
@@ -280,9 +306,9 @@ export default function JobsPage() {
                           <div className="flex flex-col gap-2.5 mt-3 text-sm text-gray-900">
                             {j.customers?.name && j.customers.name !== title && <Row icon={Building2} title={T.customer}>{j.customers.name}</Row>}
                             {jobPhone(j) && <Row icon={Phone} title={T.phone}><a href={`tel:${jobPhone(j)!.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-900 hover:text-blue-600 hover:underline">{jobPhone(j)!}</a></Row>}
-                            {jobSite(j) && <Row icon={MapPin} title={T.site}>{jobSite(j)}</Row>}
+                            {jobSite(j) && <Row icon={MapPin} title={T.site}>{siteLink(jobSite(j)!)}</Row>}
                             <Row icon={CalendarDays} title={T.dates}>
-                              {range ? <>{range}{timeRange(j) && <span className="text-gray-500"> · {timeRange(j)}</span>}</> : (active && canEdit ? <span className="font-medium text-blue-600">+ {T.setDate}</span> : <span className="text-gray-400">{T.noDate}</span>)}
+                              {range ? <><span className={isLate(j) ? 'text-[#9e3f00]' : ''}>{range}</span>{timeRange(j) && <span className="text-gray-500"> · {timeRange(j)}</span>}{lateTag(j)}</> : (active && canEdit ? <span className="font-medium text-blue-600">+ {T.setDate}</span> : <span className="text-gray-400">{T.noDate}</span>)}
                             </Row>
                             <Row icon={Euro} title={T.value}><span className="font-medium">{money(jobValue(j))}</span></Row>
                             <Row icon={UserRound} title={T.assignee}>
@@ -320,7 +346,13 @@ export default function JobsPage() {
         )}
       </div>
 
-      {company && <JobModal job={open} creating={creating} companyId={company.id} onClose={() => { setOpen(null); setCreating(false) }} onSaved={load}
+      <ConfirmDialog open={!!confirmCancel} onClose={() => setConfirmCancel(null)}
+        onConfirm={() => { if (confirmCancel) move(confirmCancel, 'cancelled'); setConfirmCancel(null) }}
+        title={T.cancelTitle} message={confirmCancel ? T.cancelText(jobTitle(confirmCancel)) : ''} confirmLabel={T.cancelOk} danger />
+      <ConfirmDialog open={!!askInvoice} onClose={() => setAskInvoice(null)}
+        onConfirm={() => { const j = askInvoice; setAskInvoice(null); if (j) navigate(`/invoices/new?job=${j.id}`) }}
+        title={T.invoiceTitle} message={T.invoiceText} confirmLabel={T.invoiceOk} cancelLabel={T.later} />
+      {company && <JobModal job={open} creating={creating} allJobs={rows} companyId={company.id} onClose={() => { setOpen(null); setCreating(false) }} onSaved={load}
         users={users} canEdit={canEdit} isAdmin={isAdmin} lang={lang} />}
     </div>
   )

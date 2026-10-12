@@ -9,13 +9,14 @@ interface ConfirmDialogProps {
   title: string
   message: string
   confirmLabel?: string
+  cancelLabel?: string
   danger?: boolean
   loading?: boolean
 }
 
 export default function ConfirmDialog({
   open, onClose, onConfirm, title, message,
-  confirmLabel = 'Confirm', danger = false, loading = false,
+  confirmLabel = 'Confirm', cancelLabel, danger = false, loading = false,
 }: ConfirmDialogProps) {
   const { t } = useLanguage()
 
@@ -53,7 +54,7 @@ export default function ConfirmDialog({
             disabled={loading}
             className="px-4 py-2 text-sm font-medium text-[#7f7f7f] bg-white border border-gray-200 rounded-lg hover:bg-[#f6f6f6] transition-colors disabled:opacity-50"
           >
-            {t.common.cancel}
+            {cancelLabel ?? t.common.cancel}
           </button>
           <button
             onClick={onConfirm}

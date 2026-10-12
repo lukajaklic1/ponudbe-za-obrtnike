@@ -49,8 +49,8 @@ export const jobSite = (j: JobRow) => j.site_address ?? j.quotes?.site_address ?
 export const jobPhone = (j: JobRow) => j.quotes?.contact_phone || j.customers?.phone || null
 export const jobValue = (j: JobRow) => Number(j.value ?? j.quotes?.total_net ?? 0)
 // Still waiting to be scheduled: no dates or nobody assigned (only while the work is ahead)
-export const needsPlanning = (j: JobRow) =>
-  (j.status === 'planned' || j.status === 'in_progress') && (!j.start_date || !j.assignee_id)
+export const needsPlanning = (j: JobRow): boolean =>
+  (j.status === 'planned' || j.status === 'in_progress') && (!j.start_date || !jobWorkerIds(j).length)
 
 // "12. 10." or "12. 10. – 15. 10. 2026"
 export function dateRange(start: string | null, end: string | null): string | null {
@@ -65,4 +65,43 @@ export function timeRange(j: Pick<JobRow, 'start_time' | 'end_time'>): string | 
   const s = j.start_time?.slice(0, 5), e = j.end_time?.slice(0, 5)
   if (s && e) return `${s}–${e}`
   return s ?? (e ? `–${e}` : null)
+}
+
+// Workers on a job (falls back to the legacy single assignee)
+export const jobWorkerIds = (j: Pick<JobRow, 'assignee_ids' | 'assignee_id'>): string[] =>
+  j.assignee_ids?.length ? j.assignee_ids : j.assignee_id ? [j.assignee_id] : []
+
+type Person = { id: string; first_name: string; last_name: string }
+export const jobWorkers = (j: Pick<JobRow, 'assignee_ids' | 'assignee_id'>, users: Person[]): Person[] =>
+  jobWorkerIds(j).map(id => users.find(u => u.id === id)).filter((u): u is Person => !!u)
+
+// Work should be finished by now but isn't
+export const isLate = (j: JobRow) => {
+  const end = j.end_date ?? j.start_date
+  if (!end || !(j.status === 'planned' || j.status === 'in_progress')) return false
+  const d = new Date(); const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return end < today
+}
+export const lateDays = (j: JobRow) => {
+  const end = j.end_date ?? j.start_date
+  return end ? Math.max(0, Math.round((Date.now() - new Date(`${end}T23:59:59`).getTime()) / 86400000) + 1) : 0
+}
+
+export const mapsUrl = (address: string) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
+
+// Same worker on two jobs at the same time (dates overlap and hours overlap, or one has no hours)
+export function workerConflicts(job: Pick<JobRow, 'id' | 'start_date' | 'end_date' | 'start_time' | 'end_time'>, workerIds: string[], all: JobRow[]): { workerId: string; job: JobRow }[] {
+  const s = job.start_date ?? job.end_date, e = job.end_date ?? job.start_date
+  if (!s || !e || !workerIds.length) return []
+  const t = (x: string | null | undefined) => x ? x.slice(0, 5) : null
+  const out: { workerId: string; job: JobRow }[] = []
+  for (const o of all) {
+    if (o.id === job.id || o.status === 'cancelled' || o.status === 'invoiced' || o.status === 'done') continue
+    const os = o.start_date ?? o.end_date, oe = o.end_date ?? o.start_date
+    if (!os || !oe || os > e || oe < s) continue
+    const a1 = t(job.start_time), a2 = t(job.end_time), b1 = t(o.start_time), b2 = t(o.end_time)
+    if (a1 && a2 && b1 && b2 && (a2 <= b1 || b2 <= a1)) continue   // same days, different hours
+    for (const w of workerIds) if (jobWorkerIds(o).includes(w)) out.push({ workerId: w, job: o })
+  }
+  return out
 }

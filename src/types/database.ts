@@ -283,7 +283,8 @@ export interface Job {
   end_date: string | null
   start_time: string | null  // 'HH:MM' or 'HH:MM:SS' — optional working hours
   end_time: string | null
-  assignee_id: string | null
+  assignee_id: string | null       // legacy single worker (kept in sync with assignee_ids[0])
+  assignee_ids: string[]          // everyone working on the job
   notes: string | null
   started_at: string | null
   finished_at: string | null

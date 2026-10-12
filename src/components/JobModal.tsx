@@ -10,7 +10,7 @@ import NumberInput from './ui/NumberInput'
 import ConfirmDialog from './ui/ConfirmDialog'
 import { supabase } from '../lib/supabase'
 import { toast } from './ui/Toast'
-import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, statusPatch, jobTitle, jobSite, jobValue, type JobRow } from '../lib/jobs'
+import { JOB_STATUSES, JOB_STATUS_LABEL, JOB_STATUS_COLOR, statusPatch, jobTitle, jobSite, jobValue, jobWorkerIds, workerConflicts, dateRange, timeRange, type JobRow } from '../lib/jobs'
 import type { JobStatus } from '../types/database'
 
 interface Props {
@@ -21,6 +21,7 @@ interface Props {
   onClose: () => void
   onSaved: () => void
   users: { id: string; first_name: string; last_name: string }[]
+  allJobs?: JobRow[]          // to warn when a worker is already busy at that time
   canEdit: boolean
   isAdmin?: boolean
   lang: 'sl' | 'en'
@@ -30,6 +31,8 @@ const L = {
   sl: {
     newJob: 'Novo delo', newHint: 'Delo, za katerega niste izdali ponudbe (npr. manjše popravilo ali dogovor po telefonu).',
     title: 'Naziv dela', titleHint: 'npr. Beljenje stopnišča', customer: 'Stranka', noCustomer: 'Brez stranke', site: 'Lokacija del', siteHint: 'npr. Celovška 12, Ljubljana', value: 'Vrednost brez DDV',
+    workers: 'Izvajalci', busy: (who: string, what: string, when: string) => `${who} ima ob tem času že delo »${what}« (${when}).`,
+    invoicedLock: 'Status »Zaračunano« se nastavi z izdajo računa. Za vrnitev stornirajte račun.',
     plan: 'Razporeditev', status: 'Status', start: 'Začetek del', end: 'Konec del', assignee: 'Izvajalec', none: 'Ni določen',
     notes: 'Opombe', notesHint: 'npr. material naročen, ključ pri hišniku', openQuote: 'Odpri ponudbo', fromQuote: 'Iz ponudbe', save: 'Shrani', create: 'Dodaj delo', cancel: 'Prekliči',
     saved: 'Shranjeno', badRange: 'Konec del ne more biti pred začetkom.', fromTime: 'Od ure', toTime: 'Do ure', badTime: 'Ura konca mora biti po uri začetka.', manual: 'Dodano ročno',
@@ -41,6 +44,8 @@ const L = {
   en: {
     newJob: 'New job', newHint: 'Work you did not send a quote for (e.g. a small repair or a phone agreement).',
     title: 'Job title', titleHint: 'e.g. Painting the staircase', customer: 'Customer', noCustomer: 'No customer', site: 'Site', siteHint: 'e.g. 12 Main St, Ljubljana', value: 'Value excl. VAT',
+    workers: 'Workers', busy: (who: string, what: string, when: string) => `${who} already has "${what}" at that time (${when}).`,
+    invoicedLock: '"Invoiced" is set by issuing an invoice. Cancel the invoice to undo it.',
     plan: 'Scheduling', status: 'Status', start: 'Start', end: 'End', assignee: 'Assigned to', none: 'Not assigned',
     notes: 'Notes', notesHint: 'e.g. material ordered, key with the caretaker', openQuote: 'Open quote', fromQuote: 'From quote', save: 'Save', create: 'Add job', cancel: 'Cancel',
     saved: 'Saved', badRange: 'The end date cannot be before the start date.', fromTime: 'From', toTime: 'To', badTime: 'The end time must be after the start time.', manual: 'Added by hand',
@@ -61,7 +66,7 @@ const fmtMoney = (n: number) => (Number(n) || 0).toLocaleString('de-DE', { style
 const selectCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50'
 const labelCls = 'text-xs font-medium'
 
-export default function JobModal({ job, creating = false, preset, companyId, onClose, onSaved, users, canEdit, isAdmin = false, lang }: Props) {
+export default function JobModal({ job, creating = false, preset, allJobs = [], companyId, onClose, onSaved, users, canEdit, isAdmin = false, lang }: Props) {
   const T = L[lang]
   const navigate = useNavigate()
   const open = creating || !!job
@@ -71,7 +76,7 @@ export default function JobModal({ job, creating = false, preset, companyId, onC
   const [end, setEnd] = useState('')
   const [fromTime, setFromTime] = useState('')
   const [toTime, setToTime] = useState('')
-  const [assignee, setAssignee] = useState('')
+  const [workers, setWorkers] = useState<string[]>([])
   const [notes, setNotes] = useState('')
   // manual jobs only
   const [title, setTitle] = useState('')
@@ -90,7 +95,7 @@ export default function JobModal({ job, creating = false, preset, companyId, onC
     setStatus(job?.status ?? 'planned'); setStart(job?.start_date ?? preset?.start_date ?? ''); setEnd(job?.end_date ?? preset?.end_date ?? '')
     // default working day 08:00–15:00 when no hours were set yet
     setFromTime(job?.start_time?.slice(0, 5) ?? preset?.start_time ?? DEFAULT_FROM); setToTime(job?.end_time?.slice(0, 5) ?? preset?.end_time ?? DEFAULT_TO)
-    setAssignee(job?.assignee_id ?? ''); setNotes(job?.notes ?? '')
+    setWorkers(job ? jobWorkerIds(job) : []); setNotes(job?.notes ?? '')
     // quote jobs start from the quote's details; any change is stored on the job
     setTitle(job ? jobTitle(job) : ''); setCustomerId(job?.customer_id ?? ''); setSite(job ? (jobSite(job) ?? '') : '')
     setValue(job ? (job.value != null || job.quotes ? jobValue(job) : null) : null)
@@ -115,6 +120,10 @@ export default function JobModal({ job, creating = false, preset, companyId, onC
     })
   }, [open, job])
 
+  const conflicts = workerConflicts({ id: job?.id ?? '', start_date: start || null, end_date: end || null, start_time: fromTime || null, end_time: toTime || null }, workers, allJobs)
+  // "Zaračunano" only comes from issuing an invoice; once invoiced, cancelling the invoice is the way back
+  const lockedStatus = (st: JobStatus) => job?.status === 'invoiced' ? st !== 'invoiced' : st === 'invoiced'
+
   const badRange = !!start && !!end && end < start
   const badTime = !!fromTime && !!toTime && toTime <= fromTime
   const canSave = !badRange && !badTime && !!title.trim()
@@ -129,7 +138,7 @@ export default function JobModal({ job, creating = false, preset, companyId, onC
   async function save() {
     if (!canSave) return
     setSaving(true)
-    const common = { start_date: start || null, end_date: end || null, start_time: fromTime || null, end_time: toTime || null, assignee_id: assignee || null, notes: notes.trim() || null }
+    const common = { start_date: start || null, end_date: end || null, start_time: fromTime || null, end_time: toTime || null, assignee_id: workers[0] ?? null, assignee_ids: workers, notes: notes.trim() || null }
     // For a quote job, keep null where nothing changed so later quote edits still show through
     const fromQuote = job?.quotes
     const quoteTitle = job && fromQuote ? jobTitle({ ...job, title: null }) : null
@@ -195,20 +204,21 @@ export default function JobModal({ job, creating = false, preset, companyId, onC
 
           {/* Scheduling */}
           <div className="pt-4 border-t border-gray-100 flex flex-col gap-4">
-            {!creating && job && (!job.start_date || !job.assignee_id) && (job.status === 'planned' || job.status === 'in_progress') && (
+            {!creating && job && (!job.start_date || !jobWorkerIds(job).length) && (job.status === 'planned' || job.status === 'in_progress') && (
               <div className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }}>{T.missing}</div>
             )}
             <div className="flex flex-col gap-1">
               <span className={labelCls} style={{ color: '#7f7f7f' }}>{T.status}</span>
               <div className="inline-flex flex-wrap self-start rounded-lg border border-gray-200 bg-gray-50 p-0.5">
                 {JOB_STATUSES.map(st => (
-                  <button key={st} type="button" disabled={!canEdit} onClick={() => setStatus(st)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${status === st ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
+                  <button key={st} type="button" disabled={!canEdit || lockedStatus(st)} onClick={() => setStatus(st)} title={lockedStatus(st) ? T.invoicedLock : undefined}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:cursor-not-allowed ${status === st ? 'bg-white text-gray-900 shadow-sm' : lockedStatus(st) ? 'text-gray-300' : 'text-gray-500 hover:text-gray-800'}`}>
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: JOB_STATUS_COLOR[st].dot }} />
                     {JOB_STATUS_LABEL[lang][st]}
                   </button>
                 ))}
               </div>
+              {(job?.status === 'invoiced' || status === 'invoiced') && <span className="text-xs text-gray-400 mt-1">{T.invoicedLock}</span>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -216,12 +226,31 @@ export default function JobModal({ job, creating = false, preset, companyId, onC
               <Input id="job-end" type="date" label={T.end} value={end} min={start || undefined} disabled={!canEdit} onChange={e => setEnd(e.target.value)} error={badRange ? T.badRange : undefined} />
               <TimeSelect id="job-from" label={T.fromTime} value={fromTime} disabled={!canEdit} onChange={setFromTime} />
               <TimeSelect id="job-to" label={T.toTime} value={toTime} disabled={!canEdit} onChange={setToTime} error={badTime ? T.badTime : undefined} />
-              <div className="flex flex-col gap-1 sm:col-span-2">
-                <label htmlFor="job-assignee" className={labelCls} style={{ color: '#7f7f7f' }}>{T.assignee}</label>
-                <select id="job-assignee" className={selectCls} value={assignee} disabled={!canEdit} onChange={e => setAssignee(e.target.value)}>
-                  <option value="">{T.none}</option>
-                  {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}
-                </select>
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <span className={labelCls} style={{ color: '#7f7f7f' }}>{T.workers}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {users.map(u => {
+                    const on = workers.includes(u.id)
+                    const busy = conflicts.some(c => c.workerId === u.id)
+                    return (
+                      <button key={u.id} type="button" disabled={!canEdit}
+                        onClick={() => setWorkers(w => on ? w.filter(x => x !== u.id) : [...w, u.id])}
+                        className={`inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border text-sm transition-colors ${on ? (busy ? 'border-[#f5c9a6] bg-[#feeee1] text-[#9e3f00]' : 'border-[#c9dafd] bg-[#e5eeff] text-[#215bcf]') : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}>
+                        <span className="flex items-center justify-center rounded-full text-white font-bold shrink-0" style={{ backgroundColor: on ? (busy ? '#f97316' : '#3b82f6') : '#d1d5db', width: 20, height: 20, fontSize: 10 }}>{u.first_name[0]?.toUpperCase()}</span>
+                        {u.first_name} {u.last_name}
+                      </button>
+                    )
+                  })}
+                  {users.length === 0 && <span className="text-sm text-gray-400">{T.none}</span>}
+                </div>
+                {conflicts.length > 0 && (
+                  <div className="rounded-lg px-3 py-2 text-sm mt-1" style={{ backgroundColor: '#feeee1', color: '#9e3f00' }}>
+                    {conflicts.map((c, i) => {
+                      const u = users.find(x => x.id === c.workerId)
+                      return <div key={i}>{T.busy(u ? `${u.first_name} ${u.last_name}` : '—', jobTitle(c.job), [dateRange(c.job.start_date, c.job.end_date), timeRange(c.job)].filter(Boolean).join(' · '))}</div>
+                    })}
+                  </div>
+                )}
               </div>
               <div className="flex flex-col gap-1 sm:col-span-2">
                 <label htmlFor="job-notes" className={labelCls} style={{ color: '#7f7f7f' }}>{T.notes}</label>
