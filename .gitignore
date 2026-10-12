@@ -27,3 +27,4 @@ supabase/.temp
 # Temporary design reference screenshots (not source)
 .tmp_design/
 .vercel
+.env*
