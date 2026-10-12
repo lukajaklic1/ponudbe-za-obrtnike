@@ -57,6 +57,7 @@ export default function JobsPage() {
   const navigate = useNavigate()
   const [confirmCancel, setConfirmCancel] = useState<JobRow | null>(null)   // dragged to "Odpovedano"
   const [askInvoice, setAskInvoice] = useState<JobRow | null>(null)         // just moved to "Končano"
+  const [openAs, setOpenAs] = useState<JobStatus | undefined>(undefined)       // status chosen by dragging, saved from the modal
   const [creating, setCreating] = useState(false)
   const [page, setPage] = useState(1)
   const [sortKey, setSortKey] = useState<SortKey>('dates')
@@ -91,7 +92,7 @@ export default function JobsPage() {
   function requestMove(j: JobRow, to: JobStatus) {
     if (j.status === to || to === 'invoiced' || j.status === 'invoiced') return
     if (to === 'cancelled') { setConfirmCancel(j); return }
-    if (to === 'in_progress' && !j.start_date) { toast.warning(T.needDates); setOpen(j); return }
+    if (to === 'in_progress' && !j.start_date) { toast.warning(T.needDates); setOpenAs('in_progress'); setOpen(j); return }
     move(j, to)
   }
 
@@ -352,7 +353,7 @@ export default function JobsPage() {
       <ConfirmDialog open={!!askInvoice} onClose={() => setAskInvoice(null)}
         onConfirm={() => { const j = askInvoice; setAskInvoice(null); if (j) navigate(`/invoices/new?job=${j.id}`) }}
         title={T.invoiceTitle} message={T.invoiceText} confirmLabel={T.invoiceOk} cancelLabel={T.later} />
-      {company && <JobModal job={open} creating={creating} allJobs={rows} companyId={company.id} onClose={() => { setOpen(null); setCreating(false) }} onSaved={load}
+      {company && <JobModal job={open} creating={creating} allJobs={rows} initialStatus={openAs} companyId={company.id} onClose={() => { setOpen(null); setCreating(false); setOpenAs(undefined) }} onSaved={load}
         users={users} canEdit={canEdit} isAdmin={isAdmin} lang={lang} />}
     </div>
   )

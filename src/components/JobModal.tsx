@@ -22,6 +22,7 @@ interface Props {
   onSaved: () => void
   users: { id: string; first_name: string; last_name: string }[]
   allJobs?: JobRow[]          // to warn when a worker is already busy at that time
+  initialStatus?: JobStatus   // status the job was dragged to (e.g. needs dates first)
   canEdit: boolean
   isAdmin?: boolean
   lang: 'sl' | 'en'
@@ -66,7 +67,7 @@ const fmtMoney = (n: number) => (Number(n) || 0).toLocaleString('de-DE', { style
 const selectCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50'
 const labelCls = 'text-xs font-medium'
 
-export default function JobModal({ job, creating = false, preset, allJobs = [], companyId, onClose, onSaved, users, canEdit, isAdmin = false, lang }: Props) {
+export default function JobModal({ job, creating = false, preset, allJobs = [], initialStatus, companyId, onClose, onSaved, users, canEdit, isAdmin = false, lang }: Props) {
   const T = L[lang]
   const navigate = useNavigate()
   const open = creating || !!job
@@ -92,7 +93,7 @@ export default function JobModal({ job, creating = false, preset, allJobs = [], 
 
   useEffect(() => {
     if (!open) return
-    setStatus(job?.status ?? 'planned'); setStart(job?.start_date ?? preset?.start_date ?? ''); setEnd(job?.end_date ?? preset?.end_date ?? '')
+    setStatus(initialStatus ?? job?.status ?? 'planned'); setStart(job?.start_date ?? preset?.start_date ?? ''); setEnd(job?.end_date ?? preset?.end_date ?? '')
     // default working day 08:00–15:00 when no hours were set yet
     setFromTime(job?.start_time?.slice(0, 5) ?? preset?.start_time ?? DEFAULT_FROM); setToTime(job?.end_time?.slice(0, 5) ?? preset?.end_time ?? DEFAULT_TO)
     setWorkers(job ? jobWorkerIds(job) : []); setNotes(job?.notes ?? '')
