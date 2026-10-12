@@ -22,7 +22,7 @@ const L = {
     newJob: 'Novo delo', empty: 'Ni del', noJobs: 'Ko ponudbo označite kot pridobljeno, se delo samodejno pojavi tukaj. Delo brez ponudbe dodate z gumbom »Novo delo«.',
     total: 'Skupaj brez DDV', noDate: 'Ni termina', setDate: 'Določi termin', addAssignee: 'Dodaj izvajalca', schedule: 'Razporedi delo',
     noAssignee: 'Ni določen', assignee: 'Izvajalec', inStatus: 'Dni v trenutnem statusu', customer: 'Stranka', phone: 'Telefon', site: 'Lokacija del', value: 'Vrednost', dates: 'Termin',
-    job: 'Delo', status: 'Status', navigate: 'Navigacija do lokacije', late: (n: number) => `zamuda ${n} d`,
+    job: 'Delo', status: 'Status', setBoth: 'Določi termin in izvajalca', needDates: 'Najprej določite termin dela.', navigate: 'Navigacija do lokacije', late: (n: number) => `zamuda ${n} d`,
     cancelTitle: 'Odpovej delo', cancelText: (t: string) => `Ali res želite označiti delo »${t}« kot odpovedano?`, cancelOk: 'Odpovej',
     invoiceTitle: 'Delo je končano', invoiceText: 'Ali želite zdaj izdati račun za to delo?', invoiceOk: 'Izdaj račun', later: 'Kasneje', days: 'V statusu', manual: 'Brez ponudbe', toPlan: 'Za razporeditev',
   },
@@ -30,7 +30,7 @@ const L = {
     newJob: 'New job', empty: 'No jobs', noJobs: 'When you mark a quote as won, the job appears here automatically. Add work without a quote with "New job".',
     total: 'Total excl. VAT', noDate: 'Not scheduled', setDate: 'Set dates', addAssignee: 'Assign someone', schedule: 'Schedule job',
     noAssignee: 'Not assigned', assignee: 'Assigned to', inStatus: 'Days in current status', customer: 'Customer', phone: 'Phone', site: 'Site', value: 'Value', dates: 'Dates',
-    job: 'Job', status: 'Status', navigate: 'Directions to the site', late: (n: number) => `${n} d late`,
+    job: 'Job', status: 'Status', setBoth: 'Set dates and workers', needDates: 'Set the job dates first.', navigate: 'Directions to the site', late: (n: number) => `${n} d late`,
     cancelTitle: 'Cancel job', cancelText: (t: string) => `Mark "${t}" as cancelled?`, cancelOk: 'Cancel job',
     invoiceTitle: 'Job finished', invoiceText: 'Do you want to issue the invoice for this job now?', invoiceOk: 'Issue invoice', later: 'Later', days: 'In status', manual: 'No quote', toPlan: 'To schedule',
   },
@@ -91,6 +91,7 @@ export default function JobsPage() {
   function requestMove(j: JobRow, to: JobStatus) {
     if (j.status === to || to === 'invoiced' || j.status === 'invoiced') return
     if (to === 'cancelled') { setConfirmCancel(j); return }
+    if (to === 'in_progress' && !j.start_date) { toast.error(T.needDates); setOpen(j); return }
     move(j, to)
   }
 
@@ -287,7 +288,6 @@ export default function JobsPage() {
                       const title = jobTitle(j)
                       const range = dateRange(j.start_date, j.end_date)
                       const d = daysInStatus(j)
-                      const active = j.status === 'planned' || j.status === 'in_progress'
                       const plan = canEdit && needsPlanning(j)
                       return (
                         <div key={j.id} draggable={canEdit && j.status !== 'invoiced'}
@@ -307,19 +307,19 @@ export default function JobsPage() {
                             {j.customers?.name && j.customers.name !== title && <Row icon={Building2} title={T.customer}>{j.customers.name}</Row>}
                             {jobPhone(j) && <Row icon={Phone} title={T.phone}><a href={`tel:${jobPhone(j)!.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-900 hover:text-blue-600 hover:underline">{jobPhone(j)!}</a></Row>}
                             {jobSite(j) && <Row icon={MapPin} title={T.site}>{siteLink(jobSite(j)!)}</Row>}
-                            <Row icon={CalendarDays} title={T.dates}>
-                              {range ? <><span className={isLate(j) ? 'text-[#9e3f00]' : ''}>{range}</span>{timeRange(j) && <span className="text-gray-500"> · {timeRange(j)}</span>}{lateTag(j)}</> : (active && canEdit ? <span className="font-medium text-blue-600">+ {T.setDate}</span> : <span className="text-gray-400">{T.noDate}</span>)}
-                            </Row>
+                            {range
+                              ? <Row icon={CalendarDays} title={T.dates}><span className={isLate(j) ? 'text-[#9e3f00]' : ''}>{range}</span>{timeRange(j) && <span className="text-gray-500"> · {timeRange(j)}</span>}{lateTag(j)}</Row>
+                              : !plan && <Row icon={CalendarDays} title={T.dates}><span className="text-gray-400">{T.noDate}</span></Row>}
                             <Row icon={Euro} title={T.value}><span className="font-medium">{money(jobValue(j))}</span></Row>
-                            <Row icon={UserRound} title={T.assignee}>
-                              {assigneeChip(j) ?? (active && canEdit ? <span className="font-medium text-blue-600">+ {T.addAssignee}</span> : <span className="text-gray-400">{T.noAssignee}</span>)}
-                            </Row>
+                            {assigneeChip(j)
+                              ? <Row icon={UserRound} title={T.assignee}>{assigneeChip(j)}</Row>
+                              : !plan && <Row icon={UserRound} title={T.assignee}><span className="text-gray-400">{T.noAssignee}</span></Row>}
                           </div>
                           {plan && (
                             <button type="button" onClick={e => { e.stopPropagation(); setOpen(j) }}
                               className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-sm font-medium transition-colors hover:brightness-95"
                               style={{ backgroundColor: '#e5eeff', color: '#215bcf' }}>
-                              <CalendarPlus className="w-4 h-4" />{T.schedule}
+                              <CalendarPlus className="w-4 h-4" />{!j.start_date && !jobWorkerIds(j).length ? T.setBoth : !j.start_date ? T.setDate : T.addAssignee}
                             </button>
                           )}
                           <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-gray-100 text-xs text-gray-500">

@@ -31,7 +31,7 @@ const L = {
   sl: {
     newJob: 'Novo delo', newHint: 'Delo, za katerega niste izdali ponudbe (npr. manjše popravilo ali dogovor po telefonu).',
     title: 'Naziv dela', titleHint: 'npr. Beljenje stopnišča', customer: 'Stranka', noCustomer: 'Brez stranke', site: 'Lokacija del', siteHint: 'npr. Celovška 12, Ljubljana', value: 'Vrednost brez DDV',
-    workers: 'Izvajalci', busy: (who: string, what: string, when: string) => `${who} ima ob tem času že delo »${what}« (${when}).`,
+    workers: 'Izvajalci', needStart: 'Za »V izvajanju« določite začetek del.', busy: (who: string, what: string, when: string) => `${who} ima ob tem času že delo »${what}« (${when}).`,
     invoicedLock: 'Status »Zaračunano« se nastavi z izdajo računa. Za vrnitev stornirajte račun.',
     plan: 'Razporeditev', status: 'Status', start: 'Začetek del', end: 'Konec del', assignee: 'Izvajalec', none: 'Ni določen',
     notes: 'Opombe', notesHint: 'npr. material naročen, ključ pri hišniku', openQuote: 'Odpri ponudbo', fromQuote: 'Iz ponudbe', save: 'Shrani', create: 'Dodaj delo', cancel: 'Prekliči',
@@ -44,7 +44,7 @@ const L = {
   en: {
     newJob: 'New job', newHint: 'Work you did not send a quote for (e.g. a small repair or a phone agreement).',
     title: 'Job title', titleHint: 'e.g. Painting the staircase', customer: 'Customer', noCustomer: 'No customer', site: 'Site', siteHint: 'e.g. 12 Main St, Ljubljana', value: 'Value excl. VAT',
-    workers: 'Workers', busy: (who: string, what: string, when: string) => `${who} already has "${what}" at that time (${when}).`,
+    workers: 'Workers', needStart: 'Set a start date to mark the job as in progress.', busy: (who: string, what: string, when: string) => `${who} already has "${what}" at that time (${when}).`,
     invoicedLock: '"Invoiced" is set by issuing an invoice. Cancel the invoice to undo it.',
     plan: 'Scheduling', status: 'Status', start: 'Start', end: 'End', assignee: 'Assigned to', none: 'Not assigned',
     notes: 'Notes', notesHint: 'e.g. material ordered, key with the caretaker', openQuote: 'Open quote', fromQuote: 'From quote', save: 'Save', create: 'Add job', cancel: 'Cancel',
@@ -126,7 +126,8 @@ export default function JobModal({ job, creating = false, preset, allJobs = [], 
 
   const badRange = !!start && !!end && end < start
   const badTime = !!fromTime && !!toTime && toTime <= fromTime
-  const canSave = !badRange && !badTime && !!title.trim()
+  const needStart = status === 'in_progress' && !start
+  const canSave = !badRange && !badTime && !needStart && !!title.trim()
 
   function pickCustomer(id: string) {
     setCustomerId(id)
@@ -219,6 +220,7 @@ export default function JobModal({ job, creating = false, preset, allJobs = [], 
                 ))}
               </div>
               {(job?.status === 'invoiced' || status === 'invoiced') && <span className="text-xs text-gray-400 mt-1">{T.invoicedLock}</span>}
+              {needStart && <span className="text-xs text-red-600 mt-1">{T.needStart}</span>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
