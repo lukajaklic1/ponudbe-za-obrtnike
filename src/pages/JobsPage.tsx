@@ -91,7 +91,7 @@ export default function JobsPage() {
   function requestMove(j: JobRow, to: JobStatus) {
     if (j.status === to || to === 'invoiced' || j.status === 'invoiced') return
     if (to === 'cancelled') { setConfirmCancel(j); return }
-    if (to === 'in_progress' && !j.start_date) { toast.error(T.needDates); setOpen(j); return }
+    if (to === 'in_progress' && !j.start_date) { toast.warning(T.needDates); setOpen(j); return }
     move(j, to)
   }
 

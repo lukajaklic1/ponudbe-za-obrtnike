@@ -220,7 +220,7 @@ export default function JobModal({ job, creating = false, preset, allJobs = [], 
                 ))}
               </div>
               {(job?.status === 'invoiced' || status === 'invoiced') && <span className="text-xs text-gray-400 mt-1">{T.invoicedLock}</span>}
-              {needStart && <span className="text-xs text-red-600 mt-1">{T.needStart}</span>}
+              {needStart && <span className="text-xs text-[#874d00] mt-1">{T.needStart}</span>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
