@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown, ClipboardCheck, CalendarDays,
+  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown, AppWindow,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -9,9 +9,8 @@ import { useCompany } from '../../hooks/useCompany'
 import { useLanguage } from '../../hooks/useLanguage'
 import { cn } from '../../lib/cn'
 import AppLogo from '../ui/AppLogo'
-import { FEATURES } from '../../lib/features'
 
-type NavKey = 'dashboard' | 'windows' | 'quotes' | 'customers' | 'priceList' | 'jobs' | 'calendar'
+type NavKey = 'dashboard' | 'windows' | 'quotes' | 'customers' | 'priceList'
 type PermModule = 'quotes' | 'customers' | 'price_list'
 interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?: PermModule }
 
@@ -19,17 +18,12 @@ interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?:
 const TOP: NavItem[] = [
   { to: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
 ]
-const SECTIONS: { id: 'sales' | 'work'; items: NavItem[]; enabled?: boolean }[] = [
+const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [
   { id: 'sales', items: [
     { to: '/quotes',     icon: FileText, key: 'quotes',    mod: 'quotes' },
     { to: '/customers',  icon: Users,    key: 'customers', mod: 'customers' },
-    // Hidden until migration 20261112000001_window_cpq.sql is applied:
-    // { to: '/windows',    icon: AppWindow, key: 'windows',  mod: 'price_list' },
+    { to: '/windows',    icon: AppWindow, key: 'windows',  mod: 'price_list' },
     { to: '/price-list', icon: Tags,     key: 'priceList', mod: 'price_list' },
-  ] },
-  { id: 'work', enabled: FEATURES.execution, items: [
-    { to: '/jobs',       icon: ClipboardCheck, key: 'jobs',   mod: 'quotes' },
-    { to: '/calendar',   icon: CalendarDays, key: 'calendar', mod: 'quotes' },
   ] },
 ]
 
@@ -114,7 +108,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto py-2 px-2">
         {TOP.filter(visible).map(navLink)}
 
-        {SECTIONS.filter(sec => sec.enabled !== false).map(sec => {
+        {SECTIONS.map(sec => {
           const items = sec.items.filter(visible)
           if (!items.length) return null
           const open = !collapsed.includes(sec.id)

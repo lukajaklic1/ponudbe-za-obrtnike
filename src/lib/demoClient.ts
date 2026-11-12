@@ -127,14 +127,7 @@ function seed(): DB {
     lines.forEach(({ priceItemId, ...l }, i) => quote_lines.push({ id: `${id}-l${i + 1}`, quote_id: id, company_id: companyId, position: i + 1, price_item_id: priceItemId, ...l, total_net: lineTotal(l), created_at: created }))
   })
 
-  // The won quote is already being painted, so the calendar has something to show
-  const day = (d: number) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10)
-  const jobs: Row[] = quotes.filter(q => q.status === 'won').map((q, i) => ({
-    id: `demo-job-${i + 1}`, company_id: companyId, quote_id: q.id, customer_id: q.customer_id, status: 'in_progress',
-    start_date: day(-2), end_date: day(3), assignee_id: userId, assignee_ids: [userId], notes: null, started_at: daysAgo(2), finished_at: null, created_at: q.created_at, updated_at: daysAgo(2),
-  }))
-
-  return { companies: [company], users: [user], user_permissions: [], user_invitations: [], customers, price_items, quotes, quote_lines, quote_attachments: [], jobs }
+  return { companies: [company], users: [user], user_permissions: [], user_invitations: [], customers, price_items, quotes, quote_lines, quote_attachments: [] }
 }
 
 // ─── Select parsing (supports "*, customers(name), alias:users!fk(cols)") ──
@@ -170,7 +163,6 @@ const DEFAULTS: Record<string, () => Row> = {
   price_items: () => ({ is_active: true, vat_rate: 22, unit: 'pcs' }),
   customers: () => ({ status: 'active' }),
   users: () => ({ is_active: true, is_admin: false }),
-  jobs: () => ({ status: 'planned', quote_id: null, customer_id: null, title: null, site_address: null, value: null, start_date: null, end_date: null, start_time: null, end_time: null, assignee_id: null, assignee_ids: [], notes: null, started_at: null, finished_at: null }),
 }
 
 // ─── Query builder ───────────────────────────────────────────
@@ -259,12 +251,11 @@ class Query implements PromiseLike<{ data: any; error: any; count?: number }> {
     } else if (this.op === 'update') {
       out = this.rows().filter(r => this.match(r))
       for (const r of out) Object.assign(r, this.payload)
-      if (this.table === 'quotes') syncJobs()
       persist()
     } else if (this.op === 'delete') {
       out = this.rows().filter(r => this.match(r))
       db[this.table] = this.rows().filter(r => !this.match(r))
-      if (this.table === 'quotes') { const ids = new Set(out.map(r => r.id)); for (const t of ['quote_lines', 'quote_attachments', 'jobs']) db[t] = (db[t] ?? []).filter(r => !ids.has(r.quote_id)) }
+      if (this.table === 'quotes') { const ids = new Set(out.map(r => r.id)); for (const t of ['quote_lines', 'quote_attachments']) db[t] = (db[t] ?? []).filter(r => !ids.has(r.quote_id)) }
       persist()
     }
     if (this.op !== 'select' && !this.wantReturn) return { data: null, error: null }
@@ -406,23 +397,7 @@ export function resetDemo() {
   location.href = '/login'
 }
 
-// Mirrors the quote_won_creates_job trigger: won quote → job; reverting removes an untouched job
-function syncJobs() {
-  const jobs = (db.jobs ??= [])
-  for (const q of db.quotes ?? []) {
-    const job = jobs.find(j => j.quote_id === q.id)
-    if (q.status === 'won' && !job) {
-      jobs.push({ ...DEFAULTS.jobs(), id: uid(), company_id: q.company_id, quote_id: q.id, customer_id: q.customer_id, assignee_id: q.assignee_id, assignee_ids: q.assignee_id ? [q.assignee_id] : [], created_at: now(), updated_at: now() })
-    } else if (q.status !== 'won' && job && job.status === 'planned' && !job.start_date && !job.end_date) {
-      db.jobs = (db.jobs ?? []).filter(j => j !== job)
-    }
-  }
-  persist()
-}
-
-syncJobs()   // older demo databases have no jobs yet
-
-// Demo team: two more workers so several people can be put on one job
+// Demo team: two more colleagues
 ;(function ensureDemoTeam() {
   const c = db.companies?.[0]
   if (!c || (db.users ?? []).length > 1) return

@@ -15,9 +15,6 @@ import WindowCatalogPage from './pages/WindowCatalogPage'
 import ConfiguratorPage from './pages/ConfiguratorPage'
 import QuotesPage from './pages/QuotesPage'
 import QuoteFormPage from './pages/QuoteFormPage'
-import JobsPage from './pages/JobsPage'
-import CalendarPage from './pages/CalendarPage'
-import { FEATURES } from './lib/features'
 import SettingsPage from './pages/SettingsPage'
 import UsersPage from './pages/UsersPage'
 import PrivacyPage from './pages/PrivacyPage'
@@ -73,10 +70,8 @@ export default function Root() {
             <Route path="/customers"             element={<App><CustomersPage /></App>} />
             <Route path="/price-list"            element={<App><PriceListPage /></App>} />
             <Route path="/windows"               element={<App><WindowCatalogPage /></App>} />
-            {FEATURES.execution && <Route path="/jobs"     element={<App><JobsPage /></App>} />}
-            {FEATURES.execution && <Route path="/calendar" element={<App><CalendarPage /></App>} />}
             {/* Old links to hidden / removed modules */}
-            {[...(FEATURES.execution ? [] : ['/jobs', '/calendar']), '/invoices/*', '/invoices', '/bills'].map(p =>
+            {['/jobs', '/calendar', '/invoices/*', '/invoices', '/bills'].map(p =>
               <Route key={p} path={p} element={<Navigate to="/quotes" replace />} />)}
             <Route path="/users"                 element={<App><UsersPage /></App>} />
             <Route path="/settings"             element={<App><SettingsPage /></App>} />
