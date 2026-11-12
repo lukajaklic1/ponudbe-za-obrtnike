@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Power, PowerOff, Search, Users, CalendarDays, X, Check } from 'lucide-react'
+import { Power, PowerOff, Search, Users, X, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/ui/Toast'
-import Pagination from '../components/ui/Pagination'
+import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
+import { Badge } from '../components/ui/Badge'
 import { FilterSelect } from '../components/ui/FilterSelect'
-import { PersonBadge } from '../components/ui/PersonBadge'
-import { Building2 } from 'lucide-react'
 
 interface UserRow {
   id: string
@@ -21,7 +20,6 @@ interface UserRow {
   created_at: string
 }
 
-const PAGE_SIZE = 20
 
 export default function SuperAdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([])
@@ -32,6 +30,7 @@ export default function SuperAdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = usePageSize('sa-users')
 
   useEffect(() => { load() }, [])
 
@@ -77,21 +76,21 @@ export default function SuperAdminUsersPage() {
       (statusFilter === 'inactive' && !u.is_active)
     return nameMatch && companyMatch && roleMatch && statusMatch
   })
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize)
   const fmt = (s: string) => new Date(s).toLocaleDateString('sl-SI')
   function resetPage() { setPage(1) }
 
   return (
     <div>
-      <PageHeader title="Uporabniki" icon={Users} count={users.length} />
-      <div className="p-4">
+      <PageHeader variant="spacious" title="Uporabniki" icon={Users} tabs={[{ label: 'Vsi uporabniki', count: users.length, active: true }]} />
+      <div className="px-8 pt-6 pb-10">
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <div className="relative max-w-xs w-full">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="flex flex-wrap items-center gap-2 mb-5">
+          <div className="relative">
+            <Search className="w-4 h-4 text-[#8a8f80] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input value={search} onChange={e => { setSearch(e.target.value); resetPage() }} placeholder="Ime, priimek ali e-pošta"
-              className="w-full pl-9 pr-3 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="h-10 w-80 pl-9 pr-3 rounded-lg border border-[#d4d7c9] bg-white text-sm text-[#4a5361] placeholder-[#8a8f80] focus:outline-none focus:ring-2 focus:ring-gray-300" />
           </div>
           <ComboFilter options={companyOptions} value={companyFilter} onChange={v => { setCompanyFilter(v); resetPage() }}
             placeholder="Podjetje" allLabel="Vsa podjetja" />
@@ -104,7 +103,7 @@ export default function SuperAdminUsersPage() {
         </div>
 
         {/* Table */}
-        <div className="-mx-4 border-t border-b border-gray-200">
+        <div className="rounded-xl border border-[#e4e6dd] bg-white overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
@@ -116,54 +115,36 @@ export default function SuperAdminUsersPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[760px]">
-                <thead className="bg-gray-50 border-b border-gray-200">
+              <table className="w-full text-sm font-[450] min-w-[760px]">
+                <thead className="bg-[#fbfbf9] border-b border-[#eceee6]">
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Uporabnik</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">E-pošta</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Podjetje</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Vloga</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Registriran</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Status</th>
-                    <th className="px-4 py-3 w-12" />
+                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Uporabnik</th>
+                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">E-pošta</th>
+                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Vloga</th>
+                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Registriran</th>
+                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Status</th>
+                    <th className="px-4 py-4 w-12" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-[#e4e6dd]">
                   {paged.map(u => (
                     <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
-                        <PersonBadge name={`${u.first_name} ${u.last_name}`} />
+                        <span className="font-medium text-[#101112] whitespace-nowrap">{u.first_name} {u.last_name}</span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff' }}>
-                            <Building2 className="w-3 h-3" style={{ color: '#215bcf' }} />
-                          </div>
-                          <span className="text-gray-700 truncate max-w-[160px]">{u.company_name}</span>
-                        </div>
+                        <span className="whitespace-nowrap">{u.company_name}</span>
                       </td>
                       <td className="px-4 py-3">
-                        {u.is_super_admin ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff', color: '#215bcf' }}>Super admin</span>
-                        ) : u.is_admin ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#f3e8ff', border: '1px solid #ead5ff', color: '#7e22ce' }}>Admin</span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500">Uporabnik</span>
-                        )}
+                        <Badge tone="neutral">{u.is_super_admin ? 'Super admin' : u.is_admin ? 'Admin' : 'Uporabnik'}</Badge>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-200 text-xs text-gray-900 whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}>
-                          <CalendarDays className="w-3 h-3 text-gray-500 shrink-0" />{fmt(u.created_at)}
-                        </span>
+                        <span className="whitespace-nowrap">{fmt(u.created_at)}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-md text-xs font-medium"
-                          style={u.is_active
-                            ? { backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' }
-                            : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }}>
-                          {u.is_active ? 'Aktiven' : 'Deaktiviran'}
-                        </span>
+                        <Badge tone={u.is_active ? 'green' : 'neutral'}>{u.is_active ? 'Aktiven' : 'Deaktiviran'}</Badge>
                       </td>
                       <td className="px-4 py-3 text-right">
                         {!u.is_super_admin && (
@@ -181,7 +162,7 @@ export default function SuperAdminUsersPage() {
             </div>
           )}
         </div>
-        <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onChange={setPage} />
+        <Pagination total={filtered.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   )
@@ -212,7 +193,7 @@ function ComboFilter({ options, value, onChange, placeholder, allLabel }: {
 
   return (
     <div className="relative" ref={ref}>
-      <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <Search className="w-4 h-4 text-[#8a8f80] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <input
         value={open ? query : selectedLabel}
         onChange={e => { setQuery(e.target.value); setOpen(true) }}

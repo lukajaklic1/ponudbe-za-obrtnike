@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.text-label { color: #7f7f7f; }
+.text-label { color: #6b7064; }
 
 /* ── Landing page animations ── */
 @keyframes fadeUp {
@@ -61,7 +61,7 @@
 .animate-slide-right    { animation: slideRight 0.5s ease both; }
 
 .gradient-text {
-  background: linear-gradient(135deg, #266df0 0%, #60a5fa 50%, #818cf8 100%);
+  background: linear-gradient(135deg, #4a5361 0%, #a4a993 50%, #a4a993 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -69,7 +69,7 @@
   animation: gradientShift 4s ease infinite;
 }
 .gradient-text-static {
-  background: linear-gradient(135deg, #266df0 0%, #818cf8 100%);
+  background: linear-gradient(135deg, #4a5361 0%, #a4a993 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -93,6 +93,8 @@
 .in-view-delay-4 { animation: fadeUp 0.65s 0.4s ease both; }
 .not-in-view { opacity: 0; }
 
+body { color: #4a5361; }
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -100,8 +102,10 @@ html {
 }
 
 * {
-  font-family: 'Inter', sans-serif;
-  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04', 'cv09', 'cv10';
+  font-family: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* one number style and one letter spacing everywhere (no tabular digits, no tracking) */
+  font-variant-numeric: normal;
+  letter-spacing: normal;
 }
 
 /* Browsers dim disabled selects (opacity .7) and keep the arrow — read-only selects
@@ -117,17 +121,17 @@ select:disabled {
 /* Disabled inputs/selects/textareas in read-only fieldset */
 fieldset:disabled input,
 fieldset:disabled textarea {
-  background-color: #f9fafb !important;
-  color: #52525b !important;
-  border-color: #eeeff1 !important;
+  background-color: #f7f8f4 !important;
+  color: #4a5361 !important;
+  border-color: #e4e6dd !important;
   cursor: not-allowed;
 }
 
 fieldset:disabled select {
-  background-color: #f9fafb !important;
-  color: #52525b !important;
-  -webkit-text-fill-color: #52525b !important;
-  border-color: #eeeff1 !important;
+  background-color: #f7f8f4 !important;
+  color: #4a5361 !important;
+  -webkit-text-fill-color: #4a5361 !important;
+  border-color: #e4e6dd !important;
   cursor: not-allowed;
 }
 
@@ -137,7 +141,7 @@ fieldset:disabled textarea:hover,
 fieldset:disabled input:focus,
 fieldset:disabled select:focus,
 fieldset:disabled textarea:focus {
-  border-color: #eeeff1 !important;
+  border-color: #e4e6dd !important;
   outline: none !important;
   box-shadow: none !important;
 }

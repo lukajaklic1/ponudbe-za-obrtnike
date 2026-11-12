@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Users, Mail, X, UserCog, MoreVertical, Search } from 'lucide-react'
+import { Plus, Users, X, UserCog, MoreVertical, Search } from 'lucide-react'
 import Checkbox from '../components/ui/Checkbox'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
@@ -11,11 +11,11 @@ import { toast } from '../components/ui/Toast'
 import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
-import Pagination from '../components/ui/Pagination'
+import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
+import { Badge } from '../components/ui/Badge'
 import type { User as AppUser, UserPermission, UserInvitation } from '../types/database'
 
-const PAGE_SIZE = 20
 const MODULES: UserPermission['module'][] = ['quotes', 'customers', 'price_list']
 
 // Small teams: no per-module matrix. Every member can work on quotes, customers and
@@ -26,12 +26,13 @@ function fullAccess() {
 
 export default function UsersPage() {
   const { company, isAdmin, loading } = useCompany()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const s = t.settings
   const [users, setUsers] = useState<AppUser[]>([])
   const [invites, setInvites] = useState<UserInvitation[]>([])
   const [dataLoading, setDataLoading] = useState(true)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = usePageSize('users')
   const [sortKey, setSortKey] = useState<'name' | 'role' | 'status'>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [search, setSearch] = useState('')
@@ -165,20 +166,20 @@ export default function UsersPage() {
     return 0
   })
   const allRows = [...sortedUsers, ...invites]
-  const paginated = allRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const paginated = allRows.slice((page - 1) * pageSize, page * pageSize)
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
   if (!loading && !isAdmin) return <Navigate to="/dashboard" replace />
 
   return (
     <div>
-      <PageHeader title={t.nav.users} icon={UserCog} count={users.length + invites.length} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
-      <div className="p-4">
-      <div className="flex flex-wrap gap-3 mb-4">
+      <PageHeader variant="spacious" title={t.nav.users} icon={UserCog} tabs={[{ label: lang === 'sl' ? 'Vsi uporabniki' : 'All users', count: users.length + invites.length, active: true }]} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
+      <div className="px-8 pt-6 pb-10">
+      <div className="flex flex-wrap items-center gap-2 mb-5">
         <div className="relative">
-          <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-[#8a8f80] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={t.common.search}
-            className="pl-9 pr-3 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56" />
+            className="h-10 w-80 pl-9 pr-3 rounded-lg border border-[#d4d7c9] bg-white text-sm text-[#4a5361] placeholder-[#8a8f80] focus:outline-none focus:ring-2 focus:ring-gray-300" />
         </div>
         <FilterSelect label={s.role} value={roleFilter === 'all' ? '' : roleFilter} allLabel={t.common.all}
           options={[{ value: 'admin', label: s.admin }, { value: 'member', label: s.member }]}
@@ -187,7 +188,7 @@ export default function UsersPage() {
           options={[{ value: 'active', label: t.common.active }, { value: 'inactive', label: t.common.deactivated }]}
           onChange={v => { setStatusFilter((v || 'all') as typeof statusFilter); setPage(1) }} />
       </div>
-      <div className="-mx-4 border-t border-b border-gray-200">
+      <div className="rounded-xl border border-[#e4e6dd] bg-white overflow-hidden">
         {dataLoading ? (
           <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
         ) : users.length === 0 && invites.length === 0 ? (
@@ -196,18 +197,18 @@ export default function UsersPage() {
             <p className="text-sm text-gray-400">{s.noUsers}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[700px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
+          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[700px]">
+            <thead className="bg-[#fbfbf9] border-b border-[#eceee6]">
               <tr>
                 {([['name', t.common.name], ['', t.common.email], ['role', s.role], ['status', t.common.status], ['', '']] as [string, string][]).map(([key, h], i) => (
-                  <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                  <th key={i} className={`text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap ${key ? 'cursor-pointer select-none' : ''}`}
                     onClick={() => key && handleSort(key as typeof sortKey)}>
-                    <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
+                    <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon variant="chevron" active={sortKey === key} dir={sortDir} />}</span>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-[#e4e6dd]">
               {paginated.map(item => {
                 const u = 'is_admin' in item && 'first_name' in item && 'last_name' in item && 'email' in item && 'job_title' in item && !('status' in item) ? (item as AppUser) : null
                 const invite = u ? null : (item as UserInvitation)
@@ -215,22 +216,15 @@ export default function UsersPage() {
                   <tr key={u.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => openEdit(u)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff' }}>
-                          <UserCog className="w-3.5 h-3.5" style={{ color: '#215bcf' }} />
-                        </div>
-                        <span className="font-medium text-gray-900">{u.first_name} {u.last_name}</span>
+                        <span className="font-medium text-[#101112] whitespace-nowrap">{u.first_name} {u.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={u.is_admin ? { backgroundColor: '#e5eeff', border: '1px solid #d6e5ff', color: '#215bcf' } : { backgroundColor: '#f5f5f5', border: '1px solid #eeeff1', color: '#5e5e5e' }}>
-                        {u.is_admin ? s.admin : s.member}
-                      </span>
+                      <Badge tone="neutral">{u.is_admin ? s.admin : s.member}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      {u.is_active
-                        ? <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' }}>{t.common.active}</span>
-                        : <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }}>{s.inactive}</span>}
+                      {u.is_active ? <Badge tone="green">{t.common.active}</Badge> : <Badge tone="neutral">{s.inactive}</Badge>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
@@ -240,23 +234,18 @@ export default function UsersPage() {
                     </td>
                   </tr>
                 ) : invite ? (
-                  <tr key={invite.id} className="hover:bg-gray-50 transition-colors bg-amber-50/30">
+                  <tr key={invite.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#fff3cc', border: '1px solid #ffe5a0' }}>
-                          <Mail className="w-3.5 h-3.5" style={{ color: '#874d00' }} />
-                        </div>
-                        <span className="text-gray-500">{invite.first_name} {invite.last_name}</span>
+                        <span className="font-medium text-[#101112] whitespace-nowrap">{invite.first_name} {invite.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{invite.email}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{invite.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${invite.is_admin ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {invite.is_admin ? s.admin : s.member}
-                      </span>
+                      <Badge tone="neutral">{invite.is_admin ? s.admin : s.member}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#fff3cc', border: '1px solid #ffe5a0', color: '#874d00' }}>{s.invited}</span>
+                      <Badge tone="yellow">{s.invited}</Badge>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
@@ -272,13 +261,13 @@ export default function UsersPage() {
         )}
       </div>
 
-      <Pagination total={allRows.length} page={page} pageSize={PAGE_SIZE} onChange={setPage} />
+      <Pagination total={allRows.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
 
       {/* Invite modal */}
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={s.addUser} size="lg">
         {sentTo ? (
           <div>
-            <p className="text-sm text-gray-600">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
+            <p className="text-sm text-gray-600">{s.inviteSent} <span className="font-medium text-[#101112] whitespace-nowrap">{sentTo}</span>.</p>
             <div className="flex justify-end mt-5">
               <Button onClick={() => setInviteOpen(false)}>{t.common.close}</Button>
             </div>

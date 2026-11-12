@@ -54,7 +54,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-600 hover:bg-[#f6f6f6] hover:text-gray-900'
+                    : 'text-gray-600 hover:bg-[#eeefe8] hover:text-gray-900'
                 }`
               }
             >
@@ -67,7 +67,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         <div className="px-3 py-4 border-t border-gray-200">
           <button
             onClick={signOut}
-            className="flex items-center gap-2.5 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-500 hover:bg-[#f6f6f6] hover:text-gray-900 transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-500 hover:bg-[#eeefe8] hover:text-gray-900 transition-colors"
           >
             <LogOut size={16} />
             Odjava

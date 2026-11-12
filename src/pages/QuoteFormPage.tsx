@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { ChevronLeft, Plus, Trash2, Pencil, Download, Send, Check, X, Search, Paperclip, FileText, UploadCloud } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud } from 'lucide-react'
 import OfferPdfPreview, { downloadOfferPdf } from '../components/OfferPdfPreview'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -161,7 +161,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [snapshot, setSnapshot] = useState<OfferSnapshot | null>(null)
   const isSaved = !!quoteNumber
   const [customerId, setCustomerId] = useState('')
-  const [title, setTitle] = useState('')
   const [contactPerson, setContactPerson] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [contactPhone, setContactPhone] = useState('')
@@ -210,9 +209,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         setAlreadySent(['sent', 'won', 'lost'].includes(quote.status))
         setQuoteNumber(quote.quote_number ?? '')
         setCustomerId(quote.customer_id)
-        // older quotes stored the customer name as title — treat that as 'no title'
-        const custName = ((cust as Customer[]) ?? []).find(c => c.id === quote.customer_id)?.name
-        setTitle(quote.title && quote.title !== custName ? quote.title : '')
         setContactPerson(quote.contact_person ?? ''); setContactEmail(quote.contact_email ?? ''); setContactPhone(quote.contact_phone ?? '')
         setSiteAddress(quote.site_address ?? '')
         // a draft without payment terms picks up the company default
@@ -339,7 +335,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   async function persist(): Promise<{ id: string; number: string } | null> {
     if (!company || !customerId) { toast.error(o.pickCustomer); return null }
     const fields = {
-      customer_id: customerId, title: title.trim(),
+      // windows: no quote title in the UI; the required DB column gets the customer name
+      customer_id: customerId, title: customers.find(c => c.id === customerId)?.name ?? '',
       // contact details come from the customer record
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
       site_address: siteAddress.trim() || null, payment_terms: paymentTerms.trim() || null, parity: parity || null,
@@ -401,12 +398,14 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (!res) { setSaving(false); return }
     const cust = customers.find(c => c.id === customerId) ?? null
     const snap = buildSnapshot({
-      quote_number: res.number, title: title.trim(), valid_until: validUntil || null, lead_time: leadTime || null, payment_terms: paymentTerms || null, parity: parity || null,
+      quote_number: res.number, title: '', valid_until: validUntil || null, lead_time: leadTime || null, payment_terms: paymentTerms || null, parity: parity || null,
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
       notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0,
     } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l) })))
-    const newStatus = status === 'sent' ? 'sent' : 'issued'
-    const { error } = await supabase.from('quotes').update({ snapshot: snap, status: newStatus, issued_at: new Date().toISOString(), updated_at: new Date().toISOString() } as any).eq('id', res.id)
+    // Izdano and Poslano are one step now: issuing an offer marks it as sent
+    const newStatus = 'sent' as const
+    const now = new Date().toISOString()
+    const { error } = await supabase.from('quotes').update({ snapshot: snap, status: newStatus, issued_at: now, ...(status === 'sent' ? {} : { sent_at: now }), updated_at: now } as any).eq('id', res.id)
     setSaving(false)
     if (error) { toast.error(error.message); return }
     setStatusState(newStatus); setSnapshot(snap)
@@ -443,7 +442,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   if (!readOnly && company && !hasPerm('quotes', 'create')) return <Navigate to="/quotes" replace />
 
   const ro = readOnly
-  const border = ro ? 'border-[#eeeff1]' : 'border-gray-200'
+  const border = ro ? 'border-[#e4e6dd]' : 'border-gray-200'
   const selectedCustomer = customers.find(c => c.id === customerId)
   const companyTerms = (company?.payment_terms_list ?? []) as string[]
   const termOptions = paymentTerms && !companyTerms.includes(paymentTerms) ? [...companyTerms, paymentTerms] : companyTerms
@@ -456,8 +455,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       </div>
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
-          {quoteNumber && <span className="text-sm" style={{ color: '#7f7f7f' }}>{quoteNumber}</span>}
+          <h1 className="text-xl font-semibold text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
+          {quoteNumber && <span className="text-sm" style={{ color: '#6b7064' }}>{quoteNumber}</span>}
           {isSaved && <QuoteStatusBadge status={status} label={s.status[status]} />}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -476,7 +475,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               <Button loading={saving} onClick={issue} disabled={!customerId}>{s.issueOffer}</Button>}
             {status !== 'draft' && snapshot?.lines &&
               <Button variant="secondary" className="gap-1.5" loading={downloading} onClick={downloadPdf}><Download className="w-3.5 h-3.5" />{s.downloadPdf}</Button>}
-            {hasPerm('quotes', 'create') && status === 'issued' && <Button onClick={() => changeStatus('sent')} className="gap-1.5"><Send className="w-3.5 h-3.5" />{s.markSentLabel}</Button>}
             {hasPerm('quotes', 'create') && status === 'sent' && <>
               <Button onClick={() => setConfirm('won')} className="gap-1.5"><Check className="w-3.5 h-3.5" />{s.markAccepted}</Button>
               <Button variant="secondary" onClick={() => setConfirm('lost')} className="gap-1.5"><X className="w-3.5 h-3.5" />{s.markRejected}</Button>
@@ -504,14 +502,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className={`bg-white rounded-xl border p-6 mb-5 ${border}`}>
           <h2 className="text-sm font-semibold text-gray-700 mb-4">{o.quoteDetails}</h2>
           <fieldset disabled={ro} className="contents">
-            <div className="mb-4"><Input id="q-title" label={o.quoteTitle} placeholder={ro ? '' : o.quoteTitleHint} value={title} onChange={e => setTitle(e.target.value)} /></div>
           </fieldset>
           <fieldset disabled={ro} className="contents">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#7f7f7f]">{s.customer}</label>
+                <label className="text-xs font-medium text-[#6b7064]">{s.customer}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#eeeff1', color: '#52525b' }}>{selectedCustomer?.name ?? '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f7f8f4', borderColor: '#e4e6dd', color: '#4a5361' }}>{selectedCustomer?.name ?? '—'}</div>
                   : <CustomerSearch customers={customers} value={customerId} placeholder={o.searchCustomer} emptyText={o.noCustomerMatch}
                       labels={{ person: o.typePerson, company: o.typeCompany }}
                       onChange={cid => {
@@ -540,11 +537,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 onChange={e => setValidUntil(e.target.value)} />
               <Input id="q-lead" label={o.executionTime} placeholder={ro ? '' : o.executionTimeHint} value={leadTime} onChange={e => setLeadTime(e.target.value)} />
               <div className="lg:col-span-2 flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#7f7f7f]">{s.paymentTerms}</label>
+                <label className="text-xs font-medium text-[#6b7064]">{s.paymentTerms}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#eeeff1', color: '#52525b' }}>{paymentTerms || '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f7f8f4', borderColor: '#e4e6dd', color: '#4a5361' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
-                    ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-blue-600 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
+                    ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-200 px-3 py-2 text-sm text-blue-600 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
                     : <select value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)}
                         className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                         <option value="">{o.none}</option>
@@ -552,26 +549,26 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                       </select>}
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#7f7f7f]">{o.parity}</label>
+                <label className="text-xs font-medium text-[#6b7064]">{o.parity}</label>
                 <select value={parity} onChange={e => setParity(e.target.value)}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-[#52525b] disabled:border-[#eeeff1]">
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-[#4a5361] disabled:border-[#e4e6dd]">
                   <option value="">{o.none}</option>
                   {INCOTERMS.map(i => <option key={i.code} value={i.code}>{i.code} · {i.name}</option>)}
                 </select>
               </div>
             </div>
             <div className="flex flex-col gap-1 mt-4">
-              <label className="text-xs font-medium text-[#7f7f7f]">{s.notes}</label>
+              <label className="text-xs font-medium text-[#6b7064]">{s.notes}</label>
               <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder={ro ? '' : o.notesHint}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#52525b] disabled:border-[#eeeff1]" />
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#4a5361] disabled:border-[#e4e6dd]" />
             </div>
           </fieldset>
 
           {/* Attachments — plain list: open / download / delete (delete only while draft) */}
           <div className="mt-5">
-            <p className="text-xs font-medium text-[#7f7f7f] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
+            <p className="text-xs font-medium text-[#6b7064] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
             {attachments.map(att => (
-              <div key={att.id} className="flex items-center gap-2 px-3 py-2 bg-[#eff5fe] border border-[#deeafd] rounded-lg mb-2">
+              <div key={att.id} className="flex items-center gap-2 px-3 py-2 bg-[#f4f5ef] border border-[#deeafd] rounded-lg mb-2">
                 <FileText className="w-4 h-4 text-blue-600 shrink-0" />
                 <button type="button" onClick={() => openFile(att)} className="text-sm text-blue-600 hover:underline font-medium flex-1 text-left truncate">{att.file_name}</button>
                 {att.file_size != null && <span className="text-xs text-gray-400 shrink-0">{Math.max(1, Math.round(att.file_size / 1024))} KB</span>}
@@ -589,7 +586,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             ))}
             {ro && attachments.length === 0 && <p className="text-sm text-gray-400">{o.noAttachments}</p>}
             {canAddFiles && (
-              <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition-colors w-full">
+              <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition-colors w-full">
                 <UploadCloud className="w-4 h-4 text-gray-400 shrink-0" />
                 <span className="text-sm text-gray-500">{uploading ? o.uploading : o.attachHint}</span>
                 <input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple className="hidden" disabled={uploading}
@@ -601,7 +598,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
         {/* ── Lines ─────────────────────────────────────── */}
         <div className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
-          <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#eeeff1]' : 'border-gray-100'}`}>
+          <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#e4e6dd]' : 'border-gray-100'}`}>
             <h2 className="text-sm font-semibold text-gray-700">{o.lines}</h2>
             {!ro && <Button variant="secondary" size="sm" onClick={addEmptyRoom} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addRoom}</Button>}
           </div>
@@ -623,14 +620,14 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 const rl = lines.filter(l => l.room === rn)
                 const sub = rl.reduce((a, l) => a + lineTotal(num(l)), 0)
                 return (
-                  <tbody key={rn || '__general'} className={`divide-y ${ro ? 'divide-[#eeeff1]' : 'divide-gray-100'}`}>
+                  <tbody key={rn || '__general'} className={`divide-y ${ro ? 'divide-[#e4e6dd]' : 'divide-gray-100'}`}>
                     {grouped && (
-                      <tr className="bg-[#fbfbfb]">
+                      <tr className="bg-[#f7f8f4]">
                         <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-2">
                           {ro
-                            ? <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">{rn || o.general}</span>
+                            ? <span className="text-xs font-semibold uppercase text-gray-600">{rn || o.general}</span>
                             : <input defaultValue={rn} placeholder={o.general} onBlur={e => e.target.value !== rn && renameRoom(rn, e.target.value)}
-                                className="text-xs font-semibold uppercase tracking-wide text-gray-700 bg-transparent px-1 py-0.5 -ml-1 rounded border border-transparent hover:border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />}
+                                className="text-xs font-semibold uppercase text-gray-700 bg-transparent px-1 py-0.5 -ml-1 rounded border border-transparent hover:border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />}
                         </td>
                         <td className="px-4 py-2 text-right text-xs font-semibold text-gray-700 whitespace-nowrap">{money(sub)}</td>
                         {!ro && <td className="px-2 py-2 text-right">
@@ -754,7 +751,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           {([['wallItem', o.wallsWork], ['ceilingItem', o.ceilingWork]] as const).map(([k, lbl]) => (
             <div key={k} className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-[#7f7f7f]">{lbl}</label>
+              <label className="text-xs font-medium text-[#6b7064]">{lbl}</label>
               <select value={room[k]} onChange={e => setRoom(r => ({ ...r, [k]: e.target.value }))}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">{o.none}</option>

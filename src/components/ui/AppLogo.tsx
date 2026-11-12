@@ -19,7 +19,7 @@ export default function AppLogo({ size = 'md', showName = true, dark = false, mo
       </svg>
 
       {showName && (
-        <span className={`font-semibold tracking-tight ${fontSize} ${textColor}`}>
+        <span className={`font-semibold ${fontSize} ${textColor}`}>
           Obrtdesk
         </span>
       )}

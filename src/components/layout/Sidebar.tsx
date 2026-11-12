@@ -60,7 +60,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       onClick={handleNavClick}
       className={({ isActive }) => cn(
         'flex items-center gap-2.5 px-3 py-1.5 rounded-lg mb-0.5 text-sm font-medium transition-colors',
-        isActive ? 'bg-[#f1f1f1] text-gray-900' : 'text-gray-900 hover:bg-[#f6f6f6]',
+        isActive ? 'bg-[#dde0d1] text-gray-900' : 'text-gray-900 hover:bg-[#eeefe8]',
       )}
     >
       <Icon className="w-4 h-4 shrink-0 text-gray-500" />
@@ -78,16 +78,16 @@ export default function Sidebar({ onClose }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-screen shrink-0">
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
       {/* App logo — same height as PageHeader (h-[57px]) */}
       <div className="h-[57px] px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <AppLogo size="sm" />
         <div className="flex items-center gap-1">
-          <button onClick={toggle} className="hidden lg:flex p-1.5 text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] rounded-md transition-colors" title="Hide sidebar">
+          <button onClick={toggle} className="hidden lg:flex p-1.5 text-gray-400 hover:text-gray-700 hover:bg-[#eeefe8] rounded-md transition-colors" title="Hide sidebar">
             <PanelLeft className="w-[18px] h-[18px]" />
           </button>
           {onClose && (
-            <button onClick={onClose} className="lg:hidden p-1.5 text-gray-500 hover:text-gray-900 hover:bg-[#f6f6f6] rounded-lg transition-colors shrink-0">
+            <button onClick={onClose} className="lg:hidden p-1.5 text-gray-500 hover:text-gray-900 hover:bg-[#eeefe8] rounded-lg transition-colors shrink-0">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -132,7 +132,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
             'flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors mb-0.5',
-            isActive ? 'bg-[#f1f1f1] text-gray-900' : 'text-gray-900 hover:bg-[#f6f6f6]',
+            isActive ? 'bg-[#dde0d1] text-gray-900' : 'text-gray-900 hover:bg-[#eeefe8]',
           )}
         >
           <UserCog className="w-4 h-4 shrink-0 text-gray-500" />
@@ -143,7 +143,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
             'flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors mb-0.5',
-            isActive ? 'bg-[#f1f1f1] text-gray-900' : 'text-gray-900 hover:bg-[#f6f6f6]',
+            isActive ? 'bg-[#dde0d1] text-gray-900' : 'text-gray-900 hover:bg-[#eeefe8]',
           )}
         >
           <Settings className="w-4 h-4 shrink-0 text-gray-500" />
@@ -160,7 +160,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 onClick={() => setLang(l)}
                 className={cn(
                   'px-2 py-0.5 rounded text-xs font-medium transition-colors',
-                  lang === l ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-[#f6f6f6]',
+                  lang === l ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-[#eeefe8]',
                 )}
               >
                 {l === 'en' ? 'EN' : 'SL'}
@@ -170,7 +170,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </div>
 
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
+          <div className="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center text-white text-xs font-semibold shrink-0">
             {profile ? `${profile.first_name[0]}${profile.last_name[0]}` : '?'}
           </div>
           <div className="flex-1 min-w-0">

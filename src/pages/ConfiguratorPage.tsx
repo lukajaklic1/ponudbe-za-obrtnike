@@ -95,7 +95,7 @@ export default function ConfiguratorPage() {
     })
   }, [slug])
 
-  const accent = data?.company.accent || '#2563eb'
+  const accent = data?.company.accent || '#101112'
   const cur = data?.company.currency || 'EUR'
   const show = !!data?.company.show_prices
 
@@ -213,7 +213,7 @@ export default function ConfiguratorPage() {
           <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center text-white mb-4" style={btn}><Check className="w-6 h-6" /></div>
           <h1 className="text-xl font-semibold text-gray-900">{T.doneTitle}</h1>
           <p className="text-sm text-gray-600 mt-2">{T.doneText}</p>
-          <p className="text-lg font-mono font-semibold text-gray-900 mt-2">{result?.quote_number}</p>
+          <p className="text-lg font-semibold text-gray-900 mt-2">{result?.quote_number}</p>
           <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setContact(c => ({ ...c, note: '' })) }}
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
@@ -231,7 +231,7 @@ export default function ConfiguratorPage() {
                   style={i === active ? btn : undefined}>
                   {T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}
                 </button>)}
-                <button onClick={() => addItem(false)} className="shrink-0 px-3 py-1.5 rounded-full text-sm border border-dashed border-gray-300 text-gray-600 hover:border-gray-500 flex items-center gap-1"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
+                <button onClick={() => addItem(false)} className="shrink-0 px-3 py-1.5 rounded-full text-sm border border-dashed border-gray-200 text-gray-600 hover:border-gray-500 flex items-center gap-1"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
               </div>
 
               <Section n={1} title={T.step1} accent={accent}>

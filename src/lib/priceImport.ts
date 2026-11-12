@@ -16,8 +16,8 @@ export interface ImportRow {
 
 export const TEMPLATE_HEADER = ['Šifra', 'Naziv', 'Opis', 'Enota', 'Cena', 'DDV']
 export const TEMPLATE_EXAMPLE = [
-  ['S01', 'Beljenje sten, bela, 2×', 'Impregnacija + 2 premaza', 'm2', '4,50', '22'],
-  ['S02', 'Čiščenje po končanih delih', '', 'pavšal', '60,00', '22'],
+  ['M01', 'RAL montaža okna', 'Tesnilni trakovi, PU pena, sidra', 'kos', '95,00', '22'],
+  ['D01', 'Demontaža starega okna', '', 'kos', '35,00', '22'],
 ]
 
 // Split one CSV line, honouring "quoted; fields" and doubled quotes.

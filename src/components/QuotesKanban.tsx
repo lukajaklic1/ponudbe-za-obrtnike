@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Euro, MapPin, UserRound, Building2, FileText, Clock, Phone } from 'lucide-react'
+import { Euro, MapPin, UserRound, FileText, Clock, Phone } from 'lucide-react'
 import type { Quote, QuoteStatus } from '../types/database'
 
 export interface KanbanQuote extends Quote {
@@ -9,12 +9,11 @@ export interface KanbanQuote extends Quote {
 
 // Column dot colours — same hues as the status badges, but solid
 const STATUS_DOT: Partial<Record<QuoteStatus, string>> = {
-  draft: '#f5b100', issued: '#8b5cf6', sent: '#3b82f6', won: '#10b981', lost: '#f97316',
+  draft: '#8a9077', sent: '#e0a800', won: '#16a34a', lost: '#8a9077',
 }
 
 // Status changes allowed by dragging a card. Issuing a draft needs the editor (it locks the PDF content).
 export const ALLOWED_MOVES: Partial<Record<QuoteStatus, QuoteStatus[]>> = {
-  issued: ['sent'],
   sent: ['won', 'lost'],
 }
 
@@ -60,14 +59,13 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             <div className="flex items-center gap-2 px-3.5 pt-3.5 pb-2.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STATUS_DOT[st] }} />
               <span className="text-sm font-medium text-gray-900">{statusLabels[st]}</span>
-              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }}>{cards.length}</span>
+              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#eeefe8', color: '#4a5361' }}>{cards.length}</span>
             </div>
 
             {/* Cards */}
             <div className="flex-1 flex flex-col gap-2.5 px-2.5 pb-2.5 min-h-[140px] overflow-y-auto">
               {cards.map(q => {
                 const movable = canEdit && !!ALLOWED_MOVES[q.status]
-                const hasTitle = !!q.title && q.title !== q.customers?.name
                 const phone = q.contact_phone || q.customers?.phone || null
                 const assignee = q.assignee ? `${q.assignee.first_name} ${q.assignee.last_name}` : null
                 return (
@@ -79,15 +77,14 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       ${movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragging?.id === q.id ? 'opacity-40' : ''}`}>
                     {/* Title */}
                     <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff' }}>
-                        <FileText className="w-3 h-3" style={{ color: '#215bcf' }} />
+                      <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#eeefe8', border: '1px solid #dde0d1' }}>
+                        <FileText className="w-3 h-3" style={{ color: '#4a5361' }} />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 line-clamp-2">{hasTitle ? q.title : (q.customers?.name ?? '—')}</span>
+                      <span className="text-sm font-medium text-gray-900 line-clamp-2">{q.customers?.name ?? '—'}</span>
                     </div>
 
                     {/* Details */}
                     <div className="flex flex-col gap-2.5 mt-3 text-sm text-gray-900">
-                      {hasTitle && <CardRow icon={Building2} title={labels.customer}>{q.customers?.name ?? '—'}</CardRow>}
                       {phone && <CardRow icon={Phone} title={labels.phone}><a href={`tel:${phone.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-900 hover:text-blue-600 hover:underline">{phone}</a></CardRow>}
                       {q.site_address && <CardRow icon={MapPin} title={labels.site}>{q.site_address}</CardRow>}
                       <CardRow icon={Euro} title={labels.value}><span className="font-medium">{money(Number(q.total_net))}</span></CardRow>
@@ -107,7 +104,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       {(() => {
                         const d = waitingDays(q)
                         if (d == null) return null
-                        const color = d >= 14 ? '#9e3f00' : d >= 7 ? '#874d00' : '#6b7280'
+                        const color = d >= 14 ? '#9e3f00' : d >= 7 ? '#874d00' : '#6b7064'
                         return <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap" style={{ color }} title={labels.inStatus}><Clock className="w-3.5 h-3.5" />{d} d</span>
                       })()}
                     </div>

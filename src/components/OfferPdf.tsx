@@ -15,7 +15,7 @@ const c = {
   primary: '#111827',
   text: '#111827',
   muted: '#6b7280',
-  border: '#e5e7eb',
+  border: '#e1e1e1',
   strip: '#f1f1f1',
   rowAlt: '#f9f9f9',
   white: '#ffffff',
