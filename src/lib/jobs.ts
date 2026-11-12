@@ -11,8 +11,8 @@ export interface JobRow extends Job {
 export const JOB_STATUSES: JobStatus[] = ['planned', 'in_progress', 'done', 'invoiced', 'cancelled']
 
 export const JOB_STATUS_LABEL: Record<'sl' | 'en', Record<JobStatus, string>> = {
-  sl: { planned: 'Planirano', in_progress: 'V izvajanju', done: 'Končano', invoiced: 'Zaračunano', cancelled: 'Odpovedano' },
-  en: { planned: 'Planned', in_progress: 'In progress', done: 'Done', invoiced: 'Invoiced', cancelled: 'Cancelled' },
+  sl: { planned: 'V pripravi', in_progress: 'Montaža', done: 'Zmontirano', invoiced: 'Zaračunano', cancelled: 'Odpovedano' },
+  en: { planned: 'In preparation', in_progress: 'Installation', done: 'Installed', invoiced: 'Invoiced', cancelled: 'Cancelled' },
 }
 
 // dot = solid colour (column headers, legend); bg/text = calendar bars

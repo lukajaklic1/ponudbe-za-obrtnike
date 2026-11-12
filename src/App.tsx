@@ -11,13 +11,13 @@ import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
 import CustomersPage from './pages/CustomersPage'
 import PriceListPage from './pages/PriceListPage'
+import WindowCatalogPage from './pages/WindowCatalogPage'
+import ConfiguratorPage from './pages/ConfiguratorPage'
 import QuotesPage from './pages/QuotesPage'
 import QuoteFormPage from './pages/QuoteFormPage'
 import JobsPage from './pages/JobsPage'
 import CalendarPage from './pages/CalendarPage'
-import InvoicesPage from './pages/InvoicesPage'
-import InvoiceFormPage from './pages/InvoiceFormPage'
-import BillsPage from './pages/BillsPage'
+import { FEATURES } from './lib/features'
 import SettingsPage from './pages/SettingsPage'
 import UsersPage from './pages/UsersPage'
 import PrivacyPage from './pages/PrivacyPage'
@@ -57,6 +57,7 @@ export default function Root() {
             <Route path="/forgot-password"  element={<ForgotPasswordPage />} />
             <Route path="/reset-password"   element={<ResetPasswordPage />} />
             <Route path="/accept-invite"    element={<AcceptInvitePage />} />
+            <Route path="/k/:slug"          element={<ConfiguratorPage />} />
 
             {/* Super admin — own layout, no company sidebar */}
             <Route path="/super-admin"           element={<SA><SuperAdminDashboardPage /></SA>} />
@@ -71,13 +72,12 @@ export default function Root() {
             <Route path="/quotes/:id"            element={<App><QuoteFormPage readOnly /></App>} />
             <Route path="/customers"             element={<App><CustomersPage /></App>} />
             <Route path="/price-list"            element={<App><PriceListPage /></App>} />
-            <Route path="/jobs"                  element={<App><JobsPage /></App>} />
-            <Route path="/calendar"              element={<App><CalendarPage /></App>} />
-            <Route path="/invoices"              element={<App><InvoicesPage /></App>} />
-            <Route path="/invoices/new"          element={<App><InvoiceFormPage /></App>} />
-            <Route path="/invoices/:id/edit"     element={<App><InvoiceFormPage /></App>} />
-            <Route path="/invoices/:id"          element={<App><InvoiceFormPage readOnly /></App>} />
-            <Route path="/bills"                 element={<App><BillsPage /></App>} />
+            <Route path="/windows"               element={<App><WindowCatalogPage /></App>} />
+            {FEATURES.execution && <Route path="/jobs"     element={<App><JobsPage /></App>} />}
+            {FEATURES.execution && <Route path="/calendar" element={<App><CalendarPage /></App>} />}
+            {/* Old links to hidden / removed modules */}
+            {[...(FEATURES.execution ? [] : ['/jobs', '/calendar']), '/invoices/*', '/invoices', '/bills'].map(p =>
+              <Route key={p} path={p} element={<Navigate to="/quotes" replace />} />)}
             <Route path="/users"                 element={<App><UsersPage /></App>} />
             <Route path="/settings"             element={<App><SettingsPage /></App>} />
 

@@ -9,7 +9,7 @@ type Row = Record<string, any>
 type DB = Record<string, Row[]>
 interface AuthUser { id: string; email: string; password: string }
 
-const DB_KEY = 'obrtdesk-demo-db'
+const DB_KEY = 'obrtdesk-demo-db-windows'
 const AUTH_KEY = 'obrtdesk-demo-auth'
 const SESSION_KEY = 'obrtdesk-demo-session'
 
@@ -36,9 +36,9 @@ function seed(): DB {
   const companyId = 'demo-company'
   const userId = 'demo-user'
   const company: Row = {
-    id: companyId, name: 'Pleskarstvo Novak s.p.', currency: 'EUR', po_prefix: 'PO', po_next_number: 1,
+    id: companyId, name: 'Okna Novak d.o.o.', currency: 'EUR', po_prefix: 'PO', po_next_number: 1,
     address_street: 'Celovška cesta 120', address_city: 'Ljubljana', address_postal_code: '1000', address_country: 'Slovenija',
-    email: 'info@pleskarstvo-novak.si', phone: '041 555 123', tax_id: 'SI12345678', logo_url: null,
+    email: 'info@okna-novak.si', phone: '041 555 123', tax_id: 'SI12345678', logo_url: null,
     bank_name: 'NLB d.d.', bank_iban: 'SI56 0201 0001 2345 678',
     quote_prefix: 'P', quote_counter: 4,
     legal_form: 'sp', registration_number: '1234567000', registry_authority: null, share_capital: null, unpaid_capital: null,
@@ -71,19 +71,29 @@ function seed(): DB {
   }))
   const pi = (code: string) => price_items.find(p => p.code === code)!
 
-  type L = [string | null, string, number]
+  // [room, service code | window name, qty, unit price for a window line]
+  type L = [string | null, string, number, number?]
   const quoteDefs: { cust: number; status: string; age: number; site: string; lead: string; disc: number; vat: number; lines: L[] }[] = [
-    { cust: 0, status: 'won', age: 70, site: 'Trubarjeva 14, Ljubljana', lead: '4 delovne dni', disc: 0, vat: 9.5, lines: [
-      [null, 'P01', 85], ['Dnevna soba', 'G01', 12], ['Dnevna soba', 'B02', 58.4], ['Dnevna soba', 'B03', 24], ['Spalnica', 'B04', 41.6], ['Spalnica', 'B03', 14], [null, 'O02', 1],
+    { cust: 0, status: 'won', age: 70, site: 'Trubarjeva 14, Ljubljana', lead: '4 tedne', disc: 0, vat: 9.5, lines: [
+      ['Dnevna soba', 'Dvokrilno okno s stebričkom 1800 × 1400 mm · PVC 82 mm, troslojno steklo', 2, 742],
+      ['Dnevna soba', 'Balkonska vrata 900 × 2200 mm · PVC 82 mm, troslojno steklo', 1, 815],
+      ['Spalnica', 'Enokrilno okno (O/K) 1000 × 1400 mm · PVC 82 mm, troslojno steklo', 2, 468],
+      [null, 'D01', 5], [null, 'M02', 4], [null, 'M03', 1], [null, 'D03', 1],
     ] },
-    { cust: 2, status: 'sent', age: 25, site: 'Dunajska 50, Ljubljana – stopnišče', lead: '10 delovnih dni', disc: 5, vat: 22, lines: [
-      ['Stopnišče', 'P01', 140], ['Stopnišče', 'G02', 96], ['Stopnišče', 'B04', 210], ['Stopnišče', 'L02', 36], [null, 'O02', 1],
+    { cust: 2, status: 'sent', age: 25, site: 'Dunajska 50, Ljubljana – stopnišče', lead: '6 tednov', disc: 5, vat: 22, lines: [
+      ['Stopnišče', 'Fiksno okno 1200 × 1600 mm · ALU 75 mm', 6, 690],
+      ['Stopnišče', 'Kip okno 1200 × 700 mm · ALU 75 mm', 6, 520],
+      [null, 'D01', 12], [null, 'M01', 12], [null, 'T01', 1],
     ] },
-    { cust: 1, status: 'lost', age: 45, site: 'Gorenjska cesta 5, Kranj', lead: '3 tedni', disc: 0, vat: 22, lines: [
-      ['Fasada', 'F04', 1], ['Fasada', 'F01', 185], ['Fasada', 'F02', 185], ['Fasada', 'F03', 64],
+    { cust: 1, status: 'lost', age: 45, site: 'Gorenjska cesta 5, Kranj', lead: '5 tednov', disc: 0, vat: 22, lines: [
+      ['Pritličje', 'Trokrilno okno 2600 × 1400 mm · PVC 76 mm', 1, 1180],
+      ['Pritličje', 'Enokrilno okno (O/K) 800 × 1200 mm · PVC 76 mm', 3, 365],
+      [null, 'M01', 4], [null, 'A03', 4],
     ] },
     { cust: 3, status: 'draft', age: 2, site: 'Ob potoku 3, Domžale', lead: '', disc: 0, vat: 9.5, lines: [
-      ['Kuhinja', 'B02', 32.5], ['Kuhinja', 'B03', 12.8], ['Otroška soba', 'D01', 9],
+      ['Kuhinja', 'Enokrilno okno (O/K) 1200 × 1200 mm · PVC 82 mm', 1, 492],
+      ['Otroška soba', 'Dvokrilno okno brez stebrička 1400 × 1400 mm · PVC 82 mm', 1, 655],
+      [null, 'I01', 1], [null, 'M02', 2],
     ] },
   ]
 
@@ -92,9 +102,10 @@ function seed(): DB {
   quoteDefs.forEach((d, qi) => {
     const id = `demo-quote-${qi + 1}`
     const created = daysAgo(d.age)
-    const lines = d.lines.map(([room, code, qty]) => {
+    const lines = d.lines.map(([room, code, qty, price]) => {
+      if (price != null) return { room, priceItemId: null as string | null, name: code, description: null, unit: 'pcs', quantity: qty, unit_price: price, discount_pct: 0, vat_rate: d.vat }
       const p = pi(code)
-      return { room, priceItemId: p.id as string, name: p.name, description: null, unit: p.unit, quantity: qty, unit_price: p.price, discount_pct: 0, vat_rate: d.vat }
+      return { room, priceItemId: p.id as string | null, name: p.name, description: null, unit: p.unit, quantity: qty, unit_price: p.price, discount_pct: 0, vat_rate: d.vat }
     })
     const tot = quoteTotals(lines, d.disc)
     const cust = customers[d.cust]
@@ -156,11 +167,9 @@ function pick(row: Row, cols: string[]): Row {
 
 const DEFAULTS: Record<string, () => Row> = {
   quotes: () => ({ status: 'draft', discount_pct: 0, total_net: 0, total_vat: 0, total_gross: 0, snapshot: null, assignee_id: null, lost_reason: null, sent_at: null, issued_at: null, pdf_path: null }),
-  price_items: () => ({ is_active: true, vat_rate: 22, unit: 'm2' }),
+  price_items: () => ({ is_active: true, vat_rate: 22, unit: 'pcs' }),
   customers: () => ({ status: 'active' }),
   users: () => ({ is_active: true, is_admin: false }),
-  invoices: () => ({ kind: 'invoice', status: 'draft', invoice_number: null, discount_pct: 0, total_net: 0, total_vat: 0, total_gross: 0, paid_at: null, sent_at: null, issued_at: null, snapshot: null, reference: null }),
-  purchase_invoices: () => ({ status: 'unpaid', category: 'material', paid_at: null, job_id: null, file_path: null, file_name: null }),
   jobs: () => ({ status: 'planned', quote_id: null, customer_id: null, title: null, site_address: null, value: null, start_date: null, end_date: null, start_time: null, end_time: null, assignee_id: null, assignee_ids: [], notes: null, started_at: null, finished_at: null }),
 }
 
@@ -251,7 +260,6 @@ class Query implements PromiseLike<{ data: any; error: any; count?: number }> {
       out = this.rows().filter(r => this.match(r))
       for (const r of out) Object.assign(r, this.payload)
       if (this.table === 'quotes') syncJobs()
-      if (this.table === 'invoices') for (const r of out) invoiceMarksJob(r)
       persist()
     } else if (this.op === 'delete') {
       out = this.rows().filter(r => this.match(r))
@@ -303,15 +311,6 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
       db.companies.push({ id: companyId, name: a.p_company_name, currency: 'EUR', po_prefix: 'PO', po_next_number: 1, address_street: null, address_city: null, address_postal_code: null, address_country: null, email: null, phone: null, tax_id: null, logo_url: null, bank_name: null, bank_iban: null, quote_prefix: 'P', quote_counter: 0, quote_terms: null, quote_terms_en: null, is_active: true, created_at: now(), updated_at: now() })
       db.users.push({ id: session.user.id, company_id: companyId, first_name: a.p_first_name, last_name: a.p_last_name, email: session.user.email, phone: null, is_admin: true, is_active: true, department_id: null, job_title: null, is_super_admin: false, created_at: now(), updated_at: now() })
       persist(); return { data: companyId, error: null }
-    }
-    case 'generate_invoice_number': {
-      const c = db.companies.find(x => x.id === a.p_company_id)
-      if (!c) return { data: null, error: { message: 'forbidden' } }
-      const y = new Date().getFullYear()
-      c.invoice_counter = c.invoice_year === y ? (c.invoice_counter ?? 0) + 1 : 1
-      c.invoice_year = y
-      persist()
-      return { data: `${c.invoice_prefix || 'R'}-${y}-${String(c.invoice_counter).padStart(4, '0')}`, error: null }
     }
     case 'generate_quote_number': {
       const c = db.companies.find(x => x.id === a.p_company_id)
@@ -423,37 +422,12 @@ function syncJobs() {
 
 syncJobs()   // older demo databases have no jobs yet
 
-// Mirrors the invoice_issued_marks_job trigger
-function invoiceMarksJob(inv: Row) {
-  if (!inv.job_id || inv.kind !== 'invoice') return
-  const job = (db.jobs ?? []).find(j => j.id === inv.job_id)
-  if (!job) return
-  if (['issued', 'sent', 'paid'].includes(inv.status) && ['planned', 'in_progress', 'done'].includes(job.status)) { job.status = 'invoiced'; job.finished_at ??= now(); persist() }
-  const live = (db.invoices ?? []).some(i => i.job_id === job.id && i.kind === 'invoice' && i.id !== inv.id && ['issued', 'sent', 'paid'].includes(i.status))
-  if (inv.status === 'cancelled' && job.status === 'invoiced' && !live) { job.status = 'done'; persist() }
-}
-
-// Older demo databases: invoice settings + a few supplier invoices to look at
-;(function ensureInvoiceDemo() {
-  const c = db.companies?.[0]
-  if (!c || c.invoice_prefix) return
-  Object.assign(c, { invoice_prefix: 'R', invoice_counter: 0, invoice_year: null, invoice_due_days: 8, vat_payer: true, invoice_note: 'Hvala za zaupanje! Pri plačilu navedite sklic.' })
-  const job = (db.jobs ?? [])[0]
-  db.invoices ??= []; db.invoice_lines ??= []
-  db.purchase_invoices = [
-    { supplier_name: 'Jub d.o.o.', invoice_number: '2026-04512', category: 'material', issue_date: new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10), due_date: new Date(Date.now() + 24 * 864e5).toISOString().slice(0, 10), total_gross: 412.3, total_vat: 74.35, total_net: 337.95, status: 'unpaid', job_id: job?.id ?? null },
-    { supplier_name: 'Merkur trgovina d.o.o.', invoice_number: 'MR-88213', category: 'tools', issue_date: new Date(Date.now() - 20 * 864e5).toISOString().slice(0, 10), due_date: new Date(Date.now() - 5 * 864e5).toISOString().slice(0, 10), total_gross: 129.9, total_vat: 23.42, total_net: 106.48, status: 'unpaid', job_id: null },
-    { supplier_name: 'Petrol d.d.', invoice_number: 'P-55102', category: 'fuel', issue_date: new Date(Date.now() - 12 * 864e5).toISOString().slice(0, 10), due_date: null, total_gross: 86.4, total_vat: 15.58, total_net: 70.82, status: 'paid', paid_at: new Date(Date.now() - 12 * 864e5).toISOString().slice(0, 10), job_id: null },
-  ].map((b, i) => ({ ...DEFAULTS.purchase_invoices(), id: `demo-bill-${i + 1}`, company_id: c.id, supplier_vat: null, notes: null, file_path: null, file_name: null, created_by: 'demo-user', created_at: now(), updated_at: now(), ...b }))
-  persist()
-})()
-
 // Demo team: two more workers so several people can be put on one job
 ;(function ensureDemoTeam() {
   const c = db.companies?.[0]
   if (!c || (db.users ?? []).length > 1) return
   for (const [i, [fn, ln]] of [['Marko', 'Kralj'], ['Ana', 'Zupan']].entries()) {
-    db.users.push({ id: `demo-worker-${i + 1}`, company_id: c.id, first_name: fn, last_name: ln, email: `${fn.toLowerCase()}@pleskarstvo-novak.si`, phone: null, is_admin: false, is_active: true, department_id: null, job_title: null, is_super_admin: false, created_at: now(), updated_at: now() })
+    db.users.push({ id: `demo-worker-${i + 1}`, company_id: c.id, first_name: fn, last_name: ln, email: `${fn.toLowerCase()}@okna-novak.si`, phone: null, is_admin: false, is_active: true, department_id: null, job_title: null, is_super_admin: false, created_at: now(), updated_at: now() })
   }
   persist()
 })()

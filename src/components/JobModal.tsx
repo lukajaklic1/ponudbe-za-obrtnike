@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ExternalLink, Receipt, Plus, Inbox } from 'lucide-react'
-import { INVOICE_STATUS_LABEL, INVOICE_STATUS_STYLE, displayStatus } from '../lib/invoices'
-import type { Invoice } from '../types/database'
+import { ExternalLink } from 'lucide-react'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
 import Input from './ui/Input'
@@ -32,7 +30,7 @@ const L = {
   sl: {
     newJob: 'Novo delo', newHint: 'Delo, za katerega niste izdali ponudbe (npr. manjše popravilo ali dogovor po telefonu).',
     title: 'Naziv dela', titleHint: 'npr. Beljenje stopnišča', customer: 'Stranka', noCustomer: 'Brez stranke', site: 'Lokacija del', siteHint: 'npr. Celovška 12, Ljubljana', value: 'Vrednost brez DDV',
-    workers: 'Izvajalci', needStart: 'Za »V izvajanju« določite začetek del.', busy: (who: string, what: string, when: string) => `${who} ima ob tem času že delo »${what}« (${when}).`,
+    workers: 'Izvajalci', needStart: 'Za »Montaža« določite termin montaže.', busy: (who: string, what: string, when: string) => `${who} ima ob tem času že delo »${what}« (${when}).`,
     invoicedLock: 'Status »Zaračunano« se nastavi z izdajo računa. Za vrnitev stornirajte račun.',
     plan: 'Razporeditev', status: 'Status', start: 'Začetek del', end: 'Konec del', assignee: 'Izvajalec', none: 'Ni določen',
     notes: 'Opombe', notesHint: 'npr. material naročen, ključ pri hišniku', openQuote: 'Odpri ponudbo', fromQuote: 'Iz ponudbe', save: 'Shrani', create: 'Dodaj delo', cancel: 'Prekliči',
@@ -45,7 +43,7 @@ const L = {
   en: {
     newJob: 'New job', newHint: 'Work you did not send a quote for (e.g. a small repair or a phone agreement).',
     title: 'Job title', titleHint: 'e.g. Painting the staircase', customer: 'Customer', noCustomer: 'No customer', site: 'Site', siteHint: 'e.g. 12 Main St, Ljubljana', value: 'Value excl. VAT',
-    workers: 'Workers', needStart: 'Set a start date to mark the job as in progress.', busy: (who: string, what: string, when: string) => `${who} already has "${what}" at that time (${when}).`,
+    workers: 'Workers', needStart: 'Set an installation date to move the job to Installation.', busy: (who: string, what: string, when: string) => `${who} already has "${what}" at that time (${when}).`,
     invoicedLock: '"Invoiced" is set by issuing an invoice. Cancel the invoice to undo it.',
     plan: 'Scheduling', status: 'Status', start: 'Start', end: 'End', assignee: 'Assigned to', none: 'Not assigned',
     notes: 'Notes', notesHint: 'e.g. material ordered, key with the caretaker', openQuote: 'Open quote', fromQuote: 'From quote', save: 'Save', create: 'Add job', cancel: 'Cancel',
@@ -62,7 +60,6 @@ const TIMES = Array.from({ length: (22 - 5) * 4 + 1 }, (_, i) => `${String(5 + M
 const DEFAULT_FROM = '08:00'
 const DEFAULT_TO = '15:00'
 
-const fmtMoney = (n: number) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
 
 const selectCls = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50'
 const labelCls = 'text-xs font-medium'
@@ -87,10 +84,6 @@ export default function JobModal({ job, creating = false, preset, allJobs = [], 
   const [customers, setCustomers] = useState<{ id: string; name: string; address_street: string | null; address_city: string | null }[]>([])
   const [saving, setSaving] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
-  // money side of the job: invoices issued for it and supplier costs booked on it
-  const [invoices, setInvoices] = useState<Pick<Invoice, 'id' | 'invoice_number' | 'kind' | 'status' | 'due_date' | 'total_net' | 'total_gross'>[]>([])
-  const [costs, setCosts] = useState<{ net: number; count: number }>({ net: 0, count: 0 })
-
   useEffect(() => {
     if (!open) return
     setStatus(initialStatus ?? job?.status ?? 'planned'); setStart(job?.start_date ?? preset?.start_date ?? ''); setEnd(job?.end_date ?? preset?.end_date ?? '')
@@ -107,19 +100,6 @@ export default function JobModal({ job, creating = false, preset, allJobs = [], 
     supabase.from('customers').select('id, name, address_street, address_city').eq('company_id', companyId).order('name')
       .then(({ data }) => setCustomers((data as typeof customers) ?? []))
   }, [open])
-
-  useEffect(() => {
-    if (!open || !job) { setInvoices([]); setCosts({ net: 0, count: 0 }); return }
-    const inv = supabase.from('invoices').select('id, invoice_number, kind, status, due_date, total_net, total_gross').eq('company_id', companyId)
-    Promise.all([
-      job.quote_id ? inv.or(`job_id.eq.${job.id},quote_id.eq.${job.quote_id}`) : inv.eq('job_id', job.id),
-      supabase.from('purchase_invoices').select('total_net, total_gross').eq('job_id', job.id),
-    ]).then(([{ data: i }, { data: b }]) => {
-      setInvoices(((i as typeof invoices) ?? []).filter(x => x.status !== 'cancelled'))
-      const bills = (b as { total_net: number | null; total_gross: number }[]) ?? []
-      setCosts({ net: bills.reduce((a, x) => a + Number(x.total_net ?? x.total_gross), 0), count: bills.length })
-    })
-  }, [open, job])
 
   const conflicts = workerConflicts({ id: job?.id ?? '', start_date: start || null, end_date: end || null, start_time: fromTime || null, end_time: toTime || null }, workers, allJobs)
   // "Zaračunano" only comes from issuing an invoice; once invoiced, cancelling the invoice is the way back
@@ -262,50 +242,6 @@ export default function JobModal({ job, creating = false, preset, allJobs = [], 
               </div>
             </div>
           </div>
-
-          {/* Invoices & costs */}
-          {job && (
-            <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">{T.money}</span>
-                {canEdit && <div className="ml-auto flex gap-2">
-                  {job.quote_id && <Button variant="secondary" size="sm" onClick={() => navigate(`/invoices/new?job=${job.id}&kind=advance`)} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{T.advance}</Button>}
-                  <Button size="sm" onClick={() => navigate(`/invoices/new?job=${job.id}`)} className="gap-1.5"><Receipt className="w-3.5 h-3.5" />{T.invoice}</Button>
-                </div>}
-              </div>
-              {invoices.length > 0 && (
-                <div className="rounded-lg border border-gray-200 divide-y divide-gray-100">
-                  {invoices.map(i => {
-                    const d = displayStatus(i)
-                    const st = INVOICE_STATUS_STYLE[d]
-                    return (
-                      <button key={i.id} type="button" onClick={() => navigate(i.status === 'draft' ? `/invoices/${i.id}/edit` : `/invoices/${i.id}`)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-gray-50">
-                        <Receipt className="w-4 h-4 text-gray-400 shrink-0" />
-                        <span className="font-medium text-gray-900">{i.invoice_number ?? T.draft}</span>
-                        {i.kind === 'advance' && <span className="text-xs text-gray-400">{T.advanceShort}</span>}
-                        <span className="px-1.5 py-0.5 rounded-md text-[11px] font-medium" style={{ backgroundColor: st.bg, color: st.color }}>{INVOICE_STATUS_LABEL[lang][d]}</span>
-                        <span className="ml-auto font-medium text-gray-900 tabular-nums">{fmtMoney(Number(i.total_gross))}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  [T.invoiced, invoices.filter(i => i.status !== 'draft').reduce((a, i) => a + Number(i.total_net), 0)],
-                  [T.costs, costs.net],
-                  [T.margin, invoices.filter(i => i.status !== 'draft').reduce((a, i) => a + Number(i.total_net), 0) - costs.net],
-                ].map(([label, v], k) => (
-                  <div key={k} className="rounded-lg bg-gray-50 px-3 py-2">
-                    <div className="text-xs text-gray-500 flex items-center gap-1">{k === 1 && <Inbox className="w-3 h-3" />}{label as string}{k === 1 && costs.count ? ` (${costs.count})` : ''}</div>
-                    <div className={`text-sm font-semibold tabular-nums ${k === 2 && (v as number) < 0 ? 'text-[#9e3f00]' : 'text-gray-900'}`}>{fmtMoney(v as number)}</div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-400 -mt-1">{T.moneyHint}</p>
-            </div>
-          )}
 
           <div className="flex items-center justify-between gap-3 pt-4 -mx-6 px-6 border-t border-gray-200">
             <div>

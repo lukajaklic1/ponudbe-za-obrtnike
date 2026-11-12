@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { ClipboardCheck, Search, Building2, MapPin, Phone, Euro, CalendarDays, UserRound, Clock, Plus, List, Columns3, CalendarPlus, MoreVertical } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -54,9 +54,7 @@ export default function JobsPage() {
   const [dragging, setDragging] = useState<JobRow | null>(null)
   const [overCol, setOverCol] = useState<JobStatus | null>(null)
   const [open, setOpen] = useState<JobRow | null>(null)
-  const navigate = useNavigate()
   const [confirmCancel, setConfirmCancel] = useState<JobRow | null>(null)   // dragged to "Odpovedano"
-  const [askInvoice, setAskInvoice] = useState<JobRow | null>(null)         // just moved to "Končano"
   const [openAs, setOpenAs] = useState<JobStatus | undefined>(undefined)       // status chosen by dragging, saved from the modal
   const [creating, setCreating] = useState(false)
   const [page, setPage] = useState(1)
@@ -103,7 +101,6 @@ export default function JobsPage() {
     const { error } = await supabase.from('jobs').update(patch).eq('id', j.id)
     if (error) { toast.error(error.message); setRows(prev => prev.map(r => r.id === j.id ? j : r)); return }
     toast.success(t.common.saved)
-    if (to === 'done' && canEdit) setAskInvoice(j)
   }
 
   const q = search.toLowerCase()
@@ -350,9 +347,6 @@ export default function JobsPage() {
       <ConfirmDialog open={!!confirmCancel} onClose={() => setConfirmCancel(null)}
         onConfirm={() => { if (confirmCancel) move(confirmCancel, 'cancelled'); setConfirmCancel(null) }}
         title={T.cancelTitle} message={confirmCancel ? T.cancelText(jobTitle(confirmCancel)) : ''} confirmLabel={T.cancelOk} danger />
-      <ConfirmDialog open={!!askInvoice} onClose={() => setAskInvoice(null)}
-        onConfirm={() => { const j = askInvoice; setAskInvoice(null); if (j) navigate(`/invoices/new?job=${j.id}`) }}
-        title={T.invoiceTitle} message={T.invoiceText} confirmLabel={T.invoiceOk} cancelLabel={T.later} />
       {company && <JobModal job={open} creating={creating} allJobs={rows} initialStatus={openAs} companyId={company.id} onClose={() => { setOpen(null); setCreating(false); setOpenAs(undefined) }} onSaved={load}
         users={users} canEdit={canEdit} isAdmin={isAdmin} lang={lang} />}
     </div>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { ChevronLeft, Plus, Trash2, Pencil, Download, Send, Check, X, Ruler, Search, Paperclip, FileText, UploadCloud, Receipt } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pencil, Download, Send, Check, X, Search, Paperclip, FileText, UploadCloud } from 'lucide-react'
 import OfferPdfPreview, { downloadOfferPdf } from '../components/OfferPdfPreview'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -188,7 +188,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   // reload when switching between editor and review of the same quote (same component instance)
   useEffect(() => { if (company) { setTab('overview'); init() } }, [company, id, readOnly])
 
-  const blankLine = (roomName = '', vat = 22): LineRow => ({ key: nk(), room: roomName, price_item_id: null, name: '', description: '', unit: 'm2', quantity: null, unit_price: null, discount_pct: 0, vat_rate: vat })
+  const blankLine = (roomName = '', vat = 22): LineRow => ({ key: nk(), room: roomName, price_item_id: null, name: '', description: '', unit: 'pcs', quantity: null, unit_price: null, discount_pct: 0, vat_rate: vat })
 
   async function init() {
     if (!company) return
@@ -269,6 +269,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
   const areas = roomAreas(room.length ?? 0, room.width ?? 0, room.height ?? 0, room.openings ?? 0)
   const m2Items = priceItems.filter(p => p.unit === 'm2')
+  // Windows: a room is just a named group of positions (no wall/ceiling calculator)
+  function addEmptyRoom() {
+    const name = `${o.room} ${rooms.filter(r => r).length + 1}`
+    setLines(ls => [...ls.filter(l => l.name.trim() || l.quantity || l.unit_price), blankLine(name, currentVat())])
+  }
   function addRoom() {
     const name = room.name.trim() || `${o.room} ${rooms.filter(r => r).length + 1}`
     const vat = currentVat()
@@ -476,11 +481,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               <Button onClick={() => setConfirm('won')} className="gap-1.5"><Check className="w-3.5 h-3.5" />{s.markAccepted}</Button>
               <Button variant="secondary" onClick={() => setConfirm('lost')} className="gap-1.5"><X className="w-3.5 h-3.5" />{s.markRejected}</Button>
             </>}
-            {/* Invoices straight from the quote: an advance once it is sent / won, the invoice once won */}
-            {hasPerm('quotes', 'create') && (status === 'sent' || status === 'won') &&
-              <Button variant="secondary" onClick={() => navigate(`/invoices/new?quote=${id}&kind=advance`)} className="gap-1.5"><Receipt className="w-3.5 h-3.5" />{lang === 'sl' ? 'Avansni račun' : 'Advance invoice'}</Button>}
-            {hasPerm('quotes', 'create') && status === 'won' &&
-              <Button variant="secondary" onClick={() => navigate(`/invoices/new?quote=${id}`)} className="gap-1.5"><Receipt className="w-3.5 h-3.5" />{lang === 'sl' ? 'Izdaj račun' : 'Issue invoice'}</Button>}
             {(status === 'won' || status === 'lost') && isAdmin &&
               <Button variant="secondary" onClick={() => changeStatus('sent')} className="gap-1.5">{s.adminRevert}</Button>}
           </>}
@@ -603,7 +603,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
           <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#eeeff1]' : 'border-gray-100'}`}>
             <h2 className="text-sm font-semibold text-gray-700">{o.lines}</h2>
-            {!ro && <Button variant="secondary" size="sm" onClick={() => setRoomOpen(true)} className="gap-1.5"><Ruler className="w-3.5 h-3.5" />{o.addRoom}</Button>}
+            {!ro && <Button variant="secondary" size="sm" onClick={addEmptyRoom} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addRoom}</Button>}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[960px]">

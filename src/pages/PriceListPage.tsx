@@ -25,7 +25,7 @@ export const PRICE_UNITS: PriceUnit[] = ['m2', 'm', 'pcs', 'h', 'lump', 'l', 'kg
 export const VAT_RATES = [22, 9.5, 0]
 
 interface Form { code: string; name: string; description: string; unit: PriceUnit; price: number | null; vat_rate: number; is_active: boolean }
-const empty: Form = { code: '', name: '', description: '', unit: 'm2', price: null, vat_rate: 22, is_active: true }
+const empty: Form = { code: '', name: '', description: '', unit: 'pcs', price: null, vat_rate: 22, is_active: true }
 
 export default function PriceListPage() {
   const { company, hasPerm, isAdmin, loading: permLoading } = useCompany()

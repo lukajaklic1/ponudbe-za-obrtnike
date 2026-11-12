@@ -49,6 +49,12 @@ export interface Company {
   vat_payer: boolean
   invoice_note: string | null
   oh_updated_by: string | null
+  // Window configurator (public page /k/:slug)
+  configurator_slug: string | null
+  configurator_enabled: boolean
+  configurator_show_prices: boolean
+  configurator_accent: string
+  configurator_intro: string | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -194,7 +200,7 @@ export interface OfferSnapshotLine {
 // ─── Trades: price list + quote lines ───────────────────────
 
 export type PriceUnit = 'm2' | 'm' | 'pcs' | 'h' | 'lump' | 'l' | 'kg'
-export type PriceCategory = 'prep' | 'painting' | 'plaster' | 'facade' | 'decor' | 'material' | 'other'
+export type PriceCategory = 'measure' | 'removal' | 'install' | 'accessories' | 'transport' | 'material' | 'other'
 
 export interface PriceItem {
   id: string
@@ -228,6 +234,7 @@ export interface QuoteLine {
   discount_pct: number
   vat_rate: number
   total_net: number
+  config?: Record<string, unknown> | null
   created_at: string
 }
 
