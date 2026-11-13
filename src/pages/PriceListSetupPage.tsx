@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { Tags, Plus, Trash2, Check, Settings2, Upload, TrendingUp } from 'lucide-react'
+import { BadgeEuro, Plus, Trash2, Check, Settings2, Upload, TrendingUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -313,7 +313,7 @@ export default function PriceListSetupPage() {
 
   return (
     <div>
-      <PageHeader title={T.title} icon={Tags} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
+      <PageHeader title={T.title} icon={BadgeEuro} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
       <div className={`p-4 lg:p-6 pb-28 grid gap-6 items-start${pShape && pMat ? " lg:grid-cols-[minmax(0,1fr)_340px]" : ""}`}>
         <div className="min-w-0">
 
