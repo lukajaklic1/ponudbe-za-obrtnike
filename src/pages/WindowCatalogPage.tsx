@@ -177,7 +177,7 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
   return <div className={cn('bg-white border border-[#e4e6dd] rounded-xl overflow-hidden', className)}>{children}</div>
 }
 function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <th className={cn('px-4 py-4 text-left text-sm font-[450] text-[#4a5361] whitespace-nowrap', className)}>{children}</th>
+  return <th className={cn('px-4 py-4 text-left text-sm font-medium text-[#4a5361] whitespace-nowrap', className)}>{children}</th>
 }
 function ActiveDot({ on, T }: { on: boolean; T: TT }) {
   return <Badge tone={on ? 'green' : 'neutral'}>{on ? T.active : T.inactive}</Badge>

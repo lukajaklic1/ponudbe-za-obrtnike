@@ -192,7 +192,7 @@ export default function CustomersPage() {
           <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[820px]">
             <thead className="bg-[#fbfbf9] border-b border-[#eceee6]"><tr>
               {([['name', o.customer], ['type', o.customerType], ['', t.common.email], ['', t.common.phone], ['city', o.city], ['quotes', s.quotesCount], ['status', t.common.status], ['', s.updatedAt], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap ${key ? 'cursor-pointer select-none' : ''}`}
+                <th key={i} className={`text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap ${key ? 'cursor-pointer select-none' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon variant="chevron" active={sortKey === key} dir={sortDir} />}</span>
                 </th>

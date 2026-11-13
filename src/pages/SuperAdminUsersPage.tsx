@@ -118,12 +118,12 @@ export default function SuperAdminUsersPage() {
               <table className="w-full text-sm font-[450] min-w-[760px]">
                 <thead className="bg-[#fbfbf9] border-b border-[#eceee6]">
                   <tr>
-                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Uporabnik</th>
-                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">E-pošta</th>
-                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Podjetje</th>
-                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Vloga</th>
-                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Registriran</th>
-                    <th className="text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap">Status</th>
+                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Uporabnik</th>
+                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">E-pošta</th>
+                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Vloga</th>
+                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Registriran</th>
+                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Status</th>
                     <th className="px-4 py-4 w-12" />
                   </tr>
                 </thead>

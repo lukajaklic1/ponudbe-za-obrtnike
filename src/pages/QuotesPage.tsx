@@ -197,7 +197,7 @@ export default function QuotesPage() {
           <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[920px]">
             <thead className="bg-[#fbfbf9] border-b border-[#eceee6]"><tr>
               {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['', t.common.phone], ['', t.od.siteAddress], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-4 text-sm font-[450] text-[#4a5361] whitespace-nowrap ${key ? 'cursor-pointer select-none' : ''}`}
+                <th key={i} className={`text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap ${key ? 'cursor-pointer select-none' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon variant="chevron" active={sortKey === key} dir={sortDir} />}</span>
                 </th>
