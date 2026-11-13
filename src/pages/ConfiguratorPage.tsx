@@ -6,6 +6,8 @@ import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
 import SpecDrawing from '../components/SpecDrawing'
+import RoofWindowDrawing from '../components/RoofWindowDrawing'
+import type { RoofCatalog } from '../lib/costing'
 import {
   costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, allowedBandModes, withBandMode, bandModeOf, sameField, pricingFrom,
   type WindowSpec, type Band, type Offer, type PricingSettings,
@@ -26,7 +28,7 @@ interface ConfigData {
   combos: { system_id: string; type_id: string }[]
   options: WindowOption[]
   /** windows built from sashes (null when the supplier did not set it up) */
-  builder?: { offer: Offer; pricing: PricingSettings | null } | null
+  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null } | null
 }
 
 interface Item {
@@ -41,11 +43,14 @@ interface Item {
   option_ids: string[]
   /** window built from sashes; when set, type_id is not used */
   spec?: WindowSpec | null
+  /** roof window from the catalogue: model + size (+ flashing) */
+  roof?: { model: string; size: string; flashing: string | null } | null
 }
 
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
+    qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
     nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno',
     bandsTitle: 'Nadsvetloba / parapet', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z razdeljeno nadsvetlobo', bottom: 'S parapetom', bottomSplit: 'Z razdeljenim parapetom' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Parapet', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina parapeta',
@@ -65,6 +70,7 @@ const TXT = {
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
+    qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
     nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
@@ -143,7 +149,8 @@ export default function ConfiguratorPage() {
 
   function defaultItem(d: ConfigData, typeId?: string): Item {
     const b = d.builder
-    if (!typeId && b?.offer?.windows && b.offer.sashes?.length) return defaultSpecItem(d, b.offer.sashes.includes(2) ? 2 : b.offer.sashes[0])
+    const sashes = (b?.offer?.sashes ?? []).filter(n => n <= 3)
+    if (!typeId && b?.offer?.windows && sashes.length) return defaultSpecItem(d, sashes.includes(2) ? 2 : sashes[0])
     const type = d.types.find(t => t.id === typeId) ?? d.types.find(t => t.template === 'tilt_turn') ?? d.types[0]
     if (!type) return defaultSpecItem(d, 1)
     const sys = d.systems.find(s => d.combos.some(c => c.system_id === s.id && c.type_id === type.id)) ?? d.systems[0]
@@ -157,12 +164,23 @@ export default function ConfiguratorPage() {
     }
   }
 
+  /** roof window: catalogue price of the size (+ flashing), margin already included */
+  function roofPrice(it: Item): number | null {
+    const cat = data?.builder?.roof
+    if (!cat || !it.roof) return null
+    const m = cat.models.find(x => x.id === it.roof!.model), sz = m?.sizes.find(x => x.id === it.roof!.size)
+    if (!sz) return null
+    const fl = cat.flashings.find(x => x.id === it.roof!.flashing)
+    return Math.round((Number(sz.price) + Number(fl?.price ?? 0)) * 100) / 100
+  }
   function priceOf(it: Item): number | null {
+    if (it.roof) return show ? roofPrice(it) : null
     if (!data || !show || !it.width || !it.height) return null
     const base = it.spec ? specBase(it) : basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
     return unitPrice(base, it.width, it.height, data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)))
   }
   function baseOf(it: Item): number | null {
+    if (it.roof) return roofPrice(it)
     if (!data || !it.width || !it.height) return null
     if (it.spec) return specBase(it)
     return basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
@@ -180,6 +198,7 @@ export default function ConfiguratorPage() {
     } else setServices(sv => sv.includes(o.id) ? sv.filter(id => id !== o.id) : [...sv, o.id])
   }
   function sizeOk(it: Item) {
+    if (it.roof) return roofPrice(it) != null || !show
     if (it.spec) { const n = it.spec.sashes; return !!it.width && !!it.height && it.width >= 300 * n && it.width <= 1600 * n && it.height >= 300 && it.height <= 2800 }
     const t = data?.types.find(x => x.id === it.type_id)
     return !!t && !!it.width && !!it.height && it.width >= t.min_width && it.width <= t.max_width && it.height >= t.min_height && it.height <= t.max_height
@@ -201,15 +220,27 @@ export default function ConfiguratorPage() {
 
   const it = items[active] ?? items[0]
   const spec = it.spec ?? null
-  const type = spec ? null : (data.types.find(t => t.id === it.type_id) ?? null)
+  const roofSel = it.roof ?? null
+  const roofCat = builder?.roof ?? null
+  const type = spec || roofSel ? null : (data.types.find(t => t.id === it.type_id) ?? null)
   // with the builder only balcony doors, sliding systems and special shapes stay as fixed types
   const visibleTypes = builder ? data.types.filter(t => isDoor(t.template)) : data.types.filter(t => t.template !== 'special')
   const allowedSystems = spec ? data.systems : data.systems.filter(s => type && data.combos.some(c => c.system_id === s.id && c.type_id === type.id))
   // older saved offers miss newer switches: fill them with the defaults
   const offer = builder?.offer ? pricingFrom({ offer: builder.offer }).offer : undefined
-  const range = spec ? { min_width: 300 * spec.sashes, max_width: 1600 * spec.sashes, min_height: 300, max_height: 2800 } : type!
+  const range = spec ? { min_width: 300 * spec.sashes, max_width: 1600 * spec.sashes, min_height: 300, max_height: 2800 } : type ?? { min_width: 0, max_width: 99999, min_height: 0, max_height: 99999 }
+  const roofModel = roofSel && roofCat ? roofCat.models.find(m => m.id === roofSel.model) ?? null : null
+  function pickRoof(patch?: Partial<NonNullable<Item['roof']>>) {
+    if (!roofCat?.models.length) return
+    const cur = roofSel ?? { model: roofCat.models[0].id, size: '', flashing: roofCat.flashings[0]?.id ?? null }
+    const next = { ...cur, ...patch }
+    const m = roofCat.models.find(x => x.id === next.model) ?? roofCat.models[0]
+    const sz = m.sizes.find(x => x.id === next.size) ?? m.sizes.find(x => x.w === 78 && x.h === 118) ?? m.sizes[0]
+    // sizes in cm → mm, so services per piece / metre still work for roof windows
+    update({ roof: { ...next, model: m.id, size: sz?.id ?? '' }, spec: null, type_id: '', width: sz ? sz.w * 10 : null, height: sz ? sz.h * 10 : null, option_ids: [] })
+  }
   const specName = (sp: WindowSpec) => (sp.kind === 'sliding' ? T.slidingWindow : T.nSash(sp.sashes))
-  function pickSliding() { update({ spec: fitOffer(makeSlidingSpec()), type_id: '', width: spec?.kind === 'sliding' ? it.width : 1600, height: it.height ?? 1200 }) }
+  function pickSliding() { update({ roof: null, spec: fitOffer(makeSlidingSpec()), type_id: '', width: spec?.kind === 'sliding' ? it.width : 1600, height: it.height ?? 1200 }) }
   const setSpec = (sp: WindowSpec) => update({ spec: sp })
   /** a spec that only uses a top light / opening layout the supplier ticked for this window type */
   function fitOffer(sp: WindowSpec): WindowSpec {
@@ -227,7 +258,7 @@ export default function ConfiguratorPage() {
   }
   function pickSashes(n: number) {
     const cur = spec && spec.kind !== 'sliding' ? spec : makeSpec(n)
-    update({ spec: fitOffer(reshapeSpec(cur, n, cur.top, cur.bottom)), type_id: '', width: spec && spec.sashes === n ? it.width : sashWidth(n), height: it.height ?? 1400 })
+    update({ roof: null, spec: fitOffer(reshapeSpec(cur, n, cur.top, cur.bottom)), type_id: '', width: spec && spec.sashes === n ? it.width : sashWidth(n), height: it.height ?? 1400 })
   }
   function pickBand(top: Band, bottom: Band) { if (spec) setSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom))) }
   const specPrice = (sp: WindowSpec) => specBase({ ...it, spec: sp })
@@ -238,7 +269,7 @@ export default function ConfiguratorPage() {
   function pickType(t: WindowType) {
     const keepSystem = data!.combos.some(c => c.system_id === it.system_id && c.type_id === t.id)
     const d = defaultItem(data!, t.id)
-    update({ spec: null, type_id: t.id, system_id: keepSystem ? it.system_id : d.system_id, width: clamp(it.width ?? d.width!, t.min_width, t.max_width), height: d.height })
+    update({ roof: null, spec: null, type_id: t.id, system_id: keepSystem ? it.system_id : d.system_id, width: clamp(it.width ?? d.width!, t.min_width, t.max_width), height: d.height })
   }
   function toggleOption(o: WindowOption) {
     const single = SINGLE_CHOICE_GROUPS.includes(o.group_key)
@@ -262,7 +293,9 @@ export default function ConfiguratorPage() {
     const { data: res, error } = await (supabase as any).rpc('submit_configuration', {
       p_slug: slug,
       p_customer: contact,
-      p_items: items.map(x => x.spec
+      p_items: items.map(x => x.roof
+        ? { roof: x.roof, quantity: x.quantity, option_ids: [], label: x.label }
+        : x.spec
         ? { system_id: x.system_id, spec: x.spec, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
         : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
       p_note: contact.note,
@@ -352,6 +385,16 @@ export default function ConfiguratorPage() {
                       <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.slidingWindow}</div>
                     </button>
                   })()}
+                  {offer?.roof && !!roofCat?.models.length && (() => {
+                    const on = !!roofSel
+                    return <button key="roof" onClick={() => pickRoof()}
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      {on && <SelBadge accent={accent} />}
+                      <div className="h-[84px] flex items-center justify-center"><RoofWindowDrawing size={78} /></div>
+                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.roofWindow}</div>
+                    </button>
+                  })()}
                   {visibleTypes.map(t => {
                     const door = t.template.startsWith('door') || t.template === 'lift_slide'
                     return <button key={t.id} onClick={() => pickType(t)}
@@ -364,6 +407,40 @@ export default function ConfiguratorPage() {
                   })}
                 </div>
               </Section>
+
+              {roofSel && roofCat && <>
+                <Section n={nextStep()} title={T.roofModelTitle} accent={accent}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {roofCat.models.map(m => {
+                      const on = roofSel.model === m.id
+                      const from = m.sizes.length ? Math.min(...m.sizes.map(x => Number(x.price))) : null
+                      return <button key={m.id} onClick={() => pickRoof({ model: m.id })}
+                        className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        style={on ? selStyle(accent) : undefined}>
+                        {on && <SelBadge accent={accent} />}
+                        <div className="h-[84px] flex items-center justify-center"><RoofWindowDrawing size={80} opening={m.opening} /></div>
+                        <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{m.name}</div>
+                        <div className="text-xs text-gray-500">{m.opening === 'top' ? T.roofTop : T.roofCenter}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
+                      </button>
+                    })}
+                  </div>
+                </Section>
+                {roofModel && <Section n={nextStep()} title={T.roofSize} accent={accent}>
+                  <div className="flex flex-wrap gap-2">
+                    {roofModel.sizes.map(sz => <Chip key={sz.id} on={roofSel.size === sz.id} onClick={() => pickRoof({ size: sz.id })} accent={accent} single>
+                      {sz.w} × {sz.h} cm{show && <span className="ml-1.5 opacity-70">{money(Number(sz.price), cur)}</span>}
+                    </Chip>)}
+                  </div>
+                </Section>}
+                {roofCat.flashings.length > 0 && <Section n={nextStep()} title={T.roofFlashing} accent={accent}>
+                  <div className="flex flex-wrap gap-2">
+                    <Chip on={!roofSel.flashing} onClick={() => pickRoof({ flashing: null })} accent={accent} single>{T.none}</Chip>
+                    {roofCat.flashings.map(f => <Chip key={f.id} on={roofSel.flashing === f.id} onClick={() => pickRoof({ flashing: f.id })} accent={accent} single>
+                      {f.name}{show && Number(f.price) > 0 && <span className="ml-1.5 opacity-70">+ {money(Number(f.price), cur)}</span>}
+                    </Chip>)}
+                  </div>
+                </Section>}
+              </>}
 
               {spec && spec.kind !== 'sliding' && offer && allowedBands(spec.sashes, offer).length > 1 && <Section n={nextStep()} title={T.bandsTitle} accent={accent}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
@@ -409,7 +486,7 @@ export default function ConfiguratorPage() {
                 })()}
               </Section>}
 
-              <Section n={nextStep()} title={T.step2} accent={accent}>
+              {!roofSel && <Section n={nextStep()} title={T.step2} accent={accent}>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {(() => {
                     // price of the same window in every profile; the cheapest is the base
@@ -439,12 +516,12 @@ export default function ConfiguratorPage() {
                   </button>})
                   })()}
                 </div>
-              </Section>
+              </Section>}
 
-              <Section n={nextStep()} title={T.step3} accent={accent}>
+              <Section n={nextStep()} title={roofSel ? T.qtyTitle : spec ? T.sizeTitle : T.step3} accent={accent}>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <MmInput label={T.width} value={it.width} onChange={v => update({ width: v })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />
-                  <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />
+                  {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
+                  {!roofSel && <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />}
                   {spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {type && hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
@@ -472,7 +549,7 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>
 
-              {data.options.length > 0 && <Section n={nextStep()} title={T.step4} accent={accent}>
+              {!roofSel && data.options.length > 0 && <Section n={nextStep()} title={T.step4} accent={accent}>
                 <div className="space-y-4">
                   {OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)).map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
                     options={data.options.filter(o => o.group_key === g)} selected={it.option_ids} onToggle={toggleOption}
@@ -529,7 +606,8 @@ export default function ConfiguratorPage() {
           <aside className="lg:sticky lg:top-4 space-y-3">
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex justify-center py-2 overflow-hidden">
-                {spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims />
+                {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} />
+                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims />
                   : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />}
               </div>
               {!sizeOk(it) && <p className="text-xs text-red-600 text-center mt-1">{T.invalidSize}</p>}
@@ -547,10 +625,10 @@ export default function ConfiguratorPage() {
                   const xp = priceOf(x)
                   return <li key={x.key}>
                     <button onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-center gap-3 py-2 text-left">
-                      <div className="w-10 flex justify-center shrink-0">{x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
+                      <div className="w-10 flex justify-center shrink-0">{x.roof ? <RoofWindowDrawing size={36} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn('text-sm truncate', i === active && stage === 'config' ? 'font-semibold text-gray-900' : 'text-gray-700')}>{x.quantity} × {x.spec ? specName(x.spec) : t?.name}</div>
-                        <div className="text-xs text-gray-500">{x.width} × {x.height} mm{x.label ? ` · ${x.label}` : ''}</div>
+                        <div className={cn('text-sm truncate', i === active && stage === 'config' ? 'font-semibold text-gray-900' : 'text-gray-700')}>{x.quantity} × {x.roof ? `${T.roofWindow} · ${roofCat?.models.find(m => m.id === x.roof!.model)?.name ?? ''}` : x.spec ? specName(x.spec) : t?.name}</div>
+                        <div className="text-xs text-gray-500">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
                       </div>
                       {show && <div className="text-sm text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}
                     </button>

@@ -41,7 +41,32 @@ export interface PricingSettings {
   both_sides_pct: number
   /** what the supplier offers in the configurator */
   offer: Offer
+  /** roof windows: a catalogue of models in standard sizes (purchase prices, margin is added) */
+  roof?: RoofCatalog
 }
+
+export type RoofOpening = 'center' | 'top'
+export interface RoofSize { id: string; w: number; h: number; price: number }
+export interface RoofModel { id: string; name: string; opening: RoofOpening; sizes: RoofSize[] }
+export interface RoofFlashing { id: string; name: string; price: number }
+export interface RoofCatalog { models: RoofModel[]; flashings: RoofFlashing[] }
+
+const rid = () => Math.random().toString(36).slice(2, 9)
+/** Typical roof window range (sizes in cm, illustrative purchase prices). */
+export function sampleRoofCatalog(): RoofCatalog {
+  const sizes = (list: [number, number, number][]) => list.map(([w, h, price]) => ({ id: rid(), w, h, price }))
+  return {
+    models: [
+      { id: rid(), name: 'Vrtljivo strešno okno', opening: 'center', sizes: sizes([[55, 78, 220], [66, 118, 290], [78, 118, 320], [78, 140, 350], [114, 118, 410], [114, 140, 460]]) },
+      { id: rid(), name: 'Strešno okno z zgornjim vrtiščem', opening: 'top', sizes: sizes([[66, 118, 360], [78, 118, 395], [78, 140, 430], [114, 140, 560]]) },
+    ],
+    flashings: [
+      { id: rid(), name: 'Obroba za valovito kritino (opečna, betonska)', price: 65 },
+      { id: rid(), name: 'Obroba za ravno kritino (pločevina, skodle)', price: 55 },
+    ],
+  }
+}
+export const newRoofId = rid
 
 /** Product categories and window variants the supplier offers (Cenik step 1). */
 export interface Offer {
@@ -52,6 +77,8 @@ export interface Offer {
   doors: boolean; sliding: boolean; special: boolean
   /** sliding windows (drsna okna) */
   slidingWindows: boolean
+  /** roof windows (strešna okna) */
+  roof: boolean
   /** opening combinations the supplier makes, per number of sashes (missing = all) */
   combos?: Record<string, string[]>
   /** top light / bottom panel variants per number of sashes: none, top, topSplit, bottom, bottomSplit (missing = all) */
@@ -60,8 +87,8 @@ export interface Offer {
   bandModes?: Record<string, string[]>
 }
 export const DEFAULT_OFFER: Offer = {
-  windows: true, sashes: [1, 2, 3, 4], top: true, topSplit: true, bottom: true, bottomSplit: true,
-  openings: { tilt: true, turn: true, tilt_turn: true, passive: true }, doors: true, sliding: true, special: false, slidingWindows: true,
+  windows: true, sashes: [1, 2, 3], top: true, topSplit: true, bottom: true, bottomSplit: true,
+  openings: { tilt: true, turn: true, tilt_turn: true, passive: true }, doors: true, sliding: true, special: false, slidingWindows: true, roof: true,
 }
 
 export const DEFAULT_PRICING: PricingSettings = {
@@ -202,7 +229,8 @@ export function pricingFrom(raw: unknown): PricingSettings {
   const of = (o.offer ?? {}) as Partial<Offer>
   return {
     ...DEFAULT_PRICING, ...o, hw: { ...DEFAULT_PRICING.hw, ...(o.hw ?? {}) }, hw_m: { ...DEFAULT_PRICING.hw_m, ...(o.hw_m ?? {}) },
-    offer: { ...DEFAULT_OFFER, ...of, openings: { ...DEFAULT_OFFER.openings, ...(of.openings ?? {}) } },
+    // windows go up to three sashes (older saved offers may still list 4)
+    offer: { ...DEFAULT_OFFER, ...of, sashes: (of.sashes ?? DEFAULT_OFFER.sashes).filter(n => n >= 1 && n <= 3), openings: { ...DEFAULT_OFFER.openings, ...(of.openings ?? {}) } },
   }
 }
 
@@ -383,4 +411,12 @@ export function presets(sp: WindowSpec): { key: string; main: Field[] }[] {
   if (n >= 3) list.splice(1, 0, { key: 'outer_open', main: Array.from({ length: n }, (_, i) => (i === 0 || i === n - 1 ? tt(i) : fx)) })
   if (n >= 2) list.splice(1, 0, { key: 'one_open', main: Array.from({ length: n }, (_, i) => (i === n - 1 ? tt(i) : fx)) })
   return list
+}
+
+/** Labels of the cut list lines (internal costing view). */
+export const CALC_LABELS = {
+  sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Steklitvene letvice', glass: 'Steklo', labour: 'Delo',
+    hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno' },
+  en: { frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', labour: 'Labour',
+    hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide' },
 }

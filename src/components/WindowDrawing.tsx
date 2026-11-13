@@ -105,7 +105,7 @@ export default function WindowDrawing({ template, width, height, hinge = 'left',
 function SashShape({ sash, x, y, w, h, sashFrame, frameColor, plain }: { sash: Sash; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string; plain?: boolean }) {
   const inset = 2
   const sx = x + inset, sy = y + inset, sw = w - inset * 2, sh = h - inset * 2
-  const gx = sx + sashFrame, gy = sy + sashFrame, gw = sw - sashFrame * 2, gh = sh - sashFrame * 2
+  const gx = sx + sashFrame, gy = sy + sashFrame, gw = Math.max(0, sw - sashFrame * 2), gh = Math.max(0, sh - sashFrame * 2)
   const line = { stroke: '#475569', strokeWidth: 0.9, strokeDasharray: '4 3', fill: 'none' }
   const symbols: React.ReactNode[] = []
 

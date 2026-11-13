@@ -359,7 +359,10 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
         prices: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id),
         combos: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id).map((p: Row) => ({ system_id: p.system_id, type_id: p.type_id })),
         options: active('window_options'),
-        builder: wp.offer?.windows ? { offer: wp.offer, pricing: {
+        builder: wp.offer?.windows || wp.offer?.slidingWindows || (wp.offer?.roof !== false && wp.roof) ? { offer: wp.offer, roof: wp.offer?.roof !== false && wp.roof ? {
+          models: (wp.roof.models ?? []).map((m: any) => ({ ...m, sizes: (m.sizes ?? []).map((z: any) => ({ ...z, price: r2(Number(z.price) * mf) })) })),
+          flashings: (wp.roof.flashings ?? []).map((f: any) => ({ ...f, price: r2(Number(f.price) * mf) })),
+        } : null, pricing: {
           hw: Object.fromEntries(Object.entries(hw).map(([k, v]) => [k, r2(Number(v) * mf)])),
           hw_m: Object.fromEntries(Object.entries(hwM).map(([k, v]) => [k, r2(Number(v) * mf)])),
           glass_m2: r2(Number(wp.glass_m2 ?? 32) * mf), labour_window: r2(Number(wp.labour_window ?? 30) * mf), labour_sash: r2(Number(wp.labour_sash ?? 22) * mf),

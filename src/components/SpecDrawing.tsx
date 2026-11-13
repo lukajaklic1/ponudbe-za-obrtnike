@@ -66,14 +66,14 @@ function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain }: { 
     // glass in the frame: a small cross marks "fixed", like on the competitors' drawings
     const c = Math.min(w, h) * 0.12
     return <g {...clickable}>
-      <rect x={x + 1} y={y + 1} width={w - 2} height={h - 2} fill="#dbeafe" stroke="#64748b" strokeWidth={0.5} />
+      <rect x={x + 1} y={y + 1} width={Math.max(0, w - 2)} height={Math.max(0, h - 2)} fill="#dbeafe" stroke="#64748b" strokeWidth={0.5} />
       {!plain && <g stroke="#94a3b8" strokeWidth={0.8}><line x1={x + w / 2 - c} y1={y + h / 2} x2={x + w / 2 + c} y2={y + h / 2} /><line x1={x + w / 2} y1={y + h / 2 - c} x2={x + w / 2} y2={y + h / 2 + c} /></g>}
       {hover}
     </g>
   }
   const inset = 1.5
   const sx = x + inset, sy = y + inset, sw = w - 2 * inset, sh = h - 2 * inset
-  const gx = sx + sashFrame, gy = sy + sashFrame, gw = sw - 2 * sashFrame, gh = sh - 2 * sashFrame
+  const gx = sx + sashFrame, gy = sy + sashFrame, gw = Math.max(0, sw - 2 * sashFrame), gh = Math.max(0, sh - 2 * sashFrame)
   const line = { stroke: '#475569', strokeWidth: 0.8, fill: 'none' }
   const slide = f.opening === 'slide_window' || f.opening === 'slide'
   if (slide) {
@@ -81,7 +81,7 @@ function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain }: { 
     const dir = f.hinge === 'right' ? 1 : -1, cy = gyOf(y, sashFrame) + (h - 2 * sashFrame - 3) / 2, cx = x + w / 2, len = w * 0.22
     return <g {...clickable}>
       <rect x={x + 1.5} y={y + 1.5} width={w - 3} height={h - 3} fill={frameColor} stroke="#334155" strokeWidth={0.8} />
-      <rect x={x + 1.5 + sashFrame} y={y + 1.5 + sashFrame} width={w - 3 - 2 * sashFrame} height={h - 3 - 2 * sashFrame} fill="#dbeafe" stroke="#334155" strokeWidth={0.6} />
+      <rect x={x + 1.5 + sashFrame} y={y + 1.5 + sashFrame} width={Math.max(0, w - 3 - 2 * sashFrame)} height={Math.max(0, h - 3 - 2 * sashFrame)} fill="#dbeafe" stroke="#334155" strokeWidth={0.6} />
       {!plain && <g stroke="#475569" strokeWidth={1.1} fill="none" strokeLinecap="round" strokeLinejoin="round">
         <line x1={cx - dir * len} y1={cy} x2={cx + dir * len} y2={cy} />
         <polyline points={`${cx + dir * (len - 5)},${cy - 4} ${cx + dir * len},${cy} ${cx + dir * (len - 5)},${cy + 4}`} />

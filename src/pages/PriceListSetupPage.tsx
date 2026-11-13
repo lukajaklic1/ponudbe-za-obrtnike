@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { BadgeEuro, Plus, Trash2, Check, Settings2, Upload, TrendingUp, ChevronDown } from 'lucide-react'
+import { Calculator, Plus, Trash2, Check, Settings2, Upload, TrendingUp, ChevronDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -10,11 +10,13 @@ import NumberInput from '../components/ui/NumberInput'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
-import { costWindow, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, specToLayout, allCombos, comboKey, BAND_KEYS, BAND_SHAPE, allowedBandModes, withBandMode, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec } from '../lib/costing'
+import { costWindow, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, BAND_KEYS, BAND_SHAPE, allowedBandModes, withBandMode, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
+import RoofWindowDrawing from '../components/RoofWindowDrawing'
+import { sampleRoofCatalog, newRoofId, type RoofCatalog, type RoofOpening } from '../lib/costing'
 import { cn } from '../lib/cn'
 import {
-  TEMPLATES, MATERIALS, STARTER, WL, SERVICE_GROUPS, serviceLine, isDoor, isOnRequest,
+  TEMPLATES, MATERIALS, STARTER, WL, isDoor, isOnRequest,
   type WindowSystem, type WindowType, type WindowOption, type WindowTemplate, type WindowMaterial,
   type OptionGroup, type OptionPricing,
 } from '../lib/windows'
@@ -48,13 +50,6 @@ function metreOrSample(x: Partial<WindowSystem> & { material: WindowMaterial }) 
     frame_w: Number(x.frame_w ?? 70) || 70, sash_w: Number(x.sash_w ?? 78) || 78, mullion_w: Number(x.mullion_w ?? 82) || 82,
   }
 }
-const CALC_LABELS = {
-  sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Steklitvene letvice', glass: 'Steklo', labour: 'Delo',
-    hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno' },
-  en: { frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', labour: 'Labour',
-    hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide' },
-}
-
 let seq = 0
 const nk = () => `o${++seq}`
 
@@ -63,6 +58,9 @@ const TXT = {
     title: 'Cenik',
     groupWindows: 'Okna', groupDoors: 'Balkonska vrata', onRequest: 'Cena na povpraševanje: stranka pošlje mere, ceno vpišete v ponudbo.',
     catWindows: 'Okna', catSlidingWindows: 'Drsna okna', catDoors: 'Balkonska vrata', catSliding: 'Drsne stene', catSpecial: 'Posebne oblike',
+    roofSummary: (m: number, s: number) => `${m} ${m === 1 ? 'model' : m === 2 ? 'modela' : 'modeli'} · ${s} mer`, roofModel: 'Model', roofOpening: 'Način odpiranja',
+    roofCenter: 'Vrtljivo (os na sredini)', roofTop: 'Zgornje vrtišče', roofSizes: 'Mere (širina × višina) in nabavna cena', roofAddSize: 'Dodaj mero', roofAddModel: 'Dodaj model',
+    roofFlashings: 'Obrobe za kritino (nabavna cena)', roofAddFlashing: 'Dodaj obrobo', roofHint: 'Cene so nabavne, v konfiguratorju se jim doda marža iz koraka Okovje, steklo, delo in marža.',
     catEntry: 'Vhodna vrata', catRoof: 'Strešna okna', catGarage: 'Garažna vrata', catShading: 'Senčila', soon: 'Kmalu',
     sashCount: 'Število kril', nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno',
     bands: 'Nadsvetloba in parapet', bandTop: 'Nadsvetloba', bandTopSplit: 'Razdeljena nadsvetloba', bandBottom: 'Parapet', bandBottomSplit: 'Razdeljen parapet',
@@ -94,6 +92,9 @@ const TXT = {
     title: 'Price list',
     groupWindows: 'Windows', groupDoors: 'Balcony doors', onRequest: 'Price on request: the customer sends sizes, you price it in the quote.',
     catWindows: 'Windows', catSlidingWindows: 'Sliding windows', catDoors: 'Balcony doors', catSliding: 'Sliding walls', catSpecial: 'Special shapes',
+    roofSummary: (m: number, s: number) => `${m} models · ${s} sizes`, roofModel: 'Model', roofOpening: 'Opening',
+    roofCenter: 'Centre pivot', roofTop: 'Top hung', roofSizes: 'Sizes (width × height) and purchase price', roofAddSize: 'Add size', roofAddModel: 'Add model',
+    roofFlashings: 'Roof flashings (purchase price)', roofAddFlashing: 'Add flashing', roofHint: 'Prices are purchase prices; the margin from the hardware, labour and margin step is added in the configurator.',
     catEntry: 'Entrance doors', catRoof: 'Roof windows', catGarage: 'Garage doors', catShading: 'Shading', soon: 'Soon',
     sashCount: 'Number of sashes', nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes',
     bands: 'Top light and bottom panel', bandTop: 'Top light', bandTopSplit: 'Split top light', bandBottom: 'Bottom panel', bandBottomSplit: 'Split bottom panel',
@@ -164,7 +165,6 @@ export default function PriceListSetupPage() {
   const sections = useMemo(() => sectionsFor(lang), [lang])
   const canEdit = hasPerm('price_list', 'create')
   const cur = company?.currency ?? 'EUR'
-  const money = (n: number) => Number(n).toLocaleString('de-DE', { style: 'currency', currency: cur })
 
   const [shapes, setShapes] = useState<ShapeRow[]>([])
   const [profiles, setProfiles] = useState<ProfileRow[]>([])
@@ -173,7 +173,6 @@ export default function PriceListSetupPage() {
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [options, setOptions] = useState<OptionRow[]>([])
   const [pricing, setPricing] = useState<PricingSettings>(pricingFrom(null))
-  const [showCalc, setShowCalc] = useState(false)
   const [openSash, setOpenSash] = useState<number | null>(null)
   const [folds, setFolds] = useState<Record<string, boolean>>({})
   const [subOpen, setSubOpen] = useState<Record<string, boolean>>({})
@@ -183,7 +182,6 @@ export default function PriceListSetupPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [dirty, setDirty] = useState(false)
-  const [pv, setPv] = useState<{ template?: string; profile?: string; width: number; height: number }>({ width: 1200, height: 1400 })
 
   useEffect(() => { if (company) load() }, [company?.id])
   async function load() {
@@ -213,7 +211,12 @@ export default function PriceListSetupPage() {
       // profiles without metre prices yet start from the sample prices of their material
       ...metreOrSample(x),
     })))
-    setPricing(pricingFrom(company.window_pricing))
+    {
+      const pr = pricingFrom(company.window_pricing)
+      // roof windows start from a sample range the supplier edits (saved with the price list)
+      if (!pr.roof) pr.roof = sampleRoofCatalog()
+      setPricing(pr)
+    }
     setMatOn(Object.fromEntries(MATERIALS.map(m => [m, sys.some(x => x.material === m && x.is_active !== false)])))
     setRemovedProfiles([])
     setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined })))
@@ -380,44 +383,14 @@ export default function PriceListSetupPage() {
   }
 
   if (!permLoading && !hasPerm('price_list', 'view')) return <Navigate to="/dashboard" replace />
+  const offer = pricing.offer
 
   // live preview (like Fenestro): one example window, base price + every default choice as its own line
-  // preview: windows built from sashes (what the supplier offers) + balcony doors / sliding systems
-  const offer = pricing.offer
-  const doorShapes = shapes.filter(sh => sh.on && isDoor(sh.template) && !isOnRequest(sh.template) && (sh.template === 'psk' || sh.template === 'lift_slide' ? offer.sliding : offer.doors))
-  const pvChoices: { key: string; label: string; spec?: WindowSpec; template?: WindowTemplate; min_width: number; max_width: number; min_height: number; max_height: number }[] = [
-    ...(offer.windows ? [...offer.sashes].sort().map(n => ({ key: 'w' + n, label: T.nSash(n), spec: makeSpec(n), min_width: 400 * n, max_width: 1200 * n, min_height: 400, max_height: 2200 })) : []),
-    ...(offer.slidingWindows ? [{ key: 'sw', label: T.catSlidingWindows, spec: makeSlidingSpec(), min_width: 800, max_width: 3200, min_height: 400, max_height: 2200 }] : []),
-    ...doorShapes.map(sh => ({ key: sh.template, label: L.templates[sh.template], template: sh.template, min_width: sh.min_width, max_width: sh.max_width, min_height: sh.min_height, max_height: sh.max_height })),
-  ]
-  const activeMats = profiles.filter(m => matOn[m.material])
-  const pShape = pvChoices.find(c => c.key === pv.template) ?? pvChoices.find(c => c.key === 'w2') ?? pvChoices[0]
-  const pMat = activeMats.find(m => m.key === pv.profile) ?? activeMats[0]
-  const area = pv.width * pv.height / 1_000_000
-  const pCalc = pShape && pMat ? costWindow(pShape.spec ? specToLayout(pShape.spec) : layoutFor(pShape.template!), pv.width, pv.height, toPrices(pMat), pricing, { labels: CALC_LABELS[lang] }) : null
-  const pBase = pShape && pMat && pCalc ? Math.round(Math.max(pMat.min ?? 0, pCalc.price) * 100) / 100 : null
-  const addOn = (o: OptionRow) => {
-    const price = o.price ?? 0
-    if (o.pricing === 'piece') return price
-    if (o.pricing === 'm2') return price * area
-    if (o.pricing === 'percent') return (pBase ?? 0) * price / 100
-    if (o.pricing === 'perimeter') return price * 2 * (pv.width + pv.height) / 1000
-    if (o.pricing === 'width') return price * pv.width / 1000
-    return price
-  }
-  const isSvc = (o: OptionRow) => (SERVICE_GROUPS as string[]).includes(o.group_key) || o.pricing === 'flat'
-  const pExtras = options.filter(o => o.is_default && o.name.trim() && !isSvc(o)).map(o => ({ name: o.name, swatch: o.swatch, amount: Math.round(addOn(o) * 100) / 100 }))
-  const pServices = options.filter(o => o.is_default && o.name.trim() && isSvc(o)).map(o => ({
-    name: o.name,
-    amount: serviceLine({ id: o.key, group_key: o.group_key, name: o.name, description: null, pricing: o.pricing, price: o.price, is_default: true }, [{ width: pv.width, height: pv.height, quantity: 1, base: pBase }]).total,
-  }))
-  const pTotal = (pBase ?? 0) + pExtras.reduce((a, x) => a + x.amount, 0) + pServices.reduce((a, x) => a + x.amount, 0)
-  const pColor = options.find(o => o.group_key === 'color' && o.is_default)?.swatch
 
   return (
     <div>
-      <PageHeader title={T.title} icon={BadgeEuro} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
-      <div className={`p-4 lg:p-6 pb-28 grid gap-6 items-start${pShape && pMat ? " lg:grid-cols-[minmax(0,1fr)_340px]" : ""}`}>
+      <PageHeader title={T.title} icon={Calculator} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
+      <div className="p-4 lg:p-6 pb-28">
         <div className="min-w-0">
 
         {loading ? <div className="text-sm text-gray-400">…</div> : <div className="space-y-6">
@@ -430,6 +403,7 @@ export default function PriceListSetupPage() {
                 ['slidingWindows', T.catSlidingWindows, <SpecDrawing key="sw" spec={makeSlidingSpec()} width={1600} height={1200} size={110} plain />],
                 ['doors', T.catDoors, <WindowDrawing key="d" template="door" width={900} height={2100} size={104} plain />],
                 ['sliding', T.catSliding, <WindowDrawing key="s" template="lift_slide" width={2400} height={2100} size={110} plain />],
+                ['roof', T.catRoof, <RoofWindowDrawing key="r" size={104} />],
               ] as [keyof Offer, string, React.ReactNode][]).map(([k, label, pic]) => {
                 const on = !!offer[k]
                 return <button key={k} type="button" disabled={!canEdit} onClick={() => setOffer({ [k]: !on } as Partial<Offer>)}
@@ -444,17 +418,17 @@ export default function PriceListSetupPage() {
           </Step>
 
           {/* 2. settings per product group, each one a fold you open with the arrow */}
-          {(offer.windows || offer.slidingWindows || offer.doors || offer.sliding) && <Step n={2} title={T.s1b} hint={T.s1bhint}>
+          {(offer.windows || offer.slidingWindows || offer.doors || offer.sliding || offer.roof) && <Step n={2} title={T.s1b} hint={T.s1bhint}>
             <div className="space-y-3">
             {/* windows: sashes, top light / bottom panel, openings */}
             {offer.windows && <Fold open={!!folds.windows} onToggle={() => toggleFold('windows')} title={T.catWindows} summary={windowsSummary}
-              pic={<SpecDrawing spec={makeSpec(2)} width={1200} height={1300} size={44} plain />}>
+              pic={<SpecDrawing spec={makeSpec(2)} width={1200} height={1300} size={104} plain className="w-full h-full" />}>
               <div className="space-y-5">
               {/* every window type is a row; its openings open right underneath it */}
               <div>
                 <div className="text-xs font-medium text-[#7f7f7f] mb-2">{T.sashCount}</div>
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-                  {[1, 2, 3, 4].map(n => {
+                  {[1, 2, 3].map(n => {
                     const on = offer.sashes.includes(n)
                     const all = allCombos(n, offer)
                     const picked = (offer.combos?.[String(n)] ?? all.map(comboKey)).filter(k => all.some(c => comboKey(c) === k))
@@ -481,7 +455,7 @@ export default function PriceListSetupPage() {
                         </button>}
                       </div>
                       {open && <div className="px-4 pb-4">
-                        <div className="ml-[9px] pl-[25px] border-l-2 border-blue-100 space-y-2">
+                        <div className="ml-[9px] pl-[25px] border-l-2 border-blue-100 space-y-6">
                           {/* top light / bottom panel variants of this window type */}
                           <SubFold open={!!subOpen[n + 'b']} onToggle={() => toggleSub(n + 'b')} title={T.bandsFor} count={T.ofCount(bandsPicked.length, BAND_KEYS.length)}
                             actions={canEdit && <>
@@ -547,7 +521,7 @@ export default function PriceListSetupPage() {
               const picked = (offer.combos?.s2 ?? all.map(comboKey)).filter(k => all.some(c => comboKey(c) === k))
               const setPicked = (keys: string[]) => setOffer({ combos: { ...(offer.combos ?? {}), s2: keys } })
               return <Fold open={!!folds.slidingWindows} onToggle={() => toggleFold('slidingWindows')} title={T.catSlidingWindows} summary={T.combosCount(picked.length, all.length)}
-                pic={<SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={48} plain />}>
+                pic={<SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={110} plain className="w-full h-full" />}>
                 <div>
                 <div className="text-xs font-medium text-[#7f7f7f] mb-3">{T.combosFor}</div>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
@@ -569,7 +543,7 @@ export default function PriceListSetupPage() {
               .filter(([on]) => on).map(([, groupLabel, match]) => (
               <Fold key={groupLabel} open={!!folds[groupLabel]} onToggle={() => toggleFold(groupLabel)} title={groupLabel}
                 summary={T.typesCount(shapes.filter(sh => match(sh.template) && sh.on).length, shapes.filter(sh => match(sh.template)).length)}
-                pic={<WindowDrawing template={groupLabel === T.catDoors ? 'door' : 'lift_slide'} width={groupLabel === T.catDoors ? 900 : 2400} height={2100} size={44} plain />}>
+                pic={<WindowDrawing template={groupLabel === T.catDoors ? 'door' : 'lift_slide'} width={groupLabel === T.catDoors ? 900 : 2400} height={2100} size={groupLabel === T.catDoors ? 104 : 110} plain className="w-full h-full" />}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
                   {shapes.filter(sh => match(sh.template)).map(sh => (
                     <div key={sh.template} className={cn('relative rounded-xl border p-3 flex flex-col transition-colors', sh.on ? SEL_ON : SEL_OFF)}>
@@ -586,6 +560,72 @@ export default function PriceListSetupPage() {
                 </div>
               </Fold>
             ))}
+
+            {/* roof windows: models in standard sizes + flashings */}
+            {offer.roof && (() => {
+              const roof: RoofCatalog = pricing.roof ?? { models: [], flashings: [] }
+              const setRoof = (r: RoofCatalog) => { setPricing(x => ({ ...x, roof: r })); touch() }
+              const setModel = (id: string, patch: Partial<RoofCatalog['models'][number]>) => setRoof({ ...roof, models: roof.models.map(m => m.id === id ? { ...m, ...patch } : m) })
+              const inputCls = 'w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+              return <Fold open={!!folds.roof} onToggle={() => toggleFold('roof')} title={T.catRoof}
+                summary={T.roofSummary(roof.models.length, roof.models.reduce((a, m) => a + m.sizes.length, 0))} pic={<RoofWindowDrawing size={104} className="w-full h-full" />}>
+                <div className="space-y-4">
+                  {roof.models.map(m => (
+                    <div key={m.id} className="rounded-lg border border-gray-200 p-3 space-y-3">
+                      <div className="flex flex-wrap items-end gap-3">
+                        <RoofWindowDrawing size={56} opening={m.opening} />
+                        <div className="flex-1 min-w-[200px] flex flex-col gap-1">
+                          <label className="text-xs font-medium text-[#7f7f7f]">{T.roofModel}</label>
+                          <input value={m.name} onChange={e => setModel(m.id, { name: e.target.value })} disabled={!canEdit} className={inputCls} />
+                        </div>
+                        <div className="w-56 flex flex-col gap-1">
+                          <label className="text-xs font-medium text-[#7f7f7f]">{T.roofOpening}</label>
+                          <select value={m.opening} onChange={e => setModel(m.id, { opening: e.target.value as RoofOpening })} disabled={!canEdit} className={cn(inputCls, 'bg-white')}>
+                            <option value="center">{T.roofCenter}</option>
+                            <option value="top">{T.roofTop}</option>
+                          </select>
+                        </div>
+                        {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) })} title={T.remove}
+                          className="h-[38px] px-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium text-[#7f7f7f] mb-1">{T.roofSizes}</div>
+                        <div className="space-y-2">
+                          {m.sizes.map(sz => (
+                            <div key={sz.id} className="flex flex-wrap items-center gap-2">
+                              <div className="w-28"><NumberInput value={sz.w} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, w: v ?? 0 } : x) })} /></div>
+                              <span className="text-sm text-gray-400">×</span>
+                              <div className="w-28"><NumberInput value={sz.h} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, h: v ?? 0 } : x) })} /></div>
+                              <div className="w-36"><NumberInput value={sz.price} unit={cur} decimals={2} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, price: v ?? 0 } : x) })} /></div>
+                              {canEdit && <button type="button" onClick={() => setModel(m.id, { sizes: m.sizes.filter(x => x.id !== sz.id) })} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                            </div>
+                          ))}
+                        </div>
+                        {canEdit && <button type="button" onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w: 78, h: 118, price: 0 }] })}
+                          className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900"><Plus className="w-4 h-4" />{T.roofAddSize}</button>}
+                      </div>
+                    </div>
+                  ))}
+                  {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: [...roof.models, { id: newRoofId(), name: '', opening: 'center', sizes: [] }] })}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900"><Plus className="w-4 h-4" />{T.roofAddModel}</button>}
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="text-xs font-medium text-[#7f7f7f] mb-1">{T.roofFlashings}</div>
+                    <div className="space-y-2">
+                      {roof.flashings.map(f => (
+                        <div key={f.id} className="flex flex-wrap items-center gap-2">
+                          <input value={f.name} onChange={e => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, name: e.target.value } : x) })} disabled={!canEdit} className={cn(inputCls, 'flex-1 min-w-[220px] w-auto')} />
+                          <div className="w-36"><NumberInput value={f.price} unit={cur} decimals={2} onValue={v => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, price: v ?? 0 } : x) })} /></div>
+                          {canEdit && <button type="button" onClick={() => setRoof({ ...roof, flashings: roof.flashings.filter(x => x.id !== f.id) })} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                        </div>
+                      ))}
+                    </div>
+                    {canEdit && <button type="button" onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: '', price: 0 }] })}
+                      className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900"><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>}
+                  </div>
+                  <p className="text-xs font-medium text-[#7f7f7f]">{T.roofHint}</p>
+                </div>
+              </Fold>
+            })()}
             </div>
           </Step>}
 
@@ -750,56 +790,6 @@ export default function PriceListSetupPage() {
         </div>}
         </div>
 
-        {/* live preview */}
-        {!loading && pShape && pMat && <aside className="lg:sticky lg:top-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-900">{T.preview}</span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-gray-500"><span className="w-1.5 h-1.5 rounded-full bg-green-500" />{T.live}</span>
-          </div>
-          {pShape && pMat ? <div className="p-4 space-y-4">
-            <div className="flex justify-center rounded-lg bg-gray-50 py-4" style={{ backgroundImage: 'linear-gradient(#eef0f2 1px, transparent 1px), linear-gradient(90deg, #eef0f2 1px, transparent 1px)', backgroundSize: '16px 16px' }}>
-              {pShape.spec
-                ? <SpecDrawing spec={pShape.spec} width={pv.width} height={pv.height} size={190} showDims frameColor={pColor && pColor.toLowerCase() !== '#ffffff' ? pColor : '#f8fafc'} />
-                : <WindowDrawing template={pShape.template!} width={pv.width} height={pv.height} size={190} showDims frameColor={pColor && pColor.toLowerCase() !== '#ffffff' ? pColor : '#f8fafc'} />}
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {pvChoices.map(sh => <button key={sh.key} type="button" onClick={() => setPv(v => ({ ...v, template: sh.key }))}
-                className={cn('px-2 py-1 rounded-md border text-xs', sh.key === pShape.key ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium' : 'border-gray-200 text-gray-500 hover:border-gray-400')}>{sh.label}</button>)}
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {activeMats.map(m => <button key={m.key} type="button" onClick={() => setPv(v => ({ ...v, profile: m.key }))}
-                className={cn('px-2 py-1 rounded-md border text-xs', m.key === pMat.key ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium' : 'border-gray-200 text-gray-500 hover:border-gray-400')}>{m.name || L.materials[m.material]}</button>)}
-            </div>
-            {([['width', T.width, pShape.min_width, pShape.max_width], ['height', T.height, pShape.min_height, pShape.max_height]] as const).map(([k, label, min, max]) => (
-              <div key={k}>
-                <div className="flex justify-between text-xs font-medium text-[#7f7f7f] mb-1"><span>{label}</span><span className="font-medium text-gray-900">{pv[k]} mm</span></div>
-                <input type="range" min={min} max={max} step={10} value={Math.min(max, Math.max(min, pv[k]))} onChange={e => setPv(v => ({ ...v, [k]: Number(e.target.value) }))} className="w-full accent-gray-900" />
-              </div>
-            ))}
-            <div className="border-t border-gray-200 pt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between gap-3"><span className="text-gray-900">{pShape.label} · {pMat.name || L.materials[pMat.material]}</span><span className="text-gray-900 whitespace-nowrap">{money(pBase ?? 0)}</span></div>
-              {/* internal costing: cut list with lengths, glass, hardware, labour, margin */}
-              {pCalc && <div className="rounded-lg border border-gray-200 bg-gray-50/60">
-                <button type="button" onClick={() => setShowCalc(v => !v)} className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-medium text-[#7f7f7f] hover:text-gray-700">
-                  <span>{T.calc}</span><span>{showCalc ? '−' : '+'}</span>
-                </button>
-                {showCalc && <div className="px-2.5 pb-2 space-y-1 text-xs">
-                  {pCalc.lines.map(l => <div key={l.key} className="flex justify-between gap-2 text-gray-600">
-                    <span className="min-w-0 truncate">{l.label} <span className="text-gray-400">{l.qty.toLocaleString('de-DE')} {l.unit} × {money(l.price)}</span></span>
-                    <span className="whitespace-nowrap">{money(l.total)}</span>
-                  </div>)}
-                  <div className="flex justify-between gap-2 pt-1 border-t border-gray-200 text-gray-700"><span>{T.cost}</span><span>{money(pCalc.cost)}</span></div>
-                  <div className="flex justify-between gap-2 text-gray-700"><span>{T.marginLine} {pricing.margin_pct} %</span><span>+ {money(pCalc.price - pCalc.cost)}</span></div>
-                  <div className="flex justify-between gap-2 font-medium text-gray-900"><span>{T.windowPrice}</span><span>{money(pCalc.price)}</span></div>
-                </div>}
-              </div>}
-              {pExtras.map(x => <div key={x.name} className="flex justify-between gap-3 text-gray-500"><span className="flex items-center gap-1.5 min-w-0 truncate">{x.swatch && <span className="w-3 h-3 rounded-full border border-gray-300 shrink-0" style={{ backgroundColor: x.swatch }} />}{x.name}</span><span className="whitespace-nowrap">+ {money(x.amount)}</span></div>)}
-              {pServices.map(x => <div key={x.name} className="flex justify-between gap-3 text-gray-500"><span className="min-w-0 truncate">{x.name}</span><span className="whitespace-nowrap">+ {money(x.amount)}</span></div>)}
-              <div className="flex justify-between gap-3 pt-2 border-t border-gray-100 font-semibold text-gray-900"><span>{T.totalNet}</span><span>{money(pTotal)}</span></div>
-              <p className="text-xs font-medium text-[#7f7f7f]">{T.previewHint}</p>
-            </div>
-          </div> : null}
-        </aside>}
       </div>
 
       {/* sticky save bar */}
@@ -811,19 +801,16 @@ export default function PriceListSetupPage() {
   )
 }
 
-/** A part of a window type (top light variants, openings): closed by default, opens with the arrow. */
-function SubFold({ open, onToggle, title, count, actions, children }: { open: boolean; onToggle: () => void; title: string; count: string; actions?: React.ReactNode; children: React.ReactNode }) {
+/** A part of a window type (top light variants, openings): heading + count + select all / clear. */
+function SubFold({ title, count, actions, children }: { open?: boolean; onToggle?: () => void; title: string; count: string; actions?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex items-center gap-3 px-3 py-2.5">
-        <button type="button" onClick={onToggle} className="flex-1 flex items-center gap-2 text-left min-w-0">
-          <ChevronDown className={cn('w-4 h-4 text-gray-500 shrink-0 transition-transform', !open && '-rotate-90')} />
-          <span className="text-sm font-medium text-gray-900">{title}</span>
-          <span className="text-xs font-medium text-[#7f7f7f]">{count}</span>
-        </button>
-        {open && actions && <div className="flex gap-3 text-xs font-medium">{actions}</div>}
+    <div>
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-sm font-medium text-gray-900">{title}</span>
+        <span className="text-xs font-medium text-[#7f7f7f]">{count}</span>
+        {actions && <div className="ml-auto flex gap-3 text-xs font-medium">{actions}</div>}
       </div>
-      {open && <div className="px-3 pb-3">{children}</div>}
+      {children}
     </div>
   )
 }
