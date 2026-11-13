@@ -160,6 +160,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [confirm, setConfirm] = useState<null | 'won' | 'lost'>(null)
   const [tab, setTab] = useState<'overview' | 'pdf'>('overview')
   const [snapshot, setSnapshot] = useState<OfferSnapshot | null>(null)
+  // The PDF always shows the company's current logo (old logo files are deleted on replace)
+  const pdfSnap = useMemo(() => snapshot ? { ...snapshot, company: { ...snapshot.company, logo_url: company?.logo_url ?? null } } : null, [snapshot, company?.logo_url])
   const isSaved = !!quoteNumber
   const [customerId, setCustomerId] = useState('')
   const [contactPerson, setContactPerson] = useState('')
@@ -423,7 +425,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   async function downloadPdf() {
     if (!snapshot) return
     setDownloading(true)
-    try { await downloadOfferPdf(snapshot, lang, `Ponudba_${quoteNumber}.pdf`) }
+    try { await downloadOfferPdf(pdfSnap ?? snapshot, lang, `Ponudba_${quoteNumber}.pdf`) }
     catch (e) { console.error('offer pdf download', e); toast.error(o.pdfError) }
     setDownloading(false)
   }
@@ -734,7 +736,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         </div>
       </>) : (
         snapshot?.lines ? (
-          <OfferPdfPreview snap={snapshot} lang={lang} errorLabel={o.pdfError} />
+          <OfferPdfPreview snap={pdfSnap ?? snapshot} lang={lang} errorLabel={o.pdfError} />
         ) : <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400">{s.saveQuoteFirst}</div>
       )}
 

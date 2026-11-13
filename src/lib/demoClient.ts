@@ -353,6 +353,7 @@ const storage = {
   from: (_bucket: string) => ({
     upload: async (path: string, file: Blob) => { files.set(path, file); return { data: { path }, error: null } },
     download: async (path: string) => files.has(path) ? { data: files.get(path)!, error: null } : { data: null, error: { message: 'Not found' } },
+    list: async (folder: string) => ({ data: [...files.keys()].filter(k => k.startsWith(folder + '/')).map(k => ({ name: k.slice(folder.length + 1) })), error: null }),
     remove: async (paths: string[]) => { paths.forEach(p => files.delete(p)); return { data: null, error: null } },
     createSignedUrl: async (path: string) => files.has(path) ? { data: { signedUrl: URL.createObjectURL(files.get(path)!) }, error: null } : { data: null, error: { message: 'Not found' } },
     getPublicUrl: (path: string) => ({ data: { publicUrl: files.has(path) ? URL.createObjectURL(files.get(path)!) : '' } }),

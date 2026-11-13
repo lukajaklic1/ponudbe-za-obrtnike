@@ -104,6 +104,15 @@ export default function SettingsPage() {
     setUploading(false)
     if (error) { toast.error(error.message); return }
     setForm(f => ({ ...f, logo_url: url })); toast.success(t.common.saved)
+    await deleteLogoFiles(path)
+  }
+
+  // Only the current logo is kept; PDFs always use the company's current logo, so old files are never needed
+  async function deleteLogoFiles(keep?: string) {
+    if (!company) return
+    const { data } = await supabase.storage.from('logos').list(company.id)
+    const old = (data ?? []).map((f: { name: string }) => `${company.id}/${f.name}`).filter((p: string) => p !== keep)
+    if (old.length) await supabase.storage.from('logos').remove(old)
   }
 
   async function removeLogo() {
@@ -111,6 +120,7 @@ export default function SettingsPage() {
     const { error } = await supabase.from('companies').update({ logo_url: null, updated_at: new Date().toISOString() }).eq('id', company.id)
     if (error) { toast.error(error.message); return }
     setForm(f => ({ ...f, logo_url: null }))
+    await deleteLogoFiles()
   }
 
   // Data the law requires on business documents (ZDDV-1 82. člen, ZGD-1 30. člen) — checked on the saved company
