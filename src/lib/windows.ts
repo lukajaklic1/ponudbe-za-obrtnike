@@ -6,8 +6,11 @@ export type WindowMaterial = 'pvc' | 'alu' | 'wood' | 'wood_alu'
 export type WindowTemplate =
   | 'fixed' | 'tilt_turn' | 'tilt' | 'double' | 'double_mullion' | 'triple'
   | 'fixed_tilt_turn' | 'door' | 'door_double' | 'lift_slide'
-export type OptionGroup = 'glass' | 'color' | 'handle' | 'sill' | 'shading' | 'other'
-export type OptionPricing = 'piece' | 'm2' | 'percent'
+export type ExtraGroup = 'glass' | 'color' | 'handle' | 'sill' | 'shading' | 'other'
+export type ServiceGroup = 'installation' | 'removal' | 'finishing' | 'transport'
+export type OptionGroup = ExtraGroup | ServiceGroup
+/** piece / m² / % of base / metre of perimeter 2×(w+h) / metre of width / once per quote */
+export type OptionPricing = 'piece' | 'm2' | 'percent' | 'perimeter' | 'width' | 'flat'
 export type Hinge = 'left' | 'right'
 
 export interface PriceMatrix { widths: number[]; heights: number[]; prices: (number | null)[][] }
@@ -15,11 +18,15 @@ export interface PriceMatrix { widths: number[]; heights: number[]; prices: (num
 export interface WindowSystem {
   id: string; company_id?: string; name: string; material: WindowMaterial
   description: string | null; sort_order?: number; is_active?: boolean
+  /** guided price list: price per m² of this material and minimum price per window */
+  price_per_m2?: number; min_price?: number
 }
 export interface WindowType {
   id: string; company_id?: string; name: string; template: WindowTemplate
   min_width: number; max_width: number; min_height: number; max_height: number
   sort_order?: number; is_active?: boolean
+  /** guided price list: % on top of the material price for this shape */
+  surcharge_pct?: number
 }
 export interface WindowPrice {
   id?: string; company_id?: string; system_id: string; type_id: string
@@ -34,7 +41,13 @@ export const TEMPLATES: WindowTemplate[] = [
   'fixed', 'tilt_turn', 'tilt', 'double', 'double_mullion', 'triple', 'fixed_tilt_turn', 'door', 'door_double', 'lift_slide',
 ]
 export const MATERIALS: WindowMaterial[] = ['pvc', 'alu', 'wood', 'wood_alu']
-export const OPTION_GROUPS: OptionGroup[] = ['glass', 'color', 'handle', 'sill', 'shading', 'other']
+/** Extras change the window itself (priced into the window line). */
+export const OPTION_GROUPS: ExtraGroup[] = ['glass', 'color', 'handle', 'sill', 'shading', 'other']
+/** Services are chosen once per order and become their own quote lines. */
+export const SERVICE_GROUPS: ServiceGroup[] = ['installation', 'removal', 'finishing', 'transport']
+export const EXTRA_PRICING: OptionPricing[] = ['piece', 'm2', 'percent', 'perimeter', 'width']
+export const SERVICE_PRICING: OptionPricing[] = ['piece', 'perimeter', 'width', 'm2', 'flat']
+export const isService = (o: { group_key: OptionGroup; pricing: OptionPricing }) => (SERVICE_GROUPS as string[]).includes(o.group_key) || o.pricing === 'flat'
 /** Groups where the customer picks exactly one option; the rest are optional add-ons. */
 export const SINGLE_CHOICE_GROUPS: OptionGroup[] = ['glass', 'color', 'handle']
 
@@ -99,9 +112,34 @@ export function unitPrice(base: number | null, w: number, h: number, options: Wi
   let total = base
   for (const o of options) {
     const price = Number(o.price ?? 0)
-    total += o.pricing === 'piece' ? price : o.pricing === 'm2' ? price * area : base * price / 100
+    total += o.pricing === 'piece' ? price
+      : o.pricing === 'm2' ? price * area
+      : o.pricing === 'percent' ? base * price / 100
+      : o.pricing === 'perimeter' ? price * 2 * (w + h) / 1000
+      : o.pricing === 'width' ? price * w / 1000
+      : 0
   }
   return r2(total)
+}
+
+/** Services for a whole order: quantity summed over all windows (same rules as the server). */
+export function serviceLine(o: WindowOption, windows: { width: number; height: number; quantity: number; base: number | null }[]) {
+  const price = Number(o.price ?? 0)
+  let qty = 0
+  for (const w of windows) {
+    const q = w.quantity || 0
+    if (o.pricing === 'piece') qty += q
+    else if (o.pricing === 'm2') qty += (w.width * w.height / 1_000_000) * q
+    else if (o.pricing === 'perimeter') qty += 2 * (w.width + w.height) / 1000 * q
+    else if (o.pricing === 'width') qty += w.width / 1000 * q
+  }
+  if (o.pricing === 'flat') return { qty: 1, unitPrice: r2(price), total: r2(price) }
+  if (o.pricing === 'percent') {
+    const sum = windows.reduce((a, w) => a + (w.base ?? 0) * (w.quantity || 0), 0)
+    return { qty: 1, unitPrice: r2(sum * price / 100), total: r2(sum * price / 100) }
+  }
+  qty = r2(qty)
+  return { qty, unitPrice: r2(price), total: r2(qty * price) }
 }
 
 export function money(n: number, currency = 'EUR') {
@@ -164,8 +202,16 @@ export const STARTER = {
     { group_key: 'sill' as const, name: 'Zunanja ALU okenska polica', pricing: 'piece' as const, price: 55, is_default: false },
     { group_key: 'shading' as const, name: 'Zunanje žaluzije', pricing: 'm2' as const, price: 160, is_default: false },
     { group_key: 'shading' as const, name: 'Komarnik', pricing: 'piece' as const, price: 65, is_default: false },
-    { group_key: 'other' as const, name: 'Demontaža starega okna', pricing: 'piece' as const, price: 35, is_default: false },
-    { group_key: 'other' as const, name: 'RAL montaža', pricing: 'piece' as const, price: 90, is_default: false },
+    { group_key: 'sill' as const, name: 'Notranja polica po meri', pricing: 'width' as const, price: 38, is_default: false },
+    // services (chosen once per order, quantity from all windows)
+    { group_key: 'installation' as const, name: 'Klasična montaža (PU pena, sidra)', pricing: 'perimeter' as const, price: 9, is_default: false },
+    { group_key: 'installation' as const, name: 'RAL montaža (tesnilni trakovi)', pricing: 'perimeter' as const, price: 16, is_default: true },
+    { group_key: 'installation' as const, name: 'Montaža balkonskih vrat', pricing: 'piece' as const, price: 120, is_default: false },
+    { group_key: 'removal' as const, name: 'Demontaža starih oken', pricing: 'perimeter' as const, price: 6, is_default: true },
+    { group_key: 'finishing' as const, name: 'Zidarska obdelava špalet', pricing: 'perimeter' as const, price: 12, is_default: false },
+    { group_key: 'finishing' as const, name: 'Montaža notranjih polic', pricing: 'width' as const, price: 14, is_default: false },
+    { group_key: 'transport' as const, name: 'Odvoz in ekološka odstranitev', pricing: 'flat' as const, price: 80, is_default: true },
+    { group_key: 'transport' as const, name: 'Dostava na objekt', pricing: 'flat' as const, price: 50, is_default: true },
   ],
 }
 
@@ -178,8 +224,9 @@ export const WL = {
       door: 'Balkonska vrata', door_double: 'Dvokrilna balkonska vrata', lift_slide: 'Dvižno-drsna vrata',
     } as Record<WindowTemplate, string>,
     materials: { pvc: 'PVC', alu: 'ALU', wood: 'Les', wood_alu: 'Les-ALU' } as Record<WindowMaterial, string>,
-    groups: { glass: 'Steklo', color: 'Barva', handle: 'Kljuka', sill: 'Police', shading: 'Senčila', other: 'Dodatno' } as Record<OptionGroup, string>,
-    pricing: { piece: 'na kos', m2: 'na m²', percent: '% osnove' } as Record<OptionPricing, string>,
+    groups: { glass: 'Steklo', color: 'Barva', handle: 'Kljuka', sill: 'Police', shading: 'Senčila', other: 'Dodatno', installation: 'Montaža', removal: 'Demontaža', finishing: 'Zaključna dela', transport: 'Prevoz in odvoz' } as Record<OptionGroup, string>,
+    pricing: { piece: 'na kos', m2: 'na m²', percent: '% cene okna', perimeter: 'na tm obsega okna', width: 'na tm širine okna', flat: 'pavšal na ponudbo' } as Record<OptionPricing, string>,
+    unitShort: { piece: 'kos', m2: 'm²', percent: '%', perimeter: 'tm', width: 'tm', flat: 'pavšal' } as Record<OptionPricing, string>,
     hinge: { left: 'Levo', right: 'Desno' } as Record<Hinge, string>,
   },
   en: {
@@ -189,8 +236,9 @@ export const WL = {
       door: 'Balcony door', door_double: 'Double balcony door', lift_slide: 'Lift & slide door',
     } as Record<WindowTemplate, string>,
     materials: { pvc: 'PVC', alu: 'Aluminium', wood: 'Wood', wood_alu: 'Wood-aluminium' } as Record<WindowMaterial, string>,
-    groups: { glass: 'Glass', color: 'Colour', handle: 'Handle', sill: 'Sills', shading: 'Shading', other: 'Extras' } as Record<OptionGroup, string>,
-    pricing: { piece: 'per piece', m2: 'per m²', percent: '% of base' } as Record<OptionPricing, string>,
+    groups: { glass: 'Glass', color: 'Colour', handle: 'Handle', sill: 'Sills', shading: 'Shading', other: 'Extras', installation: 'Installation', removal: 'Removal', finishing: 'Finishing', transport: 'Transport and disposal' } as Record<OptionGroup, string>,
+    pricing: { piece: 'per piece', m2: 'per m²', percent: '% of window base', perimeter: 'per m of perimeter', width: 'per m of width', flat: 'flat per quote' } as Record<OptionPricing, string>,
+    unitShort: { piece: 'pc', m2: 'm²', percent: '%', perimeter: 'm', width: 'm', flat: 'flat' } as Record<OptionPricing, string>,
     hinge: { left: 'Left', right: 'Right' } as Record<Hinge, string>,
   },
 }

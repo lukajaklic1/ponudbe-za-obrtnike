@@ -10,8 +10,8 @@ import RegisterPage from './pages/RegisterPage'
 import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
 import CustomersPage from './pages/CustomersPage'
-import PriceListPage from './pages/PriceListPage'
 import WindowCatalogPage from './pages/WindowCatalogPage'
+import PriceListSetupPage from './pages/PriceListSetupPage'
 import ConfiguratorPage from './pages/ConfiguratorPage'
 import QuotesPage from './pages/QuotesPage'
 import QuoteFormPage from './pages/QuoteFormPage'
@@ -68,8 +68,9 @@ export default function Root() {
             <Route path="/quotes/:id/edit"       element={<App><QuoteFormPage /></App>} />
             <Route path="/quotes/:id"            element={<App><QuoteFormPage readOnly /></App>} />
             <Route path="/customers"             element={<App><CustomersPage /></App>} />
-            <Route path="/price-list"            element={<App><PriceListPage /></App>} />
-            <Route path="/windows"               element={<App><WindowCatalogPage /></App>} />
+            <Route path="/price-list"            element={<Navigate to="/windows" replace />} />
+            <Route path="/windows"               element={<App><PriceListSetupPage /></App>} />
+            <Route path="/windows/advanced"      element={<App><WindowCatalogPage /></App>} />
             {/* Old links to hidden / removed modules */}
             {['/jobs', '/calendar', '/invoices/*', '/invoices', '/bills'].map(p =>
               <Route key={p} path={p} element={<Navigate to="/quotes" replace />} />)}

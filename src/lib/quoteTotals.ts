@@ -1,3 +1,4 @@
+import type { PriceUnit } from '../types/database'
 // Quote math for trades offers: qty × unit price − line discount, quote discount, VAT per rate.
 
 export interface LineInput {
@@ -36,3 +37,7 @@ export function roomAreas(length: number, width: number, height: number, opening
   const ceiling = length * width
   return { walls: r2(walls), ceiling: r2(ceiling), floor: r2(ceiling), perimeter: r2(2 * (length + width)) }
 }
+
+// Units and VAT rates offered on quote lines
+export const PRICE_UNITS: PriceUnit[] = ['pcs', 'm', 'm2', 'h', 'lump', 'l', 'kg']
+export const VAT_RATES = [22, 9.5, 0]

@@ -14,7 +14,8 @@ import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { buildSnapshot } from '../lib/offerSnapshot'
 import { lineTotal, quoteTotals, roomAreas } from '../lib/quoteTotals'
-import { PRICE_UNITS, VAT_RATES } from './PriceListPage'
+import { PRICE_UNITS, VAT_RATES } from '../lib/quoteTotals'
+import { isService } from '../lib/windows'
 import type { Customer, Quote, QuoteLine, QuoteAttachment, QuoteStatus, OfferSnapshot, PriceItem, PriceUnit } from '../types/database'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import { INCOTERMS } from '../lib/incoterms'
@@ -194,10 +195,15 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     // spinner only on first load (initial state) — reloads keep the current view on screen
     const [{ data: cust }, { data: pis }] = await Promise.all([
       supabase.from('customers').select('*').eq('company_id', company.id).order('name'),
-      supabase.from('price_items').select('*').eq('company_id', company.id).eq('is_active', true).order('code'),
+      // services and extras come from the price list (Cenik); % extras only make sense on a window
+      supabase.from('window_options' as any).select('*').eq('company_id', company.id).eq('is_active', true).neq('pricing', 'percent').order('group_key').order('sort_order'),
     ])
     setCustomers((cust as Customer[]) ?? [])
-    setPriceItems((pis as PriceItem[]) ?? [])
+    const unitOf: Record<string, PriceUnit> = { piece: 'pcs', m2: 'm2', perimeter: 'm', width: 'm', flat: 'lump' }
+    const opts = ((pis ?? []) as unknown as { id: string; name: string; description: string | null; pricing: string; price: number; group_key: string }[])
+    // services first, then window extras
+    opts.sort((a, b) => Number(isService(b as never)) - Number(isService(a as never)))
+    setPriceItems(opts.map(o => ({ id: o.id, company_id: company.id, code: null, name: o.name, description: o.description, category: null, unit: unitOf[o.pricing] ?? 'pcs', price: Number(o.price), vat_rate: 22, is_active: true } as unknown as PriceItem)))
 
     if (editMode && id) {
       const { data: q } = await supabase.from('quotes').select('*').eq('id', id).single()
@@ -250,7 +256,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   function patchLine(key: string, patch: Partial<LineRow>) { setLines(ls => ls.map(l => l.key === key ? { ...l, ...patch } : l)) }
   function removeLine(key: string) { setLines(ls => ls.filter(l => l.key !== key)) }
   function applyService(key: string, p: PriceItem) {
-    patchLine(key, { price_item_id: p.id, name: p.name, description: p.description ?? '', unit: p.unit, unit_price: Number(p.price) })
+    // price list entries are not price_items rows, so the line keeps no reference
+    patchLine(key, { price_item_id: null, name: p.name, description: p.description ?? '', unit: p.unit, unit_price: Number(p.price) })
   }
   function addLine(roomName = rooms[rooms.length - 1] ?? '') {
     setLines(ls => {

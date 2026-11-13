@@ -15,17 +15,19 @@ import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import { cn } from '../lib/cn'
 import {
-  TEMPLATES, MATERIALS, OPTION_GROUPS, STARTER, WL, money, parseMatrix, basePrice,
+  TEMPLATES, MATERIALS, OPTION_GROUPS, SERVICE_GROUPS, EXTRA_PRICING, SERVICE_PRICING, STARTER, WL, money, parseMatrix, basePrice,
   type WindowSystem, type WindowType, type WindowPrice, type WindowOption, type PriceMatrix,
   type WindowMaterial, type WindowTemplate, type OptionGroup, type OptionPricing,
 } from '../lib/windows'
 
-type Tab = 'systems' | 'types' | 'prices' | 'options' | 'configurator'
+type Tab = 'systems' | 'types' | 'prices' | 'options' | 'services' | 'configurator'
 
 const TXT = {
   sl: {
-    title: 'Katalog oken',
-    tabs: { systems: 'Profilni sistemi', types: 'Tipi oken', prices: 'Ceniki', options: 'Dodatki', configurator: 'Spletni konfigurator' } as Record<Tab, string>,
+    title: 'Cenik',
+    tabs: { systems: 'Profilni sistemi', types: 'Tipi oken', prices: 'Cene oken', options: 'Dodatki', services: 'Storitve', configurator: 'Spletni konfigurator' } as Record<Tab, string>,
+    extrasHint: 'Dodatki spremenijo okno (steklo, barva, kljuka, police, senčila). Cena se prišteje k ceni okna, glede na mere okna.',
+    servicesHint: 'Storitve se izberejo enkrat za celo ponudbo in so v ponudbi svoja postavka. Količina se izračuna iz vseh oken: kos = število oken, tm obsega = 2 × (širina + višina), tm širine = širina okna, m² = površina, pavšal = enkrat na ponudbo.',
     add: 'Dodaj', edit: 'Uredi', name: 'Naziv', material: 'Material', description: 'Opis', active: 'Aktivno', inactive: 'Neaktivno',
     template: 'Oblika', minW: 'Min. širina', maxW: 'Maks. širina', minH: 'Min. višina', maxH: 'Maks. višina',
     group: 'Skupina', pricing: 'Obračun', price: 'Cena', isDefault: 'Privzeta izbira', dflt: 'privzeto',
@@ -43,8 +45,10 @@ const TXT = {
     slugTaken: 'Ta naslov je že zaseden', none: '—',
   },
   en: {
-    title: 'Window catalog',
-    tabs: { systems: 'Profile systems', types: 'Window types', prices: 'Price lists', options: 'Extras', configurator: 'Online configurator' } as Record<Tab, string>,
+    title: 'Price list',
+    tabs: { systems: 'Profile systems', types: 'Window types', prices: 'Window prices', options: 'Extras', services: 'Services', configurator: 'Online configurator' } as Record<Tab, string>,
+    extrasHint: 'Extras change the window (glass, colour, handle, sills, shading). Their price is added to the window price, based on its size.',
+    servicesHint: 'Services are chosen once per quote and get their own quote line. Quantity comes from all windows: piece = number of windows, m of perimeter = 2 × (width + height), m of width = window width, m² = area, flat = once per quote.',
     add: 'Add', edit: 'Edit', name: 'Name', material: 'Material', description: 'Description', active: 'Active', inactive: 'Inactive',
     template: 'Layout', minW: 'Min. width', maxW: 'Max. width', minH: 'Min. height', maxH: 'Max. height',
     group: 'Group', pricing: 'Pricing', price: 'Price', isDefault: 'Default choice', dflt: 'default',
@@ -163,7 +167,8 @@ export default function WindowCatalogPage() {
             {tab === 'systems' && <SystemsTab T={T} L={L} rows={systems} canEdit={canEdit} companyId={company!.id} onChange={load} />}
             {tab === 'types' && <TypesTab T={T} L={L} rows={types} canEdit={canEdit} companyId={company!.id} onChange={load} />}
             {tab === 'prices' && <PricesTab T={T} systems={systems} types={types} prices={prices} canEdit={canEdit} companyId={company!.id} currency={cur} onChange={load} />}
-            {tab === 'options' && <OptionsTab T={T} L={L} rows={options} canEdit={canEdit} companyId={company!.id} currency={cur} onChange={load} />}
+            {tab === 'options' && <OptionsTab T={T} L={L} rows={options} groups={OPTION_GROUPS} pricings={EXTRA_PRICING} hint={T.extrasHint} canEdit={canEdit} companyId={company!.id} currency={cur} onChange={load} />}
+            {tab === 'services' && <OptionsTab T={T} L={L} rows={options} groups={SERVICE_GROUPS} pricings={SERVICE_PRICING} hint={T.servicesHint} canEdit={canEdit} companyId={company!.id} currency={cur} onChange={load} />}
             {tab === 'configurator' && company && <ConfiguratorTab T={T} canEdit={canEdit} company={company} onSaved={refetch} />}
           </>
         </>)}
@@ -465,7 +470,7 @@ function MatrixGrid({ m, onChange, T, disabled }: { m: PriceMatrix; onChange: (m
 }
 
 // ─── Options ────────────────────────────────────────────────
-function OptionsTab({ T, L, rows, canEdit, companyId, currency, onChange }: { T: TT; L: LL; rows: WindowOption[]; canEdit: boolean; companyId: string; currency: string; onChange: () => void }) {
+function OptionsTab({ T, L, rows, groups, pricings, hint, canEdit, companyId, currency, onChange }: { T: TT; L: LL; rows: WindowOption[]; groups: OptionGroup[]; pricings: OptionPricing[]; hint: string; canEdit: boolean; companyId: string; currency: string; onChange: () => void }) {
   const [editing, setEditing] = useState<Partial<WindowOption> | null>(null)
   const [toDelete, setToDelete] = useState<WindowOption | null>(null)
   const [saving, setSaving] = useState(false)
@@ -483,11 +488,14 @@ function OptionsTab({ T, L, rows, canEdit, companyId, currency, onChange }: { T:
     if (error) { toast.error(error.message); return }
     setEditing(null); onChange()
   }
-  const fmt = (o: WindowOption) => o.pricing === 'percent' ? `${Number(o.price ?? 0).toLocaleString('de-DE')} %` : `${money(Number(o.price ?? 0), currency)} ${L.pricing[o.pricing]}`
+  const fmt = (o: WindowOption) => o.pricing === 'percent' ? `${Number(o.price ?? 0).toLocaleString('de-DE')} % cene okna` : `${money(Number(o.price ?? 0), currency)} ${L.pricing[o.pricing]}`
   return <>
-    <div className="flex justify-end mb-3">{canEdit && <Button size="sm" className="gap-1.5" onClick={() => setEditing({ group_key: 'glass', pricing: 'piece', is_active: true })}><Plus className="w-4 h-4" />{T.add}</Button>}</div>
+    <div className="flex items-start justify-between gap-4 mb-3">
+      <p className="text-sm text-gray-500 max-w-2xl">{hint}</p>
+      {canEdit && <Button size="sm" className="gap-1.5 shrink-0" onClick={() => setEditing({ group_key: groups[0], pricing: pricings[0], is_active: true })}><Plus className="w-4 h-4" />{T.add}</Button>}
+    </div>
     <div className="space-y-4">
-      {OPTION_GROUPS.filter(g => rows.some(r => r.group_key === g)).map(g => <Card key={g}>
+      {groups.filter(g => rows.some(r => r.group_key === g)).map(g => <Card key={g}>
         <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">{L.groups[g]}</div>
         <table className="w-full text-sm"><tbody>
           {rows.filter(r => r.group_key === g).map(r => <tr key={r.id} className="border-b border-gray-100 last:border-0">
@@ -501,12 +509,12 @@ function OptionsTab({ T, L, rows, canEdit, companyId, currency, onChange }: { T:
     </div>
     <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? T.edit : T.add}>
       {editing && <div className="space-y-3">
-        <Select label={T.group} value={editing.group_key ?? 'glass'} onChange={v => setEditing({ ...editing, group_key: v as OptionGroup })}
-          options={OPTION_GROUPS.map(g => ({ value: g, label: L.groups[g] }))} />
+        <Select label={T.group} value={editing.group_key ?? groups[0]} onChange={v => setEditing({ ...editing, group_key: v as OptionGroup })}
+          options={groups.map(g => ({ value: g, label: L.groups[g] }))} />
         <Input label={T.name} value={editing.name ?? ''} onChange={e => setEditing({ ...editing, name: e.target.value })} autoFocus />
         <div className="grid grid-cols-2 gap-3">
-          <Select label={T.pricing} value={editing.pricing ?? 'piece'} onChange={v => setEditing({ ...editing, pricing: v as OptionPricing })}
-            options={(['piece', 'm2', 'percent'] as OptionPricing[]).map(p => ({ value: p, label: L.pricing[p] }))} />
+          <Select label={T.pricing} value={editing.pricing ?? pricings[0]} onChange={v => setEditing({ ...editing, pricing: v as OptionPricing })}
+            options={pricings.map(p => ({ value: p, label: L.pricing[p] }))} />
           <NumberInput label={T.price} unit={editing.pricing === 'percent' ? '%' : currency} value={editing.price ?? null} onValue={v => setEditing({ ...editing, price: v ?? 0 })} decimals={2} />
         </div>
         <Checkbox checked={editing.is_default ?? false} onChange={v => setEditing({ ...editing, is_default: v })} label={T.isDefault} />

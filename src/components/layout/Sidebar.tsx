@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown, AppWindow,
+  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tags, Building2, PanelLeft, ChevronDown,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -10,7 +10,7 @@ import { useLanguage } from '../../hooks/useLanguage'
 import { cn } from '../../lib/cn'
 import AppLogo from '../ui/AppLogo'
 
-type NavKey = 'dashboard' | 'windows' | 'quotes' | 'customers' | 'priceList'
+type NavKey = 'dashboard' | 'windows' | 'quotes' | 'customers'
 type PermModule = 'quotes' | 'customers' | 'price_list'
 interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?: PermModule }
 
@@ -22,8 +22,7 @@ const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [
   { id: 'sales', items: [
     { to: '/quotes',     icon: FileText, key: 'quotes',    mod: 'quotes' },
     { to: '/customers',  icon: Users,    key: 'customers', mod: 'customers' },
-    { to: '/windows',    icon: AppWindow, key: 'windows',  mod: 'price_list' },
-    { to: '/price-list', icon: Tags,     key: 'priceList', mod: 'price_list' },
+    { to: '/windows',    icon: Tags,     key: 'windows',  mod: 'price_list' },
   ] },
 ]
 

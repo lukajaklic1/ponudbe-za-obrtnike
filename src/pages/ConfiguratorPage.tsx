@@ -6,7 +6,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
 import { cn } from '../lib/cn'
 import {
-  WL, OPTION_GROUPS, SINGLE_CHOICE_GROUPS, basePrice, unitPrice, money, hasHingeChoice,
+  WL, OPTION_GROUPS, SERVICE_GROUPS, SINGLE_CHOICE_GROUPS, basePrice, unitPrice, serviceLine, isService, money, hasHingeChoice,
   type WindowSystem, type WindowType, type WindowPrice, type WindowOption, type Hinge, type OptionGroup,
 } from '../lib/windows'
 
@@ -36,7 +36,7 @@ interface Item {
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
-    step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema',
+    step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
@@ -51,7 +51,7 @@ const TXT = {
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
-    step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment',
+    step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
@@ -84,12 +84,15 @@ export default function ConfiguratorPage() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ quote_number: string } | null>(null)
+  // services are chosen once for the whole order (montaža, demontaža, odvoz …)
+  const [services, setServices] = useState<string[]>([])
 
   useEffect(() => {
     (supabase as any).rpc('get_configurator', { p_slug: slug }).then(({ data, error }: { data: ConfigData | null; error: unknown }) => {
       if (error || !data || !data.types.length || !data.systems.length) { setState('missing'); return }
       setData(data)
       setItems([defaultItem(data)])
+      setServices(data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
       setState('ready')
       document.title = `${T.title} · ${data.company.name}`
     })
@@ -116,7 +119,23 @@ export default function ConfiguratorPage() {
     if (!data || !show || !it.width || !it.height) return null
     const p = data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id)
     const base = basePrice(p, it.width, it.height)
-    return unitPrice(base, it.width, it.height, data.options.filter(o => it.option_ids.includes(o.id)))
+    return unitPrice(base, it.width, it.height, data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)))
+  }
+  function baseOf(it: Item): number | null {
+    if (!data || !it.width || !it.height) return null
+    return basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
+  }
+  const serviceRows = useMemo(() => {
+    if (!data) return []
+    const wins = items.map(x => ({ width: x.width ?? 0, height: x.height ?? 0, quantity: x.quantity, base: baseOf(x) }))
+    return data.options.filter(o => services.includes(o.id)).map(o => ({ option: o, ...serviceLine(o, wins) }))
+  }, [data, items, services])
+  function toggleService(o: WindowOption) {
+    // one way of installation at a time; everything else is an on/off add-on
+    if (o.group_key === 'installation') {
+      const same = data!.options.filter(x => x.group_key === 'installation').map(x => x.id)
+      setServices(sv => sv.includes(o.id) ? sv.filter(id => id !== o.id) : [...sv.filter(id => !same.includes(id)), o.id])
+    } else setServices(sv => sv.includes(o.id) ? sv.filter(id => id !== o.id) : [...sv, o.id])
   }
   function sizeOk(it: Item) {
     const t = data?.types.find(x => x.id === it.type_id)
@@ -124,11 +143,11 @@ export default function ConfiguratorPage() {
   }
 
   const totals = useMemo(() => {
-    const net = items.reduce((a, it) => a + (priceOf(it) ?? 0) * it.quantity, 0)
+    const net = items.reduce((a, it) => a + (priceOf(it) ?? 0) * it.quantity, 0) + (show ? serviceRows.reduce((a, r) => a + r.total, 0) : 0)
     const vatRate = data?.company.vat_rate ?? 22
     const vat = Math.round(net * vatRate) / 100
     return { net, vat, gross: net + vat, vatRate, complete: items.every(it => priceOf(it) != null) }
-  }, [items, data])
+  }, [items, data, serviceRows])
 
   if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
   if (state === 'missing' || !data) return (
@@ -171,6 +190,7 @@ export default function ConfiguratorPage() {
       p_customer: contact,
       p_items: items.map(x => ({ system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label })),
       p_note: contact.note,
+      p_services: services,
     })
     setSending(false)
     if (error) {
@@ -297,6 +317,20 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>}
 
+              {data.options.some(isService) && <Section n={5} title={T.step5} accent={accent}>
+                <p className="text-xs text-gray-500 -mt-1 mb-3">{T.servicesHint}</p>
+                <div className="space-y-4">
+                  {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g)).map(g => <div key={g}>
+                    <div className="text-xs font-medium text-gray-500 mb-1.5">{L.groups[g]}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {data.options.filter(o => o.group_key === g).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
+                        {o.name}{show && o.price != null && Number(o.price) > 0 && <span className="ml-1.5 opacity-70">{money(Number(o.price), cur)} {L.pricing[o.pricing]}</span>}
+                      </Chip>)}
+                    </div>
+                  </div>)}
+                </div>
+              </Section>}
+
               <div className="flex gap-2">
                 <button onClick={() => addItem(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-400"><Copy className="w-4 h-4" />{T.duplicate}</button>
                 {items.length > 1 && <button onClick={() => removeItem(active)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:text-red-600 hover:border-red-200"><Trash2 className="w-4 h-4" />{T.remove}</button>}
@@ -358,6 +392,13 @@ export default function ConfiguratorPage() {
                   </li>
                 })}
               </ul>
+              {serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 space-y-1">
+                <li className="text-xs font-medium text-gray-500">{T.servicesTitle}</li>
+                {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="text-gray-700 min-w-0 truncate">{r.option.name} <span className="text-xs text-gray-400">{r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
+                  {show && <span className="text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
+                </li>)}
+              </ul>}
               {show ? <div className="border-t border-gray-200 mt-2 pt-2 space-y-1 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
                 {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate} %`} r={money(totals.vat, cur)} muted />}
