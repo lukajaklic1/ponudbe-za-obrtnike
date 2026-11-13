@@ -34,7 +34,7 @@ const TXT = {
   sl: {
     title: 'Cenik',
     groupWindows: 'Okna', groupDoors: 'Balkonska vrata', onRequest: 'Cena na povpraševanje: stranka pošlje mere, ceno vpišete v ponudbo.',
-    s1: 'Katere oblike oken ponujate?', s1hint: 'Klikni oblike, ki jih prodajaš. Pri dražjih oblikah lahko dodaš doplačilo v % na ceno materiala.',
+    s1: 'Katere oblike oken ponujate?', s1hint: 'Izberite oblike oken, ki jih ponujate. Pri obliki okna z osnovno ceno vnesite doplačilo 0 %. Pri ostalih dražjih ali cenejših izvedbah lahko dodate doplačilo v % na ceno materiala glede na okno, ki ste ga izbrali za osnovo.',
     surcharge: 'Doplačilo', s2: 'Iz katerih materialov?', s2hint: 'Obkljukaj materiale in vpiši ceno okna na m². Najnižja cena velja za majhna okna.',
     matName: 'Naziv (npr. PVC 82 mm)', perM2: 'Cena na m²', minPrice: 'Najnižja cena okna',
     add: 'Dodaj', name: 'Naziv', price: 'Cena', dflt: 'Privzeto', quick: 'Hitro dodaj:', remove: 'Odstrani',
@@ -46,7 +46,7 @@ const TXT = {
   en: {
     title: 'Price list',
     groupWindows: 'Windows', groupDoors: 'Balcony doors', onRequest: 'Price on request: the customer sends sizes, you price it in the quote.',
-    s1: 'Which window shapes do you offer?', s1hint: 'Click the shapes you sell. For more complex shapes you can add a % surcharge on the material price.',
+    s1: 'Which window shapes do you offer?', s1hint: 'Select the window shapes you offer. Enter a 0 % surcharge for the shape with the base price. For more or less expensive shapes you can add a surcharge in % on the material price, relative to your base window.',
     surcharge: 'Surcharge', s2: 'Which materials?', s2hint: 'Tick the materials and enter the window price per m². The minimum price applies to small windows.',
     matName: 'Name (e.g. PVC 82 mm)', perM2: 'Price per m²', minPrice: 'Minimum window price',
     add: 'Add', name: 'Name', price: 'Price', dflt: 'Default', quick: 'Quick add:', remove: 'Remove',
@@ -336,7 +336,7 @@ export default function PriceListSetupPage() {
                 {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
                   <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.add}</button>
                   {unused.length > 0 && <>
-                    <span className="text-xs text-gray-400 ml-2">{T.quick}</span>
+                    <span className="text-xs font-medium text-[#7f7f7f] ml-2">{T.quick}</span>
                     {unused.map(p => <button key={p.name} type="button" onClick={() => addOption(sec, p)}
                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">{p.swatch && <span className="w-3 h-3 rounded-full border border-gray-300" style={{ backgroundColor: p.swatch }} />}+ {p.name}</button>)}
                   </>}
@@ -369,7 +369,7 @@ export default function PriceListSetupPage() {
             </div>
             {([['width', T.width, pShape.min_width, pShape.max_width], ['height', T.height, pShape.min_height, pShape.max_height]] as const).map(([k, label, min, max]) => (
               <div key={k}>
-                <div className="flex justify-between text-xs text-gray-500 mb-1"><span>{label}</span><span className="font-medium text-gray-900">{pv[k]} mm</span></div>
+                <div className="flex justify-between text-xs font-medium text-[#7f7f7f] mb-1"><span>{label}</span><span className="font-medium text-gray-900">{pv[k]} mm</span></div>
                 <input type="range" min={min} max={max} step={10} value={Math.min(max, Math.max(min, pv[k]))} onChange={e => setPv(v => ({ ...v, [k]: Number(e.target.value) }))} className="w-full accent-gray-900" />
               </div>
             ))}
@@ -378,7 +378,7 @@ export default function PriceListSetupPage() {
               {pExtras.map(x => <div key={x.name} className="flex justify-between gap-3 text-gray-500"><span className="flex items-center gap-1.5 min-w-0 truncate">{x.swatch && <span className="w-3 h-3 rounded-full border border-gray-300 shrink-0" style={{ backgroundColor: x.swatch }} />}{x.name}</span><span className="whitespace-nowrap">+ {money(x.amount)}</span></div>)}
               {pServices.map(x => <div key={x.name} className="flex justify-between gap-3 text-gray-500"><span className="min-w-0 truncate">{x.name}</span><span className="whitespace-nowrap">+ {money(x.amount)}</span></div>)}
               <div className="flex justify-between gap-3 pt-2 border-t border-gray-100 font-semibold text-gray-900"><span>{T.totalNet}</span><span>{money(pTotal)}</span></div>
-              <p className="text-xs text-gray-400">{T.previewHint}</p>
+              <p className="text-xs font-medium text-[#7f7f7f]">{T.previewHint}</p>
             </div>
           </div> : null}
         </aside>}
@@ -400,7 +400,7 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
         <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
         <div>
           <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-          <p className="text-xs text-gray-500 mt-0.5">{hint}</p>
+          <p className="text-xs font-medium text-[#7f7f7f] mt-1 max-w-3xl">{hint}</p>
         </div>
       </div>
       {children}
