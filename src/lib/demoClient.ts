@@ -78,7 +78,7 @@ function seed(): DB {
     { cust: 0, status: 'won', age: 70, site: 'Trubarjeva 14, Ljubljana', lead: '4 tedne', disc: 0, vat: 9.5, lines: [
       ['Dnevna soba', 'Dvokrilno okno s stebričkom 1800 × 1400 mm · PVC 82 mm, troslojno steklo', 2, 742],
       ['Dnevna soba', 'Balkonska vrata 900 × 2200 mm · PVC 82 mm, troslojno steklo', 1, 815],
-      ['Spalnica', 'Enokrilno okno (O/K) 1000 × 1400 mm · PVC 82 mm, troslojno steklo', 2, 468],
+      ['Spalnica', 'Enokrilno okno, odpiranje in kip, 1000 × 1400 mm · PVC 82 mm, troslojno steklo', 2, 468],
       [null, 'D01', 5], [null, 'M02', 4], [null, 'M03', 1], [null, 'D03', 1],
     ] },
     { cust: 2, status: 'sent', age: 25, site: 'Dunajska 50, Ljubljana – stopnišče', lead: '6 tednov', disc: 5, vat: 22, lines: [
@@ -88,11 +88,11 @@ function seed(): DB {
     ] },
     { cust: 1, status: 'lost', age: 45, site: 'Gorenjska cesta 5, Kranj', lead: '5 tednov', disc: 0, vat: 22, lines: [
       ['Pritličje', 'Trokrilno okno 2600 × 1400 mm · PVC 76 mm', 1, 1180],
-      ['Pritličje', 'Enokrilno okno (O/K) 800 × 1200 mm · PVC 76 mm', 3, 365],
+      ['Pritličje', 'Enokrilno okno, odpiranje in kip, 800 × 1200 mm · PVC 76 mm', 3, 365],
       [null, 'M01', 4], [null, 'A03', 4],
     ] },
     { cust: 3, status: 'draft', age: 2, site: 'Ob potoku 3, Domžale', lead: '', disc: 0, vat: 9.5, lines: [
-      ['Kuhinja', 'Enokrilno okno (O/K) 1200 × 1200 mm · PVC 82 mm', 1, 492],
+      ['Kuhinja', 'Enokrilno okno, odpiranje in kip, 1200 × 1200 mm · PVC 82 mm', 1, 492],
       ['Otroška soba', 'Dvokrilno okno brez stebrička 1400 × 1400 mm · PVC 82 mm', 1, 655],
       [null, 'I01', 1], [null, 'M02', 2],
     ] },

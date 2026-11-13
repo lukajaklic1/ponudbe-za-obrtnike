@@ -11,7 +11,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import { cn } from '../lib/cn'
 import {
-  TEMPLATES, MATERIALS, STARTER, WL, SERVICE_GROUPS, serviceLine,
+  TEMPLATES, MATERIALS, STARTER, WL, SERVICE_GROUPS, serviceLine, isDoor, isOnRequest,
   type WindowSystem, type WindowType, type WindowOption, type WindowTemplate, type WindowMaterial,
   type OptionGroup, type OptionPricing,
 } from '../lib/windows'
@@ -27,14 +27,13 @@ interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: st
 interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string }
 interface Section { group: OptionGroup; title: string; hint: string; units: OptionPricing[]; single: boolean; presets: Preset[] }
 
-const isDoor = (t: WindowTemplate) => t.startsWith('door') || t === 'lift_slide'
 let seq = 0
 const nk = () => `o${++seq}`
 
 const TXT = {
   sl: {
     title: 'Cenik',
-    intro: 'Cenik nastaviš od zgoraj navzdol. Iz tega se samodejno izračunajo cene vseh oken v ponudbah in v spletnem konfiguratorju.',
+    groupWindows: 'Okna', groupDoors: 'Balkonska vrata', onRequest: 'Cena na povpraševanje: stranka pošlje mere, ceno vpišete v ponudbo.',
     s1: 'Katere oblike oken ponujate?', s1hint: 'Klikni oblike, ki jih prodajaš. Pri dražjih oblikah lahko dodaš doplačilo v % na ceno materiala.',
     surcharge: 'Doplačilo', s2: 'Iz katerih materialov?', s2hint: 'Obkljukaj materiale in vpiši ceno okna na m². Najnižja cena velja za majhna okna.',
     matName: 'Naziv (npr. PVC 82 mm)', perM2: 'Cena na m²', minPrice: 'Najnižja cena okna',
@@ -42,11 +41,11 @@ const TXT = {
     save: 'Shrani cenik', saved: 'Cenik je shranjen', unsaved: 'Spremembe niso shranjene',
     example: 'Primer', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
     advanced: 'Napredno: cenovne matrike in spletni konfigurator',
-    preview: 'Predogled cene', live: 'v živo', width: 'Širina', height: 'Višina', totalNet: 'Skupaj brez DDV', previewHint: 'Vključene so privzete izbire. Tako bo stranka videla ceno v konfiguratorju.', needOne: 'Izberi vsaj eno obliko in en material.',
+    preview: 'Predogled cene', live: 'v živo', width: 'Širina', height: 'Višina', totalNet: 'Skupaj brez DDV', previewHint: 'Vključene so privzete izbire. Tako bo stranka videla ceno v konfiguratorju.',
   },
   en: {
     title: 'Price list',
-    intro: 'Set up the price list from top to bottom. Every window price in quotes and in the online configurator is calculated from it.',
+    groupWindows: 'Windows', groupDoors: 'Balcony doors', onRequest: 'Price on request: the customer sends sizes, you price it in the quote.',
     s1: 'Which window shapes do you offer?', s1hint: 'Click the shapes you sell. For more complex shapes you can add a % surcharge on the material price.',
     surcharge: 'Surcharge', s2: 'Which materials?', s2hint: 'Tick the materials and enter the window price per m². The minimum price applies to small windows.',
     matName: 'Name (e.g. PVC 82 mm)', perM2: 'Price per m²', minPrice: 'Minimum window price',
@@ -54,7 +53,7 @@ const TXT = {
     save: 'Save price list', saved: 'Price list saved', unsaved: 'Unsaved changes',
     example: 'Example', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
     advanced: 'Advanced: price matrices and online configurator',
-    preview: 'Price preview', live: 'live', width: 'Width', height: 'Height', totalNet: 'Total excl. VAT', previewHint: 'Default choices are included. This is the price the customer sees in the configurator.', needOne: 'Pick at least one shape and one material.',
+    preview: 'Price preview', live: 'live', width: 'Width', height: 'Height', totalNet: 'Total excl. VAT', previewHint: 'Default choices are included. This is the price the customer sees in the configurator.',
   },
 }
 
@@ -162,7 +161,6 @@ export default function PriceListSetupPage() {
 
   async function save() {
     if (!company) return
-    if (!shapes.some(s => s.on) || !materials.some(m => m.on)) { toast.error(T.needOne); return }
     setSaving(true)
     try {
       const now = new Date().toISOString()
@@ -191,7 +189,7 @@ export default function PriceListSetupPage() {
         }
       }
       // every active material × shape gets a price (matrices from the advanced page stay untouched)
-      const priceRows = materials.filter(m => m.on && sysIds[m.material]).flatMap(m => shapes.filter(s => s.on && typeIds[s.template]).map(s => ({
+      const priceRows = materials.filter(m => m.on && sysIds[m.material]).flatMap(m => shapes.filter(s => s.on && typeIds[s.template] && !isOnRequest(s.template)).map(s => ({
         company_id: company.id, system_id: sysIds[m.material], type_id: typeIds[s.template],
         price_per_m2: Math.round((m.price ?? 0) * (1 + (s.surcharge ?? 0) / 100) * 100) / 100,
         min_price: m.min ?? 0, updated_at: now,
@@ -223,7 +221,7 @@ export default function PriceListSetupPage() {
   if (!permLoading && !hasPerm('price_list', 'view')) return <Navigate to="/dashboard" replace />
 
   // live preview (like Fenestro): one example window, base price + every default choice as its own line
-  const activeShapes = shapes.filter(s => s.on)
+  const activeShapes = shapes.filter(s => s.on && !isOnRequest(s.template))
   const activeMats = materials.filter(m => m.on)
   const pShape = activeShapes.find(s => s.template === pv.template) ?? activeShapes.find(s => s.template === 'double') ?? activeShapes[0]
   const pMat = activeMats.find(m => m.material === pv.material) ?? activeMats[0]
@@ -250,31 +248,37 @@ export default function PriceListSetupPage() {
   return (
     <div>
       <PageHeader title={T.title} icon={Tags} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
-      <div className="p-4 lg:p-6 pb-28 grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start max-w-6xl">
+      <div className={`p-4 lg:p-6 pb-28 grid gap-6 items-start${pShape && pMat ? " lg:grid-cols-[minmax(0,1fr)_340px]" : ""}`}>
         <div className="min-w-0">
-        <p className="text-sm text-gray-500 mb-6">{T.intro}</p>
 
         {loading ? <div className="text-sm text-gray-400">…</div> : <div className="space-y-6">
           {/* 1. shapes */}
           <Step n={1} title={T.s1} hint={T.s1hint}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {shapes.map(s => (
+            {([[T.groupWindows, shapes.filter(s => !isDoor(s.template))], [T.groupDoors, shapes.filter(s => isDoor(s.template))]] as const).map(([groupLabel, list], gi) => (
+            <div key={groupLabel} className={gi ? 'mt-6' : ''}>
+            <div className="text-xs font-medium text-[#7f7f7f] mb-2">{groupLabel}</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+              {list.map(s => (
                 <div key={s.template} className={cn('rounded-xl border p-3 flex flex-col transition-colors', s.on ? 'border-gray-900 bg-white' : 'border-gray-200 bg-white hover:border-gray-300')}>
                   <button type="button" disabled={!canEdit} onClick={() => setShape(s.template, { on: !s.on })} className="text-left">
-                    <div className="h-[84px] flex items-center justify-center">
-                      <WindowDrawing template={s.template} width={isDoor(s.template) ? 900 : 1200} height={isDoor(s.template) ? 2100 : 1300} size={76} />
+                    <div className="h-[136px] flex items-center justify-center rounded-lg bg-gray-50">
+                      <WindowDrawing template={s.template} width={isDoor(s.template) ? 900 : 1200} height={isDoor(s.template) ? 2100 : 1300} size={116} />
                     </div>
-                    <div className="flex items-start gap-1.5 mt-2">
+                    <div className="flex items-start gap-1.5 mt-3">
                       <span className={cn('mt-0.5 w-4 h-4 rounded flex items-center justify-center shrink-0 border', s.on ? 'bg-gray-900 border-gray-900' : 'border-gray-300')}>{s.on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}</span>
                       <span className="text-xs font-medium text-gray-900 leading-snug">{L.templates[s.template]}</span>
                     </div>
                   </button>
-                  {s.on && <div className="mt-2">
-                    <NumberInput label={T.surcharge} unit="%" value={s.surcharge} onValue={v => setShape(s.template, { surcharge: v })} decimals={0} />
-                  </div>}
+                  {s.on && (isOnRequest(s.template)
+                    ? <p className="mt-2 text-xs font-medium text-[#7f7f7f]">{T.onRequest}</p>
+                    : <div className="mt-2">
+                        <NumberInput label={T.surcharge} unit="%" value={s.surcharge} onValue={v => setShape(s.template, { surcharge: v })} decimals={0} />
+                      </div>)}
                 </div>
               ))}
             </div>
+            </div>
+            ))}
           </Step>
 
           {/* 2. materials */}
@@ -346,7 +350,7 @@ export default function PriceListSetupPage() {
         </div>
 
         {/* live preview */}
-        {!loading && <aside className="lg:sticky lg:top-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {!loading && pShape && pMat && <aside className="lg:sticky lg:top-4 bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-900">{T.preview}</span>
             <span className="inline-flex items-center gap-1.5 text-xs text-gray-500"><span className="w-1.5 h-1.5 rounded-full bg-green-500" />{T.live}</span>
@@ -376,7 +380,7 @@ export default function PriceListSetupPage() {
               <div className="flex justify-between gap-3 pt-2 border-t border-gray-100 font-semibold text-gray-900"><span>{T.totalNet}</span><span>{money(pTotal)}</span></div>
               <p className="text-xs text-gray-400">{T.previewHint}</p>
             </div>
-          </div> : <p className="p-4 text-sm text-gray-500">{T.needOne}</p>}
+          </div> : null}
         </aside>}
       </div>
 

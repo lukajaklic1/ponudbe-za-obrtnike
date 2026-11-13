@@ -5,7 +5,8 @@
 export type WindowMaterial = 'pvc' | 'alu' | 'wood' | 'wood_alu'
 export type WindowTemplate =
   | 'fixed' | 'tilt_turn' | 'tilt' | 'double' | 'double_mullion' | 'triple'
-  | 'fixed_tilt_turn' | 'door' | 'door_double' | 'lift_slide'
+  | 'fixed_tilt_turn' | 'tilt_turn_transom' | 'double_transom' | 'special'
+  | 'door' | 'door_double' | 'door_side' | 'lift_slide' | 'psk'
 export type ExtraGroup = 'glass' | 'color' | 'handle' | 'sill' | 'shading' | 'other'
 export type ServiceGroup = 'installation' | 'removal' | 'finishing' | 'transport'
 export type OptionGroup = ExtraGroup | ServiceGroup
@@ -38,8 +39,13 @@ export interface WindowOption {
 }
 
 export const TEMPLATES: WindowTemplate[] = [
-  'fixed', 'tilt_turn', 'tilt', 'double', 'double_mullion', 'triple', 'fixed_tilt_turn', 'door', 'door_double', 'lift_slide',
+  'fixed', 'tilt_turn', 'tilt', 'double', 'double_mullion', 'triple', 'fixed_tilt_turn', 'tilt_turn_transom', 'double_transom', 'special',
+  'door', 'door_double', 'door_side', 'lift_slide', 'psk',
 ]
+/** Shapes without a computed price: the customer only sends sizes, the supplier prices it by hand. */
+export const isOnRequest = (t: WindowTemplate) => t === 'special'
+/** Balcony / terrace doors (shown as their own group in the price list). */
+export const isDoor = (t: WindowTemplate) => t.startsWith('door') || t === 'lift_slide' || t === 'psk'
 export const MATERIALS: WindowMaterial[] = ['pvc', 'alu', 'wood', 'wood_alu']
 /** Extras change the window itself (priced into the window line). */
 export const OPTION_GROUPS: ExtraGroup[] = ['glass', 'color', 'handle', 'sill', 'shading', 'other']
@@ -53,11 +59,11 @@ export const SINGLE_CHOICE_GROUPS: OptionGroup[] = ['glass', 'color', 'handle']
 
 /** Templates with a single opening sash where the customer chooses the hinge side. */
 export function hasHingeChoice(t: WindowTemplate) {
-  return t === 'tilt_turn' || t === 'fixed_tilt_turn' || t === 'door' || t === 'lift_slide'
+  return t === 'tilt_turn' || t === 'fixed_tilt_turn' || t === 'tilt_turn_transom' || t === 'door' || t === 'door_side' || t === 'lift_slide' || t === 'psk'
 }
 
 // ─── Sash layout per template (used by the drawing) ─────────
-export type SashKind = 'fixed' | 'turn' | 'tilt' | 'tilt_turn' | 'slide'
+export type SashKind = 'fixed' | 'turn' | 'tilt' | 'tilt_turn' | 'slide' | 'slide_tilt'
 export interface Sash { kind: SashKind; hinge?: Hinge; weight: number; mullionAfter?: boolean; door?: boolean }
 
 export function sashesFor(t: WindowTemplate, hinge: Hinge = 'left'): Sash[] {
@@ -81,7 +87,21 @@ export function sashesFor(t: WindowTemplate, hinge: Hinge = 'left'): Sash[] {
     case 'lift_slide':      return hinge === 'left'
       ? [{ kind: 'slide', hinge: other, weight: 1, door: true, mullionAfter: true }, { kind: 'fixed', weight: 1, door: true }]
       : [{ kind: 'fixed', weight: 1, door: true, mullionAfter: true }, { kind: 'slide', hinge: other, weight: 1, door: true }]
+    case 'psk':             return hinge === 'left'
+      ? [{ kind: 'slide_tilt', hinge: other, weight: 1, door: true, mullionAfter: true }, { kind: 'fixed', weight: 1, door: true }]
+      : [{ kind: 'fixed', weight: 1, door: true, mullionAfter: true }, { kind: 'slide_tilt', hinge: other, weight: 1, door: true }]
+    case 'door_side':       return hinge === 'left'
+      ? [{ kind: 'tilt_turn', hinge: 'left', weight: 1, door: true, mullionAfter: true }, { kind: 'fixed', weight: 0.6, door: true }]
+      : [{ kind: 'fixed', weight: 0.6, door: true, mullionAfter: true }, { kind: 'tilt_turn', hinge: 'right', weight: 1, door: true }]
+    case 'tilt_turn_transom': return [{ kind: 'tilt_turn', hinge, weight: 1 }]
+    case 'double_transom':  return [{ kind: 'turn', hinge: 'left', weight: 1 }, { kind: 'tilt_turn', hinge: 'right', weight: 1 }]
+    case 'special':         return [{ kind: 'fixed', weight: 1 }]
   }
+}
+
+/** Fixed top light (nadsvetloba) above the main sashes, or null. */
+export function transomFor(t: WindowTemplate): Sash[] | null {
+  return t === 'tilt_turn_transom' || t === 'double_transom' ? [{ kind: 'fixed', weight: 1 }] : null
 }
 
 // ─── Pricing ────────────────────────────────────────────────
@@ -180,7 +200,7 @@ export const STARTER = {
   // relative price factor per m² vs. the system base
   types: [
     { name: 'Fiksno okno', template: 'fixed' as const, factor: 0.7, max_width: 3000, max_height: 2600 },
-    { name: 'Enokrilno okno (O/K)', template: 'tilt_turn' as const, factor: 1, max_width: 1300, max_height: 1800 },
+    { name: 'Enokrilno okno, odpiranje in kip', template: 'tilt_turn' as const, factor: 1, max_width: 1300, max_height: 1800 },
     { name: 'Kip okno', template: 'tilt' as const, factor: 0.9, max_width: 1300, max_height: 900 },
     { name: 'Dvokrilno okno brez stebrička', template: 'double' as const, factor: 1.1, max_width: 2200, max_height: 1800 },
     { name: 'Dvokrilno okno s stebričkom', template: 'double_mullion' as const, factor: 1.15, max_width: 2400, max_height: 1800 },
@@ -219,9 +239,10 @@ export const STARTER = {
 export const WL = {
   sl: {
     templates: {
-      fixed: 'Fiksno', tilt_turn: 'Enokrilno (O/K)', tilt: 'Kip', double: 'Dvokrilno brez stebrička',
-      double_mullion: 'Dvokrilno s stebričkom', triple: 'Trokrilno', fixed_tilt_turn: 'Fiksno + O/K krilo',
-      door: 'Balkonska vrata', door_double: 'Dvokrilna balkonska vrata', lift_slide: 'Dvižno-drsna vrata',
+      fixed: 'Fiksno', tilt_turn: 'Enokrilno, odpiranje in kip', tilt: 'Kip', double: 'Dvokrilno brez stebrička',
+      double_mullion: 'Dvokrilno s stebričkom', triple: 'Trokrilno', fixed_tilt_turn: 'Fiksno + krilo na odpiranje in kip',
+      tilt_turn_transom: 'Enokrilno z nadsvetlobo', double_transom: 'Dvokrilno z nadsvetlobo', special: 'Posebna oblika (ločno, poševno, okroglo)',
+      door: 'Balkonska vrata', door_double: 'Dvokrilna balkonska vrata', door_side: 'Balkonska vrata s fiksnim delom ob strani', lift_slide: 'Dvižno-drsna vrata', psk: 'PSK vrata (vzporedno drsno-kip)',
     } as Record<WindowTemplate, string>,
     materials: { pvc: 'PVC', alu: 'ALU', wood: 'Les', wood_alu: 'Les-ALU' } as Record<WindowMaterial, string>,
     groups: { glass: 'Steklo', color: 'Barva', handle: 'Kljuka', sill: 'Police', shading: 'Senčila', other: 'Dodatno', installation: 'Montaža', removal: 'Demontaža', finishing: 'Zaključna dela', transport: 'Prevoz in odvoz' } as Record<OptionGroup, string>,
@@ -233,6 +254,8 @@ export const WL = {
     templates: {
       fixed: 'Fixed', tilt_turn: 'Single sash (tilt & turn)', tilt: 'Tilt', double: 'Double sash, no mullion',
       double_mullion: 'Double sash with mullion', triple: 'Triple sash', fixed_tilt_turn: 'Fixed + tilt & turn',
+      tilt_turn_transom: 'Single sash with transom', double_transom: 'Double sash with transom', special: 'Special shape (arched, sloped, round)',
+      door_side: 'Balcony door with fixed side light', psk: 'Parallel slide-tilt door (PSK)',
       door: 'Balcony door', door_double: 'Double balcony door', lift_slide: 'Lift & slide door',
     } as Record<WindowTemplate, string>,
     materials: { pvc: 'PVC', alu: 'Aluminium', wood: 'Wood', wood_alu: 'Wood-aluminium' } as Record<WindowMaterial, string>,
