@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { Tags, Plus, Trash2, Check, Settings2, Upload } from 'lucide-react'
+import { Tags, Plus, Trash2, Check, Settings2, Upload, TrendingUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -39,7 +39,7 @@ const TXT = {
     s1: 'Katere oblike oken ponujate?', s1hint: 'Izberite oblike oken, ki jih ponujate. Pri obliki okna z osnovno ceno vnesite doplačilo 0 %. Pri ostalih dražjih ali cenejših izvedbah lahko dodate doplačilo v % na ceno materiala glede na okno, ki ste ga izbrali za osnovo.',
     surcharge: 'Doplačilo', s2: 'Iz katerih materialov?', s2hint: 'Izberite materiale in pod vsakim dodajte profile, ki jih ponujate. Za vsak profil vpišite ceno okna na m². Najnižja cena okna velja za majhna okna, kjer bi bil izračun po m² prenizek.',
     matName: 'Naziv profila', matNamePh: 'npr. PVC 82 mm, 7 komor', perM2: 'Cena na m²', minPrice: 'Najnižja cena okna',
-    description: 'Opis za stranko', descriptionPh: 'npr. Uw do 0,75 W/m²K, primerno za pasivne hiše', addProfile: 'Dodaj profil', photo: 'Naloži sliko', photoChange: 'Zamenjaj sliko', photoRemove: 'Odstrani sliko', photoHint: 'Prerez ali fotografija profila. Brez slike se prikaže risba.',
+    description: 'Opis za stranko', descriptionPh: 'npr. Uw do 0,75 W/m²K, primerno za pasivne hiše', addProfile: 'Dodaj profil', isBase: 'Osnovni profil', moreThan: (base: string) => `glede na ${base}`, photo: 'Naloži sliko', photoChange: 'Zamenjaj sliko', photoRemove: 'Odstrani sliko', photoHint: 'Prerez ali fotografija profila. Brez slike se prikaže risba.',
     add: 'Dodaj', name: 'Naziv', price: 'Cena', dflt: 'Privzeto', quick: 'Hitro dodaj:', remove: 'Odstrani',
     save: 'Shrani cenik', saved: 'Cenik je shranjen', unsaved: 'Spremembe niso shranjene',
     example: 'Primer', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
@@ -52,7 +52,7 @@ const TXT = {
     s1: 'Which window shapes do you offer?', s1hint: 'Select the window shapes you offer. Enter a 0 % surcharge for the shape with the base price. For more or less expensive shapes you can add a surcharge in % on the material price, relative to your base window.',
     surcharge: 'Surcharge', s2: 'Which materials?', s2hint: 'Select the materials and add the profiles you offer under each one. Enter the window price per m² for every profile. The minimum price applies to small windows.',
     matName: 'Profile name', matNamePh: 'e.g. PVC 82 mm, 7 chambers', perM2: 'Price per m²', minPrice: 'Minimum window price',
-    description: 'Description for customers', descriptionPh: 'e.g. Uw up to 0.75 W/m²K, passive-house ready', addProfile: 'Add profile', photo: 'Upload picture', photoChange: 'Replace picture', photoRemove: 'Remove picture', photoHint: 'Cross-section or photo of the profile. Without one a drawing is shown.',
+    description: 'Description for customers', descriptionPh: 'e.g. Uw up to 0.75 W/m²K, passive-house ready', addProfile: 'Add profile', isBase: 'Base profile', moreThan: (base: string) => `vs ${base}`, photo: 'Upload picture', photoChange: 'Replace picture', photoRemove: 'Remove picture', photoHint: 'Cross-section or photo of the profile. Without one a drawing is shown.',
     add: 'Add', name: 'Name', price: 'Price', dflt: 'Default', quick: 'Quick add:', remove: 'Remove',
     save: 'Save price list', saved: 'Price list saved', unsaved: 'Unsaved changes',
     example: 'Example', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
@@ -178,14 +178,31 @@ export default function PriceListSetupPage() {
     const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type })
     setUploadingKey(null)
     if (error) { toast.error(error.message); return }
-    const old = storagePath(p.image_url)
-    if (old) await supabase.storage.from('logos').remove([old])
-    setProfile(p.key, { image_url: supabase.storage.from('logos').getPublicUrl(path).data.publicUrl })
+    const url = supabase.storage.from('logos').getPublicUrl(path).data.publicUrl
+    await setPhoto(p, url)
   }
-  async function removePhoto(p: ProfileRow) {
-    const old = storagePath(p.image_url)
-    if (old) await supabase.storage.from('logos').remove([old])
-    setProfile(p.key, { image_url: null })
+  async function removePhoto(p: ProfileRow) { await setPhoto(p, null) }
+  // The picture is stored right away (like the logo), independent of "Shrani cenik"
+  async function setPhoto(p: ProfileRow, url: string | null) {
+    if (p.id) {
+      const { error } = await supabase.from('window_systems' as any).update({ image_url: url, updated_at: new Date().toISOString() }).eq('id', p.id)
+      if (error) { toast.error(error.message); return }
+    }
+    setProfiles(xs => xs.map(x => x.key === p.key ? { ...x, image_url: url } : x))
+    if (p.image_url) await deleteIfUnused(p.image_url, p.key)
+  }
+  // Quotes keep a frozen copy of the picture URL, so the old file stays while any quote still uses it
+  async function deleteIfUnused(url: string, exceptKey: string) {
+    const path = storagePath(url)
+    if (!path || !company || profiles.some(x => x.key !== exceptKey && x.image_url === url)) return
+    try {
+      const [l, q] = await Promise.all([
+        supabase.from('quote_lines').select('id').eq('company_id', company.id).contains('config', { image_url: url }).limit(1),
+        supabase.from('quotes').select('id').eq('company_id', company.id).contains('snapshot', { lines: [{ config: { image_url: url } }] }).limit(1),
+      ])
+      if (l.error || q.error || (l.data ?? []).length || (q.data ?? []).length) return
+      await supabase.storage.from('logos').remove([path])
+    } catch { /* when unsure, keep the file */ }
   }
   const setOption = (key: string, patch: Partial<OptionRow>) => { setOptions(xs => xs.map(x => x.key === key ? { ...x, ...patch } : x)); touch() }
   function addOption(sec: Section, preset?: Preset) {
@@ -374,6 +391,22 @@ export default function PriceListSetupPage() {
                             <input value={p.description} placeholder={T.descriptionPh} onChange={e => setProfile(p.key, { description: e.target.value })} disabled={!canEdit}
                               className="rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                           </div>
+                          {(() => {
+                            const priced = list.filter(x => (x.price ?? 0) > 0)
+                            if (priced.length < 2 || !p.price) return null
+                            const cheapest = priced.reduce((a, x) => (x.price! < a.price! ? x : a))
+                            const pct = Math.round((p.price / cheapest.price! - 1) * 100)
+                            const isBase = p.key === cheapest.key || pct === 0
+                            return <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
+                              {isBase
+                                ? <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium" style={{ color: '#007d53', backgroundColor: '#e0fced', border: '1px solid #cbf7e1' }}>
+                                    <Check className="w-3 h-3" strokeWidth={2.5} />{T.isBase}
+                                  </span>
+                                : <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium" style={{ color: '#52525b', backgroundColor: '#f4f4f5', border: '1px solid #e4e4e7' }}>
+                                    <TrendingUp className="w-3 h-3" /><span className="font-semibold text-gray-900">+{pct} %</span>{T.moreThan(cheapest.name || L.materials[m])}
+                                  </span>}
+                            </div>
+                          })()}
                         </div>
                       </div>
                     ))}
@@ -468,7 +501,7 @@ export default function PriceListSetupPage() {
 
       {/* sticky save bar */}
       {canEdit && dirty && <div className="fixed bottom-0 right-0 left-0 lg:left-72 z-30 bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-end gap-3">
-        <span className="text-sm text-gray-500">{T.unsaved}</span>
+        <span className="text-sm font-medium text-[#7f7f7f]">{T.unsaved}</span>
         <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>
       </div>}
     </div>

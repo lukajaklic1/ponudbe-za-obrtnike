@@ -193,6 +193,8 @@ export interface OfferSnapshot {
   total_gross: number
 }
 export interface OfferSnapshotLine {
+  /** frozen window configuration (shape, size, profile, picture, colour, extras) at the time of the quote */
+  config?: Record<string, unknown> | null
   room: string | null
   name: string
   description: string | null

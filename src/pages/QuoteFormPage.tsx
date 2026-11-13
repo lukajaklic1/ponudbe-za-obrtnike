@@ -31,6 +31,8 @@ interface LineRow {
   unit_price: number | null
   discount_pct: number | null
   vat_rate: number
+  /** frozen configurator data; kept as-is when the line is saved again */
+  config: Record<string, unknown> | null
 }
 
 let keyc = 0
@@ -190,7 +192,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   // reload when switching between editor and review of the same quote (same component instance)
   useEffect(() => { if (company) { setTab('overview'); init() } }, [company, id, readOnly])
 
-  const blankLine = (roomName = '', vat = 22): LineRow => ({ key: nk(), room: roomName, price_item_id: null, name: '', description: '', unit: 'pcs', quantity: null, unit_price: null, discount_pct: 0, vat_rate: vat })
+  const blankLine = (roomName = '', vat = 22): LineRow => ({ key: nk(), config: null, room: roomName, price_item_id: null, name: '', description: '', unit: 'pcs', quantity: null, unit_price: null, discount_pct: 0, vat_rate: vat })
 
   async function init() {
     if (!company) return
@@ -227,7 +229,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       }
       const { data: ls } = await supabase.from('quote_lines').select('*').eq('quote_id', id).order('position')
       const loaded = ((ls as QuoteLine[]) ?? []).map(l => ({
-        key: nk(), room: l.room ?? '', price_item_id: l.price_item_id, name: l.name, description: l.description ?? '',
+        key: nk(), config: (l.config as Record<string, unknown> | null) ?? null, room: l.room ?? '', price_item_id: l.price_item_id, name: l.name, description: l.description ?? '',
         unit: l.unit, quantity: Number(l.quantity), unit_price: Number(l.unit_price), discount_pct: Number(l.discount_pct), vat_rate: Number(l.vat_rate),
       }))
       setLines(loaded.length || readOnly ? loaded : [blankLine()])
@@ -282,7 +284,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   function addRoom() {
     const name = room.name.trim() || `${o.room} ${rooms.filter(r => r).length + 1}`
     const vat = currentVat()
-    const fromItem = (p: PriceItem, qty: number): LineRow => ({ key: nk(), room: name, price_item_id: p.id, name: p.name, description: p.description ?? '', unit: p.unit, quantity: qty, unit_price: Number(p.price), discount_pct: 0, vat_rate: vat })
+    const fromItem = (p: PriceItem, qty: number): LineRow => ({ key: nk(), config: null, room: name, price_item_id: p.id, name: p.name, description: p.description ?? '', unit: p.unit, quantity: qty, unit_price: Number(p.price), discount_pct: 0, vat_rate: vat })
     const rows: LineRow[] = []
     const w = priceItems.find(p => p.id === room.wallItem)
     const c = priceItems.find(p => p.id === room.ceilingItem)
@@ -377,7 +379,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       quote_id: quoteId!, company_id: company.id, position: i + 1, room: l.room.trim() || null,
       price_item_id: l.price_item_id, name: l.name.trim() || `#${i + 1}`, description: l.description.trim() || null,
       unit: l.unit, quantity: l.quantity ?? 0, unit_price: l.unit_price ?? 0, discount_pct: l.discount_pct ?? 0, vat_rate: l.vat_rate,
-      total_net: lineTotal(num(l)),
+      total_net: lineTotal(num(l)), config: l.config,
     }))
     if (rows.length) {
       const { error } = await supabase.from('quote_lines').insert(rows)
@@ -410,7 +412,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       quote_number: res.number, title: '', valid_until: validUntil || null, lead_time: leadTime || null, payment_terms: paymentTerms || null, parity: parity || null,
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
       notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0,
-    } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l) })))
+    } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l), config: l.config })))
     // Izdano and Poslano are one step now: issuing an offer marks it as sent
     const newStatus = 'sent' as const
     const now = new Date().toISOString()

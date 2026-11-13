@@ -41,7 +41,7 @@ const TXT = {
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
-    noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.',
+    basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
     contact: 'Vaši podatki', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov objekta', note: 'Opomba',
     consent: 'Strinjam se, da ponudnik moje podatke uporabi za pripravo ponudbe.',
@@ -56,7 +56,7 @@ const TXT = {
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
-    noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.',
+    basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
     contact: 'Your details', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Site address', note: 'Note',
     consent: 'I agree that the supplier uses my data to prepare a quote.',
@@ -271,7 +271,15 @@ export default function ConfiguratorPage() {
 
               <Section n={2} title={T.step2} accent={accent}>
                 <div className="grid sm:grid-cols-2 gap-2">
-                  {allowedSystems.map(s => <button key={s.id} onClick={() => update({ system_id: s.id })}
+                  {(() => {
+                    // price of the same window in every profile; the cheapest is the base
+                    const bases = Object.fromEntries(allowedSystems.map(s => [s.id, basePrice(data.prices.find(x => x.system_id === s.id && x.type_id === type.id), it.width ?? 0, it.height ?? 0)]))
+                    const known = Object.values(bases).filter((v): v is number => v != null)
+                    const min = known.length > 1 ? Math.min(...known) : null
+                    return allowedSystems.map(s => {
+                    const b = bases[s.id]
+                    const diff = show && min != null && b != null ? Math.round(b - min) : null
+                    return <button key={s.id} onClick={() => update({ system_id: s.id })}
                     className={cn('rounded-lg border p-3 text-left bg-white', it.system_id === s.id ? 'ring-2' : 'border-gray-200 hover:border-gray-400')}
                     style={it.system_id === s.id ? { borderColor: accent, ['--tw-ring-color' as string]: accent } : undefined}>
                     <div className="flex items-start gap-3">
@@ -281,9 +289,14 @@ export default function ConfiguratorPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{L.materials[s.material]}</span><span className="text-sm font-medium text-gray-900">{s.name}</span></div>
                         {s.description && <div className="text-xs text-gray-500 mt-1">{s.description}</div>}
+                        {diff != null && <div className="inline-flex items-center mt-2 rounded-md px-2 py-0.5 text-xs font-semibold"
+                          style={diff > 0 ? { color: '#3f3f46', backgroundColor: '#f4f4f5', border: '1px solid #e4e4e7' } : { color: '#007d53', backgroundColor: '#e0fced', border: '1px solid #cbf7e1' }}>
+                          {diff > 0 ? `+ ${money(diff, cur)}` : T.basePrice}
+                        </div>}
                       </div>
                     </div>
-                  </button>)}
+                  </button>})
+                  })()}
                 </div>
               </Section>
 
