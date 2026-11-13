@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer'
 import type { OfferSnapshot, OfferSnapshotLine } from '../types/database'
 import FontRegular from '../assets/Arial.ttf?url'
 import FontBold from '../assets/Arial-Bold.ttf?url'
@@ -109,7 +109,7 @@ const UNIT = {
 const L = {
   sl: {
     title: 'PONUDBA', date: 'Datum', customer: 'Naročnik', site: 'Lokacija del', contractor: 'Izvajalec',
-    vatId: 'ID za DDV', regNo: 'Matična št.', registry: 'Registrski organ', shareCapital: 'Osnovni kapital', unpaid: 'nevplačani', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
+    vatId: 'ID za DDV', taxNo: 'Davčna št.', regNo: 'Matična št.', registry: 'Registrski organ', shareCapital: 'Osnovni kapital', unpaid: 'nevplačani', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
     pos: 'Poz.', item: 'Opis del', qty: 'Kol.', unit: 'EM', price: 'Cena/EM', disc: 'Pop.', vat: 'DDV', total: 'Vrednost',
     general: 'Splošno', subtotal: 'Skupaj postavke', discount: 'Popust', net: 'Skupaj brez DDV', vatLine: (r: string) => `DDV ${r}`,
     gross: 'ZA PLAČILO', notes: 'Opombe', terms: 'Pogoji',
@@ -117,7 +117,7 @@ const L = {
   },
   en: {
     title: 'QUOTATION', date: 'Date', customer: 'Client', site: 'Job site', contractor: 'Contractor',
-    vatId: 'VAT ID', regNo: 'Reg. no.', registry: 'Registry', shareCapital: 'Share capital', unpaid: 'unpaid', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
+    vatId: 'VAT ID', taxNo: 'Tax no.', regNo: 'Reg. no.', registry: 'Registry', shareCapital: 'Share capital', unpaid: 'unpaid', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
     pos: 'Pos.', item: 'Description of work', qty: 'Qty', unit: 'Unit', price: 'Unit price', disc: 'Disc.', vat: 'VAT', total: 'Amount',
     general: 'General', subtotal: 'Items total', discount: 'Discount', net: 'Total excl. VAT', vatLine: (r: string) => `VAT ${r}`,
     gross: 'TOTAL DUE', notes: 'Notes', terms: 'Terms',
@@ -141,10 +141,11 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
   }
   const showGroups = groups.length > 1 || !!groups[0]?.room
 
-  const bankLine = [company.bank_iban && `IBAN: ${company.bank_iban}`, company.bank_name].filter(Boolean).join(' · ')
+  const taxLabel = company.vat_payer === false ? T.taxNo : T.vatId
+  const bankLine = [company.bank_iban && `IBAN: ${company.bank_iban}`, company.bank_bic && `BIC: ${company.bank_bic}`, company.bank_name].filter(Boolean).join(' · ')
   // Legally required company details (ZGD-1): firma, sedež, matična št.; d.o.o./d.d. also registry + share capital
   const footerLeft = [company.name, company.address].filter(Boolean).join(' · ')
-  const idLine = [company.registration_number && `${T.regNo}: ${company.registration_number}`, company.tax_id && `${T.vatId}: ${company.tax_id}`].filter(Boolean).join(' · ')
+  const idLine = [company.registration_number && `${T.regNo}: ${company.registration_number}`, company.tax_id && `${taxLabel}: ${company.tax_id}`].filter(Boolean).join(' · ')
   const isCapitalCompany = company.legal_form === 'doo' || company.legal_form === 'dd'
   const legalLine = isCapitalCompany ? [
     company.registry_authority && `${T.registry}: ${company.registry_authority}`,
@@ -158,17 +159,19 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
       <Page size="A4" style={s.page}>
         <View style={s.headerRow}>
           <View style={s.companyBlock}>
+            {company.logo_url && !/\.svg(\?|$)/i.test(company.logo_url) ? <Image src={company.logo_url} style={{ maxWidth: 140, maxHeight: 44, objectFit: 'contain', marginBottom: 8 }} /> : null}
             <Text style={s.companyName}>{company.name}</Text>
             {company.address && <Text style={s.companyDetail}>{company.address}</Text>}
             {company.phone && <Text style={s.companyDetail}>{company.phone}</Text>}
             {company.email && <Text style={s.companyDetail}>{company.email}</Text>}
-            {company.tax_id && <Text style={s.companyDetail}>{T.vatId}: {company.tax_id}</Text>}
+            {company.website && <Text style={s.companyDetail}>{company.website}</Text>}
+            {company.tax_id && <Text style={s.companyDetail}>{taxLabel}: {company.tax_id}</Text>}
           </View>
           <View style={s.titleBlock}>
             <Text style={s.titleLabel}>{T.title}</Text>
             <Text style={s.titleNumber}>{offer.number}</Text>
             {offer.title ? <Text style={[s.titleDate, { color: c.text, marginBottom: 2, maxWidth: 220, textAlign: 'right' }]}>{offer.title}</Text> : null}
-            <Text style={s.titleDate}>{T.date}: {fmtDate(offer.issued_at)}</Text>
+            <Text style={s.titleDate}>{company.place_of_issue ? `${company.place_of_issue}, ${fmtDate(offer.issued_at)}` : `${T.date}: ${fmtDate(offer.issued_at)}`}</Text>
           </View>
         </View>
 
@@ -255,6 +258,7 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
             <Text style={s.grandLabel}>{T.gross}</Text>
             <Text style={s.grandValue}>{eur(snap.total_gross)}</Text>
           </View>
+          {company.vat_exempt_note ? <Text style={[s.totLabel, { marginTop: 6, textAlign: 'right' }]}>{company.vat_exempt_note}</Text> : null}
         </View>
 
         {offer.notes && (

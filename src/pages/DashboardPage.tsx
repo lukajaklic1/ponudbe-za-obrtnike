@@ -442,7 +442,7 @@ export default function DashboardPage() {
                       { key: 'win_rate' as SortKey, label: sl ? 'Uspešnost' : 'Win rate', align: 'right' },
                     ].map(col => (
                       <th key={col.key}
-                        className={`px-6 py-3 text-xs font-medium text-gray-500 cursor-pointer select-none text-${col.align}`}
+                        className={`px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap cursor-pointer select-none hover:text-gray-700 text-${col.align}`}
                         onClick={() => handleSort(col.key)}>
                         <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : ''}`}>
                           {col.label}
@@ -452,7 +452,7 @@ export default function DashboardPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-200">
                   {paginatedCustomers.length === 0 && (
                     <tr><td colSpan={6}>
                       <div className="flex flex-col items-center justify-center h-48 text-center">
@@ -462,13 +462,13 @@ export default function DashboardPage() {
                     </td></tr>
                   )}
                   {paginatedCustomers.map(c => (
-                    <tr key={c.customer_id} className="hover:bg-[#fbfbfb]">
-                      <td className="px-6 py-3 font-medium text-gray-900">{c.customer_name}</td>
-                      <td className="px-6 py-3 text-right text-gray-600">{money(c.sent_value)}</td>
-                      <td className="px-6 py-3 text-right text-gray-600">{money(c.realized_value)}</td>
-                      <td className="px-6 py-3 text-center text-gray-600">{c.sent_count}</td>
-                      <td className="px-6 py-3 text-center text-gray-600">{c.realized_count}</td>
-                      <td className="px-6 py-3 text-right text-gray-600">{c.win_rate.toFixed(1)} %</td>
+                    <tr key={c.customer_id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{c.customer_name}</td>
+                      <td className="px-4 py-3 text-right text-gray-600 whitespace-nowrap">{money(c.sent_value)}</td>
+                      <td className="px-4 py-3 text-right text-gray-600 whitespace-nowrap">{money(c.realized_value)}</td>
+                      <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">{c.sent_count}</td>
+                      <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">{c.realized_count}</td>
+                      <td className="px-4 py-3 text-right text-gray-600 whitespace-nowrap">{c.win_rate.toFixed(1)} %</td>
                     </tr>
                   ))}
                 </tbody>

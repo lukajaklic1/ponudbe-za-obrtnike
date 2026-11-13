@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Power, PowerOff, Search, Building2, CalendarDays, Users } from 'lucide-react'
+import { Power, PowerOff, Search, Building2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/ui/Toast'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
@@ -102,10 +102,10 @@ export default function SuperAdminCompaniesPage() {
               <table className="w-full text-sm font-[450] min-w-[640px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Podjetje</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Registrirano</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Uporabniki</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Registrirano</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Uporabniki</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Status</th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
@@ -118,15 +118,11 @@ export default function SuperAdminCompaniesPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-200 text-xs text-gray-900 whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}>
-                          <CalendarDays className="w-3 h-3 text-gray-500 shrink-0" />{fmt(c.created_at)}
+                        <span className="text-gray-600 whitespace-nowrap">{fmt(c.created_at)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-gray-600">
-                          <Users className="w-3.5 h-3.5 text-gray-400" />
-                          {pluralUsers(c.user_count ?? 0)}
-                        </div>
+                        <span className="text-gray-600 whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-0.5 rounded-md text-xs font-medium"

@@ -200,7 +200,7 @@ export default function UsersPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {([['name', t.common.name], ['', t.common.email], ['role', s.role], ['status', t.common.status], ['', '']] as [string, string][]).map(([key, h], i) => (
-                  <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                  <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                     onClick={() => key && handleSort(key as typeof sortKey)}>
                     <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                   </th>
@@ -218,7 +218,7 @@ export default function UsersPage() {
                         <span className="font-medium text-gray-900">{u.first_name} {u.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={u.is_admin ? { backgroundColor: '#e5eeff', border: '1px solid #d6e5ff', color: '#215bcf' } : { backgroundColor: '#f5f5f5', border: '1px solid #eeeff1', color: '#5e5e5e' }}>
                         {u.is_admin ? s.admin : s.member}
@@ -237,7 +237,7 @@ export default function UsersPage() {
                     </td>
                   </tr>
                 ) : invite ? (
-                  <tr key={invite.id} className="hover:bg-gray-50 transition-colors bg-amber-50/30">
+                  <tr key={invite.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#fff3cc', border: '1px solid #ffe5a0' }}>
@@ -246,7 +246,7 @@ export default function UsersPage() {
                         <span className="text-gray-500">{invite.first_name} {invite.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{invite.email}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{invite.email}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${invite.is_admin ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
                         {invite.is_admin ? s.admin : s.member}

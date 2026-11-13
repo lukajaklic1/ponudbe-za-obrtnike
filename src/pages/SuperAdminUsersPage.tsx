@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Power, PowerOff, Search, Users, CalendarDays, X, Check } from 'lucide-react'
+import { Power, PowerOff, Search, Users, X, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/ui/Toast'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
@@ -118,12 +118,12 @@ export default function SuperAdminUsersPage() {
               <table className="w-full text-sm font-[450] min-w-[760px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Uporabnik</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">E-pošta</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Podjetje</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Vloga</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Registriran</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Uporabnik</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">E-pošta</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Vloga</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Registriran</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Status</th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
@@ -133,7 +133,7 @@ export default function SuperAdminUsersPage() {
                       <td className="px-4 py-3">
                         <PersonBadge name={`${u.first_name} ${u.last_name}`} />
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className="text-gray-700 truncate max-w-[160px]">{u.company_name}</span>
@@ -149,8 +149,7 @@ export default function SuperAdminUsersPage() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-200 text-xs text-gray-900 whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}>
-                          <CalendarDays className="w-3 h-3 text-gray-500 shrink-0" />{fmt(u.created_at)}
+                        <span className="text-gray-600 whitespace-nowrap">{fmt(u.created_at)}
                         </span>
                       </td>
                       <td className="px-4 py-3">

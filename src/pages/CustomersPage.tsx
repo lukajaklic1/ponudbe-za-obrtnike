@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Plus, Users, Search, CalendarDays, MoreVertical, Upload } from 'lucide-react'
+import { Plus, Users, Search, MoreVertical, Upload } from 'lucide-react'
 import CustomerImportModal from '../components/CustomerImportModal'
 import { SortIcon } from '../components/ui/SortIcon'
 import { format } from 'date-fns'
@@ -191,7 +191,7 @@ export default function CustomersPage() {
           <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[820px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['name', o.customer], ['type', o.customerType], ['', t.common.email], ['', t.common.phone], ['city', o.city], ['quotes', s.quotesCount], ['status', t.common.status], ['', s.updatedAt], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                 </th>
@@ -206,22 +206,21 @@ export default function CustomersPage() {
                       <div className="flex items-center gap-2">
                         <div className="min-w-0">
                           <div className="font-medium text-gray-900">{c.name}</div>
-                          {company && c.contact_person && <div className="text-xs text-gray-400">{c.contact_person}</div>}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{company ? o.typeCompany : o.typePerson}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.email ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.email ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.phone ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.address_city ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{counts[c.id] ?? 0}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.address_city ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{counts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' } : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }}>
                         {(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-200 text-xs text-gray-900 whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}><CalendarDays className="w-3 h-3 text-gray-500 shrink-0" />{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
+                      <span className="text-gray-600 whitespace-nowrap">{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
                     </td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex justify-end">

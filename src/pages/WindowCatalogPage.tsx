@@ -185,7 +185,7 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
   return <div className={cn('bg-white border border-gray-200 rounded-lg', className)}>{children}</div>
 }
 function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <th className={cn('px-3 py-2 text-left text-xs font-medium text-gray-500', className)}>{children}</th>
+  return <th className={cn('px-4 py-3 text-left text-xs font-medium text-gray-500 whitespace-nowrap', className)}>{children}</th>
 }
 function ActiveDot({ on, T }: { on: boolean; T: TT }) {
   return <span className={cn('inline-flex items-center gap-1.5 text-xs', on ? 'text-green-700' : 'text-gray-400')}>
@@ -233,13 +233,13 @@ function SystemsTab({ T, L, rows, canEdit, companyId, onChange }: { T: TT; L: LL
     <div className="flex justify-end mb-3">{canEdit && <Button size="sm" className="gap-1.5" onClick={() => setEditing({ material: 'pvc', is_active: true })}><Plus className="w-4 h-4" />{T.add}</Button>}</div>
     <Card>
       <table className="w-full text-sm font-[450]">
-        <thead className="border-b border-gray-200"><tr><Th>{T.name}</Th><Th>{T.material}</Th><Th>{T.description}</Th><Th>{T.active}</Th><Th /></tr></thead>
-        <tbody>{rows.map(r => <tr key={r.id} className="border-b border-gray-100 last:border-0">
-          <td className="px-3 py-2.5 font-medium text-gray-900">{r.name}</td>
-          <td className="px-3 py-2.5 text-gray-600">{L.materials[r.material]}</td>
-          <td className="px-3 py-2.5 text-gray-500">{r.description || T.none}</td>
-          <td className="px-3 py-2.5"><ActiveDot on={r.is_active !== false} T={T} /></td>
-          <td className="px-3 py-2.5">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
+        <thead className="bg-gray-50 border-b border-gray-200"><tr><Th>{T.name}</Th><Th>{T.material}</Th><Th>{T.description}</Th><Th>{T.active}</Th><Th /></tr></thead>
+        <tbody>{rows.map(r => <tr key={r.id} className="border-b border-gray-200 last:border-0 hover:bg-gray-50">
+          <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{r.name}</td>
+          <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{L.materials[r.material]}</td>
+          <td className="px-4 py-3 text-gray-500 max-w-[320px] truncate">{r.description || T.none}</td>
+          <td className="px-4 py-3"><ActiveDot on={r.is_active !== false} T={T} /></td>
+          <td className="px-4 py-3">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
         </tr>)}</tbody>
       </table>
     </Card>
@@ -496,13 +496,13 @@ function OptionsTab({ T, L, rows, groups, pricings, hint, canEdit, companyId, cu
     </div>
     <div className="space-y-4">
       {groups.filter(g => rows.some(r => r.group_key === g)).map(g => <Card key={g}>
-        <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">{L.groups[g]}</div>
+        <div className="px-4 py-3 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-200">{L.groups[g]}</div>
         <table className="w-full text-sm font-[450]"><tbody>
-          {rows.filter(r => r.group_key === g).map(r => <tr key={r.id} className="border-b border-gray-100 last:border-0">
-            <td className="px-3 py-2.5 text-gray-900">{r.name}{r.is_default && <span className="ml-2 text-xs text-blue-600">{T.dflt}</span>}</td>
-            <td className="px-3 py-2.5 text-gray-600 text-right whitespace-nowrap">{fmt(r)}</td>
-            <td className="px-3 py-2.5 w-28"><ActiveDot on={r.is_active !== false} T={T} /></td>
-            <td className="px-3 py-2.5 w-20">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
+          {rows.filter(r => r.group_key === g).map(r => <tr key={r.id} className="border-b border-gray-200 last:border-0 hover:bg-gray-50">
+            <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{r.name}{r.is_default && <span className="ml-2 text-xs text-blue-600">{T.dflt}</span>}</td>
+            <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-right whitespace-nowrap">{fmt(r)}</td>
+            <td className="px-4 py-3 w-28"><ActiveDot on={r.is_active !== false} T={T} /></td>
+            <td className="px-4 py-3 w-20">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
           </tr>)}
         </tbody></table>
       </Card>)}
