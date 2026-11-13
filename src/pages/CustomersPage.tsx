@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Plus, Users, Search,  MoreVertical, Upload } from 'lucide-react'
+import { Plus, Users, Search, CalendarDays, MoreVertical, Upload } from 'lucide-react'
 import CustomerImportModal from '../components/CustomerImportModal'
 import { SortIcon } from '../components/ui/SortIcon'
 import { format } from 'date-fns'
@@ -15,7 +15,6 @@ import Checkbox from '../components/ui/Checkbox'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { Badge } from '../components/ui/Badge'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import type { Customer } from '../types/database'
 
@@ -160,17 +159,17 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <PageHeader variant="spacious" title={s.customers} icon={Users} tabs={[{ label: lang === 'sl' ? 'Vse stranke' : 'All customers', count: rows.length, active: true }]} action={canEdit && <div className="flex gap-2">
+      <PageHeader title={s.customers} icon={Users} count={rows.length} action={canEdit && <div className="flex gap-2">
         <Button variant="secondary" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />{o.importServices}</Button>
         <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{s.newCustomer}</Button>
       </div>} />
-      <div className="px-8 pt-6 pb-10">
+      <div className="p-4">
 
-      <div className="flex flex-wrap items-center gap-2 mb-5">
-        <div className="relative">
-          <Search className="w-4 h-4 text-[#8a8f80] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="relative max-w-xs w-full">
+          <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={t.common.search}
-            className="h-10 w-80 pl-9 pr-3 rounded-lg border border-[#d4d7c9] bg-white text-sm text-[#4a5361] placeholder-[#8a8f80] focus:outline-none focus:ring-2 focus:ring-gray-300" />
+            className="w-full pl-9 pr-3 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <FilterSelect label={o.customerType} value={typeFilter} allLabel={t.common.all}
           options={[{ value: 'person', label: o.typePerson }, { value: 'company', label: o.typeCompany }]}
@@ -180,7 +179,7 @@ export default function CustomersPage() {
           onChange={v => { setStatusFilter((v || 'all') as typeof statusFilter); setPage(1) }} />
       </div>
 
-      <div className="rounded-xl border border-[#e4e6dd] bg-white overflow-hidden">
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
         ) : filtered.length === 0 ? (
@@ -189,16 +188,16 @@ export default function CustomersPage() {
             <p className="text-sm text-gray-400">{s.noCustomers}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[820px]">
-            <thead className="bg-[#fbfbf9] border-b border-[#eceee6]"><tr>
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[820px]">
+            <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['name', o.customer], ['type', o.customerType], ['', t.common.email], ['', t.common.phone], ['city', o.city], ['quotes', s.quotesCount], ['status', t.common.status], ['', s.updatedAt], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap ${key ? 'cursor-pointer select-none' : ''}`}
+                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
-                  <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon variant="chevron" active={sortKey === key} dir={sortDir} />}</span>
+                  <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                 </th>
               ))}
             </tr></thead>
-            <tbody className="divide-y divide-[#e4e6dd]">
+            <tbody className="divide-y divide-gray-200">
               {paginated.map(c => {
                 const company = typeOf(c) === 'company'
                 return (
@@ -206,20 +205,23 @@ export default function CustomersPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="min-w-0">
-                          <div className="font-medium text-[#101112] whitespace-nowrap">{c.name}</div>
+                          <div className="font-medium text-gray-900">{c.name}</div>
+                          {company && c.contact_person && <div className="text-xs text-gray-400">{c.contact_person}</div>}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{company ? o.typeCompany : o.typePerson}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.email ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{c.email ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.phone ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.address_city ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{c.address_city ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600">{counts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">
-                      <Badge tone={(c.status ?? 'active') === 'active' ? 'green' : 'neutral'}>{(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}</Badge>
+                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' } : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }}>
+                        {(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="whitespace-nowrap">{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-200 text-xs text-gray-900 whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}><CalendarDays className="w-3 h-3 text-gray-500 shrink-0" />{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
                     </td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex justify-end">
@@ -264,7 +266,7 @@ export default function CustomersPage() {
             <Input id="c-postal" label={t.common.postalCode} {...field('address_postal_code')} />
             <Input id="c-city" label={o.city} {...field('address_city')} />
             <div className="sm:col-span-2 flex flex-col gap-1">
-              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#6b7064' }}>{o.customerNotes}</label>
+              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>

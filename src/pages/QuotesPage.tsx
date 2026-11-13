@@ -15,7 +15,6 @@ import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateFilter } from '../components/ui/DateFilter'
 import { PersonBadge } from '../components/ui/PersonBadge'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
-import { BADGE_CLASS, BADGE_TONES } from '../components/ui/Badge'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
 
@@ -144,14 +143,14 @@ export default function QuotesPage() {
 
   return (
     <div>
-      <PageHeader variant="spacious" title={s.quotes} icon={FileText} tabs={[{ label: sl ? 'Vse ponudbe' : 'All quotes', count: rows.length, active: true }]} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
-      <div className="px-8 pt-6 pb-10">
+      <PageHeader title={s.quotes} icon={FileText} count={rows.length} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
+      <div className="p-4">
 
-      <div className="flex flex-wrap items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#8a8f80] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={sl ? 'Išči po številki, stranki, e-pošti, telefonu …' : 'Search number, customer, email, phone …'}
-            className="h-10 pl-9 pr-3 rounded-lg border border-[#d4d7c9] bg-white text-sm text-[#4a5361] placeholder-[#8a8f80] focus:outline-none focus:ring-2 focus:ring-gray-300 w-80" />
+            className="pl-9 pr-3 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
         </div>
         <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
@@ -164,10 +163,10 @@ export default function QuotesPage() {
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno od' : 'Created from'} value={dateFrom} allLabel={sl ? 'Vse' : 'Any'} max={dateTo || undefined} onChange={v => { setDateFrom(v); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno do' : 'Created to'} value={dateTo} allLabel={sl ? 'Vse' : 'Any'} min={dateFrom || undefined} onChange={v => { setDateTo(v); setPage(1) }} />
-        <div className="ml-auto inline-flex h-10 items-center rounded-lg border border-[#d4d7c9] bg-gray-50 p-1">
+        <div className="ml-auto inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`p-1.5 rounded-md transition-colors ${view === v ? 'bg-white text-[#4a5361] shadow-sm' : 'text-[#8a8f80] hover:text-[#4a5361]'}`}>
+              className={`p-1 rounded-md transition-colors ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}>
               <Icon className="w-4 h-4" />
             </button>
           ))}
@@ -185,37 +184,37 @@ export default function QuotesPage() {
           }}
           onOpen={openQuote} onMove={requestMove} />
       ) : (<>
-      <div className="rounded-xl border border-[#e4e6dd] bg-white overflow-hidden">
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <FileText className="w-10 h-10 text-gray-200 mb-3" />
-            <p className="text-sm text-[#4a5361]">{s.noQuotes}</p>
+            <p className="text-sm text-gray-600">{s.noQuotes}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[920px]">
-            <thead className="bg-[#fbfbf9] border-b border-[#eceee6]"><tr>
+          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[920px]">
+            <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['', t.common.phone], ['', t.od.siteAddress], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap ${key ? 'cursor-pointer select-none' : ''}`}
+                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
-                  <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon variant="chevron" active={sortKey === key} dir={sortDir} />}</span>
+                  <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                 </th>
               ))}
             </tr></thead>
-            <tbody className="divide-y divide-[#e4e6dd]">
+            <tbody className="divide-y divide-gray-200">
               {paged.map(q => (
                 <tr key={q.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="font-medium text-[#101112] whitespace-nowrap">{q.quote_number}</span>
+                    <span className="font-medium text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
-                  <td className="px-4 py-3 text-[#4a5361] whitespace-nowrap">{q.customers?.name ?? '—'}</td>
-                  <td className="px-4 py-3 text-[#4a5361] whitespace-nowrap">{q.contact_email || q.customers?.email || '—'}</td>
-                  <td className="px-4 py-3 text-[#4a5361] whitespace-nowrap">{q.contact_phone || q.customers?.phone || '—'}</td>
-                  <td className="px-4 py-3 text-[#4a5361] max-w-[220px] truncate">{q.site_address || '—'}</td>
+                  <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{q.customers?.name ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{q.contact_email || q.customers?.email || '—'}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{q.contact_phone || q.customers?.phone || '—'}</td>
+                  <td className="px-4 py-3 text-gray-600 max-w-[220px] truncate">{q.site_address || '—'}</td>
                   <td className="px-4 py-3"><QuoteStatusBadge status={q.status} label={s.status[q.status]} /></td>
-                  <td className="px-4 py-3 text-[#4a5361] whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
-                  <td className="px-4 py-3 text-[#4a5361] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <AssigneeCell
                       quoteId={q.id}
@@ -229,7 +228,7 @@ export default function QuotesPage() {
                   </td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <div className="flex justify-end">
-                      <button onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-[#4a5361] hover:bg-gray-100 rounded-lg">
+                      <button onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
@@ -285,7 +284,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
   const label = assignee ? `${assignee.first_name} ${assignee.last_name}` : null
 
   if (!canEdit) {
-    return label ? <PersonBadge pill name={label} /> : <span className="text-[#4a5361]">—</span>
+    return label ? <PersonBadge name={label} /> : <span className="text-gray-400">—</span>
   }
 
   return (
@@ -293,14 +292,17 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
       <button
         onClick={() => setOpen(o => !o)}
         disabled={saving}
-        className={`${BADGE_CLASS} hover:brightness-[0.97] transition`} style={{ backgroundColor: BADGE_TONES.neutral.bg, borderColor: BADGE_TONES.neutral.border, color: BADGE_TONES.neutral.color }}>
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}>
         {saving
           ? <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           : label
-            ? <span>{label}</span>
-            : <span>{noAssigneeLabel}</span>
+            ? <>
+                <span className="flex items-center justify-center rounded-full text-white font-bold shrink-0" style={{ backgroundColor: '#00d17e', width: 16, height: 16, fontSize: 9 }}>{label[0].toUpperCase()}</span>
+                <span>{label}</span>
+              </>
+            : <span className="text-gray-400">{noAssigneeLabel}</span>
         }
-        <ChevronDown className="w-3 h-3 shrink-0 text-[#8a8f80]" />
+        <ChevronDown className="w-3 h-3 shrink-0 text-gray-400 ml-0.5" />
       </button>
       {open && (
         <div className="absolute z-30 mt-1 right-0 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
@@ -321,4 +323,3 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
     </div>
   )
 }
-

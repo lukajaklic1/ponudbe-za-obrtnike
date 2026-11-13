@@ -50,44 +50,44 @@ export default function Pagination({ total, page, pageSize, onChange, onPageSize
   }
 
   return (
-    <div className="flex items-center justify-between pt-4 pb-1">
+    <div className="flex items-center justify-between pt-3">
       <div className="flex items-center gap-4">
         {onPageSizeChange && (
-          <label className="flex items-center gap-2 text-sm font-[450] text-[#4a5361]">
+          <label className="flex items-center gap-2 text-xs font-medium text-gray-500">
             {lang === 'sl' ? 'Vrstic na stran' : 'Rows per page'}
             <span className="relative">
               <select value={pageSize} onChange={e => { onPageSizeChange(Number(e.target.value)); onChange(1) }}
-                className="appearance-none h-8 pl-2.5 pr-7 rounded-md border border-[#d4d7c9] bg-white text-sm font-[450] text-[#4a5361] hover:bg-[#f7f8f4] focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer">
+                className="appearance-none h-7 pl-2 pr-6 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer">
                 {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-[#8a8f80] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </span>
           </label>
         )}
-        <p className="text-sm font-[450] text-[#4a5361]">
-          {t.common.showing} <span>{from}–{to}</span> {t.common.of} <span>{total}</span>
+        <p className="text-xs font-medium text-gray-500">
+          {t.common.showing} <span className="text-gray-900">{from}–{to}</span> {t.common.of} <span className="text-gray-900">{total}</span>
         </p>
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         <button
           onClick={() => { onChange(page - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
           disabled={page === 1}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-[#8a8f80] hover:text-[#4a5361] hover:bg-[#f7f8f4] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
 
         {getPages().map((p, i) => p === '...'
-          ? <span key={`ellipsis-${i}`} className="w-8 text-center text-sm font-[450] text-[#4a5361]">…</span>
+          ? <span key={`ellipsis-${i}`} className="w-8 text-center text-xs text-gray-400">…</span>
           : (
             <button
               key={p}
               onClick={() => { onChange(p as number); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
               className={cn(
-                'w-8 h-8 rounded-md text-sm font-[450] transition-colors',
+                'w-8 h-8 rounded-lg text-xs font-medium transition-colors',
                 p === page
-                  ? 'bg-[#101112] text-white'
-                  : 'text-[#4a5361] hover:bg-[#f7f8f4]',
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-[#f6f6f6]',
               )}
             >
               {p}
@@ -98,7 +98,7 @@ export default function Pagination({ total, page, pageSize, onChange, onPageSize
         <button
           onClick={() => { onChange(page + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
           disabled={page === totalPages}
-          className="w-8 h-8 flex items-center justify-center rounded-md text-[#8a8f80] hover:text-[#4a5361] hover:bg-[#f7f8f4] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

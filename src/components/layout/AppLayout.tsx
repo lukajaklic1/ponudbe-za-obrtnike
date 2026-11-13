@@ -61,7 +61,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <header className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shrink-0">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-lg text-gray-500 hover:bg-[#eeefe8] transition-colors"
+              className="p-2 rounded-lg text-gray-500 hover:bg-[#f6f6f6] transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>

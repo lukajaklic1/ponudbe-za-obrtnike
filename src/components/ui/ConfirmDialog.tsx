@@ -52,7 +52,7 @@ export default function ConfirmDialog({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-[#6b7064] bg-white border border-gray-200 rounded-lg hover:bg-[#eeefe8] transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-[#7f7f7f] bg-white border border-gray-200 rounded-lg hover:bg-[#f6f6f6] transition-colors disabled:opacity-50"
           >
             {cancelLabel ?? t.common.cancel}
           </button>
@@ -61,11 +61,11 @@ export default function ConfirmDialog({
             disabled={loading}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
             style={{
-              backgroundColor: danger ? '#ff5454' : '#101112',
+              backgroundColor: danger ? '#ff5454' : '#2563eb',
               border: danger ? '1px solid #f04f4f' : 'none',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#27272a' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#101112' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#1d4ed8' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#2563eb' }}
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

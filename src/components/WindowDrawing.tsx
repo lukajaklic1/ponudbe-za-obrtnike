@@ -17,7 +17,7 @@ interface Props {
  * Opening symbols: the triangle's apex points to the hinge side
  * (turn → apex on the side, tilt → apex at the bottom).
  */
-export default function WindowDrawing({ template, width, height, hinge = 'left', size = 240, showDims = false, frameColor = '#f7f8f4', className }: Props) {
+export default function WindowDrawing({ template, width, height, hinge = 'left', size = 240, showDims = false, frameColor = '#f8fafc', className }: Props) {
   const w = Math.max(200, width || 0)
   const h = Math.max(200, height || 0)
   const scale = size / Math.max(w, h)
@@ -39,7 +39,7 @@ export default function WindowDrawing({ template, width, height, hinge = 'left',
     const sw = innerW * s.weight / totalWeight
     const el = <SashShape key={i} sash={s} x={x} y={innerY} w={sw} h={innerH} sashFrame={sashFrame} frameColor={frameColor} />
     const mullion = s.mullionAfter
-      ? <rect key={`m${i}`} x={x + sw - frame / 2} y={innerY} width={frame} height={innerH} fill={frameColor} stroke="#3f4338" strokeWidth={1} />
+      ? <rect key={`m${i}`} x={x + sw - frame / 2} y={innerY} width={frame} height={innerH} fill={frameColor} stroke="#334155" strokeWidth={1} />
       : null
     x += sw
     return [el, mullion]
@@ -54,18 +54,18 @@ export default function WindowDrawing({ template, width, height, hinge = 'left',
       role="img"
       aria-label={`${width} × ${height} mm`}
     >
-      <rect x={pad} y={pad} width={W} height={H} rx={1.5} fill={frameColor} stroke="#3f4338" strokeWidth={1.25} />
-      <rect x={innerX} y={innerY} width={innerW} height={innerH} fill="#dbeafe" stroke="#3f4338" strokeWidth={1} />
+      <rect x={pad} y={pad} width={W} height={H} rx={1.5} fill={frameColor} stroke="#334155" strokeWidth={1.25} />
+      <rect x={innerX} y={innerY} width={innerW} height={innerH} fill="#dbeafe" stroke="#334155" strokeWidth={1} />
       {parts}
       {showDims && (
-        <g fontSize={11} fill="#6b7064" fontFamily="'Geist Variable', system-ui, sans-serif">
-          <line x1={pad} y1={pad - 12} x2={pad + W} y2={pad - 12} stroke="#a4a993" strokeWidth={1} />
-          <line x1={pad} y1={pad - 16} x2={pad} y2={pad - 8} stroke="#a4a993" />
-          <line x1={pad + W} y1={pad - 16} x2={pad + W} y2={pad - 8} stroke="#a4a993" />
+        <g fontSize={11} fill="#64748b" fontFamily="Inter, system-ui, sans-serif">
+          <line x1={pad} y1={pad - 12} x2={pad + W} y2={pad - 12} stroke="#94a3b8" strokeWidth={1} />
+          <line x1={pad} y1={pad - 16} x2={pad} y2={pad - 8} stroke="#94a3b8" />
+          <line x1={pad + W} y1={pad - 16} x2={pad + W} y2={pad - 8} stroke="#94a3b8" />
           <text x={pad + W / 2} y={pad - 16} textAnchor="middle">{width || '—'}</text>
-          <line x1={pad - 12} y1={pad} x2={pad - 12} y2={pad + H} stroke="#a4a993" strokeWidth={1} />
-          <line x1={pad - 16} y1={pad} x2={pad - 8} y2={pad} stroke="#a4a993" />
-          <line x1={pad - 16} y1={pad + H} x2={pad - 8} y2={pad + H} stroke="#a4a993" />
+          <line x1={pad - 12} y1={pad} x2={pad - 12} y2={pad + H} stroke="#94a3b8" strokeWidth={1} />
+          <line x1={pad - 16} y1={pad} x2={pad - 8} y2={pad} stroke="#94a3b8" />
+          <line x1={pad - 16} y1={pad + H} x2={pad - 8} y2={pad + H} stroke="#94a3b8" />
           <text x={pad - 16} y={pad + H / 2} textAnchor="middle" transform={`rotate(-90 ${pad - 16} ${pad + H / 2})`}>{height || '—'}</text>
         </g>
       )}
@@ -77,7 +77,7 @@ function SashShape({ sash, x, y, w, h, sashFrame, frameColor }: { sash: Sash; x:
   const inset = 2
   const sx = x + inset, sy = y + inset, sw = w - inset * 2, sh = h - inset * 2
   const gx = sx + sashFrame, gy = sy + sashFrame, gw = sw - sashFrame * 2, gh = sh - sashFrame * 2
-  const line = { stroke: '#52574a', strokeWidth: 0.9, strokeDasharray: '4 3', fill: 'none' }
+  const line = { stroke: '#475569', strokeWidth: 0.9, strokeDasharray: '4 3', fill: 'none' }
   const symbols: React.ReactNode[] = []
 
   const turn = sash.kind === 'turn' || sash.kind === 'tilt_turn'
@@ -96,7 +96,7 @@ function SashShape({ sash, x, y, w, h, sashFrame, frameColor }: { sash: Sash; x:
     const dir = sash.hinge === 'right' ? 1 : -1
     const cy = gy + gh / 2
     const x1 = gx + gw / 2 - (dir * gw) / 4, x2 = gx + gw / 2 + (dir * gw) / 4
-    symbols.push(<g key="s" stroke="#52574a" strokeWidth={1.2} fill="none">
+    symbols.push(<g key="s" stroke="#475569" strokeWidth={1.2} fill="none">
       <line x1={x1} y1={cy} x2={x2} y2={cy} />
       <polyline points={`${x2 - dir * 7},${cy - 5} ${x2},${cy} ${x2 - dir * 7},${cy + 5}`} />
     </g>)
@@ -107,25 +107,25 @@ function SashShape({ sash, x, y, w, h, sashFrame, frameColor }: { sash: Sash; x:
   if (sash.kind !== 'fixed') {
     const hw = Math.max(3, sashFrame * 0.55), hh = Math.max(12, Math.min(26, sh * 0.12))
     if (sash.kind === 'tilt') {
-      handle = <rect x={sx + sw / 2 - hh / 2} y={sy + sashFrame / 2 - hw / 2} width={hh} height={hw} rx={1.5} fill="#3f4338" />
+      handle = <rect x={sx + sw / 2 - hh / 2} y={sy + sashFrame / 2 - hw / 2} width={hh} height={hw} rx={1.5} fill="#334155" />
     } else if (sash.kind !== 'turn') {
       const hx = sash.hinge === 'right' ? sx + sashFrame / 2 - hw / 2 : sx + sw - sashFrame / 2 - hw / 2
-      handle = <rect x={hx} y={sy + sh * (sash.door ? 0.48 : 0.5) - hh / 2} width={hw} height={hh} rx={1.5} fill="#3f4338" />
+      handle = <rect x={hx} y={sy + sh * (sash.door ? 0.48 : 0.5) - hh / 2} width={hw} height={hh} rx={1.5} fill="#334155" />
     }
   }
 
   if (sash.kind === 'fixed') {
     // glazing directly in the frame: thin glazing bead only
     return <g>
-      <rect x={x + 1} y={y + 1} width={w - 2} height={h - 2} fill="#dbeafe" stroke="#6b7064" strokeWidth={0.6} />
+      <rect x={x + 1} y={y + 1} width={w - 2} height={h - 2} fill="#dbeafe" stroke="#64748b" strokeWidth={0.6} />
       <path d={`M ${x + w * 0.25} ${y + h * 0.3} l ${w * 0.12} ${-h * 0.08}`} stroke="#ffffff" strokeWidth={2} opacity={0.8} />
     </g>
   }
 
   return (
     <g>
-      <rect x={sx} y={sy} width={sw} height={sh} fill={frameColor} stroke="#3f4338" strokeWidth={1} />
-      <rect x={gx} y={gy} width={gw} height={gh} fill="#dbeafe" stroke="#3f4338" strokeWidth={0.8} />
+      <rect x={sx} y={sy} width={sw} height={sh} fill={frameColor} stroke="#334155" strokeWidth={1} />
+      <rect x={gx} y={gy} width={gw} height={gh} fill="#dbeafe" stroke="#334155" strokeWidth={0.8} />
       <path d={`M ${gx + gw * 0.2} ${gy + gh * 0.28} l ${gw * 0.14} ${-gh * 0.08}`} stroke="#ffffff" strokeWidth={2} opacity={0.8} />
       {symbols}
       {handle}

@@ -50,8 +50,6 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [trends, setTrends] = useState<TrendData[]>([])
-  // won = dark olive, the rest of the sent quotes = light green stacked on top (reference chart style)
-  const stacked = trends.map(t => ({ ...t, open_value: Math.max(0, t.sent_value - t.realized_value), open_count: Math.max(0, t.sent_count - t.realized_count) }))
   const [customers, setCustomers] = useState<CustomerStat[]>([])
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<1 | 3 | 6 | 12>(3)
@@ -185,10 +183,10 @@ export default function DashboardPage() {
 
   const st = statusStats
   const kpis = [
-    { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#f0f1eb]',   iconColor: 'text-[#4a5361]' },
-    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-[#fefbe6]',   iconColor: 'text-[#9a5b0a]' },
-    { key: 'won',    label: sl ? 'Dobljene' : 'Won',             icon: Trophy,       bg: 'bg-[#eefdf3]',   iconColor: 'text-[#077a3a]' },
-    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#f1f2ec]',   iconColor: 'text-[#3f4338]' },
+    { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#e5eeff]',   iconColor: 'text-[#215bcf]' },
+    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-blue-50',     iconColor: 'text-blue-500' },
+    { key: 'won',    label: sl ? 'Dobljene' : 'Won',             icon: Trophy,       bg: 'bg-[#e0fced]',   iconColor: 'text-[#007d53]' },
+    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#feeee1]',   iconColor: 'text-[#9e3f00]' },
   ] as const
 
   const periods = [
@@ -216,10 +214,14 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader variant="spacious" title={t.nav.dashboard} icon={LayoutDashboard} />
+      <PageHeader title={t.nav.dashboard} icon={LayoutDashboard} />
 
-      {/* Filter bar */}
-      <div className="px-8 pt-6 flex flex-wrap items-center gap-3">
+      {/* Subtitle + filter bar */}
+      <div className="px-4 py-3 border-b border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-baseline gap-3">
+          <p className="text-lg font-semibold text-gray-900">{sl ? 'Analitika' : 'Analytics'}</p>
+          <span className="text-sm text-gray-500">{sl ? 'Pregled in analiza vaših ponudb' : 'Overview and analysis of your quotes'}</span>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
 
           {/* Period dropdown */}
@@ -263,13 +265,13 @@ export default function DashboardPage() {
             )}
             {showDropdown && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-56 overflow-y-auto min-w-[200px]">
-                <div className="px-3 py-2 text-sm text-gray-600 hover:bg-[#f7f8f4] cursor-pointer"
+                <div className="px-3 py-2 text-sm text-gray-600 hover:bg-[#fbfbfb] cursor-pointer"
                   onClick={() => { setFilterCustomerId(null); setSearchText(''); setShowDropdown(false); setCurrentPage(1) }}>
                   {sl ? 'Vse stranke' : 'All customers'}
                 </div>
                 {customers.filter(c => c.customer_name.toLowerCase().includes(searchText.toLowerCase())).map(c => (
                   <div key={c.customer_id}
-                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#f7f8f4] ${filterCustomerId === c.customer_id ? 'text-blue-600 font-medium' : 'text-gray-700'}`}
+                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fbfbfb] ${filterCustomerId === c.customer_id ? 'text-blue-600 font-medium' : 'text-gray-700'}`}
                     onClick={() => { setFilterCustomerId(c.customer_id); setSearchText(c.customer_name); setShowDropdown(false); setCurrentPage(1) }}>
                     {c.customer_name}
                   </div>
@@ -281,17 +283,21 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="px-8 pt-6 pb-10 space-y-6">
+      <div className="p-4 space-y-6">
 
         {/* KPI cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {kpis.map(k => (
-            <div key={k.key} className="bg-white rounded-xl border border-[#e4e6dd] px-5 py-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-[#4a5361] underline decoration-dotted decoration-[#a4a993] underline-offset-4">{k.label}</p>
-                <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-2 rounded-full bg-[#e9ebe2] text-xs font-medium text-[#4a5361]" title={countQuotes(lang, st?.[k.key].count ?? 0)}>{st?.[k.key].count ?? 0}</span>
+            <div key={k.key} className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${k.bg}`}>
+                  <k.icon className={`w-4 h-4 ${k.iconColor}`} />
+                </div>
+                {/* count as a quiet chip, same style as the page-header counters */}
+                <span className="text-[13px] font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }} title={countQuotes(lang, st?.[k.key].count ?? 0)}>{st?.[k.key].count ?? 0}</span>
               </div>
-              <p className="text-2xl font-semibold text-[#101112]">{money(st?.[k.key].value ?? 0)}</p>
+              <p className="text-xs font-medium text-label">{k.label}</p>
+              <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight">{money(st?.[k.key].value ?? 0)}</p>
             </div>
           ))}
         </div>
@@ -301,33 +307,33 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
             {/* Values chart */}
-            <div className="bg-white rounded-xl border border-[#e4e6dd] p-6 overflow-hidden">
-              <h2 className="-mx-6 -mt-6 mb-5 px-6 py-4 bg-[#f7f8f4] border-b border-[#e4e6dd] text-base font-semibold text-[#101112]">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-sm font-medium text-gray-900 mb-5">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={stacked} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
-                  <CartesianGrid stroke="#eceee6" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#6b7064' }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#6b7064' }} axisLine={false} tickLine={false} width={60} />
-                  <Tooltip cursor={{ fill: '#f7f8f4' }} formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #e4e6dd', fontSize: 13 }} />
-                  <Legend iconType="square" iconSize={10} wrapperStyle={{ fontSize: 12, color: '#4a5361', paddingTop: 8 }} />
-                  <Bar dataKey="realized_value" stackId="v" name={sl ? 'Dobljeno' : 'Won'} fill="#96ad71" />
-                  <Bar dataKey="open_value" stackId="v" name={sl ? 'Ostale poslane' : 'Other sent'} fill="#c7ffa6" />
+                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} width={60} />
+                  <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
+                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill="#bfdbfe" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill="#3b82f6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
 
             {/* Count chart */}
-            <div className="bg-white rounded-xl border border-[#e4e6dd] p-6 overflow-hidden">
-              <h2 className="-mx-6 -mt-6 mb-5 px-6 py-4 bg-[#f7f8f4] border-b border-[#e4e6dd] text-base font-semibold text-[#101112]">{sl ? 'Število ponudb' : 'Quote count'}</h2>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-sm font-medium text-gray-900 mb-5">{sl ? 'Število ponudb' : 'Quote count'}</h2>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={stacked} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
-                  <CartesianGrid stroke="#eceee6" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#6b7064' }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#6b7064' }} axisLine={false} tickLine={false} width={32} />
-                  <Tooltip cursor={{ fill: '#f7f8f4' }} contentStyle={{ borderRadius: 8, border: '1px solid #e4e6dd', fontSize: 13 }} />
-                  <Legend iconType="square" iconSize={10} wrapperStyle={{ fontSize: 12, color: '#4a5361', paddingTop: 8 }} />
-                  <Bar dataKey="realized_count" stackId="c" name={sl ? 'Dobljene' : 'Won'} fill="#96ad71" />
-                  <Bar dataKey="open_count" stackId="c" name={sl ? 'Ostale poslane' : 'Other sent'} fill="#c7ffa6" />
+                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} width={32} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
+                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill="#bbf7d0" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill="#00d17e" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -337,30 +343,30 @@ export default function DashboardPage() {
         {/* Status breakdown (donut) + top services */}
         {(() => {
           const slices = [
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#96ad71' },
-            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#c7ffa6' },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#dde6da' },
+            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#60a5fa' },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#00d17e' },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#fb923c' },
           ].map(x => ({ ...x, count: st?.[x.key as StatusKey].count ?? 0, value: st?.[x.key as StatusKey].value ?? 0 }))
           const total = st?.all.count ?? 0
           const servicesTotal = topServices.reduce((a, x) => a + x.value, 0)
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl border border-[#e4e6dd] p-6 overflow-hidden">
-                <h2 className="-mx-6 -mt-6 mb-5 px-6 py-4 bg-[#f7f8f4] border-b border-[#e4e6dd] text-base font-semibold text-[#101112]">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-sm font-medium text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
                 {total === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[220px] text-center">
                     <BarChart3 className="w-10 h-10 text-gray-200 mb-3" />
-                    <p className="text-sm text-gray-400">{sl ? 'Še ni izdanih ponudb.' : 'No issued quotes yet.'}</p>
+                    <p className="text-sm text-gray-400">{sl ? 'Še ni poslanih ponudb.' : 'No sent quotes yet.'}</p>
                   </div>
                 ) : (<>
                   <div className="flex items-center gap-6 h-[240px]">
                   <div className="relative w-[220px] h-[220px] shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={1} stroke="none">
+                        <Pie data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none">
                           {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                         </Pie>
-                        <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #e4e6dd', fontSize: 13 }} />
+                        <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -373,7 +379,7 @@ export default function DashboardPage() {
                       <div key={x.key} className="flex items-center gap-2 text-xs">
                         <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: x.color }} />
                         <span className="text-gray-600 flex-1">{x.name}</span>
-                        <span className="text-gray-900 font-medium">{x.count}</span>
+                        <span className="text-gray-900 font-medium tabular-nums">{x.count}</span>
                       </div>
                     ))}
                   </div>
@@ -381,9 +387,9 @@ export default function DashboardPage() {
                 </>)}
               </div>
 
-              <div className="bg-white rounded-xl border border-[#e4e6dd] p-6 lg:col-span-2 overflow-hidden">
-                <div className="-mx-6 -mt-6 mb-5 px-6 py-2.5 bg-[#f7f8f4] border-b border-[#e4e6dd] flex items-center justify-between gap-3">
-                  <h2 className="text-base font-semibold text-[#101112]">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
+                <div className="flex items-center justify-between gap-3 mb-5 -mt-1">
+                  <h2 className="text-sm font-medium text-gray-900">
                     {sl ? 'Storitve po vrednosti' : 'Services by value'}
                   </h2>
                   <FilterSelect label={sl ? 'Status ponudb' : 'Quote status'} value={serviceStatus === 'all' ? '' : serviceStatus} allLabel={sl ? 'Vse' : 'All'}
@@ -403,13 +409,13 @@ export default function DashboardPage() {
                   /* Same look as the other charts: dashed grid, grey axis labels, blue rounded bars, shared tooltip */
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }} barCategoryGap={8}>
-                      <CartesianGrid stroke="#eceee6" horizontal={false} />
-                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#6b7064' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#6b7064' }} axisLine={false} tickLine={false}
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0} %)`, sl ? 'Vrednost' : 'Value']}
-                        cursor={{ fill: '#eeefe8' }} contentStyle={{ borderRadius: 8, border: '1px solid #e4e6dd', fontSize: 13 }} />
-                      <Bar dataKey="value" fill="#96ad71" maxBarSize={22} />
+                        cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                      <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} maxBarSize={22} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -419,13 +425,13 @@ export default function DashboardPage() {
         })()}
 
         {/* Customer table */}
-          <div className="bg-white rounded-xl border border-[#e4e6dd] overflow-hidden">
-            <div className="px-6 py-4 bg-[#f7f8f4] border-b border-[#e4e6dd]">
-              <h2 className="text-base font-semibold text-[#101112]">{s.topCustomers}</h2>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-sm font-medium text-gray-900">{s.topCustomers}</h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm font-[450] min-w-[600px]">
-                <thead className="bg-[#fbfbf9] border-b border-[#eceee6]">
+              <table className="w-full text-sm min-w-[600px]">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     {[
                       { key: 'customer_name' as SortKey, label: sl ? 'Stranka' : 'Customer', align: 'left' },
@@ -436,17 +442,17 @@ export default function DashboardPage() {
                       { key: 'win_rate' as SortKey, label: sl ? 'Uspešnost' : 'Win rate', align: 'right' },
                     ].map(col => (
                       <th key={col.key}
-                        className={`px-6 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap cursor-pointer select-none text-${col.align}`}
+                        className={`px-6 py-3 text-xs font-medium text-gray-500 cursor-pointer select-none text-${col.align}`}
                         onClick={() => handleSort(col.key)}>
                         <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : ''}`}>
                           {col.label}
-                          <SortIcon variant="chevron" active={sortKey === col.key} dir={sortDir} />
+                          <SortIcon active={sortKey === col.key} dir={sortDir} />
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e4e6dd]">
+                <tbody className="divide-y divide-gray-100">
                   {paginatedCustomers.length === 0 && (
                     <tr><td colSpan={6}>
                       <div className="flex flex-col items-center justify-center h-48 text-center">
@@ -456,13 +462,13 @@ export default function DashboardPage() {
                     </td></tr>
                   )}
                   {paginatedCustomers.map(c => (
-                    <tr key={c.customer_id} className="hover:bg-[#f7f8f4]">
-                      <td className="px-6 py-4 font-medium text-[#101112] whitespace-nowrap">{c.customer_name}</td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">{money(c.sent_value)}</td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">{money(c.realized_value)}</td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap">{c.sent_count}</td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap">{c.realized_count}</td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">{c.win_rate.toFixed(1)} %</td>
+                    <tr key={c.customer_id} className="hover:bg-[#fbfbfb]">
+                      <td className="px-6 py-3 font-medium text-gray-900">{c.customer_name}</td>
+                      <td className="px-6 py-3 text-right text-gray-600">{money(c.sent_value)}</td>
+                      <td className="px-6 py-3 text-right text-gray-600">{money(c.realized_value)}</td>
+                      <td className="px-6 py-3 text-center text-gray-600">{c.sent_count}</td>
+                      <td className="px-6 py-3 text-center text-gray-600">{c.realized_count}</td>
+                      <td className="px-6 py-3 text-right text-gray-600">{c.win_rate.toFixed(1)} %</td>
                     </tr>
                   ))}
                 </tbody>
@@ -475,11 +481,11 @@ export default function DashboardPage() {
                 </span>
                 <div className="flex gap-2">
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                    className="px-3 py-1 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-[#eeefe8] disabled:opacity-40 disabled:cursor-not-allowed">
+                    className="px-3 py-1 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-[#f6f6f6] disabled:opacity-40 disabled:cursor-not-allowed">
                     {sl ? 'Prejšnja' : 'Previous'}
                   </button>
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-[#eeefe8] disabled:opacity-40 disabled:cursor-not-allowed">
+                    className="px-3 py-1 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-[#f6f6f6] disabled:opacity-40 disabled:cursor-not-allowed">
                     {sl ? 'Naslednja' : 'Next'}
                   </button>
                 </div>

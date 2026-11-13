@@ -104,7 +104,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
           <span className="text-xs text-gray-400">{T.columns}</span>
         </div>
 
-        <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition-colors">
+        <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition-colors">
           {fileName ? <FileText className="w-4 h-4 text-blue-600 shrink-0" /> : <UploadCloud className="w-4 h-4 text-gray-400 shrink-0" />}
           <span className={`text-sm ${fileName ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>{fileName || T.pick}</span>
           <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f); e.target.value = '' }} />
@@ -112,7 +112,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
 
         {rows && (rows.length === 0 ? <p className="text-sm text-gray-400">{T.empty}</p> : (
           <div>
-            <p className="text-xs font-medium text-[#6b7064] mb-2">{T.preview}</p>
+            <p className="text-xs font-medium text-[#7f7f7f] mb-2">{T.preview}</p>
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-sm">

@@ -9,7 +9,7 @@ export interface KanbanQuote extends Quote {
 
 // Column dot colours — same hues as the status badges, but solid
 const STATUS_DOT: Partial<Record<QuoteStatus, string>> = {
-  draft: '#8a9077', sent: '#e0a800', won: '#16a34a', lost: '#8a9077',
+  draft: '#f5b100', sent: '#3b82f6', won: '#10b981', lost: '#f97316',
 }
 
 // Status changes allowed by dragging a card. Issuing a draft needs the editor (it locks the PDF content).
@@ -59,7 +59,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             <div className="flex items-center gap-2 px-3.5 pt-3.5 pb-2.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STATUS_DOT[st] }} />
               <span className="text-sm font-medium text-gray-900">{statusLabels[st]}</span>
-              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#eeefe8', color: '#4a5361' }}>{cards.length}</span>
+              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }}>{cards.length}</span>
             </div>
 
             {/* Cards */}
@@ -77,8 +77,8 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       ${movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragging?.id === q.id ? 'opacity-40' : ''}`}>
                     {/* Title */}
                     <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#eeefe8', border: '1px solid #dde0d1' }}>
-                        <FileText className="w-3 h-3" style={{ color: '#4a5361' }} />
+                      <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff' }}>
+                        <FileText className="w-3 h-3" style={{ color: '#215bcf' }} />
                       </div>
                       <span className="text-sm font-medium text-gray-900 line-clamp-2">{q.customers?.name ?? '—'}</span>
                     </div>
@@ -104,7 +104,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       {(() => {
                         const d = waitingDays(q)
                         if (d == null) return null
-                        const color = d >= 14 ? '#9e3f00' : d >= 7 ? '#874d00' : '#6b7064'
+                        const color = d >= 14 ? '#9e3f00' : d >= 7 ? '#874d00' : '#6b7280'
                         return <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap" style={{ color }} title={labels.inStatus}><Clock className="w-3.5 h-3.5" />{d} d</span>
                       })()}
                     </div>

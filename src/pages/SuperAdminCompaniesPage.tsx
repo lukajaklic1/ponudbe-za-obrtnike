@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Power, PowerOff, Search, Building2 } from 'lucide-react'
+import { Power, PowerOff, Search, Building2, CalendarDays, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/ui/Toast'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { Badge } from '../components/ui/Badge'
 import { FilterSelect } from '../components/ui/FilterSelect'
 
 interface Company {
@@ -72,15 +71,15 @@ export default function SuperAdminCompaniesPage() {
 
   return (
     <div>
-      <PageHeader variant="spacious" title="Podjetja" icon={Building2} tabs={[{ label: 'Vsa podjetja', count: companies.length, active: true }]} />
-      <div className="px-8 pt-6 pb-10">
+      <PageHeader title="Podjetja" icon={Building2} count={companies.length} />
+      <div className="p-4">
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2 mb-5">
-          <div className="relative">
-            <Search className="w-4 h-4 text-[#8a8f80] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className="relative max-w-xs w-full">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder="Iskanje"
-              className="h-10 w-80 pl-9 pr-3 rounded-lg border border-[#d4d7c9] bg-white text-sm text-[#4a5361] placeholder-[#8a8f80] focus:outline-none focus:ring-2 focus:ring-gray-300" />
+              className="w-full pl-9 pr-3 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <FilterSelect label="Status" value={statusFilter} allLabel="Vsi"
             options={[{ value: 'active', label: 'Aktivna' }, { value: 'inactive', label: 'Deaktivirana' }]}
@@ -88,7 +87,7 @@ export default function SuperAdminCompaniesPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-[#e4e6dd] bg-white overflow-hidden">
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
@@ -100,33 +99,42 @@ export default function SuperAdminCompaniesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm font-[450] min-w-[640px]">
-                <thead className="bg-[#fbfbf9] border-b border-[#eceee6]">
+              <table className="w-full text-sm min-w-[640px]">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Podjetje</th>
-                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Registrirano</th>
-                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Uporabniki</th>
-                    <th className="text-left px-4 py-4 text-sm font-medium text-[#4a5361] whitespace-nowrap">Status</th>
-                    <th className="px-4 py-4 w-12" />
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Podjetje</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Registrirano</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Uporabniki</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Status</th>
+                    <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e4e6dd]">
+                <tbody className="divide-y divide-gray-200">
                   {paged.map(c => (
                     <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-[#101112] whitespace-nowrap">{c.name}</span>
+                          <span className="font-medium text-gray-900">{c.name}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="whitespace-nowrap">{fmt(c.created_at)}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-gray-200 text-xs text-gray-900 whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}>
+                          <CalendarDays className="w-3 h-3 text-gray-500 shrink-0" />{fmt(c.created_at)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
+                        <div className="flex items-center gap-1.5 text-gray-600">
+                          <Users className="w-3.5 h-3.5 text-gray-400" />
+                          {pluralUsers(c.user_count ?? 0)}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge tone={c.is_active ? 'green' : 'neutral'}>{c.is_active ? 'Aktivno' : 'Deaktivirano'}</Badge>
+                        <span className="px-2 py-0.5 rounded-md text-xs font-medium"
+                          style={c.is_active
+                            ? { backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' }
+                            : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }}>
+                          {c.is_active ? 'Aktivno' : 'Deaktivirano'}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => toggle(c)} disabled={toggling === c.id}

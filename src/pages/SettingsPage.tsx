@@ -70,15 +70,15 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <PageHeader variant="spacious" title={t.nav.settings} icon={Settings} />
-      <div className="px-8 pt-6 pb-10 max-w-3xl">
+      <PageHeader title={t.nav.settings} icon={Settings} />
+      <div className="p-4 lg:p-6 max-w-3xl mx-auto">
       <div className="flex flex-col gap-6"><fieldset disabled={!isAdmin} className="contents">
         {/* Company profile */}
         <Section icon={Building2} title={s.companyProfile}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2"><Input id="name" label={s.companyName} {...field('name')} /></div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-[#6b7064]">{o.legalForm}</label>
+              <label className="text-xs font-medium text-[#7f7f7f]">{o.legalForm}</label>
               <select value={form.legal_form ?? ''} onChange={e => setForm(f => ({ ...f, legal_form: (e.target.value || null) as Company['legal_form'] }))}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">{t.common.select}</option>
@@ -111,7 +111,7 @@ export default function SettingsPage() {
         <Section icon={Receipt} title={s.quoteSettings}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-[#6b7064]">{t.settings.currency}</label>
+              <label className="text-xs font-medium text-[#7f7f7f]">{t.settings.currency}</label>
               <select value={form.currency ?? 'EUR'} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 {CURRENCIES.map(c => <option key={c} value={c}>{currencySymbol(c)} · {c}</option>)}
@@ -127,7 +127,7 @@ export default function SettingsPage() {
             <Input id="valid_days" label={o.validDays} type="number" min={1} value={String(form.default_valid_days ?? 30)}
               onChange={e => setForm(f => ({ ...f, default_valid_days: Math.max(1, parseInt(e.target.value) || 30) }))} />
             <div className="flex flex-col gap-1 sm:col-span-2">
-              <label className="text-xs font-medium text-[#6b7064]">{o.defaultParity}</label>
+              <label className="text-xs font-medium text-[#7f7f7f]">{o.defaultParity}</label>
               <select value={form.default_parity ?? ''} onChange={e => setForm(f => ({ ...f, default_parity: e.target.value || null }))}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">{o.none}</option>

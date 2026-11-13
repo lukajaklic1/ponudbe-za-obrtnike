@@ -13,7 +13,6 @@ import Checkbox from '../components/ui/Checkbox'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
-import { Badge } from '../components/ui/Badge'
 import { cn } from '../lib/cn'
 import {
   TEMPLATES, MATERIALS, OPTION_GROUPS, STARTER, WL, money, parseMatrix, basePrice,
@@ -136,17 +135,21 @@ export default function WindowCatalogPage() {
 
   return (
     <div>
-      <PageHeader variant="spacious" title={T.title} icon={AppWindow}
-        tabs={(Object.keys(T.tabs) as Tab[]).map(k => ({
-          label: T.tabs[k], active: tab === k, onClick: () => setTab(k),
-          count: k === 'systems' ? systems.length : k === 'types' ? types.length : k === 'options' ? options.length : undefined,
-        }))}
-        action={canEdit && isEmpty && (
+      <PageHeader title={T.title} icon={AppWindow} action={canEdit && isEmpty && (
         <Button onClick={loadStarter} loading={seeding} className="gap-2"><Sparkles className="w-4 h-4" />{T.loadStarter}</Button>
       )} />
 
+      <div className="px-4 border-b border-gray-200 bg-white flex gap-1 overflow-x-auto">
+        {(Object.keys(T.tabs) as Tab[]).map(k => (
+          <button key={k} onClick={() => setTab(k)}
+            className={cn('px-3 py-2.5 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors',
+              tab === k ? 'border-gray-900 text-gray-900 font-medium' : 'border-transparent text-gray-500 hover:text-gray-800')}>
+            {T.tabs[k]}
+          </button>
+        ))}
+      </div>
 
-      <div className="px-8 pt-6 pb-10">
+      <div className="p-4 lg:p-6">
         {loading ? <div className="text-sm text-gray-400">…</div> : (<>
           {isEmpty && tab !== 'configurator' && <div className="max-w-md mx-auto text-center py-10">
             <AppWindow className="w-8 h-8 text-gray-300 mx-auto mb-3" />
@@ -174,13 +177,15 @@ type LL = typeof WL['sl']
 
 // ─── Shared bits ────────────────────────────────────────────
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('bg-white border border-[#e4e6dd] rounded-xl overflow-hidden', className)}>{children}</div>
+  return <div className={cn('bg-white border border-gray-200 rounded-lg', className)}>{children}</div>
 }
 function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <th className={cn('px-4 py-4 text-left text-sm font-medium text-[#4a5361] whitespace-nowrap', className)}>{children}</th>
+  return <th className={cn('px-3 py-2 text-left text-xs font-medium text-gray-500', className)}>{children}</th>
 }
 function ActiveDot({ on, T }: { on: boolean; T: TT }) {
-  return <Badge tone={on ? 'green' : 'neutral'}>{on ? T.active : T.inactive}</Badge>
+  return <span className={cn('inline-flex items-center gap-1.5 text-xs', on ? 'text-green-700' : 'text-gray-400')}>
+    <span className={cn('w-1.5 h-1.5 rounded-full', on ? 'bg-green-500' : 'bg-gray-300')} />{on ? T.active : T.inactive}
+  </span>
 }
 function RowActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
   return <div className="flex justify-end gap-1">
@@ -190,7 +195,7 @@ function RowActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => 
 }
 function Select<V extends string>({ label, value, onChange, options }: { label: string; value: V; onChange: (v: V) => void; options: { value: V; label: string }[] }) {
   return <div className="flex flex-col gap-1">
-    <label className="text-xs font-medium" style={{ color: '#6b7064' }}>{label}</label>
+    <label className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{label}</label>
     <select value={value} onChange={e => onChange(e.target.value as V)}
       className="block w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -222,14 +227,14 @@ function SystemsTab({ T, L, rows, canEdit, companyId, onChange }: { T: TT; L: LL
   return <>
     <div className="flex justify-end mb-3">{canEdit && <Button size="sm" className="gap-1.5" onClick={() => setEditing({ material: 'pvc', is_active: true })}><Plus className="w-4 h-4" />{T.add}</Button>}</div>
     <Card>
-      <table className="w-full text-sm font-[450]">
-        <thead className="bg-[#fbfbf9] border-b border-[#eceee6]"><tr><Th>{T.name}</Th><Th>{T.material}</Th><Th>{T.description}</Th><Th>{T.active}</Th><Th /></tr></thead>
-        <tbody>{rows.map(r => <tr key={r.id} className="border-b border-[#e4e6dd] last:border-0">
-          <td className="px-4 py-3 font-medium text-[#101112] whitespace-nowrap">{r.name}</td>
-          <td className="px-4 py-3 text-gray-600">{L.materials[r.material]}</td>
-          <td className="px-4 py-3 text-gray-500">{r.description || T.none}</td>
-          <td className="px-4 py-3"><ActiveDot on={r.is_active !== false} T={T} /></td>
-          <td className="px-4 py-3">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
+      <table className="w-full text-sm">
+        <thead className="border-b border-gray-200"><tr><Th>{T.name}</Th><Th>{T.material}</Th><Th>{T.description}</Th><Th>{T.active}</Th><Th /></tr></thead>
+        <tbody>{rows.map(r => <tr key={r.id} className="border-b border-gray-100 last:border-0">
+          <td className="px-3 py-2.5 font-medium text-gray-900">{r.name}</td>
+          <td className="px-3 py-2.5 text-gray-600">{L.materials[r.material]}</td>
+          <td className="px-3 py-2.5 text-gray-500">{r.description || T.none}</td>
+          <td className="px-3 py-2.5"><ActiveDot on={r.is_active !== false} T={T} /></td>
+          <td className="px-3 py-2.5">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
         </tr>)}</tbody>
       </table>
     </Card>
@@ -419,7 +424,7 @@ function PricesTab({ T, systems, types, prices, canEdit, companyId, currency, on
       <p className="text-xs text-gray-500 mb-2">{T.pasteHint}</p>
       <textarea value={pasteText} onChange={e => setPasteText(e.target.value)} rows={10}
         placeholder={'\t600\t800\t1000\n600\t180\t205\t230\n800\t200\t228\t255'}
-        className="w-full text-xs rounded-lg border border-gray-200 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full font-mono text-xs rounded-lg border border-gray-200 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       <div className="flex justify-end gap-2 mt-3"><Button variant="secondary" onClick={() => setPasteOpen(false)}>✕</Button><Button onClick={applyPaste}>{T.apply}</Button></div>
     </Modal>
   </div>
@@ -484,12 +489,12 @@ function OptionsTab({ T, L, rows, canEdit, companyId, currency, onChange }: { T:
     <div className="space-y-4">
       {OPTION_GROUPS.filter(g => rows.some(r => r.group_key === g)).map(g => <Card key={g}>
         <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">{L.groups[g]}</div>
-        <table className="w-full text-sm font-[450]"><tbody>
-          {rows.filter(r => r.group_key === g).map(r => <tr key={r.id} className="border-b border-[#e4e6dd] last:border-0">
-            <td className="px-4 py-3 text-gray-900">{r.name}{r.is_default && <span className="ml-2 text-xs text-blue-600">{T.dflt}</span>}</td>
-            <td className="px-4 py-3 text-gray-600 text-right whitespace-nowrap">{fmt(r)}</td>
-            <td className="px-4 py-3 w-28"><ActiveDot on={r.is_active !== false} T={T} /></td>
-            <td className="px-4 py-3 w-20">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
+        <table className="w-full text-sm"><tbody>
+          {rows.filter(r => r.group_key === g).map(r => <tr key={r.id} className="border-b border-gray-100 last:border-0">
+            <td className="px-3 py-2.5 text-gray-900">{r.name}{r.is_default && <span className="ml-2 text-xs text-blue-600">{T.dflt}</span>}</td>
+            <td className="px-3 py-2.5 text-gray-600 text-right whitespace-nowrap">{fmt(r)}</td>
+            <td className="px-3 py-2.5 w-28"><ActiveDot on={r.is_active !== false} T={T} /></td>
+            <td className="px-3 py-2.5 w-20">{canEdit && <RowActions onEdit={() => setEditing(r)} onDelete={() => setToDelete(r)} />}</td>
           </tr>)}
         </tbody></table>
       </Card>)}
@@ -525,7 +530,7 @@ function ConfiguratorTab({ T, canEdit, company, onSaved }: { T: TT; canEdit: boo
     enabled: company.configurator_enabled ?? false,
     slug: company.configurator_slug ?? slugify(company.name),
     show: company.configurator_show_prices ?? true,
-    accent: company.configurator_accent ?? '#101112',
+    accent: company.configurator_accent ?? '#2563eb',
     intro: company.configurator_intro ?? '',
   })
   const [saving, setSaving] = useState(false)
@@ -552,14 +557,14 @@ function ConfiguratorTab({ T, canEdit, company, onSaved }: { T: TT; canEdit: boo
       <Input label={T.cfgSlug} value={form.slug} onChange={e => setForm({ ...form, slug: slugify(e.target.value) })} error={slugOk ? undefined : T.slugInvalid} disabled={!canEdit} />
       <Checkbox checked={form.show} onChange={v => setForm({ ...form, show: v })} label={T.cfgShowPrices} />
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium" style={{ color: '#6b7064' }}>{T.cfgAccent}</label>
+        <label className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{T.cfgAccent}</label>
         <div className="flex items-center gap-2">
           <input type="color" value={form.accent} onChange={e => setForm({ ...form, accent: e.target.value })} className="h-9 w-12 rounded border border-gray-200 bg-white p-1" />
-          <span className="text-sm text-gray-600">{form.accent}</span>
+          <span className="text-sm font-mono text-gray-600">{form.accent}</span>
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium" style={{ color: '#6b7064' }}>{T.cfgIntro}</label>
+        <label className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{T.cfgIntro}</label>
         <textarea rows={3} value={form.intro} onChange={e => setForm({ ...form, intro: e.target.value })}
           className="w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
@@ -573,9 +578,9 @@ function ConfiguratorTab({ T, canEdit, company, onSaved }: { T: TT; canEdit: boo
         <Button variant="secondary" className="gap-1.5" onClick={() => copy(url)}><Copy className="w-4 h-4" />{T.copy}</Button>
         <a href={url} target="_blank" rel="noreferrer"><Button variant="secondary" className="gap-1.5"><ExternalLink className="w-4 h-4" />{T.open}</Button></a>
       </div>
-      <div className="text-xs font-medium" style={{ color: '#6b7064' }}>{T.embed}</div>
+      <div className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{T.embed}</div>
       <div className="flex gap-2">
-        <textarea readOnly rows={2} value={embed} className="flex-1 min-w-0 text-xs rounded-lg border border-gray-200 px-3 py-2 text-gray-700 bg-gray-50" />
+        <textarea readOnly rows={2} value={embed} className="flex-1 min-w-0 font-mono text-xs rounded-lg border border-gray-200 px-3 py-2 text-gray-700 bg-gray-50" />
         <Button variant="secondary" className="gap-1.5 self-start" onClick={() => copy(embed)}><Copy className="w-4 h-4" />{T.copy}</Button>
       </div>
     </Card>

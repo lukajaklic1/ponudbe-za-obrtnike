@@ -82,7 +82,7 @@ export default function SuperAdminDashboardPage() {
                       <k.icon className={`w-4 h-4 ${k.ic}`} />
                     </div>
                     <p className="text-xs font-medium text-gray-500">{k.label}</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-0.5">{k.value}</p>
+                    <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight">{k.value}</p>
                   </div>
                 ))}
               </div>
@@ -94,7 +94,7 @@ export default function SuperAdminDashboardPage() {
             <AreaChart
               data={toCumulative(stats.growth)}
               label="Rast podjetij"
-              color="#101112"
+              color="#2563eb"
               fillColor="#dbeafe"
             />
             <AreaChart

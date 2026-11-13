@@ -71,7 +71,7 @@ export default function LoginPage() {
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>}
 
             <button type="submit" disabled={loading}
-              className="w-full bg-gray-900 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1">
+              className="w-full bg-blue-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1">
               {loading ? a.signingIn : a.signIn}
             </button>
           </form>
@@ -95,7 +95,7 @@ export default function LoginPage() {
           <div className="flex gap-1">
             {(['en', 'sl'] as const).map(l => (
               <button key={l} onClick={() => setLang(l)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${lang === l ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${lang === l ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
                 {l.toUpperCase()}
               </button>
             ))}

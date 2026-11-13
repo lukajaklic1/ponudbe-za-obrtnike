@@ -56,36 +56,36 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
   return (
     <div className="relative" ref={ref}>
       <button type="button" onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 pl-3.5 ${value ? 'pr-8' : 'pr-3.5'} h-10 rounded-lg border border-[#d4d7c9] bg-white text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-gray-300 hover:bg-[#f7f8f4] transition-colors`}>
-        <span className="text-[#4a5361]">{label}:</span>
-        <span className="text-[#4a5361] font-medium">{value ? format(fromKey(value), 'd. M. yyyy') : allLabel}</span>
-        {!value && <CalendarDays className="w-4 h-4 text-[#8a8f80] ml-0.5" />}
+        className={`flex items-center gap-1.5 pl-3 ${value ? 'pr-7' : 'pr-3'} py-1 rounded-lg border border-gray-200 bg-white text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300 transition-colors`}>
+        <span className="text-gray-500">{label}:</span>
+        <span className="text-gray-900 font-medium">{value ? format(fromKey(value), 'd. M. yyyy') : allLabel}</span>
+        {!value && <CalendarDays className="w-3.5 h-3.5 text-gray-400 ml-0.5" />}
       </button>
       {value && (
         <button type="button" onClick={() => onChange('')} aria-label="Clear"
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8a8f80] hover:text-[#4a5361]">
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#111827]">
           <X className="w-3.5 h-3.5" />
         </button>
       )}
 
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 z-50 w-[280px] bg-white border border-[#e4e6dd] rounded-xl shadow-lg p-3">
+        <div className="absolute top-full left-0 mt-1.5 z-50 w-[280px] bg-white border border-[#e5e7eb] rounded-xl shadow-lg p-3">
           {/* month switcher */}
           <div className="flex items-center justify-between mb-2">
             <button type="button" onClick={() => setMonth(m => subMonths(m, 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-md text-[#8a8f80] hover:text-[#4a5361] hover:bg-[#f7f8f4]">
+              className="w-8 h-8 flex items-center justify-center rounded-md text-[#9ca3af] hover:text-[#111827] hover:bg-[#f6f6f6]">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-sm font-medium text-[#4a5361] capitalize">{format(month, 'LLLL yyyy', { locale })}</span>
+            <span className="text-sm font-medium text-[#111827] capitalize">{format(month, 'LLLL yyyy', { locale })}</span>
             <button type="button" onClick={() => setMonth(m => addMonths(m, 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-md text-[#8a8f80] hover:text-[#4a5361] hover:bg-[#f7f8f4]">
+              className="w-8 h-8 flex items-center justify-center rounded-md text-[#9ca3af] hover:text-[#111827] hover:bg-[#f6f6f6]">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           {/* weekday names */}
           <div className="grid grid-cols-7 mb-1">
-            {weekdays.map((w, i) => <div key={i} className="h-8 flex items-center justify-center text-xs text-[#8a8f80] capitalize">{w}</div>)}
+            {weekdays.map((w, i) => <div key={i} className="h-8 flex items-center justify-center text-xs text-[#9ca3af] capitalize">{w}</div>)}
           </div>
 
           {/* days */}
@@ -99,8 +99,8 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
                     'h-9 w-9 mx-auto flex items-center justify-center rounded-md text-sm transition-colors',
                     sel ? 'bg-[#101112] text-white font-medium'
                       : off ? 'text-[#c9ccd1] cursor-not-allowed'
-                      : isSameMonth(d, month) ? 'text-[#4a5361] hover:bg-[#f0f1eb]' : 'text-[#b4b8be] hover:bg-[#f0f1eb]',
-                    !sel && isToday(d) && 'ring-1 ring-inset ring-[#d4d7c9] font-medium',
+                      : isSameMonth(d, month) ? 'text-[#111827] hover:bg-[#f3f4f6]' : 'text-[#c4c7cc] hover:bg-[#f3f4f6]',
+                    !sel && isToday(d) && 'ring-1 ring-inset ring-[#e5e7eb] font-medium',
                   )}>
                   {format(d, 'd')}
                 </button>
@@ -109,14 +109,14 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
           </div>
 
           {/* footer */}
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#e4e6dd]">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#e5e7eb]">
             <button type="button" onClick={() => pick(new Date())} disabled={disabled(new Date())}
-              className="h-8 px-2.5 rounded-md text-sm text-[#4a5361] hover:bg-[#f7f8f4] disabled:opacity-40">
+              className="h-8 px-2.5 rounded-md text-sm text-[#111827] hover:bg-[#f6f6f6] disabled:opacity-40">
               {lang === 'sl' ? 'Danes' : 'Today'}
             </button>
             {value && (
               <button type="button" onClick={() => { onChange(''); setOpen(false) }}
-                className="h-8 px-2.5 rounded-md text-sm text-[#8a8f80] hover:text-[#4a5361] hover:bg-[#f7f8f4]">
+                className="h-8 px-2.5 rounded-md text-sm text-[#9ca3af] hover:text-[#111827] hover:bg-[#f6f6f6]">
                 {lang === 'sl' ? 'Počisti' : 'Clear'}
               </button>
             )}
