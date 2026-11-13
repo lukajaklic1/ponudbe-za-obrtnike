@@ -111,7 +111,7 @@ export default function SettingsPage() {
   async function deleteLogoFiles(keep?: string) {
     if (!company) return
     const { data } = await supabase.storage.from('logos').list(company.id)
-    const old = (data ?? []).map((f: { name: string }) => `${company.id}/${f.name}`).filter((p: string) => p !== keep)
+    const old = (data ?? []).filter((f: { name: string }) => f.name.startsWith('logo-')).map((f: { name: string }) => `${company.id}/${f.name}`).filter((p: string) => p !== keep)
     if (old.length) await supabase.storage.from('logos').remove(old)
   }
 

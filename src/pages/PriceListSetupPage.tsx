@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { Tags, Plus, Trash2, Check, Settings2 } from 'lucide-react'
+import { Tags, Plus, Trash2, Check, Settings2, Upload } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -9,6 +9,7 @@ import Button from '../components/ui/Button'
 import NumberInput from '../components/ui/NumberInput'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
+import ProfileSection from '../components/ProfileSection'
 import { cn } from '../lib/cn'
 import {
   TEMPLATES, MATERIALS, STARTER, WL, SERVICE_GROUPS, serviceLine, isDoor, isOnRequest,
@@ -21,7 +22,8 @@ import {
 // material × shape automatically, so nobody has to fill in tables.
 
 interface ShapeRow { id?: string; template: WindowTemplate; on: boolean; name: string; surcharge: number | null; min_width: number; max_width: number; min_height: number; max_height: number }
-interface MaterialRow { id?: string; material: WindowMaterial; on: boolean; name: string; price: number | null; min: number | null }
+/** one profile system (window_systems row); a material can have several */
+interface ProfileRow { key: string; id?: string; material: WindowMaterial; name: string; description: string; price: number | null; min: number | null; image_url: string | null }
 interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string }
 
 interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string }
@@ -35,8 +37,9 @@ const TXT = {
     title: 'Cenik',
     groupWindows: 'Okna', groupDoors: 'Balkonska vrata', onRequest: 'Cena na povpraševanje: stranka pošlje mere, ceno vpišete v ponudbo.',
     s1: 'Katere oblike oken ponujate?', s1hint: 'Izberite oblike oken, ki jih ponujate. Pri obliki okna z osnovno ceno vnesite doplačilo 0 %. Pri ostalih dražjih ali cenejših izvedbah lahko dodate doplačilo v % na ceno materiala glede na okno, ki ste ga izbrali za osnovo.',
-    surcharge: 'Doplačilo', s2: 'Iz katerih materialov?', s2hint: 'Obkljukaj materiale in vpiši ceno okna na m². Najnižja cena velja za majhna okna.',
-    matName: 'Naziv (npr. PVC 82 mm)', perM2: 'Cena na m²', minPrice: 'Najnižja cena okna',
+    surcharge: 'Doplačilo', s2: 'Iz katerih materialov?', s2hint: 'Izberite materiale in pod vsakim dodajte profile, ki jih ponujate. Za vsak profil vpišite ceno okna na m². Najnižja cena okna velja za majhna okna, kjer bi bil izračun po m² prenizek.',
+    matName: 'Naziv profila', matNamePh: 'npr. PVC 82 mm, 7 komor', perM2: 'Cena na m²', minPrice: 'Najnižja cena okna',
+    description: 'Opis za stranko', descriptionPh: 'npr. Uw do 0,75 W/m²K, primerno za pasivne hiše', addProfile: 'Dodaj profil', photo: 'Naloži sliko', photoChange: 'Zamenjaj sliko', photoRemove: 'Odstrani sliko', photoHint: 'Prerez ali fotografija profila. Brez slike se prikaže risba.',
     add: 'Dodaj', name: 'Naziv', price: 'Cena', dflt: 'Privzeto', quick: 'Hitro dodaj:', remove: 'Odstrani',
     save: 'Shrani cenik', saved: 'Cenik je shranjen', unsaved: 'Spremembe niso shranjene',
     example: 'Primer', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
@@ -47,8 +50,9 @@ const TXT = {
     title: 'Price list',
     groupWindows: 'Windows', groupDoors: 'Balcony doors', onRequest: 'Price on request: the customer sends sizes, you price it in the quote.',
     s1: 'Which window shapes do you offer?', s1hint: 'Select the window shapes you offer. Enter a 0 % surcharge for the shape with the base price. For more or less expensive shapes you can add a surcharge in % on the material price, relative to your base window.',
-    surcharge: 'Surcharge', s2: 'Which materials?', s2hint: 'Tick the materials and enter the window price per m². The minimum price applies to small windows.',
-    matName: 'Name (e.g. PVC 82 mm)', perM2: 'Price per m²', minPrice: 'Minimum window price',
+    surcharge: 'Surcharge', s2: 'Which materials?', s2hint: 'Select the materials and add the profiles you offer under each one. Enter the window price per m² for every profile. The minimum price applies to small windows.',
+    matName: 'Profile name', matNamePh: 'e.g. PVC 82 mm, 7 chambers', perM2: 'Price per m²', minPrice: 'Minimum window price',
+    description: 'Description for customers', descriptionPh: 'e.g. Uw up to 0.75 W/m²K, passive-house ready', addProfile: 'Add profile', photo: 'Upload picture', photoChange: 'Replace picture', photoRemove: 'Remove picture', photoHint: 'Cross-section or photo of the profile. Without one a drawing is shown.',
     add: 'Add', name: 'Name', price: 'Price', dflt: 'Default', quick: 'Quick add:', remove: 'Remove',
     save: 'Save price list', saved: 'Price list saved', unsaved: 'Unsaved changes',
     example: 'Example', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
@@ -101,13 +105,16 @@ export default function PriceListSetupPage() {
   const money = (n: number) => Number(n).toLocaleString('de-DE', { style: 'currency', currency: cur })
 
   const [shapes, setShapes] = useState<ShapeRow[]>([])
-  const [materials, setMaterials] = useState<MaterialRow[]>([])
+  const [profiles, setProfiles] = useState<ProfileRow[]>([])
+  const [matOn, setMatOn] = useState<Record<string, boolean>>({})
+  const [removedProfiles, setRemovedProfiles] = useState<string[]>([])
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [options, setOptions] = useState<OptionRow[]>([])
   const [removed, setRemoved] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [dirty, setDirty] = useState(false)
-  const [pv, setPv] = useState<{ template?: WindowTemplate; material?: WindowMaterial; width: number; height: number }>({ width: 1200, height: 1400 })
+  const [pv, setPv] = useState<{ template?: WindowTemplate; profile?: string; width: number; height: number }>({ width: 1200, height: 1400 })
 
   useEffect(() => { if (company) load() }, [company?.id])
   async function load() {
@@ -131,17 +138,55 @@ export default function PriceListSetupPage() {
         min_height: row?.min_height ?? 400, max_height: row?.max_height ?? st?.max_height ?? (isDoor(tpl) ? 2500 : 1800),
       }
     }))
-    setMaterials(MATERIALS.map(m => {
-      const row = sys.find(x => x.material === m)
-      return { id: row?.id, material: m, on: !!row && row.is_active !== false, name: row?.name ?? L.materials[m], price: row ? Number(row.price_per_m2 ?? 0) || null : null, min: row ? Number(row.min_price ?? 0) || null : null }
-    }))
+    setProfiles(sys.filter(x => (MATERIALS as string[]).includes(x.material)).map(x => ({
+      key: nk(), id: x.id, material: x.material, name: x.name, description: x.description ?? '',
+      price: Number(x.price_per_m2 ?? 0) || null, min: Number(x.min_price ?? 0) || null, image_url: x.image_url ?? null,
+    })))
+    setMatOn(Object.fromEntries(MATERIALS.map(m => [m, sys.some(x => x.material === m && x.is_active !== false)])))
+    setRemovedProfiles([])
     setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined })))
     setRemoved([]); setDirty(false); setLoading(false)
   }
 
   const touch = () => setDirty(true)
   const setShape = (tpl: WindowTemplate, patch: Partial<ShapeRow>) => { setShapes(xs => xs.map(x => x.template === tpl ? { ...x, ...patch } : x)); touch() }
-  const setMaterial = (m: WindowMaterial, patch: Partial<MaterialRow>) => { setMaterials(xs => xs.map(x => x.material === m ? { ...x, ...patch } : x)); touch() }
+  const setProfile = (key: string, patch: Partial<ProfileRow>) => { setProfiles(xs => xs.map(x => x.key === key ? { ...x, ...patch } : x)); touch() }
+  const newProfile = (m: WindowMaterial): ProfileRow => ({ key: nk(), material: m, name: L.materials[m], description: '', price: null, min: null, image_url: null })
+  function toggleMaterial(m: WindowMaterial) {
+    const on = !matOn[m]
+    setMatOn(x => ({ ...x, [m]: on }))
+    // switching a material on for the first time starts it with one profile
+    if (on && !profiles.some(p => p.material === m)) setProfiles(xs => [...xs, newProfile(m)])
+    touch()
+  }
+  function addProfile(m: WindowMaterial) { setProfiles(xs => [...xs, newProfile(m)]); touch() }
+  function removeProfile(p: ProfileRow) {
+    if (p.id) setRemovedProfiles(r => [...r, p.id!])
+    const rest = profiles.filter(x => x.key !== p.key)
+    setProfiles(rest)
+    if (!rest.some(x => x.material === p.material)) setMatOn(x => ({ ...x, [p.material]: false }))
+    touch()
+  }
+  // profile picture → public 'logos' bucket, own sub-folder; the previous file is deleted
+  const storagePath = (url: string | null) => url && url.includes('/logos/') ? decodeURIComponent(url.split('/logos/')[1].split('?')[0]) : null
+  async function uploadPhoto(p: ProfileRow, file: File) {
+    if (!company) return
+    if (file.size > 2 * 1024 * 1024) { toast.error('Max 2 MB'); return }
+    setUploadingKey(p.key)
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase()
+    const path = `${company.id}/profiles/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type })
+    setUploadingKey(null)
+    if (error) { toast.error(error.message); return }
+    const old = storagePath(p.image_url)
+    if (old) await supabase.storage.from('logos').remove([old])
+    setProfile(p.key, { image_url: supabase.storage.from('logos').getPublicUrl(path).data.publicUrl })
+  }
+  async function removePhoto(p: ProfileRow) {
+    const old = storagePath(p.image_url)
+    if (old) await supabase.storage.from('logos').remove([old])
+    setProfile(p.key, { image_url: null })
+  }
   const setOption = (key: string, patch: Partial<OptionRow>) => { setOptions(xs => xs.map(x => x.key === key ? { ...x, ...patch } : x)); touch() }
   function addOption(sec: Section, preset?: Preset) {
     const first = !options.some(o => o.group_key === sec.group)
@@ -164,16 +209,20 @@ export default function PriceListSetupPage() {
     setSaving(true)
     try {
       const now = new Date().toISOString()
-      // materials → window_systems
+      // profiles → window_systems (a material that is switched off keeps its profiles, inactive)
+      if (removedProfiles.length) {
+        const { error } = await supabase.from('window_systems' as any).delete().in('id', removedProfiles); if (error) throw error
+      }
       const sysIds: Record<string, string> = {}
-      for (const [i, m] of materials.entries()) {
-        const payload = { name: m.name.trim() || L.materials[m.material], material: m.material, price_per_m2: m.price ?? 0, min_price: m.min ?? 0, is_active: m.on, sort_order: i, updated_at: now }
-        if (m.id) {
-          const { error } = await supabase.from('window_systems' as any).update(payload).eq('id', m.id); if (error) throw error
-          sysIds[m.material] = m.id
-        } else if (m.on) {
+      const ordered = MATERIALS.flatMap(m => profiles.filter(p => p.material === m))
+      for (const [i, p] of ordered.entries()) {
+        const payload = { name: p.name.trim() || L.materials[p.material], material: p.material, description: p.description.trim() || null, image_url: p.image_url, price_per_m2: p.price ?? 0, min_price: p.min ?? 0, is_active: !!matOn[p.material], sort_order: i, updated_at: now }
+        if (p.id) {
+          const { error } = await supabase.from('window_systems' as any).update(payload).eq('id', p.id); if (error) throw error
+          sysIds[p.key] = p.id
+        } else {
           const { data, error } = await supabase.from('window_systems' as any).insert({ ...payload, company_id: company.id }).select('id').single(); if (error) throw error
-          sysIds[m.material] = (data as unknown as { id: string }).id
+          sysIds[p.key] = (data as unknown as { id: string }).id
         }
       }
       // shapes → window_types
@@ -189,8 +238,8 @@ export default function PriceListSetupPage() {
         }
       }
       // every active material × shape gets a price (matrices from the advanced page stay untouched)
-      const priceRows = materials.filter(m => m.on && sysIds[m.material]).flatMap(m => shapes.filter(s => s.on && typeIds[s.template] && !isOnRequest(s.template)).map(s => ({
-        company_id: company.id, system_id: sysIds[m.material], type_id: typeIds[s.template],
+      const priceRows = profiles.filter(m => matOn[m.material] && sysIds[m.key]).flatMap(m => shapes.filter(s => s.on && typeIds[s.template] && !isOnRequest(s.template)).map(s => ({
+        company_id: company.id, system_id: sysIds[m.key], type_id: typeIds[s.template],
         price_per_m2: Math.round((m.price ?? 0) * (1 + (s.surcharge ?? 0) / 100) * 100) / 100,
         min_price: m.min ?? 0, updated_at: now,
       })))
@@ -222,9 +271,9 @@ export default function PriceListSetupPage() {
 
   // live preview (like Fenestro): one example window, base price + every default choice as its own line
   const activeShapes = shapes.filter(s => s.on && !isOnRequest(s.template))
-  const activeMats = materials.filter(m => m.on)
+  const activeMats = profiles.filter(m => matOn[m.material])
   const pShape = activeShapes.find(s => s.template === pv.template) ?? activeShapes.find(s => s.template === 'double') ?? activeShapes[0]
-  const pMat = activeMats.find(m => m.material === pv.material) ?? activeMats[0]
+  const pMat = activeMats.find(m => m.key === pv.profile) ?? activeMats[0]
   const area = pv.width * pv.height / 1_000_000
   const pBase = pShape && pMat ? Math.round(Math.max(pMat.min ?? 0, area * (pMat.price ?? 0) * (1 + (pShape.surcharge ?? 0) / 100)) * 100) / 100 : null
   const addOn = (o: OptionRow) => {
@@ -284,23 +333,57 @@ export default function PriceListSetupPage() {
           {/* 2. materials */}
           <Step n={2} title={T.s2} hint={T.s2hint}>
             <div className="space-y-2">
-              {materials.map(m => (
-                <div key={m.material} className={cn('rounded-xl border px-4 py-3', m.on ? 'border-gray-900' : 'border-gray-200')}>
-                  <button type="button" disabled={!canEdit} onClick={() => setMaterial(m.material, { on: !m.on })} className="flex items-center gap-2.5 w-full text-left">
-                    <span className={cn('w-4 h-4 rounded flex items-center justify-center shrink-0 border', m.on ? 'bg-gray-900 border-gray-900' : 'border-gray-300')}>{m.on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}</span>
-                    <span className="text-sm font-medium text-gray-900">{L.materials[m.material]}</span>
+              {MATERIALS.map(m => {
+                const on = !!matOn[m]
+                const list = profiles.filter(p => p.material === m)
+                return (
+                <div key={m} className={cn('rounded-xl border', on ? 'border-gray-900' : 'border-gray-200')}>
+                  <button type="button" disabled={!canEdit} onClick={() => toggleMaterial(m)} className="flex items-center gap-3 w-full text-left px-4 py-3">
+                    <span className={cn('w-4 h-4 rounded flex items-center justify-center shrink-0 border', on ? 'bg-gray-900 border-gray-900' : 'border-gray-300')}>{on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}</span>
+                    <ProfileSection material={m} size={36} />
+                    <span className="text-sm font-medium text-gray-900">{L.materials[m]}</span>
+                    {!on && list.length > 0 && <span className="text-xs font-medium text-[#7f7f7f]">{list.length} ×</span>}
                   </button>
-                  {m.on && <div className="grid sm:grid-cols-3 gap-3 mt-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{T.matName}</label>
-                      <input value={m.name} onChange={e => setMaterial(m.material, { name: e.target.value })} disabled={!canEdit}
-                        className="rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <NumberInput label={T.perM2} unit={`${cur}/m²`} value={m.price} onValue={v => setMaterial(m.material, { price: v })} decimals={2} />
-                    <NumberInput label={T.minPrice} unit={cur} value={m.min} onValue={v => setMaterial(m.material, { min: v })} decimals={2} />
+                  {on && <div className="px-4 pb-4 space-y-3">
+                    {list.map(p => (
+                      <div key={p.key} className="rounded-lg border border-gray-200 p-3 flex flex-col sm:flex-row gap-4">
+                        {/* picture: uploaded photo or the schematic cross-section */}
+                        <div className="sm:w-32 shrink-0">
+                          <label className={cn('relative block w-full h-28 rounded-lg border border-dashed flex items-center justify-center overflow-hidden bg-gray-50', canEdit ? 'cursor-pointer border-gray-300 hover:border-gray-400' : 'border-gray-200')}>
+                            {p.image_url ? <img src={p.image_url} alt="" className="max-w-full max-h-full object-contain p-1" /> : <ProfileSection material={m} size={84} />}
+                            {canEdit && <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(p, f); e.target.value = '' }} />}
+                          </label>
+                          {canEdit && <div className="flex items-center justify-between mt-1.5 text-xs font-medium text-[#7f7f7f]">
+                            <span className="inline-flex items-center gap-1"><Upload className="w-3 h-3" />{uploadingKey === p.key ? '…' : p.image_url ? T.photoChange : T.photo}</span>
+                            {p.image_url && <button type="button" onClick={() => removePhoto(p)} className="hover:text-red-600" title={T.photoRemove}><Trash2 className="w-3.5 h-3.5" /></button>}
+                          </div>}
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-3">
+                          <div className="grid sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-3 items-end">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-medium text-[#7f7f7f]">{T.matName}</label>
+                              <input value={p.name} placeholder={T.matNamePh} onChange={e => setProfile(p.key, { name: e.target.value })} disabled={!canEdit}
+                                className="rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                            <NumberInput label={T.perM2} unit={`${cur}/m²`} value={p.price} onValue={v => setProfile(p.key, { price: v })} decimals={2} />
+                            <NumberInput label={T.minPrice} unit={cur} value={p.min} onValue={v => setProfile(p.key, { min: v })} decimals={2} />
+                            {canEdit && <button type="button" onClick={() => removeProfile(p)} title={T.remove}
+                              className="h-[38px] px-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 self-end"><Trash2 className="w-4 h-4" /></button>}
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-[#7f7f7f]">{T.description}</label>
+                            <input value={p.description} placeholder={T.descriptionPh} onChange={e => setProfile(p.key, { description: e.target.value })} disabled={!canEdit}
+                              className="rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {canEdit && <button type="button" onClick={() => addProfile(m)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900"><Plus className="w-4 h-4" />{T.addProfile}</button>}
+                    <p className="text-xs font-medium text-[#7f7f7f]">{T.photoHint}</p>
                   </div>}
                 </div>
-              ))}
+              )})}
             </div>
           </Step>
 
@@ -364,8 +447,8 @@ export default function PriceListSetupPage() {
                 className={cn('px-2 py-1 rounded-md border text-xs', sh.template === pShape.template ? 'border-gray-900 text-gray-900 font-medium' : 'border-gray-200 text-gray-500 hover:border-gray-400')}>{L.templates[sh.template]}</button>)}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {activeMats.map(m => <button key={m.material} type="button" onClick={() => setPv(v => ({ ...v, material: m.material }))}
-                className={cn('px-2 py-1 rounded-md border text-xs', m.material === pMat.material ? 'border-gray-900 text-gray-900 font-medium' : 'border-gray-200 text-gray-500 hover:border-gray-400')}>{m.name || L.materials[m.material]}</button>)}
+              {activeMats.map(m => <button key={m.key} type="button" onClick={() => setPv(v => ({ ...v, profile: m.key }))}
+                className={cn('px-2 py-1 rounded-md border text-xs', m.key === pMat.key ? 'border-gray-900 text-gray-900 font-medium' : 'border-gray-200 text-gray-500 hover:border-gray-400')}>{m.name || L.materials[m.material]}</button>)}
             </div>
             {([['width', T.width, pShape.min_width, pShape.max_width], ['height', T.height, pShape.min_height, pShape.max_height]] as const).map(([k, label, min, max]) => (
               <div key={k}>

@@ -2,7 +2,7 @@
 // Pricing mirrors the SQL function window_base_price + submit_configuration —
 // the server always recomputes; this is only for live display.
 
-export type WindowMaterial = 'pvc' | 'alu' | 'wood' | 'wood_alu'
+export type WindowMaterial = 'pvc' | 'pvc_alu' | 'alu' | 'wood' | 'wood_alu' | 'steel'
 export type WindowTemplate =
   | 'fixed' | 'tilt_turn' | 'tilt' | 'double' | 'double_mullion' | 'triple'
   | 'fixed_tilt_turn' | 'tilt_turn_transom' | 'double_transom' | 'special'
@@ -21,6 +21,8 @@ export interface WindowSystem {
   description: string | null; sort_order?: number; is_active?: boolean
   /** guided price list: price per m² of this material and minimum price per window */
   price_per_m2?: number; min_price?: number
+  /** photo or cross-section of the profile (public URL) */
+  image_url?: string | null
 }
 export interface WindowType {
   id: string; company_id?: string; name: string; template: WindowTemplate
@@ -46,7 +48,7 @@ export const TEMPLATES: WindowTemplate[] = [
 export const isOnRequest = (t: WindowTemplate) => t === 'special'
 /** Balcony / terrace doors (shown as their own group in the price list). */
 export const isDoor = (t: WindowTemplate) => t.startsWith('door') || t === 'lift_slide' || t === 'psk'
-export const MATERIALS: WindowMaterial[] = ['pvc', 'alu', 'wood', 'wood_alu']
+export const MATERIALS: WindowMaterial[] = ['pvc', 'pvc_alu', 'alu', 'wood', 'wood_alu', 'steel']
 /** Extras change the window itself (priced into the window line). */
 export const OPTION_GROUPS: ExtraGroup[] = ['glass', 'color', 'handle', 'sill', 'shading', 'other']
 /** Services are chosen once per order and become their own quote lines. */
@@ -244,7 +246,7 @@ export const WL = {
       tilt_turn_transom: 'Enokrilno z nadsvetlobo', double_transom: 'Dvokrilno z nadsvetlobo', special: 'Posebna oblika (ločno, poševno, okroglo)',
       door: 'Balkonska vrata', door_double: 'Dvokrilna balkonska vrata', door_side: 'Balkonska vrata s fiksnim delom ob strani', lift_slide: 'Dvižno-drsna vrata', psk: 'PSK vrata (vzporedno drsno-kip)',
     } as Record<WindowTemplate, string>,
-    materials: { pvc: 'PVC', alu: 'ALU', wood: 'Les', wood_alu: 'Les-ALU' } as Record<WindowMaterial, string>,
+    materials: { pvc: 'PVC', pvc_alu: 'PVC-ALU', alu: 'ALU', wood: 'Les', wood_alu: 'Les-ALU', steel: 'Jeklo' } as Record<WindowMaterial, string>,
     groups: { glass: 'Steklo', color: 'Barva', handle: 'Kljuka', sill: 'Police', shading: 'Senčila', other: 'Dodatno', installation: 'Montaža', removal: 'Demontaža', finishing: 'Zaključna dela', transport: 'Prevoz in odvoz' } as Record<OptionGroup, string>,
     pricing: { piece: 'na kos', m2: 'na m²', percent: '% cene okna', perimeter: 'na tm obsega okna', width: 'na tm širine okna', flat: 'pavšal na ponudbo' } as Record<OptionPricing, string>,
     unitShort: { piece: 'kos', m2: 'm²', percent: '%', perimeter: 'tm', width: 'tm', flat: 'pavšal' } as Record<OptionPricing, string>,
@@ -258,7 +260,7 @@ export const WL = {
       door_side: 'Balcony door with fixed side light', psk: 'Parallel slide-tilt door (PSK)',
       door: 'Balcony door', door_double: 'Double balcony door', lift_slide: 'Lift & slide door',
     } as Record<WindowTemplate, string>,
-    materials: { pvc: 'PVC', alu: 'Aluminium', wood: 'Wood', wood_alu: 'Wood-aluminium' } as Record<WindowMaterial, string>,
+    materials: { pvc: 'PVC', pvc_alu: 'PVC-aluminium', alu: 'Aluminium', wood: 'Wood', wood_alu: 'Wood-aluminium', steel: 'Steel' } as Record<WindowMaterial, string>,
     groups: { glass: 'Glass', color: 'Colour', handle: 'Handle', sill: 'Sills', shading: 'Shading', other: 'Extras', installation: 'Installation', removal: 'Removal', finishing: 'Finishing', transport: 'Transport and disposal' } as Record<OptionGroup, string>,
     pricing: { piece: 'per piece', m2: 'per m²', percent: '% of window base', perimeter: 'per m of perimeter', width: 'per m of width', flat: 'flat per quote' } as Record<OptionPricing, string>,
     unitShort: { piece: 'pc', m2: 'm²', percent: '%', perimeter: 'm', width: 'm', flat: 'flat' } as Record<OptionPricing, string>,
