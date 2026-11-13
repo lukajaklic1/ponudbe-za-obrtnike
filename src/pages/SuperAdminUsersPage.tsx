@@ -90,7 +90,7 @@ export default function SuperAdminUsersPage() {
           <div className="relative max-w-xs w-full">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input value={search} onChange={e => { setSearch(e.target.value); resetPage() }} placeholder="Ime, priimek ali e-pošta"
-              className="w-full pl-9 pr-3 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full h-10 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <ComboFilter options={companyOptions} value={companyFilter} onChange={v => { setCompanyFilter(v); resetPage() }}
             placeholder="Podjetje" allLabel="Vsa podjetja" />
@@ -214,7 +214,7 @@ function ComboFilter({ options, value, onChange, placeholder, allLabel }: {
         onChange={e => { setQuery(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
         placeholder={value === 'all' ? `${placeholder}…` : selectedLabel}
-        className="pl-9 pr-8 py-1 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+        className="h-10 pl-9 pr-8 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
       />
       {value !== 'all' && !open && (
         <button onClick={() => pick('all')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">

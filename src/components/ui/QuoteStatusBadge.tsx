@@ -1,15 +1,20 @@
 import type { QuoteStatus } from '../../types/database'
 
+// Pridobljeno = green, Poslano = yellow, everything else (Osnutek, Izgubljeno) = grey
+const GREY: React.CSSProperties   = { color: '#52525b', backgroundColor: '#f4f4f5',  border: '1px solid #e4e4e7' }
+const YELLOW: React.CSSProperties = { color: '#874d00', backgroundColor: '#fff3cc',  border: '1px solid #ffe5a0' }
+const GREEN: React.CSSProperties  = { color: '#007d53', backgroundColor: '#e0fced',  border: '1px solid #cbf7e1' }
+
 const STATUS_COLORS: Record<QuoteStatus, React.CSSProperties> = {
-  draft:    { color: '#874d00', backgroundColor: '#fff3cc',  border: '1px solid #ffe5a0' },
-  issued:   { color: '#6b3fc9', backgroundColor: '#f3edff',  border: '1px solid #e6dbff' },
-  sent:     { color: '#215bc4', backgroundColor: '#e5eeff',  border: '1px solid #d9e7ff' },
-  accepted: { color: '#007d53', backgroundColor: '#e0fced',  border: '1px solid #cbf7e1' },
-  rejected: { color: '#9e3f00', backgroundColor: '#feeee1',  border: '1px solid #fee0c8' },
-  expired:  { color: '#874d00', backgroundColor: '#fff3cc',  border: '1px solid #ffe59e' },
-  won:      { color: '#007d53', backgroundColor: '#e0fced',  border: '1px solid #cbf7e1' },
-  lost:     { color: '#9e3f00', backgroundColor: '#feeee1',  border: '1px solid #fee0c8' },
-  frozen:   { color: '#6d28d9', backgroundColor: '#ede9fe',  border: '1px solid #ddd6fe' },
+  draft:    GREY,
+  issued:   YELLOW,   // older quotes: Izdano = Poslano
+  sent:     YELLOW,
+  accepted: GREEN,
+  won:      GREEN,
+  rejected: GREY,
+  lost:     GREY,
+  expired:  GREY,
+  frozen:   GREY,
 }
 
 export function QuoteStatusBadge({ status, label }: { status: QuoteStatus; label: string }) {

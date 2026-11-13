@@ -184,9 +184,9 @@ export default function DashboardPage() {
   const st = statusStats
   const kpis = [
     { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#e5eeff]',   iconColor: 'text-[#215bcf]' },
-    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-blue-50',     iconColor: 'text-blue-500' },
+    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-[#fff3cc]',   iconColor: 'text-[#874d00]' },
     { key: 'won',    label: sl ? 'Dobljene' : 'Won',             icon: Trophy,       bg: 'bg-[#e0fced]',   iconColor: 'text-[#007d53]' },
-    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#feeee1]',   iconColor: 'text-[#9e3f00]' },
+    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#f4f4f5]',   iconColor: 'text-[#52525b]' },
   ] as const
 
   const periods = [
@@ -255,7 +255,7 @@ export default function DashboardPage() {
               value={searchText}
               onChange={e => { setSearchText(e.target.value); setShowDropdown(true) }}
               onFocus={() => setShowDropdown(true)}
-              className="pl-9 pr-8 py-1 border border-gray-200 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 transition-colors"
+              className="h-10 pl-9 pr-8 border border-gray-200 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 transition-colors"
             />
             {(searchText || filterCustomerId) && (
               <button onClick={() => { setSearchText(''); setFilterCustomerId(null); setShowDropdown(false); setCurrentPage(1) }}
@@ -316,8 +316,8 @@ export default function DashboardPage() {
                   <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} width={60} />
                   <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
-                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill="#bfdbfe" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill="#00d17e" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                   <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} width={32} />
                   <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
-                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill="#bbf7d0" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill="#00d17e" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>}
@@ -343,9 +343,9 @@ export default function DashboardPage() {
         {/* Status breakdown (donut) + top services */}
         {(() => {
           const slices = [
-            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#60a5fa' },
+            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#f5b100' },
             { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#00d17e' },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#fb923c' },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#d4d4d8' },
           ].map(x => ({ ...x, count: st?.[x.key as StatusKey].count ?? 0, value: st?.[x.key as StatusKey].value ?? 0 }))
           const total = st?.all.count ?? 0
           const servicesTotal = topServices.reduce((a, x) => a + x.value, 0)

@@ -169,7 +169,7 @@ export default function CustomersPage() {
         <div className="relative max-w-xs w-full">
           <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={t.common.search}
-            className="w-full pl-9 pr-3 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full h-10 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <FilterSelect label={o.customerType} value={typeFilter} allLabel={t.common.all}
           options={[{ value: 'person', label: o.typePerson }, { value: 'company', label: o.typeCompany }]}

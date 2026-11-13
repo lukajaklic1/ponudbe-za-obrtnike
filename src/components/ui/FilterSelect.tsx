@@ -34,7 +34,7 @@ export function FilterSelect({ label, value, options, allLabel, onChange, icon: 
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300 transition-colors"
+        className="flex items-center gap-1.5 px-3 h-10 rounded-lg border border-gray-200 bg-white text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300 transition-colors"
       >
         {Icon ? <Icon className="w-3.5 h-3.5 text-gray-500" /> : <span className="text-gray-500">{label}:</span>}
         <span className="text-gray-900 font-medium">{selectedLabel}</span>

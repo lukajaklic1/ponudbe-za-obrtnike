@@ -56,7 +56,7 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
   return (
     <div className="relative" ref={ref}>
       <button type="button" onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 pl-3 ${value ? 'pr-7' : 'pr-3'} py-1 rounded-lg border border-gray-200 bg-white text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300 transition-colors`}>
+        className={`flex items-center gap-1.5 pl-3 ${value ? 'pr-7' : 'pr-3'} h-10 rounded-lg border border-gray-200 bg-white text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300 transition-colors`}>
         <span className="text-gray-500">{label}:</span>
         <span className="text-gray-900 font-medium">{value ? format(fromKey(value), 'd. M. yyyy') : allLabel}</span>
         {!value && <CalendarDays className="w-3.5 h-3.5 text-gray-400 ml-0.5" />}

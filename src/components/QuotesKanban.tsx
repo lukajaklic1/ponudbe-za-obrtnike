@@ -9,7 +9,7 @@ export interface KanbanQuote extends Quote {
 
 // Column dot colours — same hues as the status badges, but solid
 const STATUS_DOT: Partial<Record<QuoteStatus, string>> = {
-  draft: '#f5b100', sent: '#3b82f6', won: '#10b981', lost: '#f97316',
+  draft: '#a1a1aa', sent: '#f5b100', won: '#10b981', lost: '#a1a1aa',
 }
 
 // Status changes allowed by dragging a card. Issuing a draft needs the editor (it locks the PDF content).
