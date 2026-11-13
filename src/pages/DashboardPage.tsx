@@ -430,7 +430,7 @@ export default function DashboardPage() {
               <h2 className="text-sm font-medium text-gray-900">{s.topCustomers}</h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[600px]">
+              <table className="w-full text-sm font-[450] min-w-[600px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     {[

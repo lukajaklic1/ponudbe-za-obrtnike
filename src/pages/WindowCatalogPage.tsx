@@ -232,7 +232,7 @@ function SystemsTab({ T, L, rows, canEdit, companyId, onChange }: { T: TT; L: LL
   return <>
     <div className="flex justify-end mb-3">{canEdit && <Button size="sm" className="gap-1.5" onClick={() => setEditing({ material: 'pvc', is_active: true })}><Plus className="w-4 h-4" />{T.add}</Button>}</div>
     <Card>
-      <table className="w-full text-sm">
+      <table className="w-full text-sm font-[450]">
         <thead className="border-b border-gray-200"><tr><Th>{T.name}</Th><Th>{T.material}</Th><Th>{T.description}</Th><Th>{T.active}</Th><Th /></tr></thead>
         <tbody>{rows.map(r => <tr key={r.id} className="border-b border-gray-100 last:border-0">
           <td className="px-3 py-2.5 font-medium text-gray-900">{r.name}</td>
@@ -497,7 +497,7 @@ function OptionsTab({ T, L, rows, groups, pricings, hint, canEdit, companyId, cu
     <div className="space-y-4">
       {groups.filter(g => rows.some(r => r.group_key === g)).map(g => <Card key={g}>
         <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">{L.groups[g]}</div>
-        <table className="w-full text-sm"><tbody>
+        <table className="w-full text-sm font-[450]"><tbody>
           {rows.filter(r => r.group_key === g).map(r => <tr key={r.id} className="border-b border-gray-100 last:border-0">
             <td className="px-3 py-2.5 text-gray-900">{r.name}{r.is_default && <span className="ml-2 text-xs text-blue-600">{T.dflt}</span>}</td>
             <td className="px-3 py-2.5 text-gray-600 text-right whitespace-nowrap">{fmt(r)}</td>

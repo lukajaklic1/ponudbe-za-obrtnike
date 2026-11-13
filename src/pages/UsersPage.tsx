@@ -196,7 +196,7 @@ export default function UsersPage() {
             <p className="text-sm text-gray-400">{s.noUsers}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[700px]">
+          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[700px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {([['name', t.common.name], ['', t.common.email], ['role', s.role], ['status', t.common.status], ['', '']] as [string, string][]).map(([key, h], i) => (

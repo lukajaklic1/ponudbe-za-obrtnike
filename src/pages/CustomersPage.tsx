@@ -188,7 +188,7 @@ export default function CustomersPage() {
             <p className="text-sm text-gray-400">{s.noCustomers}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[820px]">
+          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[820px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['name', o.customer], ['type', o.customerType], ['', t.common.email], ['', t.common.phone], ['city', o.city], ['quotes', s.quotesCount], ['status', t.common.status], ['', s.updatedAt], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}

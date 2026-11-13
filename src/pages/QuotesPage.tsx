@@ -193,7 +193,7 @@ export default function QuotesPage() {
             <p className="text-sm text-gray-600">{s.noQuotes}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[920px]">
+          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[920px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['', t.common.phone], ['', t.od.siteAddress], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
