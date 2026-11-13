@@ -340,17 +340,16 @@ export default function PriceListSetupPage() {
                 <div key={m} className={cn('rounded-xl border', on ? 'border-gray-900' : 'border-gray-200')}>
                   <button type="button" disabled={!canEdit} onClick={() => toggleMaterial(m)} className="flex items-center gap-3 w-full text-left px-4 py-3">
                     <span className={cn('w-4 h-4 rounded flex items-center justify-center shrink-0 border', on ? 'bg-gray-900 border-gray-900' : 'border-gray-300')}>{on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}</span>
-                    <ProfileSection material={m} size={36} />
+                    <ProfileSection material={m} size={44} />
                     <span className="text-sm font-medium text-gray-900">{L.materials[m]}</span>
-                    {!on && list.length > 0 && <span className="text-xs font-medium text-[#7f7f7f]">{list.length} ×</span>}
                   </button>
                   {on && <div className="px-4 pb-4 space-y-3">
                     {list.map(p => (
                       <div key={p.key} className="rounded-lg border border-gray-200 p-3 flex flex-col sm:flex-row gap-4">
                         {/* picture: uploaded photo or the schematic cross-section */}
-                        <div className="sm:w-32 shrink-0">
-                          <label className={cn('relative block w-full h-28 rounded-lg border border-dashed flex items-center justify-center overflow-hidden bg-gray-50', canEdit ? 'cursor-pointer border-gray-300 hover:border-gray-400' : 'border-gray-200')}>
-                            {p.image_url ? <img src={p.image_url} alt="" className="max-w-full max-h-full object-contain p-1" /> : <ProfileSection material={m} size={84} />}
+                        <div className="sm:w-48 shrink-0">
+                          <label className={cn('relative block w-full h-64 rounded-lg border border-dashed flex items-center justify-center overflow-hidden bg-gray-50', canEdit ? 'cursor-pointer border-gray-300 hover:border-gray-400' : 'border-gray-200')}>
+                            {p.image_url ? <img src={p.image_url} alt="" className="max-w-full max-h-full object-contain p-1" /> : <ProfileSection material={m} className="w-full h-full p-3" />}
                             {canEdit && <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(p, f); e.target.value = '' }} />}
                           </label>
                           {canEdit && <div className="flex items-center justify-between mt-1.5 text-xs font-medium text-[#7f7f7f]">

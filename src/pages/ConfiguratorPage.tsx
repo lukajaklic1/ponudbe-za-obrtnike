@@ -275,8 +275,8 @@ export default function ConfiguratorPage() {
                     className={cn('rounded-lg border p-3 text-left bg-white', it.system_id === s.id ? 'ring-2' : 'border-gray-200 hover:border-gray-400')}
                     style={it.system_id === s.id ? { borderColor: accent, ['--tw-ring-color' as string]: accent } : undefined}>
                     <div className="flex items-start gap-3">
-                      <div className="w-16 h-16 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                        {s.image_url ? <img src={s.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <ProfileSection material={s.material} size={56} />}
+                      <div className="w-28 h-36 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                        {s.image_url ? <img src={s.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <ProfileSection material={s.material} className="w-full h-full p-1.5" />}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{L.materials[s.material]}</span><span className="text-sm font-medium text-gray-900">{s.name}</span></div>

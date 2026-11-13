@@ -48,7 +48,7 @@ export const TEMPLATES: WindowTemplate[] = [
 export const isOnRequest = (t: WindowTemplate) => t === 'special'
 /** Balcony / terrace doors (shown as their own group in the price list). */
 export const isDoor = (t: WindowTemplate) => t.startsWith('door') || t === 'lift_slide' || t === 'psk'
-export const MATERIALS: WindowMaterial[] = ['pvc', 'pvc_alu', 'alu', 'wood', 'wood_alu', 'steel']
+export const MATERIALS: WindowMaterial[] = ['pvc', 'pvc_alu', 'alu', 'wood', 'wood_alu']
 /** Extras change the window itself (priced into the window line). */
 export const OPTION_GROUPS: ExtraGroup[] = ['glass', 'color', 'handle', 'sill', 'shading', 'other']
 /** Services are chosen once per order and become their own quote lines. */
