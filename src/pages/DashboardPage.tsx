@@ -255,7 +255,7 @@ export default function DashboardPage() {
               value={searchText}
               onChange={e => { setSearchText(e.target.value); setShowDropdown(true) }}
               onFocus={() => setShowDropdown(true)}
-              className="h-10 pl-9 pr-8 border border-gray-200 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 transition-colors"
+              className="h-9 pl-9 pr-8 border border-gray-200 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 transition-colors"
             />
             {(searchText || filterCustomerId) && (
               <button onClick={() => { setSearchText(''); setFilterCustomerId(null); setShowDropdown(false); setCurrentPage(1) }}

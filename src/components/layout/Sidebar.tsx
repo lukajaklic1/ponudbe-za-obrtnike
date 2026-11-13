@@ -77,7 +77,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-screen shrink-0">
+    <aside className="w-72 bg-gray-50 border-r border-gray-200 flex flex-col h-screen shrink-0">
       {/* App logo — same height as PageHeader (h-[57px]) */}
       <div className="h-[57px] px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <AppLogo size="sm" />

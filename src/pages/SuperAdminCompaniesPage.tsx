@@ -79,7 +79,7 @@ export default function SuperAdminCompaniesPage() {
           <div className="relative max-w-xs w-full">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder="Iskanje"
-              className="w-full h-10 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <FilterSelect label="Status" value={statusFilter} allLabel="Vsi"
             options={[{ value: 'active', label: 'Aktivna' }, { value: 'inactive', label: 'Deaktivirana' }]}

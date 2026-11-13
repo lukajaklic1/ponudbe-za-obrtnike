@@ -150,7 +150,7 @@ export default function QuotesPage() {
         <div className="relative">
           <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={sl ? 'Išči po številki, stranki, e-pošti, telefonu …' : 'Search number, customer, email, phone …'}
-            className="h-10 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
+            className="h-9 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
         </div>
         <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
@@ -163,10 +163,10 @@ export default function QuotesPage() {
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno od' : 'Created from'} value={dateFrom} allLabel={sl ? 'Vse' : 'Any'} max={dateTo || undefined} onChange={v => { setDateFrom(v); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno do' : 'Created to'} value={dateTo} allLabel={sl ? 'Vse' : 'Any'} min={dateFrom || undefined} onChange={v => { setDateTo(v); setPage(1) }} />
-        <div className="ml-auto inline-flex h-10 items-center rounded-lg border border-gray-200 bg-gray-50 p-1">
+        <div className="ml-auto inline-flex h-9 items-stretch rounded-lg border border-gray-200 bg-gray-50 p-0.5">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`p-1.5 rounded-md transition-colors ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}>
+              className={`px-2.5 flex items-center rounded-md transition-colors ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}>
               <Icon className="w-4 h-4" />
             </button>
           ))}

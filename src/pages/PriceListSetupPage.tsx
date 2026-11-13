@@ -381,7 +381,7 @@ export default function PriceListSetupPage() {
       </div>
 
       {/* sticky save bar */}
-      {canEdit && dirty && <div className="fixed bottom-0 right-0 left-0 lg:left-64 z-30 bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-end gap-3">
+      {canEdit && dirty && <div className="fixed bottom-0 right-0 left-0 lg:left-72 z-30 bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-end gap-3">
         <span className="text-sm text-gray-500">{T.unsaved}</span>
         <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>
       </div>}
