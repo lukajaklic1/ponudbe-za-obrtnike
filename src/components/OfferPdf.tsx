@@ -109,7 +109,7 @@ const UNIT = {
 const L = {
   sl: {
     title: 'PONUDBA', date: 'Datum', customer: 'Naročnik', site: 'Lokacija del', contractor: 'Izvajalec',
-    vatId: 'ID za DDV', taxNo: 'Davčna št.', regNo: 'Matična št.', registry: 'Registrski organ', shareCapital: 'Osnovni kapital', unpaid: 'nevplačani', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
+    vatId: 'ID za DDV', taxNo: 'Davčna št.', regNo: 'Matična št.', registry: 'Registrsko sodišče', shareCapital: 'Osnovni kapital', unpaid: 'nevplačani', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
     pos: 'Poz.', item: 'Opis del', qty: 'Kol.', unit: 'EM', price: 'Cena/EM', disc: 'Pop.', vat: 'DDV', total: 'Vrednost',
     general: 'Splošno', subtotal: 'Skupaj postavke', discount: 'Popust', net: 'Skupaj brez DDV', vatLine: (r: string) => `DDV ${r}`,
     gross: 'ZA PLAČILO', notes: 'Opombe', terms: 'Pogoji',
@@ -117,7 +117,7 @@ const L = {
   },
   en: {
     title: 'QUOTATION', date: 'Date', customer: 'Client', site: 'Job site', contractor: 'Contractor',
-    vatId: 'VAT ID', taxNo: 'Tax no.', regNo: 'Reg. no.', registry: 'Registry', shareCapital: 'Share capital', unpaid: 'unpaid', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
+    vatId: 'VAT ID', taxNo: 'Tax no.', regNo: 'Reg. no.', registry: 'Registry court', shareCapital: 'Share capital', unpaid: 'unpaid', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
     pos: 'Pos.', item: 'Description of work', qty: 'Qty', unit: 'Unit', price: 'Unit price', disc: 'Disc.', vat: 'VAT', total: 'Amount',
     general: 'General', subtotal: 'Items total', discount: 'Discount', net: 'Total excl. VAT', vatLine: (r: string) => `VAT ${r}`,
     gross: 'TOTAL DUE', notes: 'Notes', terms: 'Terms',
@@ -171,7 +171,7 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
             <Text style={s.titleLabel}>{T.title}</Text>
             <Text style={s.titleNumber}>{offer.number}</Text>
             {offer.title ? <Text style={[s.titleDate, { color: c.text, marginBottom: 2, maxWidth: 220, textAlign: 'right' }]}>{offer.title}</Text> : null}
-            <Text style={s.titleDate}>{company.place_of_issue ? `${company.place_of_issue}, ${fmtDate(offer.issued_at)}` : `${T.date}: ${fmtDate(offer.issued_at)}`}</Text>
+            <Text style={s.titleDate}>{T.date}: {fmtDate(offer.issued_at)}</Text>
           </View>
         </View>
 

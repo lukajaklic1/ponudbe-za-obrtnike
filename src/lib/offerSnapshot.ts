@@ -56,7 +56,6 @@ export function buildSnapshot(quote: Quote, customer: Customer | null, company: 
       quote_terms_en: company?.quote_terms_en ?? null,
       website: company?.website ?? null,
       bank_bic: company?.bank_bic ?? null,
-      place_of_issue: company?.place_of_issue || company?.address_city || null,
       vat_payer: company?.vat_payer !== false,
       vat_exempt_note: company?.vat_payer === false ? (company?.vat_exempt_note || 'DDV ni obračunan na podlagi 1. odstavka 94. člena ZDDV-1.') : null,
     },
