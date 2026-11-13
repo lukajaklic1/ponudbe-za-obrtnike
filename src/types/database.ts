@@ -62,6 +62,7 @@ export interface Company {
   configurator_show_prices: boolean
   configurator_accent: string
   configurator_intro: string | null
+  window_pricing?: Record<string, unknown> | null
   is_active: boolean
   created_at: string
   updated_at: string

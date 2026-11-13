@@ -5,9 +5,14 @@ import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
+import SpecDrawing from '../components/SpecDrawing'
+import {
+  costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, allowedBandModes, withBandMode, bandModeOf, sameField, pricingFrom,
+  type WindowSpec, type Band, type Offer, type PricingSettings,
+} from '../lib/costing'
 import { cn } from '../lib/cn'
 import {
-  WL, OPTION_GROUPS, SERVICE_GROUPS, SINGLE_CHOICE_GROUPS, basePrice, unitPrice, serviceLine, isService, money, hasHingeChoice,
+  WL, OPTION_GROUPS, SERVICE_GROUPS, SINGLE_CHOICE_GROUPS, basePrice, unitPrice, serviceLine, isService, money, hasHingeChoice, isDoor,
   type WindowSystem, type WindowType, type WindowPrice, type WindowOption, type Hinge, type OptionGroup,
 } from '../lib/windows'
 
@@ -20,6 +25,8 @@ interface ConfigData {
   prices: WindowPrice[]
   combos: { system_id: string; type_id: string }[]
   options: WindowOption[]
+  /** windows built from sashes (null when the supplier did not set it up) */
+  builder?: { offer: Offer; pricing: PricingSettings | null } | null
 }
 
 interface Item {
@@ -32,11 +39,17 @@ interface Item {
   quantity: number
   label: string
   option_ids: string[]
+  /** window built from sashes; when set, type_id is not used */
+  spec?: WindowSpec | null
 }
 
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
+    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno',
+    bandsTitle: 'Nadsvetloba / parapet', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z razdeljeno nadsvetlobo', bottom: 'S parapetom', bottomSplit: 'Z razdeljenim parapetom' } as Record<string, string>,
+    openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Parapet', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina parapeta',
+    preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
@@ -52,6 +65,10 @@ const TXT = {
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
+    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window',
+    bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
+    openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
+    preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
@@ -90,7 +107,7 @@ export default function ConfiguratorPage() {
 
   useEffect(() => {
     (supabase as any).rpc('get_configurator', { p_slug: slug }).then(({ data, error }: { data: ConfigData | null; error: unknown }) => {
-      if (error || !data || !data.types.length || !data.systems.length) { setState('missing'); return }
+      if (error || !data || (!data.types.length && !data.builder) || !data.systems.length) { setState('missing'); return }
       setData(data)
       setItems([defaultItem(data)])
       setServices(data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
@@ -103,8 +120,32 @@ export default function ConfiguratorPage() {
   const cur = data?.company.currency || 'EUR'
   const show = !!data?.company.show_prices
 
+  const builder = data?.builder ?? null
+  const bPricing = builder?.pricing ? pricingFrom(builder.pricing) : null
+  const sashWidth = (n: number) => (n === 1 ? 900 : n * 650)
+  function defaultSpecItem(d: ConfigData, n: number): Item {
+    return {
+      key: newKey(), type_id: '', system_id: d.systems[0].id, width: sashWidth(n), height: 1400, hinge: 'left', quantity: 1, label: '',
+      option_ids: d.options.filter(o => o.is_default && SINGLE_CHOICE_GROUPS.includes(o.group_key)).map(o => o.id), spec: makeSpec(n),
+    }
+  }
+  /** base price of a window built from sashes, in this profile */
+  function specBase(it: Item, systemId = it.system_id): number | null {
+    if (!data || !bPricing || !it.spec || !it.width || !it.height) return null
+    const sy = data.systems.find(x => x.id === systemId)
+    if (!sy) return null
+    const c = costWindow(specToLayout(it.spec), it.width, it.height, {
+      frame_m: Number(sy.frame_m ?? 0), sash_m: Number(sy.sash_m ?? 0), mullion_m: Number(sy.mullion_m ?? 0), bead_m: Number(sy.bead_m ?? 0),
+      frame_w: sy.frame_w, sash_w: sy.sash_w, mullion_w: sy.mullion_w,
+    }, bPricing)
+    return Math.round(Math.max(Number(sy.min_price ?? 0), c.price) * 100) / 100
+  }
+
   function defaultItem(d: ConfigData, typeId?: string): Item {
+    const b = d.builder
+    if (!typeId && b?.offer?.windows && b.offer.sashes?.length) return defaultSpecItem(d, b.offer.sashes.includes(2) ? 2 : b.offer.sashes[0])
     const type = d.types.find(t => t.id === typeId) ?? d.types.find(t => t.template === 'tilt_turn') ?? d.types[0]
+    if (!type) return defaultSpecItem(d, 1)
     const sys = d.systems.find(s => d.combos.some(c => c.system_id === s.id && c.type_id === type.id)) ?? d.systems[0]
     const door = type.template.startsWith('door') || type.template === 'lift_slide'
     return {
@@ -118,12 +159,12 @@ export default function ConfiguratorPage() {
 
   function priceOf(it: Item): number | null {
     if (!data || !show || !it.width || !it.height) return null
-    const p = data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id)
-    const base = basePrice(p, it.width, it.height)
+    const base = it.spec ? specBase(it) : basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
     return unitPrice(base, it.width, it.height, data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)))
   }
   function baseOf(it: Item): number | null {
     if (!data || !it.width || !it.height) return null
+    if (it.spec) return specBase(it)
     return basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
   }
   const serviceRows = useMemo(() => {
@@ -139,6 +180,7 @@ export default function ConfiguratorPage() {
     } else setServices(sv => sv.includes(o.id) ? sv.filter(id => id !== o.id) : [...sv, o.id])
   }
   function sizeOk(it: Item) {
+    if (it.spec) { const n = it.spec.sashes; return !!it.width && !!it.height && it.width >= 300 * n && it.width <= 1600 * n && it.height >= 300 && it.height <= 2800 }
     const t = data?.types.find(x => x.id === it.type_id)
     return !!t && !!it.width && !!it.height && it.width >= t.min_width && it.width <= t.max_width && it.height >= t.min_height && it.height <= t.max_height
   }
@@ -158,14 +200,45 @@ export default function ConfiguratorPage() {
   )
 
   const it = items[active] ?? items[0]
-  const type = data.types.find(t => t.id === it.type_id)!
-  const allowedSystems = data.systems.filter(s => data.combos.some(c => c.system_id === s.id && c.type_id === type.id))
+  const spec = it.spec ?? null
+  const type = spec ? null : (data.types.find(t => t.id === it.type_id) ?? null)
+  // with the builder only balcony doors, sliding systems and special shapes stay as fixed types
+  const visibleTypes = builder ? data.types.filter(t => isDoor(t.template)) : data.types.filter(t => t.template !== 'special')
+  const allowedSystems = spec ? data.systems : data.systems.filter(s => type && data.combos.some(c => c.system_id === s.id && c.type_id === type.id))
+  // older saved offers miss newer switches: fill them with the defaults
+  const offer = builder?.offer ? pricingFrom({ offer: builder.offer }).offer : undefined
+  const range = spec ? { min_width: 300 * spec.sashes, max_width: 1600 * spec.sashes, min_height: 300, max_height: 2800 } : type!
+  const specName = (sp: WindowSpec) => (sp.kind === 'sliding' ? T.slidingWindow : T.nSash(sp.sashes))
+  function pickSliding() { update({ spec: fitOffer(makeSlidingSpec()), type_id: '', width: spec?.kind === 'sliding' ? it.width : 1600, height: it.height ?? 1200 }) }
+  const setSpec = (sp: WindowSpec) => update({ spec: sp })
+  /** a spec that only uses a top light / opening layout the supplier ticked for this window type */
+  function fitOffer(sp: WindowSpec): WindowSpec {
+    if (!offer) return sp
+    const bands = allowedBands(sp.sashes, offer)
+    let next = bands.includes(bandKeyOf(sp)) || !bands.length ? sp : reshapeSpec(sp, sp.sashes, ...BAND_SHAPE[bands[0]])
+    const modes = allowedBandModes(next.sashes, bandKeyOf(next), offer)
+    const mode = bandModeOf(next)
+    if (mode && modes.length && !modes.includes(mode)) next = withBandMode(next, modes[0])
+    const combos = allowedCombos(next.sashes, offer, next.kind)
+    if (combos.length && !combos.some(c => comboKey(c) === comboKey(next.main))) {
+      next = { ...next, main: combos.find(c => c.every(f => f.opening === 'tilt_turn')) ?? combos[0] }
+    }
+    return next
+  }
+  function pickSashes(n: number) {
+    const cur = spec && spec.kind !== 'sliding' ? spec : makeSpec(n)
+    update({ spec: fitOffer(reshapeSpec(cur, n, cur.top, cur.bottom)), type_id: '', width: spec && spec.sashes === n ? it.width : sashWidth(n), height: it.height ?? 1400 })
+  }
+  function pickBand(top: Band, bottom: Band) { if (spec) setSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom))) }
+  const specPrice = (sp: WindowSpec) => specBase({ ...it, spec: sp })
+  let stepNo = 0
+  const nextStep = () => ++stepNo
   const update = (patch: Partial<Item>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
 
   function pickType(t: WindowType) {
     const keepSystem = data!.combos.some(c => c.system_id === it.system_id && c.type_id === t.id)
     const d = defaultItem(data!, t.id)
-    update({ type_id: t.id, system_id: keepSystem ? it.system_id : d.system_id, width: clamp(it.width ?? d.width!, t.min_width, t.max_width), height: d.height })
+    update({ spec: null, type_id: t.id, system_id: keepSystem ? it.system_id : d.system_id, width: clamp(it.width ?? d.width!, t.min_width, t.max_width), height: d.height })
   }
   function toggleOption(o: WindowOption) {
     const single = SINGLE_CHOICE_GROUPS.includes(o.group_key)
@@ -189,7 +262,9 @@ export default function ConfiguratorPage() {
     const { data: res, error } = await (supabase as any).rpc('submit_configuration', {
       p_slug: slug,
       p_customer: contact,
-      p_items: items.map(x => ({ system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label })),
+      p_items: items.map(x => x.spec
+        ? { system_id: x.system_id, spec: x.spec, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
+        : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
       p_note: contact.note,
       p_services: services,
     })
@@ -255,33 +330,99 @@ export default function ConfiguratorPage() {
                 <button onClick={() => addItem(false)} className="shrink-0 px-3 py-1.5 rounded-full text-sm border border-dashed border-gray-200 text-gray-600 hover:border-gray-500 flex items-center gap-1"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
               </div>
 
-              <Section n={1} title={T.step1} accent={accent}>
+              <Section n={nextStep()} title={T.step1} accent={accent}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {data.types.map(t => {
+                  {offer?.windows && [...(offer.sashes ?? [])].sort().map(n => {
+                    const on = spec?.sashes === n && spec.kind !== 'sliding'
+                    return <button key={'w' + n} onClick={() => pickSashes(n)}
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      {on && <SelBadge accent={accent} />}
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={sashWidth(n)} height={1300} size={n > 2 ? 100 : 78} plain /></div>
+                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.nSash(n)}</div>
+                    </button>
+                  })}
+                  {offer?.slidingWindows && (() => {
+                    const on = spec?.kind === 'sliding'
+                    return <button key="sw" onClick={pickSliding}
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      {on && <SelBadge accent={accent} />}
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96} plain /></div>
+                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.slidingWindow}</div>
+                    </button>
+                  })()}
+                  {visibleTypes.map(t => {
                     const door = t.template.startsWith('door') || t.template === 'lift_slide'
                     return <button key={t.id} onClick={() => pickType(t)}
-                      className={cn('rounded-lg border p-3 text-left bg-white transition-colors', it.type_id === t.id ? 'ring-2' : 'border-gray-200 hover:border-gray-400')}
-                      style={it.type_id === t.id ? { borderColor: accent, ['--tw-ring-color' as string]: accent } : undefined}>
-                      <div className="h-[84px] flex items-center justify-center"><WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} /></div>
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', !spec && it.type_id === t.id ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={!spec && it.type_id === t.id ? selStyle(accent) : undefined}>
+                      {!spec && it.type_id === t.id && <SelBadge accent={accent} />}
+                      <div className="h-[84px] flex items-center justify-center"><WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} plain /></div>
                       <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{t.name}</div>
                     </button>
                   })}
                 </div>
               </Section>
 
-              <Section n={2} title={T.step2} accent={accent}>
+              {spec && spec.kind !== 'sliding' && offer && allowedBands(spec.sashes, offer).length > 1 && <Section n={nextStep()} title={T.bandsTitle} accent={accent}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                  {allowedBands(spec.sashes, offer).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
+                    const on = spec.top === top && spec.bottom === bottom
+                    const preview = reshapeSpec(spec, spec.sashes, top, bottom)
+                    const pr = show && !on ? specPrice(preview) : null, curP = show ? specPrice(spec) : null
+                    return <button key={k} onClick={() => pickBand(top, bottom)}
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      {on && <SelBadge accent={accent} />}
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={preview} width={it.width ?? 1200} height={it.height ?? 1400} size={80} plain /></div>
+                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.band[k]}</div>
+                      {pr != null && curP != null && Math.round(pr - curP) !== 0 && <div className="text-xs text-gray-500 mt-0.5">{pr > curP ? '+' : '−'} {money(Math.abs(Math.round(pr - curP)), cur)}</div>}
+                    </button>
+                  })}
+                </div>
+              </Section>}
+
+              {spec && offer && <Section n={nextStep()} title={T.openTitle} accent={accent}>
+                {(() => {
+                  // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
+                  const combos = allowedCombos(spec.sashes, offer, spec.kind)
+                  const modes = spec.kind === 'sliding' ? [] : allowedBandModes(spec.sashes, bandKeyOf(spec), offer)
+                  const cards = (modes.length ? modes : [null]).flatMap(m => combos.map(cb => (m ? withBandMode({ ...spec, main: cb }, m) : { ...spec, main: cb })))
+                  const prices = cards.map(sp => (show ? specPrice(sp) : null))
+                  const known = prices.filter((x): x is number => x != null)
+                  const min = known.length ? Math.min(...known) : null
+                  const curMode = bandModeOf(spec)
+                  return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {cards.map((sp, i) => {
+                      const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
+                      const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
+                      return <button key={i} onClick={() => setSpec(sp)}
+                        className={cn('relative rounded-lg border p-3 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        style={on ? selStyle(accent) : undefined}>
+                        {on && <SelBadge accent={accent} />}
+                        <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
+                        {d != null && <div className="text-xs text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
+                      </button>
+                    })}
+                  </div>
+                })()}
+              </Section>}
+
+              <Section n={nextStep()} title={T.step2} accent={accent}>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {(() => {
                     // price of the same window in every profile; the cheapest is the base
-                    const bases = Object.fromEntries(allowedSystems.map(s => [s.id, basePrice(data.prices.find(x => x.system_id === s.id && x.type_id === type.id), it.width ?? 0, it.height ?? 0)]))
+                    const bases = Object.fromEntries(allowedSystems.map(s => [s.id, spec ? specBase(it, s.id) : basePrice(data.prices.find(x => x.system_id === s.id && x.type_id === type!.id), it.width ?? 0, it.height ?? 0)]))
                     const known = Object.values(bases).filter((v): v is number => v != null)
                     const min = known.length > 1 ? Math.min(...known) : null
                     return allowedSystems.map(s => {
                     const b = bases[s.id]
                     const diff = show && min != null && b != null ? Math.round(b - min) : null
                     return <button key={s.id} onClick={() => update({ system_id: s.id })}
-                    className={cn('rounded-lg border p-3 text-left bg-white', it.system_id === s.id ? 'ring-2' : 'border-gray-200 hover:border-gray-400')}
-                    style={it.system_id === s.id ? { borderColor: accent, ['--tw-ring-color' as string]: accent } : undefined}>
+                    className={cn('relative rounded-lg border p-3 text-left bg-white', it.system_id === s.id ? '' : 'border-gray-200 hover:border-gray-400')}
+                    style={it.system_id === s.id ? selStyle(accent) : undefined}>
+                    {it.system_id === s.id && <SelBadge accent={accent} />}
                     <div className="flex items-start gap-3">
                       <div className="w-28 h-36 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                         {s.image_url ? <img src={s.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <ProfileSection material={s.material} className="w-full h-full p-1.5" />}
@@ -300,11 +441,13 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>
 
-              <Section n={3} title={T.step3} accent={accent}>
+              <Section n={nextStep()} title={T.step3} accent={accent}>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <MmInput label={T.width} value={it.width} onChange={v => update({ width: v })} min={type.min_width} max={type.max_width} rangeLabel={T.range} />
-                  <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={type.min_height} max={type.max_height} rangeLabel={T.range} />
-                  {hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
+                  <MmInput label={T.width} value={it.width} onChange={v => update({ width: v })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />
+                  <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />
+                  {spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
+                  {spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
+                  {type && hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500">{T.hinge}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {(['left', 'right'] as Hinge[]).map(h => <button key={h} onClick={() => update({ hinge: h })}
@@ -329,7 +472,7 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>
 
-              {data.options.length > 0 && <Section n={4} title={T.step4} accent={accent}>
+              {data.options.length > 0 && <Section n={nextStep()} title={T.step4} accent={accent}>
                 <div className="space-y-4">
                   {OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)).map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
                     options={data.options.filter(o => o.group_key === g)} selected={it.option_ids} onToggle={toggleOption}
@@ -338,7 +481,7 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>}
 
-              {data.options.some(isService) && <Section n={5} title={T.step5} accent={accent}>
+              {data.options.some(isService) && <Section n={nextStep()} title={T.step5} accent={accent}>
                 <p className="text-xs text-gray-500 -mt-1 mb-3">{T.servicesHint}</p>
                 <div className="space-y-4">
                   {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g)).map(g => <div key={g}>
@@ -386,7 +529,8 @@ export default function ConfiguratorPage() {
           <aside className="lg:sticky lg:top-4 space-y-3">
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex justify-center py-2 overflow-hidden">
-                <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />
+                {spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims />
+                  : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />}
               </div>
               {!sizeOk(it) && <p className="text-xs text-red-600 text-center mt-1">{T.invalidSize}</p>}
               <div className="flex items-baseline justify-between mt-3">
@@ -403,9 +547,9 @@ export default function ConfiguratorPage() {
                   const xp = priceOf(x)
                   return <li key={x.key}>
                     <button onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-center gap-3 py-2 text-left">
-                      <div className="w-10 flex justify-center shrink-0">{t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
+                      <div className="w-10 flex justify-center shrink-0">{x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn('text-sm truncate', i === active && stage === 'config' ? 'font-semibold text-gray-900' : 'text-gray-700')}>{x.quantity} × {t?.name}</div>
+                        <div className={cn('text-sm truncate', i === active && stage === 'config' ? 'font-semibold text-gray-900' : 'text-gray-700')}>{x.quantity} × {x.spec ? specName(x.spec) : t?.name}</div>
                         <div className="text-xs text-gray-500">{x.width} × {x.height} mm{x.label ? ` · ${x.label}` : ''}</div>
                       </div>
                       {show && <div className="text-sm text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}
@@ -502,10 +646,17 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
   </div>
 }
 
+// Selected state, same as in the app: outline + light tint in the accent colour + check badge
+const tint = (hex: string, a: number) => /^#[0-9a-f]{6}$/i.test(hex) ? hex + Math.round(a * 255).toString(16).padStart(2, '0') : 'transparent'
+const selStyle = (accent: string): React.CSSProperties => ({ borderColor: accent, boxShadow: `inset 0 0 0 1px ${accent}`, backgroundColor: tint(accent, 0.06) })
+function SelBadge({ accent }: { accent: string }) {
+  return <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center shadow-sm" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>
+}
+
 function Chip({ on, onClick, accent, single, children }: { on: boolean; onClick: () => void; accent: string; single?: boolean; children: React.ReactNode }) {
   return <button onClick={onClick}
     className={cn('px-3 py-1.5 rounded-lg border text-sm flex items-center gap-1.5', on ? 'bg-white' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400')}
-    style={on ? { borderColor: accent, color: accent, boxShadow: `inset 0 0 0 1px ${accent}` } : undefined}>
+    style={on ? { ...selStyle(accent), color: accent } : undefined}>
     {on && !single && <Check className="w-3.5 h-3.5" />}{children}
   </button>
 }

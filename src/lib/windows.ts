@@ -23,6 +23,9 @@ export interface WindowSystem {
   price_per_m2?: number; min_price?: number
   /** photo or cross-section of the profile (public URL) */
   image_url?: string | null
+  /** per-metre prices and visible widths (mm) for the metre costing */
+  frame_m?: number; sash_m?: number; mullion_m?: number; bead_m?: number
+  frame_w?: number; sash_w?: number; mullion_w?: number
 }
 export interface WindowType {
   id: string; company_id?: string; name: string; template: WindowTemplate

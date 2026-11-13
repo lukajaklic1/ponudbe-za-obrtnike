@@ -10,6 +10,8 @@ interface Props {
   showDims?: boolean
   frameColor?: string
   className?: string
+  /** only the shape: no opening symbols, no handles */
+  plain?: boolean
 }
 
 /**
@@ -17,7 +19,7 @@ interface Props {
  * Opening symbols: the triangle's apex points to the hinge side
  * (turn → apex on the side, tilt → apex at the bottom).
  */
-export default function WindowDrawing({ template, width, height, hinge = 'left', size = 240, showDims = false, frameColor = '#f8fafc', className }: Props) {
+export default function WindowDrawing({ template, width, height, hinge = 'left', size = 240, showDims = false, frameColor = '#f8fafc', className, plain = false }: Props) {
   const w = Math.max(200, width || 0)
   const h = Math.max(200, height || 0)
   const scale = size / Math.max(w, h)
@@ -44,7 +46,7 @@ export default function WindowDrawing({ template, width, height, hinge = 'left',
     let x = innerX
     return list.map((s, i) => {
       const sw = innerW * s.weight / totalWeight
-      const el = <SashShape key={key + i} sash={s} x={x} y={y} w={sw} h={h} sashFrame={sashFrame} frameColor={frameColor} />
+      const el = <SashShape key={key + i} sash={s} x={x} y={y} w={sw} h={h} sashFrame={sashFrame} frameColor={frameColor} plain={plain} />
       const mullion = s.mullionAfter
         ? <rect key={`${key}m${i}`} x={x + sw - frame / 2} y={y} width={frame} height={h} fill={frameColor} stroke="#334155" strokeWidth={1} />
         : null
@@ -100,7 +102,7 @@ export default function WindowDrawing({ template, width, height, hinge = 'left',
   )
 }
 
-function SashShape({ sash, x, y, w, h, sashFrame, frameColor }: { sash: Sash; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string }) {
+function SashShape({ sash, x, y, w, h, sashFrame, frameColor, plain }: { sash: Sash; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string; plain?: boolean }) {
   const inset = 2
   const sx = x + inset, sy = y + inset, sw = w - inset * 2, sh = h - inset * 2
   const gx = sx + sashFrame, gy = sy + sashFrame, gw = sw - sashFrame * 2, gh = sh - sashFrame * 2
@@ -154,8 +156,8 @@ function SashShape({ sash, x, y, w, h, sashFrame, frameColor }: { sash: Sash; x:
       <rect x={sx} y={sy} width={sw} height={sh} fill={frameColor} stroke="#334155" strokeWidth={1} />
       <rect x={gx} y={gy} width={gw} height={gh} fill="#dbeafe" stroke="#334155" strokeWidth={0.8} />
       <path d={`M ${gx + gw * 0.2} ${gy + gh * 0.28} l ${gw * 0.14} ${-gh * 0.08}`} stroke="#ffffff" strokeWidth={2} opacity={0.8} />
-      {symbols}
-      {handle}
+      {!plain && symbols}
+      {!plain && handle}
     </g>
   )
 }

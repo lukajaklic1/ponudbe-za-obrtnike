@@ -343,6 +343,31 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
     }
     case 'set_user_active': { const u = db.users.find(x => x.id === a.p_user_id); if (u) u.is_active = a.p_active; persist(); return { data: null, error: null } }
     case 'set_user_admin': { const u = db.users.find(x => x.id === a.p_user_id); if (u) u.is_admin = a.p_is_admin; persist(); return { data: null, error: null } }
+    // public configurator in demo mode: same shape as the SQL function (margin folded into prices)
+    case 'get_configurator': {
+      const c = db.companies[0]
+      const wp = (c.window_pricing ?? {}) as Record<string, any>
+      const mf = 1 + Number(wp.margin_pct ?? 45) / 100
+      const hw = { tilt_turn: 20, turn: 15, tilt: 18, passive: 10, slide_window: 40, slide: 120, lift_slide: 450, ...(wp.hw ?? {}) } as Record<string, number>
+      const hwM = { tilt_turn: 1, turn: 1, tilt: 1, passive: 0.5, slide_window: 2, slide: 5, lift_slide: 20, ...(wp.hw_m ?? {}) } as Record<string, number>
+      const r2 = (n: number) => Math.round(n * 100) / 100
+      const active = (t: string) => (db[t] ?? []).filter((x: Row) => x.company_id === c.id && x.is_active !== false)
+      return { data: {
+        company: { name: c.name, logo_url: c.logo_url, email: c.email, phone: c.phone, currency: c.currency || 'EUR', accent: c.configurator_accent || '#101112', intro: c.configurator_intro ?? null, show_prices: true, vat_rate: c.vat_payer === false ? 0 : 22 },
+        systems: active('window_systems').map((s: Row) => ({ ...s, frame_m: r2(Number(s.frame_m ?? 0) * mf), sash_m: r2(Number(s.sash_m ?? 0) * mf), mullion_m: r2(Number(s.mullion_m ?? 0) * mf), bead_m: r2(Number(s.bead_m ?? 0) * mf) })),
+        types: active('window_types'),
+        prices: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id),
+        combos: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id).map((p: Row) => ({ system_id: p.system_id, type_id: p.type_id })),
+        options: active('window_options'),
+        builder: wp.offer?.windows ? { offer: wp.offer, pricing: {
+          hw: Object.fromEntries(Object.entries(hw).map(([k, v]) => [k, r2(Number(v) * mf)])),
+          hw_m: Object.fromEntries(Object.entries(hwM).map(([k, v]) => [k, r2(Number(v) * mf)])),
+          glass_m2: r2(Number(wp.glass_m2 ?? 32) * mf), labour_window: r2(Number(wp.labour_window ?? 30) * mf), labour_sash: r2(Number(wp.labour_sash ?? 22) * mf),
+          waste_pct: Number(wp.waste_pct ?? 6), margin_pct: 0, both_sides_pct: Number(wp.both_sides_pct ?? 10),
+        } } : null,
+      }, error: null }
+    }
+    case 'submit_configuration': return { data: { quote_number: 'DEMO-' + Math.floor(Math.random() * 9000 + 1000) }, error: null }
     default: return { data: null, error: { message: `Demo način: funkcija ${fn} ni na voljo` } }
   }
 }
