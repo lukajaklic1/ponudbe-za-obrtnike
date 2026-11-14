@@ -10,7 +10,7 @@ import NumberInput from '../components/ui/NumberInput'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
-import { costWindow, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, BAND_KEYS, BAND_SHAPE, allowedBandModes, withBandMode, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer } from '../lib/costing'
+import { costWindow, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, BAND_KEYS, BAND_SHAPE, allVariants, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import { sampleRoofCatalog, newRoofId, type RoofCatalog, type RoofOpening } from '../lib/costing'
@@ -65,9 +65,9 @@ const TXT = {
     sashCount: 'Število kril', nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno',
     bands: 'Nadsvetloba in parapet', bandTop: 'Nadsvetloba', bandTopSplit: 'Razdeljena nadsvetloba', bandBottom: 'Parapet', bandBottomSplit: 'Razdeljen parapet',
     s1b: 'Nastavitve izdelkov', s1bhint: 'Za vsako skupino izdelkov nastavite izvedbe, ki jih izdelujete. Kliknite na skupino, da jo razširite.',
-    windowsSummary: (t: number, l: number) => `${t} ${t === 1 ? 'tip okna' : t === 2 ? 'tipa oken' : t <= 4 ? 'tipi oken' : 'tipov oken'} · ${l} načinov odpiranja`,
+    windowsSummary: (t: number, l: number) => `${t} ${t === 1 ? 'tip okna' : t === 2 ? 'tipa oken' : t <= 4 ? 'tipi oken' : 'tipov oken'} · ${l} izvedb`,
     typesCount: (a: number, b: number) => `${a} od ${b} izvedb`,
-    modeFixed: 'Fiksna', modeTilt: 'Na kip', ofCount: (a: number, b: number) => `${a} od ${b}`, bandsFor: 'Nadsvetloba in parapet', rowSummary: (b: number, o: number) => `${b} od 5 izvedb nadsvetlobe · ${o} načinov odpiranja`,
+    variantsFor: 'Izvedbe, ki jih izdelujete', modeFixed: 'Fiksna', modeTilt: 'Na kip', ofCount: (a: number, b: number) => `${a} od ${b}`, bandsFor: 'Nadsvetloba in parapet', rowSummary: (b: number, o: number) => `${b} od 5 nadsvetlob in parapetov · ${o} izvedb`,
     bandLabel: { none: 'Brez nadsvetlobe in parapeta', top: 'Z nadsvetlobo', topSplit: 'Z razdeljeno nadsvetlobo', bottom: 'S parapetom', bottomSplit: 'Z razdeljenim parapetom' } as Record<string, string>,
     combosFor: 'Odpiranja, ki jih izdelujete', combosCount: (a: number, b: number) => `${a} od ${b} načinov odpiranja`, showOpenings: 'Odpiranja', showVariants: 'Izvedbe', hideOpenings: 'Skrij', selectAll: 'Izberi vse', clearAll: 'Počisti',
     openings: 'Načini odpiranja', openFixed: 'Fiksno', openingsHint: 'Stranka v konfiguratorju za vsako krilo izbere enega od teh načinov. Cena se izračuna sama iz profila krila in okovja.',
@@ -99,9 +99,9 @@ const TXT = {
     sashCount: 'Number of sashes', nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes',
     bands: 'Top light and bottom panel', bandTop: 'Top light', bandTopSplit: 'Split top light', bandBottom: 'Bottom panel', bandBottomSplit: 'Split bottom panel',
     s1b: 'Product settings', s1bhint: 'For every product group set the variants you make. Click a group to open it.',
-    windowsSummary: (t: number, l: number) => `${t} window types · ${l} opening layouts`,
+    windowsSummary: (t: number, l: number) => `${t} window types · ${l} variants`,
     typesCount: (a: number, b: number) => `${a} of ${b} variants`,
-    modeFixed: 'Fixed', modeTilt: 'Tilt', ofCount: (a: number, b: number) => `${a} of ${b}`, bandsFor: 'Top light and bottom panel', rowSummary: (b: number, o: number) => `${b} of 5 top light variants · ${o} opening layouts`,
+    variantsFor: 'Variants you make', modeFixed: 'Fixed', modeTilt: 'Tilt', ofCount: (a: number, b: number) => `${a} of ${b}`, bandsFor: 'Top light and bottom panel', rowSummary: (b: number, o: number) => `${b} of 5 top lights and panels · ${o} variants`,
     bandLabel: { none: 'No top light or bottom panel', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     combosFor: 'Openings you make', combosCount: (a: number, b: number) => `${a} of ${b} opening layouts`, showOpenings: 'Openings', showVariants: 'Variants', hideOpenings: 'Hide', selectAll: 'Select all', clearAll: 'Clear',
     openings: 'Opening types', openFixed: 'Fixed', openingsHint: 'In the configurator the customer picks one of these for every sash. The price follows from the sash profile and hardware.',
@@ -233,8 +233,8 @@ export default function PriceListSetupPage() {
   const windowsSummary = (() => {
     const o = pricing.offer
     const layouts = o.sashes.reduce((a, n) => {
-      const all = allCombos(n, o).map(comboKey)
-      return a + (o.combos?.[String(n)] ?? all).filter(k => all.includes(k)).length
+      const off = o.variantsOff?.[String(n)] ?? []
+      return a + allVariants(n, o).filter(v => !off.includes(v.key)).length
     }, 0)
     return T.windowsSummary(o.sashes.length, layouts)
   })()
@@ -430,9 +430,10 @@ export default function PriceListSetupPage() {
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                   {[1, 2, 3].map(n => {
                     const on = offer.sashes.includes(n)
-                    const all = allCombos(n, offer)
-                    const picked = (offer.combos?.[String(n)] ?? all.map(comboKey)).filter(k => all.some(c => comboKey(c) === k))
-                    const setPicked = (keys: string[]) => setOffer({ combos: { ...(offer.combos ?? {}), [String(n)]: keys } })
+                    const variants = allVariants(n, offer)
+                    const off = offer.variantsOff?.[String(n)] ?? []
+                    const setOff = (keys: string[]) => setOffer({ variantsOff: { ...(offer.variantsOff ?? {}), [String(n)]: keys } })
+                    const onCount = variants.filter(v => !off.includes(v.key)).length
                     const bandsPicked = offer.bands?.[String(n)] ?? [...BAND_KEYS]
                     const setBands = (keys: string[]) => setOffer({ bands: { ...(offer.bands ?? {}), [String(n)]: keys } })
                     const open = on && openSash === n
@@ -447,7 +448,7 @@ export default function PriceListSetupPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className={cn('text-sm font-medium', on ? 'text-gray-900' : 'text-gray-500')}>{T.nSash(n)}</div>
-                          {on && <div className="text-xs font-medium text-[#7f7f7f] mt-0.5">{T.rowSummary(bandsPicked.length, picked.length)}</div>}
+                          {on && <div className="text-xs font-medium text-[#7f7f7f] mt-0.5">{T.rowSummary(bandsPicked.length, onCount)}</div>}
                         </div>
                         {on && <button type="button" onClick={() => setOpenSash(open ? null : n)}
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -465,8 +466,6 @@ export default function PriceListSetupPage() {
                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                               {BAND_KEYS.map(k => {
                                 const sel = bandsPicked.includes(k)
-                                const modes = allowedBandModes(n, k, offer)
-                                const setModes = (m: string[]) => setOffer({ bandModes: { ...(offer.bandModes ?? {}), [`${n}:${k}`]: m } })
                                 return <div key={k} className={cn('relative rounded-lg border transition-colors', sel ? SEL_ON : SEL_OFF)}>
                                   <button type="button" disabled={!canEdit} onClick={() => setBands(sel ? bandsPicked.filter(x => x !== k) : [...bandsPicked, k])}
                                     className="w-full p-3 flex flex-col items-center justify-center gap-2 h-[190px]">
@@ -474,37 +473,34 @@ export default function PriceListSetupPage() {
                                     <SpecDrawing spec={makeSpec(n, BAND_SHAPE[k][0], BAND_SHAPE[k][1], 'fixed')} width={500 * n + 200} height={1500} size={n > 2 ? 140 : 120} className="max-w-full h-auto" plain />
                                     <span className={cn('text-xs font-medium', sel ? 'text-blue-700' : 'text-gray-900')}>{T.bandLabel[k]}</span>
                                   </button>
-                                  {/* the top light / bottom panel itself: fixed and / or tilt */}
-                                  {sel && k !== 'none' && <div className="grid grid-cols-2 gap-2 px-3 pb-3">
-                                    {(['fixed', 'tilt'] as const).map(m => {
-                                      const on = modes.includes(m)
-                                      return <button key={m} type="button" disabled={!canEdit} onClick={() => setModes(on ? modes.filter(x => x !== m) : [...modes, m])}
-                                        className={cn('flex items-center gap-2 rounded-md border px-2 py-1.5 bg-white text-left', on ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300')}>
-                                        <SpecDrawing spec={withBandMode(makeSpec(1, BAND_SHAPE[k][0] === 'none' ? 'none' : 'single', BAND_SHAPE[k][1] === 'none' ? 'none' : 'single', 'fixed'), m)} width={700} height={1300} size={30} />
-                                        <span className={cn('text-xs font-medium', on ? 'text-blue-700' : 'text-gray-600')}>{m === 'fixed' ? T.modeFixed : T.modeTilt}</span>
-                                        {on && <Check className="w-3.5 h-3.5 text-blue-600 ml-auto" strokeWidth={3} />}
-                                      </button>
-                                    })}
-                                  </div>}
                                 </div>
                               })}
                             </div>
                           </SubFold>
-                          {/* opening combinations of this window type */}
-                          <SubFold open={!!subOpen[n + 'o']} onToggle={() => toggleSub(n + 'o')} title={T.combosFor} count={T.ofCount(picked.length, all.length)}
+                          {/* every complete variant (sashes × top light × fixed / tilt); switching a top light off above hides its variants */}
+                          <SubFold title={T.variantsFor} count={T.ofCount(variants.filter(v => !off.includes(v.key)).length, variants.length)}
                             actions={canEdit && <>
-                              <button type="button" onClick={() => setPicked(all.map(comboKey))} className="text-blue-600 hover:text-blue-700">{T.selectAll}</button>
-                              <button type="button" onClick={() => setPicked([])} className="text-[#7f7f7f] hover:text-gray-700">{T.clearAll}</button>
+                              <button type="button" onClick={() => setOff([])} className="text-blue-600 hover:text-blue-700">{T.selectAll}</button>
+                              <button type="button" onClick={() => setOff(variants.map(v => v.key))} className="text-[#7f7f7f] hover:text-gray-700">{T.clearAll}</button>
                             </>}>
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                              {all.map(c => {
-                                const k = comboKey(c), sel = picked.includes(k)
-                                return <button key={k} type="button" disabled={!canEdit} onClick={() => setPicked(sel ? picked.filter(x => x !== k) : [...picked, k])}
-                                  className={cn('relative rounded-lg border p-2 flex items-center justify-center h-[170px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
-                                  {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
-                                  <SpecDrawing spec={{ ...makeSpec(n), main: c }} width={500 * n + 200} height={1300} size={n > 2 ? 150 : n === 2 ? 130 : 110} className="max-w-full h-auto" />
-                                </button>
-                              })}
+                            <div className="space-y-5">
+                              {BAND_KEYS.flatMap(bk => (bk === 'none' ? [null] : (['fixed', 'tilt'] as const)).map(m => ({ bk, m })))
+                                .map(({ bk, m }) => ({ bk, m, list: variants.filter(v => v.band === bk && v.mode === m) }))
+                                .filter(g => g.list.length).map(g => (
+                                <div key={g.bk + (g.m ?? '')}>
+                                  <div className="text-xs font-medium text-[#7f7f7f] mb-2">{T.bandLabel[g.bk]}{g.m ? ` · ${g.m === 'fixed' ? T.modeFixed : T.modeTilt}` : ''}</div>
+                                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {g.list.map(v => {
+                                      const sel = !off.includes(v.key)
+                                      return <button key={v.key} type="button" disabled={!canEdit} onClick={() => setOff(sel ? [...off, v.key] : off.filter(x => x !== v.key))}
+                                        className={cn('relative rounded-lg border p-2 flex items-center justify-center h-[170px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
+                                        {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                                        <SpecDrawing spec={applyVariant(makeSpec(n), v)} width={500 * n + 200} height={1400} size={n > 2 ? 150 : n === 2 ? 130 : 110} className="max-w-full h-auto" />
+                                      </button>
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </SubFold>
                         </div>

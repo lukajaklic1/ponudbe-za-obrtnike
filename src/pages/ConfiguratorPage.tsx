@@ -9,7 +9,7 @@ import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import type { RoofCatalog } from '../lib/costing'
 import {
-  costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, allowedBandModes, withBandMode, bandModeOf, sameField, pricingFrom,
+  costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey,
   type WindowSpec, type Band, type Offer, type PricingSettings,
 } from '../lib/costing'
 import { cn } from '../lib/cn'
@@ -247,12 +247,14 @@ export default function ConfiguratorPage() {
     if (!offer) return sp
     const bands = allowedBands(sp.sashes, offer)
     let next = bands.includes(bandKeyOf(sp)) || !bands.length ? sp : reshapeSpec(sp, sp.sashes, ...BAND_SHAPE[bands[0]])
-    const modes = allowedBandModes(next.sashes, bandKeyOf(next), offer)
-    const mode = bandModeOf(next)
-    if (mode && modes.length && !modes.includes(mode)) next = withBandMode(next, modes[0])
-    const combos = allowedCombos(next.sashes, offer, next.kind)
-    if (combos.length && !combos.some(c => comboKey(c) === comboKey(next.main))) {
-      next = { ...next, main: combos.find(c => c.every(f => f.opening === 'tilt_turn')) ?? combos[0] }
+    if (next.kind === 'sliding') {
+      const combos = allowedCombos(next.sashes, offer, next.kind)
+      if (combos.length && !combos.some(c => comboKey(c) === comboKey(next.main))) next = { ...next, main: combos[0] }
+      return next
+    }
+    const vs = allowedVariants(next.sashes, offer).filter(v => v.band === bandKeyOf(next))
+    if (vs.length && !vs.some(v => v.key === specVariantKey(next))) {
+      next = applyVariant(next, vs.find(v => v.combo.every(f => f.opening === 'tilt_turn') && v.mode !== 'tilt') ?? vs[0])
     }
     return next
   }
@@ -442,9 +444,9 @@ export default function ConfiguratorPage() {
                 </Section>}
               </>}
 
-              {spec && spec.kind !== 'sliding' && offer && allowedBands(spec.sashes, offer).length > 1 && <Section n={nextStep()} title={T.bandsTitle} accent={accent}>
+              {spec && spec.kind !== 'sliding' && offer && allowedBands(spec.sashes, offer).filter(k => allowedVariants(spec.sashes, offer).some(v => v.band === k)).length > 1 && <Section n={nextStep()} title={T.bandsTitle} accent={accent}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                  {allowedBands(spec.sashes, offer).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
+                  {allowedBands(spec.sashes, offer).filter(k => allowedVariants(spec.sashes, offer).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
                     const on = spec.top === top && spec.bottom === bottom
                     const preview = reshapeSpec(spec, spec.sashes, top, bottom)
                     const pr = show && !on ? specPrice(preview) : null, curP = show ? specPrice(spec) : null
@@ -463,9 +465,10 @@ export default function ConfiguratorPage() {
               {spec && offer && <Section n={nextStep()} title={T.openTitle} accent={accent}>
                 {(() => {
                   // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
-                  const combos = allowedCombos(spec.sashes, offer, spec.kind)
-                  const modes = spec.kind === 'sliding' ? [] : allowedBandModes(spec.sashes, bandKeyOf(spec), offer)
-                  const cards = (modes.length ? modes : [null]).flatMap(m => combos.map(cb => (m ? withBandMode({ ...spec, main: cb }, m) : { ...spec, main: cb })))
+                  // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
+                  const cards = spec.kind === 'sliding'
+                    ? allowedCombos(spec.sashes, offer, spec.kind).map(cb => ({ ...spec, main: cb }))
+                    : allowedVariants(spec.sashes, offer).filter(v => v.band === bandKeyOf(spec)).map(v => applyVariant(spec, v))
                   const prices = cards.map(sp => (show ? specPrice(sp) : null))
                   const known = prices.filter((x): x is number => x != null)
                   const min = known.length ? Math.min(...known) : null

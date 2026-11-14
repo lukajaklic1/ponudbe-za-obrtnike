@@ -97,7 +97,7 @@ function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain }: { 
     <rect x={sx} y={sy} width={sw} height={sh} fill={frameColor} stroke="#334155" strokeWidth={0.8} />
     <rect x={gx} y={gy} width={gw} height={gh} fill="#dbeafe" stroke="#334155" strokeWidth={0.6} />
     {!plain && turn && <polyline points={`${right ? gx : gx + gw},${gy} ${right ? gx + gw : gx},${gy + gh / 2} ${right ? gx : gx + gw},${gy + gh}`} {...line} />}
-    {!plain && tilt && <polyline points={`${gx},${gy} ${gx + gw / 2},${gy + gh} ${gx + gw},${gy}`} {...line} />}
+    {!plain && tilt && <polyline points={`${gx},${gy + gh} ${gx + gw / 2},${gy} ${gx + gw},${gy + gh}`} {...line} />}
     {plain || f.opening === 'passive' ? null : f.opening === 'tilt'
       ? <rect x={sx + sw / 2 - hh / 2} y={sy + sashFrame / 2 - hw / 2} width={hh} height={hw} rx={1} fill="#334155" />
       : <rect x={right ? sx + sashFrame / 2 - hw / 2 : sx + sw - sashFrame / 2 - hw / 2} y={sy + sh / 2 - hh / 2} width={hw} height={hh} rx={1} fill="#334155" />}

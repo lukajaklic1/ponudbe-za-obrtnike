@@ -118,8 +118,8 @@ function SashShape({ sash, x, y, w, h, sashFrame, frameColor, plain }: { sash: S
     symbols.push(<polyline key="t" points={`${baseX},${gy} ${apexX},${gy + gh / 2} ${baseX},${gy + gh}`} {...line} />)
   }
   if (tilt) {
-    // apex at the bottom middle
-    symbols.push(<polyline key="k" points={`${gx},${gy} ${gx + gw / 2},${gy + gh} ${gx + gw},${gy}`} {...line} />)
+    // apex at the top middle
+    symbols.push(<polyline key="k" points={`${gx},${gy + gh} ${gx + gw / 2},${gy} ${gx + gw},${gy + gh}`} {...line} />)
   }
   if (sash.kind === 'slide' || sash.kind === 'slide_tilt') {
     const dir = sash.hinge === 'right' ? 1 : -1

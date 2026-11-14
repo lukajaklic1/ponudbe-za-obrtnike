@@ -85,6 +85,8 @@ export interface Offer {
   bands?: Record<string, string[]>
   /** per window type and top light variant ("3:top"): may it be fixed and/or tilt (missing = both) */
   bandModes?: Record<string, string[]>
+  /** complete variants the supplier switched OFF, per number of sashes (everything else is offered) */
+  variantsOff?: Record<string, string[]>
 }
 export const DEFAULT_OFFER: Offer = {
   windows: true, sashes: [1, 2, 3], top: true, topSplit: true, bottom: true, bottomSplit: true,
@@ -397,6 +399,29 @@ export function withBandMode(sp: WindowSpec, mode: BandMode): WindowSpec {
 export const bandModeOf = (sp: WindowSpec): BandMode | null => {
   const all = [...sp.topFields, ...sp.bottomFields]
   return all.length ? (all.every(f => f.opening === 'tilt') ? 'tilt' : 'fixed') : null
+}
+
+export interface Variant { key: string; band: BandKey; mode: BandMode | null; combo: Field[] }
+export const variantKey = (band: BandKey, mode: BandMode | null, combo: Field[]) => `${band}${mode ? ':' + mode : ''}#${comboKey(combo)}`
+
+/** Every complete window of n sashes the supplier makes: ticked top light variants × fixed / tilt × all sash combinations. */
+export function allVariants(n: number, offer: Offer): Variant[] {
+  const combos = allCombos(n, offer)
+  return allowedBands(n, offer).flatMap(band => {
+    const modes: (BandMode | null)[] = band === 'none' ? [null] : ['fixed', 'tilt']
+    return modes.flatMap(mode => combos.map(combo => ({ key: variantKey(band, mode, combo), band, mode, combo })))
+  })
+}
+/** The variants customers can choose (the supplier did not switch them off). */
+export function allowedVariants(n: number, offer: Offer): Variant[] {
+  const off = offer.variantsOff?.[String(n)] ?? []
+  return allVariants(n, offer).filter(v => !off.includes(v.key))
+}
+export const specVariantKey = (sp: WindowSpec) => variantKey(bandKeyOf(sp), bandModeOf(sp), sp.main)
+export function applyVariant(sp: WindowSpec, v: Variant): WindowSpec {
+  const shaped = reshapeSpec(sp, sp.sashes, ...BAND_SHAPE[v.band])
+  const withMain = { ...shaped, main: v.combo }
+  return v.mode ? withBandMode(withMain, v.mode) : withMain
 }
 
 /** Quick presets for bigger windows (4 sashes or with top light / bottom panel). */
