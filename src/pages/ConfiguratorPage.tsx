@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft } from 'lucide-react'
+import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
+import ColorSwatch from '../components/ColorSwatch'
+import { parseColor } from '../lib/colors'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import type { RoofCatalog } from '../lib/costing'
 import {
-  costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey,
+  costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey, makeDoorSpec, makeWallSpec, type BuilderKind, roofUnitPrice, productGroupOf, profileServes, colorPctOf, type ColorCatalog,
   type WindowSpec, type Band, type Offer, type PricingSettings,
 } from '../lib/costing'
 import { cn } from '../lib/cn'
@@ -28,7 +30,7 @@ interface ConfigData {
   combos: { system_id: string; type_id: string }[]
   options: WindowOption[]
   /** windows built from sashes (null when the supplier did not set it up) */
-  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null } | null
+  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null } | null
 }
 
 interface Item {
@@ -43,17 +45,19 @@ interface Item {
   option_ids: string[]
   /** window built from sashes; when set, type_id is not used */
   spec?: WindowSpec | null
+  /** profile colour outside / inside (ids from the colours of the profile's material) */
+  colors?: { out?: string | null; in?: string | null } | null
   /** roof window from the catalogue: model + size (+ flashing) */
-  roof?: { model: string; size: string; flashing: string | null } | null
+  roof?: { model: string; size: string; flashing: string | null; variant?: string | null } | null
 }
 
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
-    qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
-    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno',
-    bandsTitle: 'Nadsvetloba / parapet', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z razdeljeno nadsvetlobo', bottom: 'S parapetom', bottomSplit: 'Z razdeljenim parapetom' } as Record<string, string>,
-    openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Parapet', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina parapeta',
+    qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
+    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
+    bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
+    openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
@@ -70,8 +74,8 @@ const TXT = {
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
-    qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
-    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window',
+    qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
+    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
@@ -129,6 +133,12 @@ export default function ConfiguratorPage() {
   const builder = data?.builder ?? null
   const bPricing = builder?.pricing ? pricingFrom(builder.pricing) : null
   const sashWidth = (n: number) => (n === 1 ? 900 : n * 650)
+  const doorWidth = (n: number) => (n === 1 ? 900 : n * 700)
+  /** windows and balcony doors keep their offer apart */
+  const bk = (sp: WindowSpec): BuilderKind => (sp.kind === 'door' ? 'door' : undefined)
+  const wallWidth = (n: number) => n * 1000
+  /** sliding windows and sliding walls: panel layouts instead of top lights and variants */
+  const slidingKind = (sp: WindowSpec) => (sp.kind === 'sliding' || sp.kind === 'wall' ? sp.kind : undefined)
   function defaultSpecItem(d: ConfigData, n: number): Item {
     return {
       key: newKey(), type_id: '', system_id: d.systems[0].id, width: sashWidth(n), height: 1400, hinge: 'left', quantity: 1, label: '',
@@ -143,7 +153,7 @@ export default function ConfiguratorPage() {
     const c = costWindow(specToLayout(it.spec), it.width, it.height, {
       frame_m: Number(sy.frame_m ?? 0), sash_m: Number(sy.sash_m ?? 0), mullion_m: Number(sy.mullion_m ?? 0), bead_m: Number(sy.bead_m ?? 0),
       frame_w: sy.frame_w, sash_w: sy.sash_w, mullion_w: sy.mullion_w,
-    }, bPricing)
+    }, bPricing, { colorPct: colorPctOf(data.builder?.colors?.[sy.material], it.colors?.out, it.colors?.in) })
     return Math.round(Math.max(Number(sy.min_price ?? 0), c.price) * 100) / 100
   }
 
@@ -164,14 +174,15 @@ export default function ConfiguratorPage() {
     }
   }
 
-  /** roof window: catalogue price of the size (+ flashing), margin already included */
+  /** roof window: sale price of the size with the material / colour surcharge (+ flashing) */
   function roofPrice(it: Item): number | null {
     const cat = data?.builder?.roof
     if (!cat || !it.roof) return null
     const m = cat.models.find(x => x.id === it.roof!.model), sz = m?.sizes.find(x => x.id === it.roof!.size)
     if (!sz) return null
     const fl = cat.flashings.find(x => x.id === it.roof!.flashing)
-    return Math.round((Number(sz.price) + Number(fl?.price ?? 0)) * 100) / 100
+    const v = m?.variants?.find(x => x.id === it.roof!.variant)
+    return roofUnitPrice(Number(sz.price), Number(v?.pct ?? 0), Number(fl?.price ?? 0))
   }
   function priceOf(it: Item): number | null {
     if (it.roof) return show ? roofPrice(it) : null
@@ -224,46 +235,66 @@ export default function ConfiguratorPage() {
   const roofCat = builder?.roof ?? null
   const type = spec || roofSel ? null : (data.types.find(t => t.id === it.type_id) ?? null)
   // with the builder only balcony doors, sliding systems and special shapes stay as fixed types
-  const visibleTypes = builder ? data.types.filter(t => isDoor(t.template)) : data.types.filter(t => t.template !== 'special')
-  const allowedSystems = spec ? data.systems : data.systems.filter(s => type && data.combos.some(c => c.system_id === s.id && c.type_id === type.id))
+  const visibleTypes = builder ? data.types.filter(t => isDoor(t.template) && !(builder.offer?.doors && t.template.startsWith('door')) && !(builder.offer?.sliding && (t.template === 'psk' || t.template === 'lift_slide'))) : data.types.filter(t => t.template !== 'special')
+  // built windows / doors / walls: only the profiles the supplier uses for that product group
+  const allowedSystems = spec ? data.systems.filter(s => profileServes(s.applies_to, productGroupOf(spec.kind))) : data.systems.filter(s => type && data.combos.some(c => c.system_id === s.id && c.type_id === type.id))
   // older saved offers miss newer switches: fill them with the defaults
   const offer = builder?.offer ? pricingFrom({ offer: builder.offer }).offer : undefined
   const range = spec ? { min_width: 300 * spec.sashes, max_width: 1600 * spec.sashes, min_height: 300, max_height: 2800 } : type ?? { min_width: 0, max_width: 99999, min_height: 0, max_height: 99999 }
   const roofModel = roofSel && roofCat ? roofCat.models.find(m => m.id === roofSel.model) ?? null : null
   function pickRoof(patch?: Partial<NonNullable<Item['roof']>>) {
     if (!roofCat?.models.length) return
-    const cur = roofSel ?? { model: roofCat.models[0].id, size: '', flashing: roofCat.flashings[0]?.id ?? null }
+    const cur = roofSel ?? { model: roofCat.models[0].id, size: '', flashing: roofCat.flashings[0]?.id ?? null, variant: null }
     const next = { ...cur, ...patch }
     const m = roofCat.models.find(x => x.id === next.model) ?? roofCat.models[0]
+    // material / colour: keep it when the model has it, otherwise the first one
+    const vs = m.variants ?? []
+    next.variant = vs.some(x => x.id === next.variant) ? next.variant : vs[0]?.id ?? null
     const sz = m.sizes.find(x => x.id === next.size) ?? m.sizes.find(x => x.w === 78 && x.h === 118) ?? m.sizes[0]
     // sizes in cm → mm, so services per piece / metre still work for roof windows
     update({ roof: { ...next, model: m.id, size: sz?.id ?? '' }, spec: null, type_id: '', width: sz ? sz.w * 10 : null, height: sz ? sz.h * 10 : null, option_ids: [] })
   }
-  const specName = (sp: WindowSpec) => (sp.kind === 'sliding' ? T.slidingWindow : T.nSash(sp.sashes))
-  function pickSliding() { update({ roof: null, spec: fitOffer(makeSlidingSpec()), type_id: '', width: spec?.kind === 'sliding' ? it.width : 1600, height: it.height ?? 1200 }) }
+  const specName = (sp: WindowSpec) => (sp.kind === 'sliding' ? T.slidingWindow : sp.kind === 'door' ? T.nDoor(sp.sashes) : sp.kind === 'wall' ? T.nWall(sp.sashes) : T.nSash(sp.sashes))
+  /** keep the chosen profile when it serves the new product, otherwise the first one that does */
+  const sysFor = (kind: WindowSpec['kind']) => {
+    const ok = data!.systems.filter(x => profileServes(x.applies_to, productGroupOf(kind)))
+    return ok.some(x => x.id === it.system_id) ? it.system_id : ok[0]?.id ?? it.system_id
+  }
+  function pickSliding() { update({ roof: null, spec: fitOffer(makeSlidingSpec()), type_id: '', system_id: sysFor('sliding'), width: spec?.kind === 'sliding' ? it.width : 1600, height: it.height ?? 1200 }) }
   const setSpec = (sp: WindowSpec) => update({ spec: sp })
   /** a spec that only uses a top light / opening layout the supplier ticked for this window type */
   function fitOffer(sp: WindowSpec): WindowSpec {
     if (!offer) return sp
-    const bands = allowedBands(sp.sashes, offer)
+    const bands = allowedBands(sp.sashes, offer, bk(sp))
     let next = bands.includes(bandKeyOf(sp)) || !bands.length ? sp : reshapeSpec(sp, sp.sashes, ...BAND_SHAPE[bands[0]])
-    if (next.kind === 'sliding') {
-      const combos = allowedCombos(next.sashes, offer, next.kind)
+    if (slidingKind(next)) {
+      const combos = allowedCombos(next.sashes, offer, slidingKind(next))
       if (combos.length && !combos.some(c => comboKey(c) === comboKey(next.main))) next = { ...next, main: combos[0] }
       return next
     }
-    const vs = allowedVariants(next.sashes, offer).filter(v => v.band === bandKeyOf(next))
+    const vs = allowedVariants(next.sashes, offer, bk(next)).filter(v => v.band === bandKeyOf(next))
     if (vs.length && !vs.some(v => v.key === specVariantKey(next))) {
       next = applyVariant(next, vs.find(v => v.combo.every(f => f.opening === 'tilt_turn') && v.mode !== 'tilt') ?? vs[0])
     }
     return next
   }
   function pickSashes(n: number) {
-    const cur = spec && spec.kind !== 'sliding' ? spec : makeSpec(n)
-    update({ roof: null, spec: fitOffer(reshapeSpec(cur, n, cur.top, cur.bottom)), type_id: '', width: spec && spec.sashes === n ? it.width : sashWidth(n), height: it.height ?? 1400 })
+    const cur = spec && !spec.kind ? spec : makeSpec(n)
+    const wasWindow = !!spec && !spec.kind
+    update({ roof: null, spec: fitOffer(reshapeSpec(cur, n, cur.top, cur.bottom)), type_id: '', system_id: sysFor(undefined), width: wasWindow && spec!.sashes === n ? it.width : sashWidth(n), height: wasWindow ? it.height : 1400 })
+  }
+  function pickWall(n: number) {
+    const was = spec?.kind === 'wall' && spec.sashes === n
+    update({ roof: null, spec: fitOffer(was ? spec! : makeWallSpec(n)), type_id: '', system_id: sysFor('wall'), width: was ? it.width : wallWidth(n), height: spec?.kind === 'wall' ? it.height : 2200 })
+  }
+  function pickDoor(n: number) {
+    const wasDoor = spec?.kind === 'door'
+    const cur = wasDoor ? spec! : makeDoorSpec(n)
+    update({ roof: null, spec: fitOffer(reshapeSpec(cur, n, cur.top, 'none')), type_id: '', system_id: sysFor('door'), width: wasDoor && spec!.sashes === n ? it.width : doorWidth(n), height: wasDoor ? it.height : 2200 })
   }
   function pickBand(top: Band, bottom: Band) { if (spec) setSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom))) }
   const specPrice = (sp: WindowSpec) => specBase({ ...it, spec: sp })
+  const specPriceWith = (colors: Item['colors']) => specBase({ ...it, colors })
   let stepNo = 0
   const nextStep = () => ++stepNo
   const update = (patch: Partial<Item>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
@@ -298,7 +329,7 @@ export default function ConfiguratorPage() {
       p_items: items.map(x => x.roof
         ? { roof: x.roof, quantity: x.quantity, option_ids: [], label: x.label }
         : x.spec
-        ? { system_id: x.system_id, spec: x.spec, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
+        ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
         : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
       p_note: contact.note,
       p_services: services,
@@ -368,7 +399,7 @@ export default function ConfiguratorPage() {
               <Section n={nextStep()} title={T.step1} accent={accent}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {offer?.windows && [...(offer.sashes ?? [])].sort().map(n => {
-                    const on = spec?.sashes === n && spec.kind !== 'sliding'
+                    const on = spec?.sashes === n && !spec.kind
                     return <button key={'w' + n} onClick={() => pickSashes(n)}
                       className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
@@ -387,6 +418,26 @@ export default function ConfiguratorPage() {
                       <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.slidingWindow}</div>
                     </button>
                   })()}
+                  {offer?.doors && [...(offer.doorSashes ?? [1, 2, 3])].sort().map(n => {
+                    const on = spec?.sashes === n && spec.kind === 'door'
+                    return <button key={'d' + n} onClick={() => pickDoor(n)}
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      {on && <SelBadge accent={accent} />}
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={doorWidth(n)} height={2200} size={84} plain /></div>
+                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.nDoor(n)}</div>
+                    </button>
+                  })}
+                  {offer?.sliding && [...(offer.wallSashes ?? [2, 3, 4])].sort().filter(n => allowedCombos(n, offer, 'wall').length).map(n => {
+                    const on = spec?.sashes === n && spec.kind === 'wall'
+                    return <button key={'wall' + n} onClick={() => pickWall(n)}
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      {on && <SelBadge accent={accent} />}
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={wallWidth(n)} height={2200} size={n > 3 ? 110 : 96} plain /></div>
+                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.nWall(n)}</div>
+                    </button>
+                  })}
                   {offer?.roof && !!roofCat?.models.length && (() => {
                     const on = !!roofSel
                     return <button key="roof" onClick={() => pickRoof()}
@@ -420,17 +471,30 @@ export default function ConfiguratorPage() {
                         className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
-                        <div className="h-[84px] flex items-center justify-center"><RoofWindowDrawing size={80} opening={m.opening} /></div>
-                        <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{m.name}</div>
+                        <div className="h-[84px] flex items-center justify-center">{m.image_url ? <img src={m.image_url} alt="" className="max-h-full max-w-full object-contain" /> : <RoofWindowDrawing size={80} opening={m.opening} />}</div>
+                        {m.brand && <div className="text-[11px] font-medium text-gray-500 mt-2 leading-snug">{m.brand}</div>}
+                        <div className={cn('text-xs font-medium text-gray-900 leading-snug', !m.brand && 'mt-2')}>{m.name}</div>
                         <div className="text-xs text-gray-500">{m.opening === 'top' ? T.roofTop : T.roofCenter}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
                       </button>
                     })}
                   </div>
                 </Section>
+                {roofModel && (roofModel.description || roofModel.datasheet_url) && <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 -mt-2">
+                  {roofModel.description && <p className="text-sm text-gray-700 whitespace-pre-line">{roofModel.description}</p>}
+                  {roofModel.datasheet_url && <a href={roofModel.datasheet_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium hover:underline" style={{ color: accent }}>
+                    <FileText className="w-4 h-4" />{T.roofDatasheet}</a>}
+                </div>}
+                {roofModel && (roofModel.variants ?? []).length > 0 && <Section n={nextStep()} title={T.roofVariant} accent={accent}>
+                  <div className="flex flex-wrap gap-2">
+                    {(roofModel.variants ?? []).map(v => <Chip key={v.id} on={roofSel.variant === v.id} onClick={() => pickRoof({ variant: v.id })} accent={accent} single>
+                      {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 opacity-70">+ {Number(v.pct)} %</span>}
+                    </Chip>)}
+                  </div>
+                </Section>}
                 {roofModel && <Section n={nextStep()} title={T.roofSize} accent={accent}>
                   <div className="flex flex-wrap gap-2">
                     {roofModel.sizes.map(sz => <Chip key={sz.id} on={roofSel.size === sz.id} onClick={() => pickRoof({ size: sz.id })} accent={accent} single>
-                      {sz.w} × {sz.h} cm{show && <span className="ml-1.5 opacity-70">{money(Number(sz.price), cur)}</span>}
+                      {sz.w} × {sz.h} cm{show && <span className="ml-1.5 opacity-70">{money(roofUnitPrice(Number(sz.price), Number(roofModel.variants?.find(x => x.id === roofSel.variant)?.pct ?? 0), 0), cur)}</span>}
                     </Chip>)}
                   </div>
                 </Section>}
@@ -444,9 +508,9 @@ export default function ConfiguratorPage() {
                 </Section>}
               </>}
 
-              {spec && spec.kind !== 'sliding' && offer && allowedBands(spec.sashes, offer).filter(k => allowedVariants(spec.sashes, offer).some(v => v.band === k)).length > 1 && <Section n={nextStep()} title={T.bandsTitle} accent={accent}>
+              {spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Section n={nextStep()} title={T.bandsTitle} accent={accent}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                  {allowedBands(spec.sashes, offer).filter(k => allowedVariants(spec.sashes, offer).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
+                  {allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
                     const on = spec.top === top && spec.bottom === bottom
                     const preview = reshapeSpec(spec, spec.sashes, top, bottom)
                     const pr = show && !on ? specPrice(preview) : null, curP = show ? specPrice(spec) : null
@@ -466,9 +530,9 @@ export default function ConfiguratorPage() {
                 {(() => {
                   // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
                   // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
-                  const cards = spec.kind === 'sliding'
-                    ? allowedCombos(spec.sashes, offer, spec.kind).map(cb => ({ ...spec, main: cb }))
-                    : allowedVariants(spec.sashes, offer).filter(v => v.band === bandKeyOf(spec)).map(v => applyVariant(spec, v))
+                  const cards = slidingKind(spec)
+                    ? allowedCombos(spec.sashes, offer, slidingKind(spec)).map(cb => ({ ...spec, main: cb }))
+                    : allowedVariants(spec.sashes, offer, bk(spec)).filter(v => v.band === bandKeyOf(spec)).map(v => applyVariant(spec, v))
                   const prices = cards.map(sp => (show ? specPrice(sp) : null))
                   const known = prices.filter((x): x is number => x != null)
                   const min = known.length ? Math.min(...known) : null
@@ -521,6 +585,34 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>}
 
+              {spec && (() => {
+                const sy = data.systems.find(x => x.id === it.system_id)
+                const list = sy ? data.builder?.colors?.[sy.material] ?? [] : []
+                if (list.length < 2) return null
+                const cur2 = { out: list.find(c => c.id === it.colors?.out)?.id ?? list[0].id, in: list.find(c => c.id === it.colors?.in)?.id ?? list[0].id }
+                const now = specPriceWith(cur2)
+                const row = (side: 'out' | 'in') => <div>
+                  <div className="text-xs font-medium text-gray-500 mb-1.5">{side === 'out' ? T.colorOut : T.colorIn}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {list.map(c => {
+                      const on = cur2[side] === c.id
+                      const lookSpec = parseColor(c.look)
+                      const p = show && !on ? specPriceWith({ ...cur2, [side]: c.id }) : null
+                      return <button key={c.id} onClick={() => update({ colors: { ...cur2, [side]: c.id } })}
+                        className={cn('inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border bg-white text-sm transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        style={on ? selStyle(accent) : undefined}>
+                        {lookSpec && <ColorSwatch spec={lookSpec} size={22} rounded={6} />}
+                        <span className="text-gray-900">{c.name}</span>
+                        {p != null && now != null && Math.round(p - now) !== 0 && <span className="text-xs text-gray-500">{p > now ? '+' : '−'} {money(Math.abs(Math.round(p - now)), cur)}</span>}
+                      </button>
+                    })}
+                  </div>
+                </div>
+                return <Section n={nextStep()} title={T.colorTitle} accent={accent}>
+                  <div className="space-y-4">{row('out')}{row('in')}</div>
+                </Section>
+              })()}
+
               <Section n={nextStep()} title={roofSel ? T.qtyTitle : spec ? T.sizeTitle : T.step3} accent={accent}>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
@@ -554,7 +646,7 @@ export default function ConfiguratorPage() {
 
               {!roofSel && data.options.length > 0 && <Section n={nextStep()} title={T.step4} accent={accent}>
                 <div className="space-y-4">
-                  {OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)).map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
+                  {OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g) && !(g === 'color' && spec && data.builder?.colors)).map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
                     options={data.options.filter(o => o.group_key === g)} selected={it.option_ids} onToggle={toggleOption}
                     onClear={() => update({ option_ids: it.option_ids.filter(id => !data.options.some(o => o.group_key === g && o.id === id)) })}
                     accent={accent} show={show} currency={cur} noneLabel={T.none} pricingLabels={L.pricing} />)}
@@ -630,7 +722,7 @@ export default function ConfiguratorPage() {
                     <button onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-center gap-3 py-2 text-left">
                       <div className="w-10 flex justify-center shrink-0">{x.roof ? <RoofWindowDrawing size={36} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn('text-sm truncate', i === active && stage === 'config' ? 'font-semibold text-gray-900' : 'text-gray-700')}>{x.quantity} × {x.roof ? `${T.roofWindow} · ${roofCat?.models.find(m => m.id === x.roof!.model)?.name ?? ''}` : x.spec ? specName(x.spec) : t?.name}</div>
+                        <div className={cn('text-sm truncate', i === active && stage === 'config' ? 'font-semibold text-gray-900' : 'text-gray-700')}>{x.quantity} × {x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
                         <div className="text-xs text-gray-500">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
                       </div>
                       {show && <div className="text-sm text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}

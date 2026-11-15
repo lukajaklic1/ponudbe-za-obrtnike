@@ -26,6 +26,8 @@ export interface WindowSystem {
   /** per-metre prices and visible widths (mm) for the metre costing */
   frame_m?: number; sash_m?: number; mullion_m?: number; bead_m?: number
   frame_w?: number; sash_w?: number; mullion_w?: number
+  /** product groups the profile is used for (windows, slidingWindows, doors, walls); null = all */
+  applies_to?: string[] | null
 }
 export interface WindowType {
   id: string; company_id?: string; name: string; template: WindowTemplate

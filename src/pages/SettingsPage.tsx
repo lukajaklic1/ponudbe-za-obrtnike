@@ -149,12 +149,11 @@ export default function SettingsPage() {
       <PageHeader title={t.nav.settings} icon={Settings} />
       <div className="p-4 lg:p-6 max-w-3xl mx-auto">
       <div className="flex flex-col gap-6"><fieldset disabled={!isAdmin} className="contents">
-        {missing.length > 0
-          ? <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex gap-3">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <div><div className="font-medium">{x.missing}</div><div className="text-amber-800 mt-0.5">{x.missingHint} {missing.join(', ')}.</div></div>
-            </div>
-          : <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 flex items-center gap-2"><Check className="w-4 h-4 text-green-600" />{x.complete}</div>}
+        {/* only a warning when something is missing; nothing to show when all is filled in */}
+        {missing.length > 0 && <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex gap-3">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          <div><div className="font-medium">{x.missing}</div><div className="text-amber-800 mt-0.5">{x.missingHint} {missing.join(', ')}.</div></div>
+        </div>}
 
         {/* Company profile */}
         <Section icon={Building2} title={s.companyProfile}>

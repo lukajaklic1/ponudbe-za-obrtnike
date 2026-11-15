@@ -1,3 +1,4 @@
+import { WINDOW_COLORS, encodeColor } from './colors'
 // Window costing like a window maker does it: profile metres, glass area, hardware per
 // opening sash, labour and margin. All lengths in mm, prices per metre / m² / piece.
 //
@@ -43,26 +44,65 @@ export interface PricingSettings {
   offer: Offer
   /** roof windows: a catalogue of models in standard sizes (purchase prices, margin is added) */
   roof?: RoofCatalog
+  /** profile colours per material (key = material), with surcharges in % on the profiles */
+  colors?: ColorCatalog
+}
+
+/** A colour of the profiles: look as in lib/colors (#hex, #hex|struct, #hex|metal, wood:key), surcharge in %
+ *  on the profile price when only one side is coloured and when both sides are. */
+export interface ProfileColor { id: string; name: string; code?: string; look: string; one: number; both: number }
+export type ColorCatalog = Record<string, ProfileColor[]>
+/** Starting colours of a material (the supplier changes or removes them). */
+export function sampleColors(): ProfileColor[] {
+  return WINDOW_COLORS.map(c => ({ id: rid(), name: c.sl, code: c.code, look: encodeColor(c.spec), one: c.pct * 2, both: c.pct * 3 }))
+}
+const isColoured = (c?: ProfileColor) => !!c && ((c.one || 0) !== 0 || (c.both || 0) !== 0)
+/** Colour surcharge in % on the profiles for the chosen outside / inside colour (missing = the first, usually white):
+ *  one side coloured → its "one side" %, both sides coloured → the higher "both sides" %. */
+export function colorPctOf(list: ProfileColor[] | undefined, outId?: string | null, inId?: string | null): number {
+  if (!list?.length) return 0
+  const out = list.find(c => c.id === outId) ?? list[0], inn = list.find(c => c.id === inId) ?? list[0]
+  const o = isColoured(out), i = isColoured(inn)
+  if (o && i) return Math.max(out.both || 0, inn.both || 0)
+  if (o) return out.one || 0
+  if (i) return inn.one || 0
+  return 0
 }
 
 export type RoofOpening = 'center' | 'top'
 export interface RoofSize { id: string; w: number; h: number; price: number }
-export interface RoofModel { id: string; name: string; opening: RoofOpening; sizes: RoofSize[] }
+/** Material / colour of a roof window model (e.g. natural wood, white PVC): surcharge in % on the size price */
+export interface RoofVariant { id: string; name: string; pct: number }
+export interface RoofModel {
+  id: string; name: string; opening: RoofOpening; sizes: RoofSize[]
+  /** manufacturer, e.g. Velux, Fakro, Roto */
+  brand?: string
+  /** short technical description shown to the customer (glazing, Uw, material …) */
+  description?: string
+  image_url?: string | null
+  /** link to the manufacturer's technical sheet (PDF) */
+  datasheet_url?: string
+  variants?: RoofVariant[]
+}
+/** Price of a roof window: size price with the material / colour surcharge, plus the flashing. */
+export function roofUnitPrice(sizePrice: number, variantPct: number, flashingPrice: number): number {
+  return Math.round((sizePrice * (1 + (variantPct || 0) / 100) + (flashingPrice || 0)) * 100) / 100
+}
 export interface RoofFlashing { id: string; name: string; price: number }
 export interface RoofCatalog { models: RoofModel[]; flashings: RoofFlashing[] }
 
 const rid = () => Math.random().toString(36).slice(2, 9)
-/** Typical roof window range (sizes in cm, illustrative purchase prices). */
+/** Typical roof window range (sizes in cm, illustrative sale prices excl. VAT). */
 export function sampleRoofCatalog(): RoofCatalog {
   const sizes = (list: [number, number, number][]) => list.map(([w, h, price]) => ({ id: rid(), w, h, price }))
   return {
     models: [
-      { id: rid(), name: 'Vrtljivo strešno okno', opening: 'center', sizes: sizes([[55, 78, 220], [66, 118, 290], [78, 118, 320], [78, 140, 350], [114, 118, 410], [114, 140, 460]]) },
-      { id: rid(), name: 'Strešno okno z zgornjim vrtiščem', opening: 'top', sizes: sizes([[66, 118, 360], [78, 118, 395], [78, 140, 430], [114, 140, 560]]) },
+      { id: rid(), name: 'Vrtljivo strešno okno', opening: 'center', sizes: sizes([[55, 78, 320], [66, 118, 420], [78, 118, 465], [78, 140, 505], [114, 118, 595], [114, 140, 665]]) },
+      { id: rid(), name: 'Strešno okno z zgornjim vrtiščem', opening: 'top', sizes: sizes([[66, 118, 520], [78, 118, 575], [78, 140, 625], [114, 140, 810]]) },
     ],
     flashings: [
-      { id: rid(), name: 'Obroba za valovito kritino (opečna, betonska)', price: 65 },
-      { id: rid(), name: 'Obroba za ravno kritino (pločevina, skodle)', price: 55 },
+      { id: rid(), name: 'Obroba za valovito kritino (opečna, betonska)', price: 95 },
+      { id: rid(), name: 'Obroba za ravno kritino (pločevina, skodle)', price: 80 },
     ],
   }
 }
@@ -75,13 +115,17 @@ export interface Offer {
   top: boolean; topSplit: boolean; bottom: boolean; bottomSplit: boolean
   openings: { tilt: boolean; turn: boolean; tilt_turn: boolean; passive: boolean }
   doors: boolean; sliding: boolean; special: boolean
+  /** balcony doors (balkonska vrata): sash counts offered, built like windows */
+  doorSashes?: number[]
+  /** sliding walls (drsne stene, PSK): panel counts offered (2–4) */
+  wallSashes?: number[]
   /** sliding windows (drsna okna) */
   slidingWindows: boolean
   /** roof windows (strešna okna) */
   roof: boolean
   /** opening combinations the supplier makes, per number of sashes (missing = all) */
   combos?: Record<string, string[]>
-  /** top light / bottom panel variants per number of sashes: none, top, topSplit, bottom, bottomSplit (missing = all) */
+  /** top light / bottom panel variants per number of sashes: none, top, topSplit, bottom, bottomSplit (missing = all); balcony doors under "d1", "d2" … */
   bands?: Record<string, string[]>
   /** per window type and top light variant ("3:top"): may it be fixed and/or tilt (missing = both) */
   bandModes?: Record<string, string[]>
@@ -91,6 +135,7 @@ export interface Offer {
 export const DEFAULT_OFFER: Offer = {
   windows: true, sashes: [1, 2, 3], top: true, topSplit: true, bottom: true, bottomSplit: true,
   openings: { tilt: true, turn: true, tilt_turn: true, passive: true }, doors: true, sliding: true, special: false, slidingWindows: true, roof: true,
+  doorSashes: [1, 2, 3], wallSashes: [2, 3, 4],
 }
 
 export const DEFAULT_PRICING: PricingSettings = {
@@ -212,7 +257,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   add('frame', L('frame', 'Okvir'), m(frameLen), 'm', p.frame_m * colorF)
   add('mullion', L('mullion', 'Steber / prečka'), m(mullionLen), 'm', p.mullion_m * colorF)
   add('sash', L('sash', 'Krila'), m(sashLen), 'm', p.sash_m * colorF)
-  add('bead', L('bead', 'Steklitvene letvice'), m(beadLen), 'm', p.bead_m * colorF)
+  add('bead', L('bead', 'Pritrdilne letvice'), m(beadLen), 'm', p.bead_m * colorF)
   const profileCost = lines.reduce((a, l) => a + l.total, 0)
   add('glass', L('glass', 'Steklo'), glassArea, 'm²', s.glass_m2 + (opts.glassExtraM2 ?? 0))
   for (const [k, v] of Object.entries(hw)) add('hw_' + k, L('hw_' + k, 'Okovje ' + k), v.n, 'kos', v.total / v.n)
@@ -239,8 +284,8 @@ export function pricingFrom(raw: unknown): PricingSettings {
 // ─── Window built from sashes (configurator) ─────────────────
 export type Band = 'none' | 'single' | 'split'
 export interface WindowSpec {
-  /** 'sliding' = sliding window (drsno okno): sashes slide instead of opening */
-  kind?: 'sliding'
+  /** 'sliding' = sliding window (drsno okno): sashes slide instead of opening; 'door' = balcony door (balkonska vrata) */
+  kind?: 'sliding' | 'door' | 'wall'
   sashes: number
   top: Band
   bottom: Band
@@ -270,13 +315,21 @@ export function reshapeSpec(old: WindowSpec, sashes: number, top: Band, bottom: 
   if (old.top === top) next.topFields = old.topFields
   if (old.bottom === bottom) next.bottomFields = old.bottomFields
   next.topRatio = old.topRatio; next.bottomRatio = old.bottomRatio
+  if (old.kind) next.kind = old.kind
   return next
 }
+
+/** Two neighbouring sashes without a mullion: a passive sash and the sash it closes against. A passive sash
+ *  hinged left meets the sash on its right, one hinged right the sash on its left (no hinge: either side). */
+export const meetsWithoutMullion = (a: Field, b: Field) =>
+  (a.opening === 'passive' && a.hinge !== 'right') || (b.opening === 'passive' && b.hinge !== 'left')
+
+const isSlide = (f: Field) => f.opening === 'slide_window' || f.opening === 'slide'
 
 export function specToLayout(sp: WindowSpec): Layout {
   return {
     cols: sp.main,
-    mullions: sp.main.slice(1).map((f, i) => f.opening !== 'passive' && sp.main[i].opening !== 'passive'),
+    mullions: sp.main.slice(1).map((f, i) => !meetsWithoutMullion(sp.main[i], f) && !isSlide(f) && !isSlide(sp.main[i])),
     top: sp.top === 'none' ? null : { fields: sp.topFields, ratio: sp.topRatio },
     bottom: sp.bottom === 'none' ? null : { fields: sp.bottomFields, ratio: sp.bottomRatio },
   }
@@ -313,30 +366,68 @@ export function simpleCombos(sashes: number, offer: Offer): Field[][] {
     const list: Field[] = [{ opening: 'fixed' }]
     if (offer.openings.tilt_turn) list.push({ opening: 'tilt_turn', hinge: h })
     if (sashes === 1) {
-      if (offer.openings.tilt_turn) list.push({ opening: 'tilt_turn', hinge: h === 'left' ? 'right' : 'left' })
+      // fixed, tilt & turn (both hands), turn only (both hands, same order), tilt only last
+      const other = h === 'left' ? 'right' : 'left'
+      if (offer.openings.tilt_turn) list.push({ opening: 'tilt_turn', hinge: other })
+      if (offer.openings.turn) list.push({ opening: 'turn', hinge: h }, { opening: 'turn', hinge: other })
       if (offer.openings.tilt) list.push({ opening: 'tilt' })
-      if (offer.openings.turn) list.push({ opening: 'turn', hinge: 'left' }, { opening: 'turn', hinge: 'right' })
     }
     if (sashes === 2 && offer.openings.turn) list.push({ opening: 'turn', hinge: h })
     if (sashes === 3 && i === 1 && offer.openings.turn) list.push({ opening: 'turn', hinge: 'left' })
     return list
   }
   let combos: Field[][] = [[]]
-  for (let i = 0; i < sashes; i++) combos = combos.flatMap(c => per(i).map(f => [...c, f]))
-  if (sashes === 2) combos = combos.filter(c => c.filter(f => f.opening === 'turn').length <= 1)
-  // two sashes without a mullion: passive sash + tilt & turn sash
-  if (sashes === 2 && offer.openings.passive && offer.openings.tilt_turn) combos.push(
-    [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }],
-    [{ opening: 'tilt_turn', hinge: 'left' }, { opening: 'passive', hinge: 'right' }],
-  )
-  // three sashes: a passive + tilt & turn pair without a mullion next to a fixed or tilt & turn sash
-  if (sashes === 3 && offer.openings.passive && offer.openings.tilt_turn) combos.push(
-    [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }, { opening: 'fixed' }],
-    [{ opening: 'fixed' }, { opening: 'tilt_turn', hinge: 'left' }, { opening: 'passive', hinge: 'right' }],
-    [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }, { opening: 'tilt_turn', hinge: 'right' }],
-    [{ opening: 'tilt_turn', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'left' }, { opening: 'passive', hinge: 'right' }],
-  )
+  if (sashes === 2) {
+    // Every sash opens to its own side. The mullion (part of the frame) is only there where it is
+    // really needed: next to fixed glass, and when both sashes tilt. A turn-only sash next to an
+    // opening sash is the passive sash of a window without a mullion (its meeting stile is part of the sash).
+    const F: Field = { opening: 'fixed' }
+    const K = (i: number): Field => ({ opening: 'tilt_turn', hinge: defaultHinge(i, 2) })
+    const O = (i: number): Field => ({ opening: 'turn', hinge: defaultHinge(i, 2) })
+    const P = (i: number): Field => ({ opening: 'passive', hinge: defaultHinge(i, 2) })
+    combos = [[F, F], [F, K(1)], [K(0), F], [F, O(1)], [O(0), F], [K(0), K(1)], [P(0), K(1)], [K(0), P(1)], [P(0), O(1)]]
+      .filter(c => c.every(f => f.opening === 'fixed' || offer.openings[f.opening as 'tilt_turn' | 'turn' | 'passive']))
+  } else if (sashes === 3) {
+    // the 14 the competitors show; a turn-only middle sash is the passive half of a pair without a mullion
+    // (passive hinged left meets the sash on its right, hinged right meets the one on its left)
+    const F: Field = { opening: 'fixed' }
+    const KL: Field = { opening: 'tilt_turn', hinge: 'left' }, KR: Field = { opening: 'tilt_turn', hinge: 'right' }
+    const PL: Field = { opening: 'passive', hinge: 'left' }, PR: Field = { opening: 'passive', hinge: 'right' }
+    combos = [[F, F, F], [F, F, KR], [F, KL, F], [KL, F, F], [F, KR, F], [F, PL, KR], [F, KL, KR], [KL, PR, F], [KL, KR, F],
+      [KL, F, KR], [KL, PR, KR], [KL, PL, KR], [KL, KL, KR], [KL, KR, KR]]
+      .filter(c => c.every(f => f.opening === 'fixed' || offer.openings[f.opening as 'tilt_turn' | 'passive']))
+  } else {
+    for (let i = 0; i < sashes; i++) combos = combos.flatMap(c => per(i).map(f => [...c, f]))
+  }
   return combos
+}
+
+/** Balcony door of n sashes: built like a window, drawn and sized as a door. */
+export function makeDoorSpec(sashes: number, top: Band = 'none'): WindowSpec {
+  return { ...makeSpec(sashes, top), kind: 'door' }
+}
+export type BuilderKind = 'door' | undefined
+/** Key of a window / balcony door type in offer.bands and offer.variantsOff. */
+export const offerKey = (n: number, kind?: BuilderKind | 'sliding') => (kind === 'door' ? 'd' + n : String(n))
+
+/** Product groups a profile can be used for (Cenik step 3). Roof windows are a catalogue without profiles. */
+export const PRODUCT_GROUPS = ['windows', 'slidingWindows', 'doors', 'walls'] as const
+export type ProductGroup = typeof PRODUCT_GROUPS[number]
+export const productGroupOf = (kind?: WindowSpec['kind']): ProductGroup =>
+  kind === 'sliding' ? 'slidingWindows' : kind === 'door' ? 'doors' : kind === 'wall' ? 'walls' : 'windows'
+/** Does a profile serve this product group? (no list = every group) */
+export const profileServes = (appliesTo: string[] | null | undefined, g: ProductGroup) => !appliesTo || appliesTo.includes(g)
+
+/** Sliding wall (PSK) of n panels; the sliding panel tilts too. */
+export function makeWallSpec(n: number): WindowSpec {
+  return { ...makeSpec(n), kind: 'wall', main: wallCombos(n)[0] }
+}
+/** Sliding walls, like the competitors: one or two panels slide (hinge holds the direction), the rest is fixed. */
+export function wallCombos(n: number): Field[][] {
+  const F: Field = { opening: 'fixed' }, L: Field = { opening: 'slide', hinge: 'left' }, R: Field = { opening: 'slide', hinge: 'right' }
+  if (n === 2) return [[F, L], [R, F]]
+  if (n === 3) return [[F, L, F], [F, R, F]]
+  return [[F, L, F, F], [F, F, R, F], [F, L, R, F]]
 }
 
 /** Sliding window: two sashes, one or both slide (the hinge field holds the slide direction). */
@@ -344,19 +435,40 @@ export function makeSlidingSpec(): WindowSpec {
   return { ...makeSpec(2), kind: 'sliding', main: [{ opening: 'fixed' }, { opening: 'slide_window', hinge: 'left' }] }
 }
 export function slidingCombos(): Field[][] {
+  // like the competitors: left sash slides right, right sash slides left, both slide
   return [
-    [{ opening: 'fixed' }, { opening: 'slide_window', hinge: 'left' }],
     [{ opening: 'slide_window', hinge: 'right' }, { opening: 'fixed' }],
+    [{ opening: 'fixed' }, { opening: 'slide_window', hinge: 'left' }],
     [{ opening: 'slide_window', hinge: 'right' }, { opening: 'slide_window', hinge: 'left' }],
   ]
 }
-export const comboGroup = (sp: Pick<WindowSpec, 'kind' | 'sashes'>) => (sp.kind === 'sliding' ? 's' + sp.sashes : String(sp.sashes))
+export const comboGroup = (sp: Pick<WindowSpec, 'kind' | 'sashes'>) => (sp.kind === 'sliding' ? 's' + sp.sashes : sp.kind === 'wall' ? 'w' + sp.sashes : offerKey(sp.sashes, sp.kind as BuilderKind))
 
 export const comboKey = (c: Field[]) => c.map(f => f.opening + (f.opening === 'fixed' || f.opening === 'tilt' ? '' : ':' + (f.hinge ?? 'left'))).join('|')
 
+/** Balcony doors, like the competitors offer them:
+ *  1 sash: fixed, tilt & turn (both hands), turn (both hands);
+ *  2 sashes: fixed / tilt & turn, or a tilt & turn sash with a passive one (no mullion);
+ *  3 sashes: the same 14 as windows. */
+export function doorCombos(n: number, offer: Offer): Field[][] {
+  if (n === 1) {
+    const F: Field = { opening: 'fixed' }
+    return [F, { opening: 'tilt_turn', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }, { opening: 'turn', hinge: 'left' }, { opening: 'turn', hinge: 'right' }].map(f => [f as Field])
+  }
+  if (n === 2) {
+    const F: Field = { opening: 'fixed' }
+    const KL: Field = { opening: 'tilt_turn', hinge: 'left' }, KR: Field = { opening: 'tilt_turn', hinge: 'right' }
+    const PL: Field = { opening: 'passive', hinge: 'left' }, PR: Field = { opening: 'passive', hinge: 'right' }
+    return [[F, F], [F, KR], [KL, F], [PL, KR], [KL, PR], [KL, KR]]
+      .filter(c => c.every(f => f.opening === 'fixed' || offer.openings[f.opening as 'tilt_turn' | 'passive']))
+  }
+  return allCombos(n, offer).filter(c => !c.some(f => f.opening === 'tilt'))
+}
+
 /** Every opening combination for n sashes (main row), the list the supplier ticks in the price list. */
-export function allCombos(n: number, offer: Offer, kind?: 'sliding'): Field[][] {
+export function allCombos(n: number, offer: Offer, kind?: 'sliding' | 'wall'): Field[][] {
   if (kind === 'sliding') return slidingCombos()
+  if (kind === 'wall') return wallCombos(n)
   // the supplier ticks combinations per window type, so every opening is listed here
   offer = { ...offer, openings: { tilt: true, turn: true, tilt_turn: true, passive: true } }
   if (n <= 3) return simpleCombos(n, offer)
@@ -366,7 +478,7 @@ export function allCombos(n: number, offer: Offer, kind?: 'sliding'): Field[][] 
   return combos
 }
 /** Combinations shown to customers: the ones the supplier ticked. */
-export function allowedCombos(n: number, offer: Offer, kind?: 'sliding'): Field[][] {
+export function allowedCombos(n: number, offer: Offer, kind?: 'sliding' | 'wall'): Field[][] {
   const pick = offer.combos?.[comboGroup({ kind, sashes: n })]
   return allCombos(n, offer, kind).filter(c => !pick || pick.includes(comboKey(c)))
 }
@@ -378,10 +490,14 @@ export const BAND_SHAPE: Record<BandKey, [Band, Band]> = {
 }
 export const bandKeyOf = (sp: Pick<WindowSpec, 'top' | 'bottom'>): BandKey =>
   (BAND_KEYS.find(k => BAND_SHAPE[k][0] === sp.top && BAND_SHAPE[k][1] === sp.bottom) ?? 'none')
+/** Top light / bottom panel shapes that exist for n sashes: a single sash has nothing to split;
+ *  a balcony door has only a whole top light (no bottom part: the threshold is there). */
+export const bandKeysFor = (n: number, kind?: BuilderKind): BandKey[] =>
+  kind === 'door' ? ['none', 'top'] : n === 1 ? ['none', 'top', 'bottom'] : [...BAND_KEYS]
 /** Top light / bottom panel variants the supplier ticked for n sashes. */
-export function allowedBands(n: number, offer: Offer): BandKey[] {
-  const pick = offer.bands?.[String(n)]
-  return BAND_KEYS.filter(k => !pick || pick.includes(k))
+export function allowedBands(n: number, offer: Offer, kind?: BuilderKind): BandKey[] {
+  const pick = offer.bands?.[offerKey(n, kind)]
+  return bandKeysFor(n, kind).filter(k => !pick || pick.includes(k))
 }
 
 export type BandMode = 'fixed' | 'tilt'
@@ -404,18 +520,46 @@ export const bandModeOf = (sp: WindowSpec): BandMode | null => {
 export interface Variant { key: string; band: BandKey; mode: BandMode | null; combo: Field[] }
 export const variantKey = (band: BandKey, mode: BandMode | null, combo: Field[]) => `${band}${mode ? ':' + mode : ''}#${comboKey(combo)}`
 
+/**
+ * With a top light / bottom part only the usual combinations, like the competitors offer them:
+ * 1 sash: fixed or tilt & turn (both hands) under a fixed one; fixed, tilt or tilt & turn (both hands) under a tilting one.
+ * 2 sashes: no turn-only sash (fixed / tilt & turn, or tilt & turn with a passive sash).
+ * Split above / below every sash: the dividing profile carries on as a mullion, so no passive sash.
+ */
+function withBandOk(n: number, mode: BandMode | null, combo: Field[], band: BandKey = 'none', kind?: BuilderKind): boolean {
+  if (!mode) return true
+  // balcony door of one sash under a top light: fixed or tilt & turn (both hands)
+  if (kind === 'door' && n === 1) return combo[0].opening === 'fixed' || combo[0].opening === 'tilt_turn'
+  if ((band === 'topSplit' || band === 'bottomSplit') && combo.some(f => f.opening === 'passive')) return false
+  // a whole (not split) bottom part is always fixed
+  if (band === 'bottom' && mode === 'tilt') return false
+  if (n === 1) {
+    const o = combo[0]
+    if (mode === 'fixed') return o.opening === 'fixed' || o.opening === 'tilt_turn'
+    return o.opening === 'fixed' || o.opening === 'tilt' || o.opening === 'tilt_turn'
+  }
+  if (n === 2) return !combo.some(f => f.opening === 'turn')
+  if (n === 3) {
+    // a whole (not split) bottom part is only fixed; under a whole top light / bottom part two neighbouring
+    // tilt & turn sashes always come as a pair with a passive sash
+    if (band === 'bottom' && mode === 'tilt') return false
+    if (band === 'top' || band === 'bottom') return !combo.some((f, i) => i > 0 && f.opening === 'tilt_turn' && combo[i - 1].opening === 'tilt_turn')
+  }
+  return true
+}
+
 /** Every complete window of n sashes the supplier makes: ticked top light variants × fixed / tilt × all sash combinations. */
-export function allVariants(n: number, offer: Offer): Variant[] {
-  const combos = allCombos(n, offer)
-  return allowedBands(n, offer).flatMap(band => {
+export function allVariants(n: number, offer: Offer, kind?: BuilderKind): Variant[] {
+  const combos = kind === 'door' ? doorCombos(n, offer) : allCombos(n, offer)
+  return allowedBands(n, offer, kind).flatMap(band => {
     const modes: (BandMode | null)[] = band === 'none' ? [null] : ['fixed', 'tilt']
-    return modes.flatMap(mode => combos.map(combo => ({ key: variantKey(band, mode, combo), band, mode, combo })))
+    return modes.flatMap(mode => combos.filter(combo => withBandOk(n, mode, combo, band, kind)).map(combo => ({ key: variantKey(band, mode, combo), band, mode, combo })))
   })
 }
 /** The variants customers can choose (the supplier did not switch them off). */
-export function allowedVariants(n: number, offer: Offer): Variant[] {
-  const off = offer.variantsOff?.[String(n)] ?? []
-  return allVariants(n, offer).filter(v => !off.includes(v.key))
+export function allowedVariants(n: number, offer: Offer, kind?: BuilderKind): Variant[] {
+  const off = offer.variantsOff?.[offerKey(n, kind)] ?? []
+  return allVariants(n, offer, kind).filter(v => !off.includes(v.key))
 }
 export const specVariantKey = (sp: WindowSpec) => variantKey(bandKeyOf(sp), bandModeOf(sp), sp.main)
 export function applyVariant(sp: WindowSpec, v: Variant): WindowSpec {
@@ -440,7 +584,7 @@ export function presets(sp: WindowSpec): { key: string; main: Field[] }[] {
 
 /** Labels of the cut list lines (internal costing view). */
 export const CALC_LABELS = {
-  sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Steklitvene letvice', glass: 'Steklo', labour: 'Delo',
+  sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Pritrdilne letvice', glass: 'Steklo', labour: 'Delo',
     hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno' },
   en: { frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', labour: 'Labour',
     hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide' },

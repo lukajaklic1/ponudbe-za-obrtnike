@@ -14,7 +14,7 @@ import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateFilter } from '../components/ui/DateFilter'
 import { PersonBadge } from '../components/ui/PersonBadge'
-import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
+import { QuoteStatusBadge, ORANGE, YELLOW } from '../components/ui/QuoteStatusBadge'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
 
@@ -42,6 +42,13 @@ export default function QuotesPage() {
       : null
     if (!from) return null
     return Math.max(0, Math.floor((Date.now() - Date.parse(from)) / 86400000))
+  }
+  /** days since a quote was sent, shown next to its status so old ones stand out and get followed up */
+  const sentAgo = (n: number) => {
+    if (!sl) return n === 0 ? 'today' : n === 1 ? '1 day' : `${n} days`
+    if (n === 0) return 'danes'
+    const m = n % 100
+    return `${n} ${m === 1 ? 'dan' : m === 2 ? 'dneva' : m === 3 || m === 4 ? 'dnevi' : 'dni'}`
   }
   const [rows, setRows] = useState<Row[]>([])
   const [allUsers, setAllUsers] = useState<CompanyUser[]>([])   // incl. inactive (they may have created quotes)
@@ -107,7 +114,11 @@ export default function QuotesPage() {
     const mul = sortDir === 'asc' ? 1 : -1
     if (sortKey === 'quote_number') return a.quote_number.localeCompare(b.quote_number) * mul
     if (sortKey === 'customer') return (a.customers?.name ?? '').localeCompare(b.customers?.name ?? '') * mul
-    if (sortKey === 'status') return a.status.localeCompare(b.status) * mul
+    if (sortKey === 'status') {
+      const d = (STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status)) * mul
+      if (d) return d
+      return (waitingDays(b) ?? -1) - (waitingDays(a) ?? -1)
+    }
     if (sortKey === 'waiting') {
       // quotes that aren't waiting always go last, whatever the direction
       const wa = waitingDays(a), wb = waitingDays(b)
@@ -212,7 +223,16 @@ export default function QuotesPage() {
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{q.contact_email || q.customers?.email || '—'}</td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{q.contact_phone || q.customers?.phone || '—'}</td>
                   <td className="px-4 py-3 text-gray-600 max-w-[220px] truncate">{q.site_address || '—'}</td>
-                  <td className="px-4 py-3"><QuoteStatusBadge status={q.status} label={s.status[q.status]} /></td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
+                      {q.status === 'sent' && (() => {
+                        const n = waitingDays(q) ?? 0
+                        return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
+                          className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={n >= 16 ? ORANGE : YELLOW}>{sentAgo(n)}</span>
+                      })()}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>

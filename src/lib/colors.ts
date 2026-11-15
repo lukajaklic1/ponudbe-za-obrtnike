@@ -40,23 +40,29 @@ export const colorHex = (desc: string | null | undefined) => parseColor(desc)?.h
 
 export interface ColorPreset { sl: string; en: string; code?: string; spec: ColorSpec; pct: number }
 
-// Colours window suppliers usually offer (RAL codes for solid colours, foils for wood).
-// pct = a typical surcharge in % of the window price; the supplier can change it.
+// Colours window suppliers usually offer, the most popular first (white, anthracite, the oak foils …).
+// pct = a typical surcharge; the price list turns it into % on the profiles.
 export const WINDOW_COLORS: ColorPreset[] = [
   { sl: 'Bela', en: 'White', code: 'RAL 9016', spec: { hex: '#f3f3ee', finish: 'smooth' }, pct: 0 },
-  { sl: 'Kremno bela', en: 'Cream white', code: 'RAL 9001', spec: { hex: '#e9e0cf', finish: 'smooth' }, pct: 12 },
-  { sl: 'Svetlo siva', en: 'Light grey', code: 'RAL 7035', spec: { hex: '#c9cec9', finish: 'struct' }, pct: 15 },
-  { sl: 'Ahatno siva', en: 'Agate grey', code: 'RAL 7038', spec: { hex: '#b3b6ae', finish: 'struct' }, pct: 15 },
-  { sl: 'Kvarčno siva', en: 'Quartz grey', code: 'RAL 7039', spec: { hex: '#6b685e', finish: 'struct' }, pct: 15 },
-  { sl: 'Bazaltno siva', en: 'Basalt grey', code: 'RAL 7012', spec: { hex: '#4f5653', finish: 'struct' }, pct: 15 },
   { sl: 'Antracit', en: 'Anthracite', code: 'RAL 7016', spec: { hex: '#383e42', finish: 'struct' }, pct: 15 },
   { sl: 'Antracit gladek', en: 'Anthracite smooth', code: 'RAL 7016', spec: { hex: '#383e42', finish: 'smooth' }, pct: 15 },
+  { sl: WOODS.golden_oak.sl, en: WOODS.golden_oak.en, code: 'folija', spec: { hex: WOODS.golden_oak.hex, finish: 'wood', wood: 'golden_oak' }, pct: 18 },
+  { sl: WOODS.walnut.sl, en: WOODS.walnut.en, code: 'folija', spec: { hex: WOODS.walnut.hex, finish: 'wood', wood: 'walnut' }, pct: 18 },
   { sl: 'Črna', en: 'Black', code: 'RAL 9005', spec: { hex: '#151517', finish: 'struct' }, pct: 18 },
+  { sl: 'Bazaltno siva', en: 'Basalt grey', code: 'RAL 7012', spec: { hex: '#4f5653', finish: 'struct' }, pct: 15 },
+  { sl: 'Kvarčno siva', en: 'Quartz grey', code: 'RAL 7039', spec: { hex: '#6b685e', finish: 'struct' }, pct: 15 },
+  { sl: WOODS.dark_oak.sl, en: WOODS.dark_oak.en, code: 'folija', spec: { hex: WOODS.dark_oak.hex, finish: 'wood', wood: 'dark_oak' }, pct: 18 },
+  { sl: WOODS.winchester.sl, en: WOODS.winchester.en, code: 'folija', spec: { hex: WOODS.winchester.hex, finish: 'wood', wood: 'winchester' }, pct: 18 },
+  { sl: 'Svetlo siva', en: 'Light grey', code: 'RAL 7035', spec: { hex: '#c9cec9', finish: 'struct' }, pct: 15 },
+  { sl: 'Ahatno siva', en: 'Agate grey', code: 'RAL 7038', spec: { hex: '#b3b6ae', finish: 'struct' }, pct: 15 },
+  { sl: 'Kremno bela', en: 'Cream white', code: 'RAL 9001', spec: { hex: '#e9e0cf', finish: 'smooth' }, pct: 12 },
+  { sl: WOODS.mahogany.sl, en: WOODS.mahogany.en, code: 'folija', spec: { hex: WOODS.mahogany.hex, finish: 'wood', wood: 'mahogany' }, pct: 18 },
+  { sl: WOODS.light_oak.sl, en: WOODS.light_oak.en, code: 'folija', spec: { hex: WOODS.light_oak.hex, finish: 'wood', wood: 'light_oak' }, pct: 18 },
+  { sl: WOODS.douglas.sl, en: WOODS.douglas.en, code: 'folija', spec: { hex: WOODS.douglas.hex, finish: 'wood', wood: 'douglas' }, pct: 18 },
   { sl: 'Sepia rjava', en: 'Sepia brown', code: 'RAL 8014', spec: { hex: '#4a3727', finish: 'struct' }, pct: 15 },
-  { sl: 'Mahovo zelena', en: 'Moss green', code: 'RAL 6005', spec: { hex: '#16443a', finish: 'smooth' }, pct: 18 },
-  { sl: 'Jeklено modra', en: 'Steel blue', code: 'RAL 5011', spec: { hex: '#1d2b3a', finish: 'smooth' }, pct: 18 },
-  { sl: 'Vinsko rdeča', en: 'Wine red', code: 'RAL 3005', spec: { hex: '#5b1a22', finish: 'smooth' }, pct: 18 },
-  { sl: 'Krtačeni aluminij', en: 'Brushed aluminium', code: 'Alux', spec: { hex: '#a9abab', finish: 'metal' }, pct: 25 },
   { sl: 'Antracit metalik', en: 'Anthracite metallic', code: 'DB 703', spec: { hex: '#4a4d52', finish: 'metal' }, pct: 25 },
-  ...(Object.keys(WOODS) as WoodKey[]).map(k => ({ sl: WOODS[k].sl, en: WOODS[k].en, code: 'folija', spec: { hex: WOODS[k].hex, finish: 'wood' as const, wood: k }, pct: 18 })),
+  { sl: 'Krtačeni aluminij', en: 'Brushed aluminium', code: 'Alux', spec: { hex: '#a9abab', finish: 'metal' }, pct: 25 },
+  { sl: 'Mahovo zelena', en: 'Moss green', code: 'RAL 6005', spec: { hex: '#16443a', finish: 'smooth' }, pct: 18 },
+  { sl: 'Jekleno modra', en: 'Steel blue', code: 'RAL 5011', spec: { hex: '#1d2b3a', finish: 'smooth' }, pct: 18 },
+  { sl: 'Vinsko rdeča', en: 'Wine red', code: 'RAL 3005', spec: { hex: '#5b1a22', finish: 'smooth' }, pct: 18 },
 ]
