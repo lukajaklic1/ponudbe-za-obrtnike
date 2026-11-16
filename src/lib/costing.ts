@@ -175,8 +175,8 @@ export const STANDARD_SHADING: Omit<ShadingType, 'id'>[] = [
   { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 70, fixed: 180, min: 400, allows_screen: false },
   { kind: 'shade', icon: 'roller', name: 'Rolete, ročni pogon', description: 'Nadometna omarica, aluminijaste lamele.', unit: 'm2', cost: 55, fixed: 40, min: 175, allows_screen: true },
   { kind: 'shade', icon: 'roller', name: 'Rolete z motorjem', description: 'Nadometna omarica, elektromotor s stikalom.', unit: 'm2', cost: 55, fixed: 160, min: 350, allows_screen: true },
-  { kind: 'shade', icon: 'pleated', name: 'Notranje plise senčilo', description: 'Na krilu, se premika gor in dol.', unit: 'sash', cost: 45 },
-  { kind: 'screen', icon: 'screen', name: 'Okvirni komarnik', description: 'Fiksni aluminijast okvir z mrežico, na vsako krilo.', unit: 'sash', cost: 25 },
+  { kind: 'shade', icon: 'pleated', name: 'Notranje plise senčilo', description: 'Na krilu, se premika gor in dol.', unit: 'sash', fixed: 25, per_h: 6, cost: 30 },
+  { kind: 'screen', icon: 'screen', name: 'Okvirni komarnik', description: 'Fiksni aluminijast okvir z mrežico, na vsako krilo.', unit: 'sash', fixed: 8, per_w: 4, per_h: 4, cost: 6 },
   { kind: 'screen', icon: 'screen_roll', name: 'Rolo komarnik', description: 'Mrežica se navije v omarico. Z roleto si deli omarico in vodila.', unit: 'm2', fixed: 40, per_w: 15, per_h: 12, cost: 20, min: 130,
     can_integrate: true, integrated: { fixed: 15, cost: 20 } },
   { kind: 'screen', icon: 'pleated', name: 'Plise komarnik', description: 'Zložljiva mrežica, primerna za balkonska vrata.', unit: 'm2', fixed: 80, cost: 40, min: 170 },
@@ -351,6 +351,8 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const innerW = W - 2 * fw
 
   let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, sashes = 0, handles = 0
+  // sizes of the opening sashes added up (for shading / screens priced per sash)
+  let sashWSum = 0, sashHSum = 0, sashArea = 0
   const hw: Record<string, { n: number; total: number }> = {}
 
   // a field = clear opening inside the frame / mullions
@@ -364,6 +366,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     sashes++
     if (HANDLE_OPENINGS.includes(f.opening)) handles++
     const sashW = cw + 2 * OVERLAP, sashH = ch + 2 * OVERLAP
+    sashWSum += sashW; sashHSum += sashH; sashArea += sashW * sashH / 1e6
     sashLen += 2 * (sashW + sashH)
     const gw = Math.max(0, sashW - 2 * sw), gh = Math.max(0, sashH - 2 * sw)
     beadLen += 2 * (gw + gh)
@@ -422,12 +425,12 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     : screenRaw
   for (const sh of [shade, screen]) {
     if (!sh) continue
-    // fixed part + price × quantity, never below the lowest amount
-    const q = sh.unit === 'm2' ? W * H / 1e6 : sh.unit === 'sash' ? sashes : 1
+    // per window: fixed + width × €/m + height × €/m + area × €/m² of the window;
+    // per sash: the same for every opening sash (summed over the sashes' widths, heights and areas)
+    const [n, w, h, a] = sh.unit === 'sash' ? [sashes, sashWSum / 1000, sashHSum / 1000, sashArea] : [1, W / 1000, H / 1000, W * H / 1e6]
+    const sum = (sh.fixed ?? 0) * n + (sh.per_w ?? 0) * w + (sh.per_h ?? 0) * h + sh.cost * a
     // the lowest sale price is turned back into a cost, so the margin added to the window brings it to exactly that price
-    // per window: fixed + width × €/m + height × €/m + area × €/m², all added up
-    const byWindow = sh.unit === 'm2' ? (sh.fixed ?? 0) + (sh.per_w ?? 0) * W / 1000 + (sh.per_h ?? 0) * H / 1000 : 0
-    const amount = Math.max((sh.min ?? 0) / (1 + (s.margin_pct ?? 0) / 100), byWindow + sh.cost * q)
+    const amount = Math.max((sh.min ?? 0) / (1 + (s.margin_pct ?? 0) / 100), sum)
     add('shade_' + sh.kind, `${L('shade_' + sh.kind, sh.kind === 'shade' ? 'Senčilo' : 'Komarnik')}: ${sh.name}`, 1, 'kos', amount)
   }
   // chosen yes / no extras, counted per window
