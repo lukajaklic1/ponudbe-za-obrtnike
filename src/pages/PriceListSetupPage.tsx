@@ -1120,10 +1120,12 @@ export default function PriceListSetupPage() {
               const set = (id: string, patch: Partial<GlassType>) => setList(list.map(g => g.id === id ? { ...g, ...patch } : g))
               return <div className="space-y-3">
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-                  {list.map((g, i) => <div key={g.id} className="px-4 py-3 space-y-2">
-                    {/* line 1: picture, name, base badge, remove */}
+                  {list.map((g, i) => <div key={g.id} className="px-4 py-4 flex gap-4">
+                    {/* the picture on the left, over the whole row */}
+                    <div className="shrink-0 hidden sm:flex w-[84px] justify-center rounded-lg bg-gray-50 border border-gray-100 py-2 self-start"><GlassIcon layers={g.layers ?? 2} size={64} /></div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                    {/* line 1: name, base badge, remove */}
                     <div className="flex items-center gap-3">
-                      <GlassIcon layers={g.layers ?? 2} />
                       <input value={g.name} onChange={e => set(g.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.glassName}
                         className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>}
@@ -1131,7 +1133,7 @@ export default function PriceListSetupPage() {
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
                     {/* line 2: Ug, panes, purchase price */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:pl-[52px]">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <NumberInput label={T.ugLabel} unit="W/m²K" value={g.ug ?? null} onValue={v => set(g.id, { ug: v })} decimals={1} />
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-[#7f7f7f]">{T.glassLayers}</label>
@@ -1143,10 +1145,11 @@ export default function PriceListSetupPage() {
                       <NumberInput label={T.glassCost} unit={`${cur}/m²`} value={g.cost_m2} onValue={v => set(g.id, { cost_m2: v ?? 0 })} decimals={2} />
                     </div>
                     {/* line 3: description on the customer's card */}
-                    <div className="sm:pl-[52px]">
+                    <div>
                       <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
                       <textarea value={g.description ?? ''} onChange={e => set(g.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.glassDescPh} rows={2}
                         className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
                     </div>
                   </div>)}
                 </div>
