@@ -158,14 +158,16 @@ export type ShadingIconKind = 'blinds' | 'roller' | 'pleated' | 'screen' | 'scre
 export interface ShadingType {
   id: string; kind: 'shade' | 'screen'; name: string; description?: string
   unit: ShadingUnit; cost: number
+  /** fixed amount per piece (drive, end parts; only with 'm2') and the lowest amount charged (purchase prices) */
+  fixed?: number; min?: number
   /** drawing (blinds, roller, pleated, screen, screen_roll, none) and the supplier's photo */
   icon?: ShadingIconKind; image_url?: string | null
 }
 export const STANDARD_SHADING: Omit<ShadingType, 'id'>[] = [
-  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon z jermenom.', unit: 'm2', cost: 95 },
-  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 140 },
-  { kind: 'shade', icon: 'roller', name: 'Rolete, ročni pogon', description: 'Nadometna omarica, aluminijaste lamele.', unit: 'm2', cost: 75 },
-  { kind: 'shade', icon: 'roller', name: 'Rolete z motorjem', description: 'Nadometna omarica, elektromotor s stikalom.', unit: 'm2', cost: 120 },
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon z jermenom.', unit: 'm2', cost: 70, fixed: 60, min: 160 },
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 70, fixed: 180, min: 280 },
+  { kind: 'shade', icon: 'roller', name: 'Rolete, ročni pogon', description: 'Nadometna omarica, aluminijaste lamele.', unit: 'm2', cost: 55, fixed: 40, min: 120 },
+  { kind: 'shade', icon: 'roller', name: 'Rolete z motorjem', description: 'Nadometna omarica, elektromotor s stikalom.', unit: 'm2', cost: 55, fixed: 160, min: 240 },
   { kind: 'shade', icon: 'pleated', name: 'Notranje plise senčilo', description: 'Na krilu, se premika gor in dol.', unit: 'sash', cost: 45 },
   { kind: 'screen', icon: 'screen', name: 'Okvirni komarnik', description: 'Fiksni aluminijast okvir z mrežico, na vsako krilo.', unit: 'sash', cost: 25 },
   { kind: 'screen', icon: 'screen_roll', name: 'Rolo komarnik', description: 'Mrežica se navije v omarico, na vsako krilo.', unit: 'sash', cost: 45 },
@@ -407,8 +409,10 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   // shading and insect screen: per m² of the window, per opening sash or per piece
   for (const sh of [shadingOf(s, 'shade', opts.shadeId), shadingOf(s, 'screen', opts.screenId)]) {
     if (!sh) continue
-    const [q, u]: [number, CutLine['unit']] = sh.unit === 'm2' ? [W * H / 1e6, 'm²'] : sh.unit === 'sash' ? [sashes, 'kos'] : [1, 'kos']
-    add('shade_' + sh.kind, `${L('shade_' + sh.kind, sh.kind === 'shade' ? 'Senčilo' : 'Komarnik')}: ${sh.name}`, q, u, sh.cost)
+    // fixed part + price × quantity, never below the lowest amount
+    const q = sh.unit === 'm2' ? W * H / 1e6 : sh.unit === 'sash' ? sashes : 1
+    const amount = Math.max(sh.min ?? 0, (sh.unit === 'm2' ? sh.fixed ?? 0 : 0) + sh.cost * q)
+    add('shade_' + sh.kind, `${L('shade_' + sh.kind, sh.kind === 'shade' ? 'Senčilo' : 'Komarnik')}: ${sh.name}`, 1, 'kos', amount)
   }
   // chosen yes / no extras, counted per window
   for (const x of s.extras ?? []) {
