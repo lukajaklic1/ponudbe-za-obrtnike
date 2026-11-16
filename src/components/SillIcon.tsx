@@ -2,18 +2,19 @@ import { useId } from 'react'
 
 /** Materials of window sills; each one is drawn as a square sample with its texture. */
 export type SillMaterial =
+  | 'none'
   | 'granite' | 'granite_dark' | 'marble'
   | 'wood_oak' | 'wood_walnut'
   | 'pvc_white' | 'pvc_oak' | 'pvc_anthracite'
   | 'alu_white' | 'alu_silver' | 'alu_anthracite' | 'alu_brown'
 export const SILL_MATERIALS: SillMaterial[] = [
-  'pvc_white', 'pvc_oak', 'pvc_anthracite', 'wood_oak', 'wood_walnut', 'granite', 'granite_dark', 'marble',
+  'none', 'pvc_white', 'pvc_oak', 'pvc_anthracite', 'wood_oak', 'wood_walnut', 'granite', 'granite_dark', 'marble',
   'alu_white', 'alu_silver', 'alu_anthracite', 'alu_brown',
 ]
 /** Older material keys → current ones. */
 const OLD: Record<string, SillMaterial> = { stone: 'granite', pvc: 'pvc_white', wood: 'wood_oak', alu: 'alu_silver', alu_dark: 'alu_anthracite' }
 export const sillMaterialOf = (m?: string | null): SillMaterial =>
-  (SILL_MATERIALS as string[]).includes(m ?? '') ? m as SillMaterial : OLD[m ?? ''] ?? 'pvc_white'
+  (SILL_MATERIALS as string[]).includes(m ?? '') ? m as SillMaterial : OLD[m ?? ''] ?? 'none'
 
 // fixed pseudo-random numbers, so a texture looks the same on every render
 function rand(seed: number) { let s = seed; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280 } }
@@ -78,8 +79,11 @@ export default function SillIcon({ material, size = 64 }: { material?: string | 
     case 'alu_brown':
       body = <><rect width="60" height="60" fill="#4d3a30" />{brushed(8, '#2f221c', '#7a6155')}</>
       break
-    default: // pvc_white
+    case 'pvc_white':
       body = <rect width="60" height="60" fill="#f6f7f8" />
+      break
+    default: // none: no material — a plain light square
+      body = <rect width="60" height="60" fill="#f3f4f6" />
   }
   const glossy = m.startsWith('pvc') || m === 'marble' || m.startsWith('granite')
   return (
