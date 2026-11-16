@@ -19,7 +19,7 @@ export default function HandleIcon({ look, lockable = false, size = 40 }: { look
   const metal = spec?.finish === 'metal'
   const light = shade(hex, metal ? 0.55 : 0.35), dark = shade(hex, metal ? -0.35 : -0.18)
   const edge = shade(hex, -0.3)
-  const g = `h-${uid}`
+  const g = `h-${uid}`, fillUrl = `url(#${g})`
   return (
     <svg width={size} height={size * 1.2} viewBox="0 0 100 120" className="shrink-0" aria-hidden>
       <defs>
@@ -30,18 +30,18 @@ export default function HandleIcon({ look, lockable = false, size = 40 }: { look
         </linearGradient>
       </defs>
       {/* shadow on the sash */}
-      <ellipse cx="54" cy="112" rx="16" ry="3" fill="#000" opacity="0.08" />
-      {/* rosette */}
-      <rect x="35" y="6" width="30" height="58" rx="9" fill={`url(#${g})`} stroke={edge} strokeWidth="1.5" />
+      <rect x="38" y="110" width="30" height="4" rx="2" fill="#000" opacity="0.07" />
+      {/* rosette: slim, square-edged plate */}
+      <rect x="37" y="6" width="26" height="58" rx="3" fill={fillUrl} stroke={edge} strokeWidth="1.5" />
       {/* key cylinder of a lockable handle */}
       {lockable && <g>
-        <circle cx="50" cy="19" r="5.5" fill={shade(hex, -0.45)} stroke={edge} strokeWidth="1" />
-        <rect x="49" y="16" width="2" height="6" rx="1" fill={shade(hex, 0.6)} />
+        <rect x="45" y="13" width="10" height="10" rx="2" fill={shade(hex, -0.45)} stroke={edge} strokeWidth="1" />
+        <rect x="49" y="15" width="2" height="6" rx="0.8" fill={shade(hex, 0.6)} />
       </g>}
-      {/* neck + lever pointing down */}
-      <circle cx="50" cy="40" r="9" fill={`url(#${g})`} stroke={edge} strokeWidth="1.5" />
-      <path d="M44 42 Q43 76 45 104 Q46 110 51 110 Q56 110 57 104 Q58 76 56 42 Z" fill={`url(#${g})`} stroke={edge} strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M47 48 Q46.5 76 48 102" stroke={light} strokeWidth="1.6" fill="none" opacity="0.7" strokeLinecap="round" />
+      {/* square neck + straight square-edged lever pointing down */}
+      <rect x="42" y="32" width="16" height="16" rx="2.5" fill={fillUrl} stroke={edge} strokeWidth="1.5" />
+      <rect x="44" y="44" width="12" height="64" rx="2" fill={fillUrl} stroke={edge} strokeWidth="1.5" />
+      <line x1="47" y1="48" x2="47" y2="104" stroke={light} strokeWidth="1.6" opacity="0.7" strokeLinecap="round" />
     </svg>
   )
 }
