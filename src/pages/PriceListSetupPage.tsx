@@ -106,8 +106,10 @@ const TXT = {
     sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
     sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', sillMaterial: 'Material',
     sillMaterials: { none: 'Brez materiala', pvc_white: 'PVC, bela', pvc_oak: 'PVC, dekor hrast', pvc_anthracite: 'PVC, antracit', wood_oak: 'Les, hrast', wood_walnut: 'Les, oreh', granite: 'Granit, siv', granite_dark: 'Granit, temen', marble: 'Marmor', alu_white: 'Aluminij, bel', alu_silver: 'Aluminij, srebrn', alu_anthracite: 'Aluminij, antracit', alu_brown: 'Aluminij, rjav' } as Record<string, string>, quickAdd: 'Hitro dodaj:', addPicture: 'Dodaj sliko',
-    shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavne cene in izberite, kako se obračuna: na okno ali na vsako krilo, ki se odpira. Pri obračunu na okno se seštejejo fiksni znesek (pogon, končni deli), cena na meter širine (omarica), na meter višine (vodila) in na m² (lamele); kar ne potrebujete, pustite na 0. Najnižja prodajna cena velja za majhna okna: stranka nikoli ne plača manj od te cene. Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se v kalkulaciji doda na koncu na celotno okno.',
+    shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavne cene in izberite, kako se obračuna: na okno ali na vsako krilo, ki se odpira. Pri obračunu na okno se seštejejo fiksni znesek (pogon, končni deli), cena na meter širine (omarica), na meter višine (vodila) in na m² (lamele); kar ne potrebujete, pustite na 0. Najnižja prodajna cena velja za majhna okna: stranka nikoli ne plača manj od te cene. Če je komarnik vgrajen v omarico senčila, se omarica in vodila ne štejeta dvakrat: velja cena »ko je vgrajen v senčilo«. Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se v kalkulaciji doda na koncu na celotno okno.',
     shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Na m²', shadeCostSash: 'Nabavna cena na krilo',
+    allowsScreen: 'Omogoča vgrajen komarnik (skupna omarica in vodila)', canIntegrate: 'Lahko je vgrajen v senčilo',
+    integratedTitle: 'Nabavna cena, ko je vgrajen v senčilo (samo deli, ki jih komarnik doda: mreža, letev …)',
     shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine', shadeMin: 'Najnižja prodajna cena na okno',
     shadeUnits: { m2: 'Na okno', sash: 'Na krilo' } as Record<string, string>,
     shadeIcons: { blinds: 'Žaluzije', roller: 'Rolete', pleated: 'Plise', screen: 'Okvirni komarnik', screen_roll: 'Rolo komarnik', none: 'Brez slike' } as Record<string, string>,
@@ -182,8 +184,10 @@ const TXT = {
     sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
     sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', sillMaterial: 'Material',
     sillMaterials: { none: 'No material', pvc_white: 'PVC, white', pvc_oak: 'PVC, oak decor', pvc_anthracite: 'PVC, anthracite', wood_oak: 'Wood, oak', wood_walnut: 'Wood, walnut', granite: 'Granite, grey', granite_dark: 'Granite, dark', marble: 'Marble', alu_white: 'Aluminium, white', alu_silver: 'Aluminium, silver', alu_anthracite: 'Aluminium, anthracite', alu_brown: 'Aluminium, brown' } as Record<string, string>, quickAdd: 'Quick add:', addPicture: 'Add a picture',
-    shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase prices and how they are counted: per window or per opening sash. Per window the fixed amount (drive, end parts), the price per metre of width (box), per metre of height (guides) and per m² (slats) are added up; leave at 0 what you do not need. The lowest sale price is for small windows: the customer never pays less than this price. In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. In the costing the margin is added to the whole window at the end.',
+    shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase prices and how they are counted: per window or per opening sash. Per window the fixed amount (drive, end parts), the price per metre of width (box), per metre of height (guides) and per m² (slats) are added up; leave at 0 what you do not need. The lowest sale price is for small windows: the customer never pays less than this price. When an insect screen is built into the box of the shading, the box and guides are not counted twice: the "built into a shading" price applies. In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. In the costing the margin is added to the whole window at the end.',
     shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Per m²', shadeCostSash: 'Purchase price per sash',
+    allowsScreen: 'An insect screen can be built in (shared box and guides)', canIntegrate: 'Can be built into a shading',
+    integratedTitle: 'Purchase price when built into a shading (only what the screen adds: mesh, bottom bar …)',
     shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height', shadeMin: 'Lowest sale price per window',
     shadeUnits: { m2: 'Per window', sash: 'Per sash' } as Record<string, string>,
     shadeIcons: { blinds: 'Blinds', roller: 'Roller shutter', pleated: 'Pleated', screen: 'Framed screen', screen_roll: 'Roll-up screen', none: 'No picture' } as Record<string, string>,
@@ -331,6 +335,8 @@ export default function PriceListSetupPage() {
       if (!pr.shading?.length) pr.shading = sampleShading()
       // 'per piece' is no longer offered: it is the same as per window with only a fixed amount
       pr.shading = pr.shading.map(x => x.unit === 'piece' ? { ...x, unit: 'm2', fixed: (x.fixed ?? 0) + x.cost, cost: 0 } : x)
+      // shadings saved before "built-in screen" existed: outside blinds and rollers allow it
+      pr.shading = pr.shading.map(x => x.kind === 'shade' && x.allows_screen === undefined ? { ...x, allows_screen: x.icon === 'blinds' || x.icon === 'roller' } : x)
       // profile colours per material: the usual ones to start with
       pr.colors = { ...(pr.colors ?? {}) }
       for (const m of MATERIALS) if (!pr.colors[m]) pr.colors[m] = sampleColors()
@@ -1391,6 +1397,22 @@ export default function PriceListSetupPage() {
                                 </div>
                               : <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 items-start">
                                   <NumberInput label={T.shadeCostSash} unit={`${cur}/${T.perHandle}`} value={x.cost} onValue={v => set(x.id, { cost: v ?? 0 })} decimals={2} />
+                                </div>}
+                            {/* built-in insect screen: the shading allows it, the screen has its own (lower) prices for it */}
+                            {kind === 'shade'
+                              ? <Checkbox checked={!!x.allows_screen} onChange={v => { if (canEdit) set(x.id, { allows_screen: v }) }} label={T.allowsScreen} />
+                              : <div className="space-y-2">
+                                  <Checkbox checked={!!x.can_integrate} onChange={v => { if (canEdit) set(x.id, { can_integrate: v, integrated: x.integrated ?? {} }) }} label={T.canIntegrate} />
+                                  {x.can_integrate && <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
+                                    <div className="text-xs font-medium text-gray-700 mb-2">{T.integratedTitle}</div>
+                                    <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 items-start">
+                                      {(['fixed', 'per_w', 'per_h', 'cost'] as const).map(f => (
+                                        <NumberInput key={f} label={f === 'fixed' ? T.shadeFixed : f === 'per_w' ? T.shadePerW : f === 'per_h' ? T.shadePerH : T.shadeCostM2}
+                                          unit={f === 'fixed' ? cur : f === 'cost' ? `${cur}/m²` : `${cur}/m`}
+                                          value={x.integrated?.[f] ?? 0} onValue={v => set(x.id, { integrated: { ...(x.integrated ?? {}), [f]: v ?? 0 } })} decimals={2} />
+                                      ))}
+                                    </div>
+                                  </div>}
                                 </div>}
                             <div>
                               <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
