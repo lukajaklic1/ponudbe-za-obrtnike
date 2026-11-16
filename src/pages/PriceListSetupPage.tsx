@@ -1384,7 +1384,7 @@ export default function PriceListSetupPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                               <div className="flex flex-col gap-1">
                                 <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeDrawing}</label>
-                                <select value={x.icon ?? 'none'} disabled={!canEdit} onChange={e => set(x.id, { icon: e.target.value as ShadingType['icon'] })}
+                                <select value={x.icon ?? 'none'} disabled={!canEdit} onChange={e => { const icon = e.target.value as ShadingType['icon']; set(x.id, { icon, ...(icon === 'roller' || icon === 'blinds' ? {} : { allows_screen: false }) }) }}
                                   className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                   {SHADING_ICONS.map(k => <option key={k} value={k}>{T.shadeIcons[k]}</option>)}
                                 </select>
@@ -1411,7 +1411,7 @@ export default function PriceListSetupPage() {
                                 </div>}
                             {/* built-in insect screen: the shading allows it, the screen has its own (lower) prices for it */}
                             {kind === 'shade'
-                              ? <Checkbox checked={!!x.allows_screen} onChange={v => { if (canEdit) set(x.id, { allows_screen: v }) }} label={T.allowsScreen} />
+                              ? (x.icon === 'roller' || x.icon === 'blinds') && <Checkbox checked={!!x.allows_screen} onChange={v => { if (canEdit) set(x.id, { allows_screen: v }) }} label={T.allowsScreen} />
                               : <div className="space-y-2">
                                   <Checkbox checked={!!x.can_integrate} onChange={v => { if (canEdit) set(x.id, { can_integrate: v, integrated: x.integrated ?? {} }) }} label={T.canIntegrate} />
                                   {x.can_integrate && <div className="rounded-lg bg-gray-50 border border-gray-100 p-3">
