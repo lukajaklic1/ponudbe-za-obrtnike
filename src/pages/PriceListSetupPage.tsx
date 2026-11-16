@@ -10,10 +10,13 @@ import NumberInput from '../components/ui/NumberInput'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
-import { costWindow, specToLayout, CALC_LABELS, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
+import { costWindow, specToLayout, CALC_LABELS, glassOf, handleOf, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
-import { sampleRoofCatalog, newRoofId, sampleColors, type RoofCatalog, type RoofOpening, type ProfileColor } from '../lib/costing'
+import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType } from '../lib/costing'
+import GlassIcon from '../components/GlassIcon'
+/** option groups that have their own step in the price list (not the generic name + price rows) */
+const OWN_STEP_GROUPS = ['color', 'glass', 'handle']
 import { cn } from '../lib/cn'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import ColorSwatch from '../components/ColorSwatch'
@@ -89,7 +92,12 @@ const TXT = {
     surcharge: 'Doplačilo',
     metrePrices: 'Nabavne cene profila na tekoči meter', frameM: 'Okvir', sashM: 'Krilo', mullionM: 'Steber / prečka', beadM: 'Pritrdilna letvica',
     widths: 'Pogledne širine profilov', frameW: 'Okvir', sashW: 'Krilo', mullionW: 'Steber',
-    s3: 'Steklo, delo in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
+    s3: 'Delo, odrez in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
+    glassTitle: 'Katera stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na celotno okno.',
+    glassName: 'Steklo', glassLayers: 'Slojev', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', makeBase: 'Nastavi kot osnovno', addGlass: 'Dodaj steklo',
+    handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je standardna in je vključena v ceno.',
+    handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'S ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
+    exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
     hwTitle: 'Koliko znašajo dodatni stroški okovja?', exTitle: 'Primer izračuna',
     exIntro: (w: string, h: string, prof: string) => `Dvokrilno okno ${w} × ${h} mm brez stebra: levo pasivno krilo brez kljuke, desno odpiranje in kip, profil ${prof}.`, exNoProfile: '(najprej dodajte profil v koraku 3)',
     exOpening: 'Odprtina za krilo', exWide: 'široka', exHigh: 'visoka', exSashSize: 'Velikost krila', exPerimeterL: 'Obseg krila', exData: 'Uporabljeni podatki', exCalc: 'Izračun', exStepSize: 'Mere krila', exStepPassive: 'Okovje levega krila (pasivno krilo brez kljuke)', exStepTt: 'Okovje desnega krila (odpiranje in kip)', exStepTotal: 'Okovje celega okna',
@@ -147,7 +155,12 @@ const TXT = {
     surcharge: 'Surcharge',
     metrePrices: 'Purchase price of the profile per metre', frameM: 'Frame', sashM: 'Sash', mullionM: 'Mullion / transom', beadM: 'Glazing bead',
     widths: 'Visible widths frame / sash / mullion', frameW: 'Frame', sashW: 'Sash', mullionW: 'Mullion',
-    s3: 'Glass, labour and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
+    s3: 'Labour, waste and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
+    glassTitle: 'Which glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window.',
+    glassName: 'Glass', glassLayers: 'Panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', makeBase: 'Make base', addGlass: 'Add glass',
+    handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the standard one and is included.',
+    handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'With key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
+    exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
     hwTitle: 'What are the additional hardware costs?', exTitle: 'Example',
     exIntro: (w: string, h: string, prof: string) => `Double window ${w} × ${h} mm without a mullion: left passive sash without a handle, right sash tilt & turn, profile ${prof}.`, exNoProfile: '(add a profile in step 3 first)',
     exOpening: 'Opening for a sash', exWide: 'wide', exHigh: 'high', exSashSize: 'Sash size', exPerimeterL: 'Sash perimeter', exData: 'Data used', exCalc: 'Calculation', exStepSize: 'Sash size', exStepPassive: 'Left sash hardware (passive, no handle)', exStepTt: 'Right sash hardware (tilt & turn)', exStepTotal: 'Hardware of the whole window',
@@ -277,6 +290,9 @@ export default function PriceListSetupPage() {
       const pr = pricingFrom((c.data as { window_pricing?: unknown } | null)?.window_pricing ?? company.window_pricing)
       // roof windows start from a sample range the supplier edits (saved with the price list)
       if (!pr.roof) pr.roof = sampleRoofCatalog()
+      // glass packages and handles: start from samples; the base glass keeps the old single glass price
+      if (!pr.glass?.length) pr.glass = sampleGlass(pr.glass_m2)
+      if (!pr.handles?.length) pr.handles = sampleHandles()
       // profile colours per material: the usual ones to start with
       pr.colors = { ...(pr.colors ?? {}) }
       for (const m of MATERIALS) if (!pr.colors[m]) pr.colors[m] = sampleColors()
@@ -531,7 +547,7 @@ export default function PriceListSetupPage() {
     try {
       const now = new Date().toISOString()
       // offer (types, top lights, opening types …) and price settings first
-      { const { error } = await supabase.from('companies').update({ window_pricing: pricing, updated_at: now } as any).eq('id', company.id); if (error) throw error }
+      { const { error } = await supabase.from('companies').update({ window_pricing: { ...pricing, glass_m2: pricing.glass?.[0]?.cost_m2 ?? pricing.glass_m2 }, updated_at: now } as any).eq('id', company.id); if (error) throw error }
       // profiles → window_systems (a material that is switched off keeps its profiles, inactive)
       if (removedProfiles.length) {
         const { error } = await supabase.from('window_systems' as any).delete().in('id', removedProfiles); if (error) throw error
@@ -1086,12 +1102,93 @@ export default function PriceListSetupPage() {
             </div>
           </Step>
 
-          {/* 4+. extras and services */}
-          {sections.filter(sec => sec.group !== 'color').map((sec, i) => {
+          {/* 6. glass packages: purchase price per m² of glass, the first one is the base glass */}
+          <Step n={6} title={T.glassTitle} hint={T.glassHint}>
+            {(() => {
+              const list = pricing.glass ?? []
+              const setList = (next: GlassType[]) => { setPricing(x => ({ ...x, glass: next })); touch() }
+              const set = (id: string, patch: Partial<GlassType>) => setList(list.map(g => g.id === id ? { ...g, ...patch } : g))
+              return <div className="space-y-3">
+                <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                  {list.map((g, i) => <div key={g.id} className="px-4 py-3 space-y-2">
+                    {/* line 1: picture, name, base badge, remove */}
+                    <div className="flex items-center gap-3">
+                      <GlassIcon layers={g.layers ?? 2} />
+                      <input value={g.name} onChange={e => set(g.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.glassName}
+                        className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      {i === 0
+                        ? <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>
+                        : canEdit && <button type="button" onClick={() => setList([g, ...list.filter(x => x.id !== g.id)])} className="shrink-0 text-xs font-medium text-gray-500 hover:text-gray-900">{T.makeBase}</button>}
+                      {canEdit && list.length > 1 && <button type="button" onClick={() => setList(list.filter(x => x.id !== g.id))} title={T.remove}
+                        className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                    </div>
+                    {/* line 2: Ug, panes, purchase price */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:pl-[52px]">
+                      <NumberInput label="Ug" unit="W/m²K" value={g.ug ?? null} onValue={v => set(g.id, { ug: v })} decimals={1} />
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-[#7f7f7f]">{T.glassLayers}</label>
+                        <select value={g.layers ?? 2} disabled={!canEdit} onChange={e => set(g.id, { layers: Number(e.target.value) })}
+                          className="rounded-lg border border-gray-200 hover:border-gray-400 px-2 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <option value={2}>{T.layers2}</option><option value={3}>{T.layers3}</option>
+                        </select>
+                      </div>
+                      <NumberInput label={T.glassCost} unit={`${cur}/m²`} value={g.cost_m2} onValue={v => set(g.id, { cost_m2: v ?? 0 })} decimals={2} />
+                    </div>
+                  </div>)}
+                </div>
+                {canEdit && <button type="button" onClick={() => setList([...list, { id: newRoofId(), name: '', ug: null, layers: 2, cost_m2: 0 }])}
+                  className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addGlass}</button>}
+              </div>
+            })()}
+          </Step>
+
+          {/* 7. handles: purchase price per handle, one per sash that opens with a handle */}
+          <Step n={7} title={T.handleTitle} hint={T.handleHint}>
+            {(() => {
+              const list = pricing.handles ?? []
+              const setList = (next: HandleType[]) => { setPricing(x => ({ ...x, handles: next })); touch() }
+              const set = (id: string, patch: Partial<HandleType>) => setList(list.map(h => h.id === id ? { ...h, ...patch } : h))
+              return <div className="space-y-3">
+                <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                  {list.map((h, i) => {
+                    const spec = parseColor(h.look ?? '#ffffff')
+                    return <div key={h.id} className="px-4 py-3 space-y-2">
+                      {/* line 1: swatch (click to pick the colour), name, base badge, remove */}
+                      <div className="flex items-center gap-3">
+                        <label className={cn('relative w-10 h-10 shrink-0', canEdit && 'cursor-pointer')}>
+                          {spec && <ColorSwatch spec={spec} size={40} rounded={8} />}
+                          {canEdit && <input type="color" value={spec?.hex ?? '#ffffff'} onChange={e => set(h.id, { look: encodeColor({ ...(spec ?? { finish: 'smooth' }), hex: e.target.value } as any) })} className="absolute inset-0 opacity-0 cursor-pointer" />}
+                        </label>
+                        <input value={h.name} onChange={e => set(h.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.handleName}
+                          className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        {i === 0
+                          ? <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>
+                          : canEdit && <button type="button" onClick={() => setList([h, ...list.filter(x => x.id !== h.id)])} className="shrink-0 text-xs font-medium text-gray-500 hover:text-gray-900">{T.makeBase}</button>}
+                        {canEdit && list.length > 1 && <button type="button" onClick={() => setList(list.filter(x => x.id !== h.id))} title={T.remove}
+                          className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                      </div>
+                      {/* line 2: purchase price, with a key */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end sm:pl-[52px]">
+                        <NumberInput label={T.handleCost} unit={`${cur}/${T.perHandle}`} value={h.cost} onValue={v => set(h.id, { cost: v ?? 0 })} decimals={2} />
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700 h-10">
+                          <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
+                        </label>
+                      </div>
+                    </div>
+                  })}
+                </div>
+                {canEdit && <button type="button" onClick={() => setList([...list, { id: newRoofId(), name: '', look: '#ffffff', cost: 0 }])}
+                  className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addHandle}</button>}
+              </div>
+            })()}
+          </Step>
+
+          {/* 8+. extras and services (colour, glass and handles of built windows have their own steps) */}
+          {sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).map((sec, i) => {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + 6} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + 8} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">
@@ -1128,9 +1225,8 @@ export default function PriceListSetupPage() {
           })}
 
           {/* last: glass, labour, waste and margin (the margin goes on the whole window) */}
-          <Step n={6 + sections.filter(sec => sec.group !== 'color').length} title={T.s3} hint={T.s3hint}>
+          <Step n={8 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <NumberInput label={T.glassM2} unit={`${cur}/m²`} value={pricing.glass_m2} onValue={v => setPrice({ glass_m2: v ?? 0 })} decimals={2} />
               <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
               <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
               <NumberInput label={T.waste} unit="%" value={pricing.waste_pct} onValue={v => setPrice({ waste_pct: v ?? 0 })} decimals={0} />
@@ -1182,7 +1278,8 @@ export default function PriceListSetupPage() {
                     [T.exDataOverlap, `${OV} mm`, T.exSrcFixed],
                     [T.exDataPassive, `${n(fxT)} € + ${n(pmT)} €/m`, T.exSrcTable(T.hw.passive)],
                     [T.exDataTt, `${n(fxK)} € + ${n(pmK)} €/m`, T.exSrcTable(T.hw.tilt_turn)],
-                    [T.glassM2, `${n(pricing.glass_m2)} €/m²`, T.exSrcLast],
+                    [T.exDataGlass, `${glassOf(pricing)?.name ?? ''} ${n(glassOf(pricing)?.cost_m2 ?? pricing.glass_m2)} €/m²`, T.exSrcGlass],
+                    [T.exDataHandle, `${handleOf(pricing)?.name ?? ''} ${n(handleOf(pricing)?.cost ?? 0)} €`, T.exSrcHandle],
                     [T.exDataLabour, `${n(pricing.labour_window)} € + 2 × ${n(pricing.labour_sash)} €`, T.exSrcLast],
                     [T.waste, `${n(pricing.waste_pct, 0)} %`, T.exSrcLast],
                     [T.margin, `${n(pricing.margin_pct, 0)} %`, T.exSrcLast],

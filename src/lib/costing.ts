@@ -46,7 +46,41 @@ export interface PricingSettings {
   roof?: RoofCatalog
   /** profile colours per material (key = material), with surcharges in % on the profiles */
   colors?: ColorCatalog
+  /** glass packages, purchase price per m² of glass (the first one is the base glass, included in the price) */
+  glass?: GlassType[]
+  /** handles, purchase price per handle (the first one is the standard handle, included in the price) */
+  handles?: HandleType[]
 }
+
+/** A glass package (e.g. double glazing Ug 1,1): cost per m² of glass; the margin is added on the whole window. */
+export interface GlassType { id: string; name: string; ug?: number | null; layers?: number; cost_m2: number }
+/** A handle: look as in lib/colors (#hex …), cost per handle; lockable = with a key. */
+export interface HandleType { id: string; name: string; look?: string; cost: number; lockable?: boolean }
+
+/** Sashes that get a handle (a passive sash is opened from the other one, a fixed field has none). */
+export const HANDLE_OPENINGS: Opening[] = ['tilt_turn', 'turn', 'tilt', 'slide_window', 'slide', 'lift_slide']
+
+/** Sample glass packages; the others are priced relative to the base glass (default 26 €/m²). */
+export function sampleGlass(base = 26): GlassType[] {
+  return [
+    { id: rid(), name: 'Dvoslojno steklo', ug: 1.1, layers: 2, cost_m2: base },
+    { id: rid(), name: 'Dvoslojno steklo z argonom', ug: 1.0, layers: 2, cost_m2: base + 4 },
+    { id: rid(), name: 'Troslojno steklo', ug: 0.7, layers: 3, cost_m2: base + 16 },
+    { id: rid(), name: 'Troslojno steklo, toplejše', ug: 0.5, layers: 3, cost_m2: base + 26 },
+  ]
+}
+export function sampleHandles(): HandleType[] {
+  return [
+    { id: rid(), name: 'Kljuka bela', look: '#ffffff', cost: 6 },
+    { id: rid(), name: 'Kljuka srebrna', look: '#c0c0c0|metal', cost: 8 },
+    { id: rid(), name: 'Kljuka rjava', look: '#5b3a29', cost: 8 },
+    { id: rid(), name: 'Kljuka antracit', look: '#383e42', cost: 9 },
+    { id: rid(), name: 'Kljuka s ključem', look: '#ffffff', cost: 18, lockable: true },
+  ]
+}
+/** Chosen glass / handle, or the first one (standard); null when the supplier has none. */
+export const glassOf = (s: Pick<PricingSettings, 'glass'>, id?: string | null) => s.glass?.find(g => g.id === id) ?? s.glass?.[0] ?? null
+export const handleOf = (s: Pick<PricingSettings, 'handles'>, id?: string | null) => s.handles?.find(h => h.id === id) ?? s.handles?.[0] ?? null
 
 /** A colour of the profiles: look as in lib/colors (#hex, #hex|struct, #hex|metal, wood:key), surcharge in %
  *  on the profile price when only one side is coloured and when both sides are. */
@@ -194,9 +228,10 @@ const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
 /**
  * @param colorPct colour surcharge on the profiles (foil / powder coat), e.g. 15
  * @param glassExtraM2 surcharge of the chosen glass per m² of glass (on top of the base glass)
+ * @param glassId / handleId chosen glass package and handle (missing = the first one = standard)
  */
 export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrices, s: PricingSettings,
-  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; labels?: Partial<Record<string, string>> } = {}): Costing {
+  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; glassId?: string | null; handleId?: string | null; labels?: Partial<Record<string, string>> } = {}): Costing {
   const fw = p.frame_w ?? 70, sw = p.sash_w ?? 78, mw = p.mullion_w ?? 82
   const L = (k: string, d: string) => opts.labels?.[k] ?? d
   const cols = layout.cols
@@ -204,7 +239,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const botH = layout.bottom ? Math.round(H * layout.bottom.ratio) : 0
   const innerW = W - 2 * fw
 
-  let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, sashes = 0
+  let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, sashes = 0, handles = 0
   const hw: Record<string, { n: number; total: number }> = {}
 
   // a field = clear opening inside the frame / mullions
@@ -216,6 +251,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
       return
     }
     sashes++
+    if (HANDLE_OPENINGS.includes(f.opening)) handles++
     const sashW = cw + 2 * OVERLAP, sashH = ch + 2 * OVERLAP
     sashLen += 2 * (sashW + sashH)
     const gw = Math.max(0, sashW - 2 * sw), gh = Math.max(0, sashH - 2 * sw)
@@ -259,8 +295,10 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   add('sash', L('sash', 'Krila'), m(sashLen), 'm', p.sash_m * colorF)
   add('bead', L('bead', 'Pritrdilne letvice'), m(beadLen), 'm', p.bead_m * colorF)
   const profileCost = lines.reduce((a, l) => a + l.total, 0)
-  add('glass', L('glass', 'Steklo'), glassArea, 'm²', s.glass_m2 + (opts.glassExtraM2 ?? 0))
+  const gl = glassOf(s, opts.glassId), hd = handleOf(s, opts.handleId)
+  add('glass', gl ? `${L('glass', 'Steklo')}: ${gl.name}` : L('glass', 'Steklo'), glassArea, 'm²', (gl ? gl.cost_m2 : s.glass_m2) + (opts.glassExtraM2 ?? 0))
   for (const [k, v] of Object.entries(hw)) add('hw_' + k, L('hw_' + k, 'Okovje ' + k), v.n, 'kos', v.total / v.n)
+  if (hd) add('handle', `${L('handle', 'Kljuke')}: ${hd.name}`, handles, 'kos', hd.cost)
   add('labour', L('labour', 'Delo'), 1, 'kos', s.labour_window + sashes * s.labour_sash)
 
   const cost = lines.reduce((a, l) => a + l.total, 0)
@@ -584,8 +622,8 @@ export function presets(sp: WindowSpec): { key: string; main: Field[] }[] {
 
 /** Labels of the cut list lines (internal costing view). */
 export const CALC_LABELS = {
-  sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Pritrdilne letvice', glass: 'Steklo', labour: 'Delo',
+  sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Pritrdilne letvice', glass: 'Steklo', handle: 'Kljuke', labour: 'Delo',
     hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno' },
-  en: { frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', labour: 'Labour',
+  en: { frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', handle: 'Handles', labour: 'Labour',
     hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide' },
 }

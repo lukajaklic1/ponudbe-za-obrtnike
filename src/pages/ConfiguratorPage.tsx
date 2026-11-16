@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText } from 'lucide-react'
+import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, KeyRound } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -10,9 +10,10 @@ import { parseColor } from '../lib/colors'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import type { RoofCatalog } from '../lib/costing'
+import GlassIcon from '../components/GlassIcon'
 import {
   costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey, makeDoorSpec, makeWallSpec, type BuilderKind, roofUnitPrice, productGroupOf, profileServes, colorPctOf, type ColorCatalog,
-  type WindowSpec, type Band, type Offer, type PricingSettings,
+  type WindowSpec, type Band, type Offer, type PricingSettings, type GlassType, type HandleType,
 } from '../lib/costing'
 import { cn } from '../lib/cn'
 import {
@@ -30,7 +31,7 @@ interface ConfigData {
   combos: { system_id: string; type_id: string }[]
   options: WindowOption[]
   /** windows built from sashes (null when the supplier did not set it up) */
-  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null } | null
+  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null; glass?: GlassType[] | null; handles?: HandleType[] | null } | null
 }
 
 interface Item {
@@ -47,6 +48,9 @@ interface Item {
   spec?: WindowSpec | null
   /** profile colour outside / inside (ids from the colours of the profile's material) */
   colors?: { out?: string | null; in?: string | null } | null
+  /** glass package and handle (ids from the supplier's price list; missing = the first = standard) */
+  glass?: string | null
+  handle?: string | null
   /** roof window from the catalogue: model + size (+ flashing) */
   roof?: { model: string; size: string; flashing: string | null; variant?: string | null } | null
 }
@@ -55,7 +59,7 @@ const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
     qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
-    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
+    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', glassTitle: 'Steklo', handleTitle: 'Kljuka', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
@@ -75,7 +79,7 @@ const TXT = {
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
     qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
-    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
+    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', glassTitle: 'Glass', handleTitle: 'Handle', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
@@ -131,7 +135,8 @@ export default function ConfiguratorPage() {
   const show = !!data?.company.show_prices
 
   const builder = data?.builder ?? null
-  const bPricing = builder?.pricing ? pricingFrom(builder.pricing) : null
+  const bPricing = builder?.pricing ? pricingFrom({ ...builder.pricing, glass: builder.glass ?? undefined, handles: builder.handles ?? undefined }) : null
+  const glassList = builder?.glass ?? [], handleList = builder?.handles ?? []
   const sashWidth = (n: number) => (n === 1 ? 900 : n * 650)
   const doorWidth = (n: number) => (n === 1 ? 900 : n * 700)
   /** windows and balcony doors keep their offer apart */
@@ -153,7 +158,7 @@ export default function ConfiguratorPage() {
     const c = costWindow(specToLayout(it.spec), it.width, it.height, {
       frame_m: Number(sy.frame_m ?? 0), sash_m: Number(sy.sash_m ?? 0), mullion_m: Number(sy.mullion_m ?? 0), bead_m: Number(sy.bead_m ?? 0),
       frame_w: sy.frame_w, sash_w: sy.sash_w, mullion_w: sy.mullion_w,
-    }, bPricing, { colorPct: colorPctOf(data.builder?.colors?.[sy.material], it.colors?.out, it.colors?.in) })
+    }, bPricing, { colorPct: colorPctOf(data.builder?.colors?.[sy.material], it.colors?.out, it.colors?.in), glassId: it.glass, handleId: it.handle })
     return Math.round(Math.max(Number(sy.min_price ?? 0), c.price) * 100) / 100
   }
 
@@ -295,6 +300,15 @@ export default function ConfiguratorPage() {
   function pickBand(top: Band, bottom: Band) { if (spec) setSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom))) }
   const specPrice = (sp: WindowSpec) => specBase({ ...it, spec: sp })
   const specPriceWith = (colors: Item['colors']) => specBase({ ...it, colors })
+  /** extras groups shown for this window: built windows take colour / glass / handle from the builder's own catalogues */
+  const extraGroups = data ? OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)
+    && !(spec && ((g === 'color' && data.builder?.colors) || (g === 'glass' && glassList.length) || (g === 'handle' && handleList.length)))) : []
+  /** price difference to the current choice, for the "+ 12 €" on a card (null when prices are hidden / no change) */
+  const diffWith = (patch: Partial<Item>) => {
+    if (!show) return null
+    const now = specBase(it), p = specBase({ ...it, ...patch })
+    return now == null || p == null || Math.round(p - now) === 0 ? null : Math.round(p - now)
+  }
   let stepNo = 0
   const nextStep = () => ++stepNo
   const update = (patch: Partial<Item>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
@@ -329,7 +343,7 @@ export default function ConfiguratorPage() {
       p_items: items.map(x => x.roof
         ? { roof: x.roof, quantity: x.quantity, option_ids: [], label: x.label }
         : x.spec
-        ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
+        ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, glass: x.glass ?? null, handle: x.handle ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
         : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
       p_note: contact.note,
       p_services: services,
@@ -644,9 +658,50 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>
 
-              {!roofSel && data.options.length > 0 && <Section n={nextStep()} title={T.step4} accent={accent}>
+              {/* glass package: cards with Ug; the first one is included */}
+              {spec && glassList.length > 1 && <Section n={nextStep()} title={T.glassTitle} accent={accent}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {glassList.map((g, i) => {
+                    const on = (glassList.find(x => x.id === it.glass) ?? glassList[0]).id === g.id
+                    const d = on ? null : diffWith({ glass: g.id })
+                    return <button key={g.id} onClick={() => update({ glass: g.id })}
+                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      <div className="flex items-start gap-3">
+                        <GlassIcon layers={g.layers ?? 2} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900">{g.name}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">{[g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')} W/m²K` : null, g.layers ? T.layers(g.layers) : null].filter(Boolean).join(' · ')}</div>
+                        </div>
+                        <span className="text-xs text-gray-500 whitespace-nowrap">{i === 0 ? T.included : d != null ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</span>
+                      </div>
+                    </button>
+                  })}
+                </div>
+              </Section>}
+
+              {/* handle: one per sash that opens with a handle */}
+              {spec && handleList.length > 1 && <Section n={nextStep()} title={T.handleTitle} accent={accent}>
+                <div className="flex flex-wrap gap-2">
+                  {handleList.map((h, i) => {
+                    const on = (handleList.find(x => x.id === it.handle) ?? handleList[0]).id === h.id
+                    const d = on ? null : diffWith({ handle: h.id })
+                    const look = h.look ? parseColor(h.look) : null
+                    return <button key={h.id} onClick={() => update({ handle: h.id })}
+                      className={cn('inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border bg-white text-sm transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      style={on ? selStyle(accent) : undefined}>
+                      {look ? <ColorSwatch spec={look} size={22} rounded={6} /> : <span className="w-[22px]" />}
+                      <span className="text-gray-900">{h.name}</span>
+                      {h.lockable && <KeyRound className="w-3.5 h-3.5 text-gray-500" />}
+                      <span className="text-xs text-gray-500">{i === 0 ? T.included : d != null ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</span>
+                    </button>
+                  })}
+                </div>
+              </Section>}
+
+              {!roofSel && extraGroups.length > 0 && <Section n={nextStep()} title={T.step4} accent={accent}>
                 <div className="space-y-4">
-                  {OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g) && !(g === 'color' && spec && data.builder?.colors)).map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
+                  {extraGroups.map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
                     options={data.options.filter(o => o.group_key === g)} selected={it.option_ids} onToggle={toggleOption}
                     onClear={() => update({ option_ids: it.option_ids.filter(id => !data.options.some(o => o.group_key === g && o.id === id)) })}
                     accent={accent} show={show} currency={cur} noneLabel={T.none} pricingLabels={L.pricing} />)}

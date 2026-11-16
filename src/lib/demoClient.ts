@@ -359,7 +359,10 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
         prices: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id),
         combos: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id).map((p: Row) => ({ system_id: p.system_id, type_id: p.type_id })),
         options: active('window_options'),
-        builder: wp.offer?.windows || wp.offer?.slidingWindows || wp.offer?.doors || wp.offer?.sliding || (wp.offer?.roof !== false && wp.roof) ? { offer: wp.offer, colors: wp.colors ?? null, roof: wp.offer?.roof !== false && wp.roof ? {
+        builder: wp.offer?.windows || wp.offer?.slidingWindows || wp.offer?.doors || wp.offer?.sliding || (wp.offer?.roof !== false && wp.roof) ? { offer: wp.offer, colors: wp.colors ?? null,
+          glass: (wp.glass ?? []).map((g: Row) => ({ ...g, cost_m2: r2(Number(g.cost_m2 ?? 0) * mf) })),
+          handles: (wp.handles ?? []).map((h: Row) => ({ ...h, cost: r2(Number(h.cost ?? 0) * mf) })),
+          roof: wp.offer?.roof !== false && wp.roof ? {
           models: wp.roof.models ?? [], flashings: wp.roof.flashings ?? [],
         } : null, pricing: {
           hw: Object.fromEntries(Object.entries(hw).map(([k, v]) => [k, r2(Number(v) * mf)])),
