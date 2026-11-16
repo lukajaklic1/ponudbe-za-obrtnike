@@ -724,7 +724,7 @@ export default function ConfiguratorPage() {
                         className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
-                        <div className="flex justify-center py-1 h-[64px] items-center">{(() => { const x = list.find(y => y.id === id); return !x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : <SillIcon material={x.material} size={96} /> })()}</div>
+                        <div className="flex justify-center py-1 h-[64px] items-center">{(() => { const x = list.find(y => y.id === id); return !x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : <SillIcon material={x.material} size={56} /> })()}</div>
                         <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{title}</div>
                         <div className="text-xs text-gray-500 mt-0.5 flex-1">{desc}</div>
                         <div className="text-sm font-semibold text-gray-900 mt-2">{id ? (d != null && d !== 0 ? `+ ${money(d, currency)}` : '') : ''}</div>

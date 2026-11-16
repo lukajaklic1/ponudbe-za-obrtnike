@@ -129,16 +129,27 @@ export interface SillType {
   /** material for the drawing (stone, pvc, wood, alu, alu_dark) and the supplier's photo (public URL; missing = drawing) */
   material?: string; image_url?: string | null
 }
+/** The usual window sills; every new price list starts with all of them (purchase prices per metre). */
+export const STANDARD_SILLS: Omit<SillType, 'id'>[] = [
+  { side: 'inner', material: 'pvc_white', name: 'PVC polica, bela', description: 'Globina do 30 cm, z zaključnimi kapami.', cost_m: 9 },
+  { side: 'inner', material: 'pvc_oak', name: 'PVC polica, dekor hrast', description: 'Folija z videzom lesa, globina do 30 cm.', cost_m: 12 },
+  { side: 'inner', material: 'pvc_anthracite', name: 'PVC polica, antracit', description: 'Globina do 30 cm, z zaključnimi kapami.', cost_m: 12 },
+  { side: 'inner', material: 'wood_oak', name: 'Lesena polica, hrast', description: 'Masiven hrast, oljen.', cost_m: 28 },
+  { side: 'inner', material: 'wood_walnut', name: 'Lesena polica, oreh', description: 'Masiven oreh, oljen.', cost_m: 34 },
+  { side: 'inner', material: 'granite', name: 'Granitna polica, siva', description: 'Naravni granit, poliran rob.', cost_m: 45 },
+  { side: 'inner', material: 'granite_dark', name: 'Granitna polica, temna', description: 'Naravni granit, poliran rob.', cost_m: 50 },
+  { side: 'inner', material: 'marble', name: 'Marmorna polica', description: 'Bel marmor, poliran rob.', cost_m: 55 },
+  { side: 'outer', material: 'alu_white', name: 'Aluminijasta polica, bela', description: 'S stranskimi zaključki in odkapnim robom.', cost_m: 11 },
+  { side: 'outer', material: 'alu_silver', name: 'Aluminijasta polica, srebrna', description: 'S stranskimi zaključki in odkapnim robom.', cost_m: 12 },
+  { side: 'outer', material: 'alu_anthracite', name: 'Aluminijasta polica, antracit', description: 'S stranskimi zaključki in odkapnim robom.', cost_m: 14 },
+  { side: 'outer', material: 'alu_brown', name: 'Aluminijasta polica, rjava', description: 'S stranskimi zaključki in odkapnim robom.', cost_m: 14 },
+  { side: 'outer', material: 'granite', name: 'Granitna polica, siva', description: 'Naravni granit z odkapnim utorom.', cost_m: 40 },
+  { side: 'outer', material: 'granite_dark', name: 'Granitna polica, temna', description: 'Naravni granit z odkapnim utorom.', cost_m: 44 },
+]
 export function sampleSills(): SillType[] {
-  return [
-    { id: rid(), side: 'inner', material: 'pvc', name: 'PVC polica, bela', description: 'Globina do 30 cm, z zaključnimi kapami.', cost_m: 9 },
-    { id: rid(), side: 'inner', material: 'wood', name: 'Lesena polica, hrast', description: 'Masiven hrast, oljen, globina do 30 cm.', cost_m: 28 },
-    { id: rid(), side: 'inner', material: 'stone', name: 'Granitna polica', description: 'Naravni granit, poliran rob.', cost_m: 45 },
-    { id: rid(), side: 'outer', material: 'alu', name: 'Aluminijasta polica, srebrna', description: 'S stranskimi zaključki in odkapnim robom, globina do 25 cm.', cost_m: 12 },
-    { id: rid(), side: 'outer', material: 'alu_dark', name: 'Aluminijasta polica, antracit', description: 'S stranskimi zaključki in odkapnim robom, globina do 25 cm.', cost_m: 14 },
-    { id: rid(), side: 'outer', material: 'stone', name: 'Granitna polica', description: 'Naravni granit z odkapnim utorom.', cost_m: 40 },
-  ]
+  return STANDARD_SILLS.map(x => ({ ...x, id: rid() }))
 }
+export const newSillId = () => rid()
 /** Chosen sill on one side (none when the id is missing or unknown). */
 export const sillOf = (s: Pick<PricingSettings, 'sills'>, side: SillType['side'], id?: string | null) =>
   id ? s.sills?.find(x => x.id === id && x.side === side) ?? null : null

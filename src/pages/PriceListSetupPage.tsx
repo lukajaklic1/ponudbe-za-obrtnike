@@ -15,10 +15,10 @@ import ProfileSection from '../components/ProfileSection'
 import { costWindow, specToLayout, CALC_LABELS, glassOf, handleOf, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
-import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, sampleSills, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType, type SillType } from '../lib/costing'
+import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, sampleSills, STANDARD_SILLS, newSillId, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType, type SillType } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
 import HandleIcon from '../components/HandleIcon'
-import SillIcon, { SILL_MATERIALS } from '../components/SillIcon'
+import SillIcon, { SILL_MATERIALS, sillMaterialOf } from '../components/SillIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
 const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill']
 import { cn } from '../lib/cn'
@@ -104,7 +104,7 @@ const TXT = {
     glassDescPh: 'npr. 4/16/4, ekonomično',
     sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
     sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', sillMaterial: 'Material',
-    sillMaterials: { stone: 'Granit / kamen', pvc: 'PVC', wood: 'Les', alu: 'Aluminij, srebrn', alu_dark: 'Aluminij, temen' } as Record<string, string>,
+    sillMaterials: { pvc_white: 'PVC, bela', pvc_oak: 'PVC, dekor hrast', pvc_anthracite: 'PVC, antracit', wood_oak: 'Les, hrast', wood_walnut: 'Les, oreh', granite: 'Granit, siv', granite_dark: 'Granit, temen', marble: 'Marmor', alu_white: 'Aluminij, bel', alu_silver: 'Aluminij, srebrn', alu_anthracite: 'Aluminij, antracit', alu_brown: 'Aluminij, rjav' } as Record<string, string>, quickAdd: 'Hitro dodaj:',
     sillPhotoRemoveMsg: (n: string) => `Fotografija police »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`, customerSeesIncluded: 'Kupec vidi: Vključeno',
     customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
     exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
@@ -173,7 +173,7 @@ const TXT = {
     glassDescPh: 'e.g. 4/16/4, economical',
     sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
     sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', sillMaterial: 'Material',
-    sillMaterials: { stone: 'Granite / stone', pvc: 'PVC', wood: 'Wood', alu: 'Aluminium, silver', alu_dark: 'Aluminium, dark' } as Record<string, string>,
+    sillMaterials: { pvc_white: 'PVC, white', pvc_oak: 'PVC, oak decor', pvc_anthracite: 'PVC, anthracite', wood_oak: 'Wood, oak', wood_walnut: 'Wood, walnut', granite: 'Granite, grey', granite_dark: 'Granite, dark', marble: 'Marble', alu_white: 'Aluminium, white', alu_silver: 'Aluminium, silver', alu_anthracite: 'Aluminium, anthracite', alu_brown: 'Aluminium, brown' } as Record<string, string>, quickAdd: 'Quick add:',
     sillPhotoRemoveMsg: (n: string) => `The photo of sill "${n}" is removed the next time you save the price list. The drawing is shown instead.`, customerSeesIncluded: 'Customer sees: Included',
     customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
     exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
@@ -1239,10 +1239,10 @@ export default function PriceListSetupPage() {
                       {list.map(x => <div key={x.id} className="px-4 py-4 flex gap-4">
                         {/* picture: the supplier's photo, or the drawing of the material */}
                         <div className="shrink-0 hidden sm:flex flex-col items-center gap-1.5 w-[104px] self-start">
-                          <div className="w-full h-[72px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+                          <div className="w-full h-[80px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
                             {uploadingKey === x.id ? <span className="text-xs text-[#7f7f7f]">…</span>
                               : x.image_url ? <img src={x.image_url} alt={x.name} className="max-w-full max-h-full object-contain p-1" />
-                              : <SillIcon material={x.material} size={92} />}
+                              : <SillIcon material={x.material} size={64} />}
                           </div>
                           {canEdit && <div className="flex items-center gap-1">
                             <label className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer">
@@ -1263,7 +1263,7 @@ export default function PriceListSetupPage() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                             <div className="flex flex-col gap-1">
                               <label className="text-xs font-medium text-[#7f7f7f]">{T.sillMaterial}</label>
-                              <select value={x.material ?? 'pvc'} disabled={!canEdit} onChange={e => set(x.id, { material: e.target.value })}
+                              <select value={sillMaterialOf(x.material)} disabled={!canEdit} onChange={e => set(x.id, { material: e.target.value })}
                                 className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 {SILL_MATERIALS.map(mt => <option key={mt} value={mt}>{T.sillMaterials[mt]}</option>)}
                               </select>
@@ -1278,8 +1278,18 @@ export default function PriceListSetupPage() {
                         </div>
                       </div>)}
                     </div>}
-                    {canEdit && <button type="button" onClick={() => setAll([...all, { id: newRoofId(), side, name: '', cost_m: 0 }])}
-                      className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{side === 'inner' ? T.addSillInner : T.addSillOuter}</button>}
+                    {canEdit && (() => {
+                      // standard sills that are not in the list (by name) can be added back with one click
+                      const unused = STANDARD_SILLS.filter(st => st.side === side && !list.some(x => x.name.trim().toLowerCase() === st.name.toLowerCase()))
+                      return <div className="flex flex-wrap items-center gap-2">
+                        <button type="button" onClick={() => setAll([...all, { id: newSillId(), side, name: '', material: side === 'inner' ? 'pvc_white' : 'alu_white', cost_m: 0 }])}
+                          className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{side === 'inner' ? T.addSillInner : T.addSillOuter}</button>
+                        {unused.length > 0 && <span className="text-xs font-medium text-[#7f7f7f]">{T.quickAdd}</span>}
+                        {unused.map(st => <button key={st.name} type="button" onClick={() => setAll([...all, { ...st, id: newSillId() }])}
+                          className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">
+                          <SillIcon material={st.material} size={16} />+ {st.name}</button>)}
+                      </div>
+                    })()}
                   </div>
                 })}
               </div>
