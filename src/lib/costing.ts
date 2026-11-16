@@ -55,6 +55,8 @@ export interface PricingSettings {
   extras?: ExtraItem[]
   /** window sills, purchase price per metre (the sill is as long as the window is wide) */
   sills?: SillType[]
+  /** shading (blinds, rollers …) and insect screens, purchase prices */
+  shading?: ShadingType[]
 }
 
 /** How an extra is counted on one window. */
@@ -150,6 +152,30 @@ export function sampleSills(): SillType[] {
   return STANDARD_SILLS.map(x => ({ ...x, id: rid() }))
 }
 export const newSillId = () => rid()
+/** Shading or insect screen. Priced per m² of the window, per opening sash or per piece (one per window). */
+export type ShadingUnit = 'm2' | 'sash' | 'piece'
+export type ShadingIconKind = 'blinds' | 'roller' | 'pleated' | 'screen' | 'screen_roll' | 'none'
+export interface ShadingType {
+  id: string; kind: 'shade' | 'screen'; name: string; description?: string
+  unit: ShadingUnit; cost: number
+  /** drawing (blinds, roller, pleated, screen, screen_roll, none) and the supplier's photo */
+  icon?: ShadingIconKind; image_url?: string | null
+}
+export const STANDARD_SHADING: Omit<ShadingType, 'id'>[] = [
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon z jermenom.', unit: 'm2', cost: 95 },
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 140 },
+  { kind: 'shade', icon: 'roller', name: 'Rolete, ročni pogon', description: 'Nadometna omarica, aluminijaste lamele.', unit: 'm2', cost: 75 },
+  { kind: 'shade', icon: 'roller', name: 'Rolete z motorjem', description: 'Nadometna omarica, elektromotor s stikalom.', unit: 'm2', cost: 120 },
+  { kind: 'shade', icon: 'pleated', name: 'Notranje plise senčilo', description: 'Na krilu, se premika gor in dol.', unit: 'sash', cost: 45 },
+  { kind: 'screen', icon: 'screen', name: 'Okvirni komarnik', description: 'Fiksni aluminijast okvir z mrežico, na vsako krilo.', unit: 'sash', cost: 25 },
+  { kind: 'screen', icon: 'screen_roll', name: 'Rolo komarnik', description: 'Mrežica se navije v omarico, na vsako krilo.', unit: 'sash', cost: 45 },
+  { kind: 'screen', icon: 'pleated', name: 'Plise komarnik', description: 'Zložljiva mrežica, primerna za balkonska vrata.', unit: 'piece', cost: 120 },
+]
+export const sampleShading = (): ShadingType[] => STANDARD_SHADING.map(x => ({ ...x, id: rid() }))
+/** Chosen shading / screen (none when the id is missing or unknown). */
+export const shadingOf = (s: Pick<PricingSettings, 'shading'>, kind: ShadingType['kind'], id?: string | null) =>
+  id ? s.shading?.find(x => x.id === id && x.kind === kind) ?? null : null
+
 /** Chosen sill on one side (none when the id is missing or unknown). */
 export const sillOf = (s: Pick<PricingSettings, 'sills'>, side: SillType['side'], id?: string | null) =>
   id ? s.sills?.find(x => x.id === id && x.side === side) ?? null : null
@@ -306,7 +332,7 @@ const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
  * @param glassId / handleId chosen glass package and handle (missing = the first one = standard)
  */
 export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrices, s: PricingSettings,
-  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; glassId?: string | null; handleId?: string | null; extraIds?: string[] | null; sillIn?: string | null; sillOut?: string | null; labels?: Partial<Record<string, string>> } = {}): Costing {
+  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; glassId?: string | null; handleId?: string | null; extraIds?: string[] | null; sillIn?: string | null; sillOut?: string | null; shadeId?: string | null; screenId?: string | null; labels?: Partial<Record<string, string>> } = {}): Costing {
   const fw = p.frame_w ?? 70, sw = p.sash_w ?? 78, mw = p.mullion_w ?? 82
   const L = (k: string, d: string) => opts.labels?.[k] ?? d
   const cols = layout.cols
@@ -377,6 +403,12 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   // window sills: as long as the window is wide
   for (const sl of [sillOf(s, 'inner', opts.sillIn), sillOf(s, 'outer', opts.sillOut)]) {
     if (sl) add('sill_' + sl.side, `${L('sill_' + sl.side, sl.side === 'inner' ? 'Notranja polica' : 'Zunanja polica')}: ${sl.name}`, W / 1000, 'm', sl.cost_m)
+  }
+  // shading and insect screen: per m² of the window, per opening sash or per piece
+  for (const sh of [shadingOf(s, 'shade', opts.shadeId), shadingOf(s, 'screen', opts.screenId)]) {
+    if (!sh) continue
+    const [q, u]: [number, CutLine['unit']] = sh.unit === 'm2' ? [W * H / 1e6, 'm²'] : sh.unit === 'sash' ? [sashes, 'kos'] : [1, 'kos']
+    add('shade_' + sh.kind, `${L('shade_' + sh.kind, sh.kind === 'shade' ? 'Senčilo' : 'Komarnik')}: ${sh.name}`, q, u, sh.cost)
   }
   // chosen yes / no extras, counted per window
   for (const x of s.extras ?? []) {
@@ -710,7 +742,7 @@ export function presets(sp: WindowSpec): { key: string; main: Field[] }[] {
 /** Labels of the cut list lines (internal costing view). */
 export const CALC_LABELS = {
   sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Pritrdilne letvice', glass: 'Steklo', handle: 'Kljuke', labour: 'Delo',
-    hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno', sill_inner: 'Notranja polica', sill_outer: 'Zunanja polica' },
+    hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno', sill_inner: 'Notranja polica', sill_outer: 'Zunanja polica', shade_shade: 'Senčilo', shade_screen: 'Komarnik' },
   en: { frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', handle: 'Handles', labour: 'Labour',
-    hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide', sill_inner: 'Inner sill', sill_outer: 'Outer sill' },
+    hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide', sill_inner: 'Inner sill', sill_outer: 'Outer sill', shade_shade: 'Shading', shade_screen: 'Insect screen' },
 }

@@ -13,9 +13,10 @@ import type { RoofCatalog } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
 import HandleIcon from '../components/HandleIcon'
 import SillIcon, { sillMaterialOf } from '../components/SillIcon'
+import ShadingIcon from '../components/ShadingIcon'
 import {
   costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey, makeDoorSpec, makeWallSpec, type BuilderKind, roofUnitPrice, productGroupOf, profileServes, colorPctOf, type ColorCatalog,
-  type WindowSpec, type Band, type Offer, type PricingSettings, type GlassType, type HandleType, type SillType,
+  type WindowSpec, type Band, type Offer, type PricingSettings, type GlassType, type HandleType, type SillType, type ShadingType,
 } from '../lib/costing'
 import { cn } from '../lib/cn'
 import {
@@ -33,7 +34,7 @@ interface ConfigData {
   combos: { system_id: string; type_id: string }[]
   options: WindowOption[]
   /** windows built from sashes (null when the supplier did not set it up) */
-  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null; glass?: GlassType[] | null; handles?: HandleType[] | null; sills?: SillType[] | null } | null
+  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null; glass?: GlassType[] | null; handles?: HandleType[] | null; sills?: SillType[] | null; shading?: ShadingType[] | null } | null
 }
 
 interface Item {
@@ -55,6 +56,8 @@ interface Item {
   handle?: string | null
   /** window sills inside / outside (ids; missing = no sill) */
   sills?: { in?: string | null; out?: string | null } | null
+  /** shading and insect screen (ids; missing = none) */
+  shading?: { shade?: string | null; screen?: string | null } | null
   /** roof window from the catalogue: model + size (+ flashing) */
   roof?: { model: string; size: string; flashing: string | null; variant?: string | null } | null
 }
@@ -63,7 +66,7 @@ const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
     qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
-    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
+    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
@@ -83,7 +86,7 @@ const TXT = {
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
     qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
-    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
+    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
@@ -140,8 +143,8 @@ export default function ConfiguratorPage() {
   const show = !!data?.company.show_prices
 
   const builder = data?.builder ?? null
-  const bPricing = builder?.pricing ? pricingFrom({ ...builder.pricing, glass: builder.glass ?? undefined, handles: builder.handles ?? undefined, sills: builder.sills ?? undefined }) : null
-  const glassList = builder?.glass ?? [], handleList = builder?.handles ?? [], sillList = builder?.sills ?? []
+  const bPricing = builder?.pricing ? pricingFrom({ ...builder.pricing, glass: builder.glass ?? undefined, handles: builder.handles ?? undefined, sills: builder.sills ?? undefined, shading: builder.shading ?? undefined }) : null
+  const glassList = builder?.glass ?? [], handleList = builder?.handles ?? [], sillList = builder?.sills ?? [], shadeList = builder?.shading ?? []
   const sashWidth = (n: number) => (n === 1 ? 900 : n * 650)
   const doorWidth = (n: number) => (n === 1 ? 900 : n * 700)
   /** windows and balcony doors keep their offer apart */
@@ -163,7 +166,7 @@ export default function ConfiguratorPage() {
     const c = costWindow(specToLayout(it.spec), it.width, it.height, {
       frame_m: Number(sy.frame_m ?? 0), sash_m: Number(sy.sash_m ?? 0), mullion_m: Number(sy.mullion_m ?? 0), bead_m: Number(sy.bead_m ?? 0),
       frame_w: sy.frame_w, sash_w: sy.sash_w, mullion_w: sy.mullion_w,
-    }, bPricing, { colorPct: colorPctOf(data.builder?.colors?.[sy.material], it.colors?.out, it.colors?.in), glassId: it.glass, handleId: it.handle, sillIn: it.sills?.in, sillOut: it.sills?.out })
+    }, bPricing, { colorPct: colorPctOf(data.builder?.colors?.[sy.material], it.colors?.out, it.colors?.in), glassId: it.glass, handleId: it.handle, sillIn: it.sills?.in, sillOut: it.sills?.out, shadeId: it.shading?.shade, screenId: it.shading?.screen })
     return Math.round(Math.max(Number(sy.min_price ?? 0), c.price) * 100) / 100
   }
 
@@ -307,7 +310,7 @@ export default function ConfiguratorPage() {
   const specPriceWith = (colors: Item['colors']) => specBase({ ...it, colors })
   /** extras groups shown for this window: built windows take colour / glass / handle from the builder's own catalogues */
   const extraGroups = data ? OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)
-    && !(spec && ((g === 'color' && data.builder?.colors) || (g === 'glass' && glassList.length) || (g === 'handle' && handleList.length) || (g === 'sill' && sillList.length)))) : []
+    && !(spec && ((g === 'color' && data.builder?.colors) || (g === 'glass' && glassList.length) || (g === 'handle' && handleList.length) || (g === 'sill' && sillList.length) || (g === 'shading' && shadeList.length)))) : []
   let stepNo = 0
   const nextStep = () => ++stepNo
   const update = (patch: Partial<Item>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
@@ -342,7 +345,7 @@ export default function ConfiguratorPage() {
       p_items: items.map(x => x.roof
         ? { roof: x.roof, quantity: x.quantity, option_ids: [], label: x.label }
         : x.spec
-        ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, glass: x.glass ?? null, handle: x.handle ?? null, sills: x.sills ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
+        ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, glass: x.glass ?? null, handle: x.handle ?? null, sills: x.sills ?? null, shading: x.shading ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
         : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
       p_note: contact.note,
       p_services: services,
@@ -735,6 +738,41 @@ export default function ConfiguratorPage() {
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {card(null, T.noSill)}
                         {list.map(x => card(x.id, x.name, x.description))}
+                      </div>
+                    </div>
+                  })}
+                </div>
+              </Section>}
+
+              {/* shading and insect screen, none by default */}
+              {spec && shadeList.length > 0 && <Section n={nextStep()} title={T.shadeTitle} accent={accent}>
+                <div className="space-y-4">
+                  {(['shade', 'screen'] as const).map(kind => {
+                    const list = shadeList.filter(x => x.kind === kind)
+                    if (!list.length) return null
+                    const chosen = it.shading?.[kind] ?? null
+                    const none = specBase({ ...it, shading: { ...(it.shading ?? {}), [kind]: null } })
+                    const card = (x: ShadingType | null) => {
+                      const on = chosen === (x?.id ?? null)
+                      const p = x && show ? specBase({ ...it, shading: { ...(it.shading ?? {}), [kind]: x.id } }) : null
+                      const d = p != null && none != null ? Math.round(p - none) : null
+                      return <button key={x?.id ?? 'none'} onClick={() => update({ shading: { ...(it.shading ?? {}), [kind]: x?.id ?? null } })}
+                        className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        style={on ? selStyle(accent) : undefined}>
+                        {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                        <div className="flex justify-center py-1 h-[64px] items-center">
+                          {!x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : (x.icon ?? 'none') === 'none' ? null : <ShadingIcon kind={x.icon} size={56} />}
+                        </div>
+                        <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{x ? x.name : kind === 'shade' ? T.noShade : T.noScreen}</div>
+                        <div className="text-xs text-gray-500 mt-0.5 flex-1">{x?.description}</div>
+                        <div className="text-sm font-semibold text-gray-900 mt-2">{x && d != null && d !== 0 ? `+ ${money(d, currency)}` : ''}</div>
+                      </button>
+                    }
+                    return <div key={kind}>
+                      <div className="text-xs font-medium text-gray-500 mb-1.5">{kind === 'shade' ? T.shadeLabel : T.screenLabel}</div>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {card(null)}
+                        {list.map(x => card(x))}
                       </div>
                     </div>
                   })}

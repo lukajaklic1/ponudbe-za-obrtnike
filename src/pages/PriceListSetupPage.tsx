@@ -15,12 +15,13 @@ import ProfileSection from '../components/ProfileSection'
 import { costWindow, specToLayout, CALC_LABELS, glassOf, handleOf, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
-import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, sampleSills, STANDARD_SILLS, newSillId, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType, type SillType } from '../lib/costing'
+import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, sampleSills, STANDARD_SILLS, newSillId, sampleShading, STANDARD_SHADING, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType, type SillType, type ShadingType } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
 import HandleIcon from '../components/HandleIcon'
 import SillIcon, { SILL_MATERIALS, sillMaterialOf } from '../components/SillIcon'
+import ShadingIcon, { SHADING_ICONS } from '../components/ShadingIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
-const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill']
+const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill', 'shading']
 import { cn } from '../lib/cn'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import ColorSwatch from '../components/ColorSwatch'
@@ -105,6 +106,12 @@ const TXT = {
     sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
     sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', sillMaterial: 'Material',
     sillMaterials: { none: 'Brez materiala', pvc_white: 'PVC, bela', pvc_oak: 'PVC, dekor hrast', pvc_anthracite: 'PVC, antracit', wood_oak: 'Les, hrast', wood_walnut: 'Les, oreh', granite: 'Granit, siv', granite_dark: 'Granit, temen', marble: 'Marmor', alu_white: 'Aluminij, bel', alu_silver: 'Aluminij, srebrn', alu_anthracite: 'Aluminij, antracit', alu_brown: 'Aluminij, rjav' } as Record<string, string>, quickAdd: 'Hitro dodaj:', addPicture: 'Dodaj sliko',
+    shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavno ceno in izberite, kako se obračuna: na m² okna, na vsako krilo, ki se odpira, ali na kos (enkrat na okno). Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se doda na koncu na celotno okno.',
+    shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCost: 'Nabavna cena',
+    shadeUnits: { m2: 'Na m² okna', sash: 'Na krilo', piece: 'Na kos (enkrat na okno)' } as Record<string, string>,
+    shadeIcons: { blinds: 'Žaluzije', roller: 'Rolete', pleated: 'Plise', screen: 'Okvirni komarnik', screen_roll: 'Rolo komarnik', none: 'Brez slike' } as Record<string, string>,
+    shadeDescPh: 'npr. Lamele 80 mm, ročni pogon z jermenom.', addShade: 'Dodaj senčilo', addScreen: 'Dodaj komarnik',
+    shadePhotoRemoveMsg: (n: string) => `Fotografija »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`,
     sillPhotoRemoveMsg: (n: string) => `Fotografija police »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`, customerSeesIncluded: 'Kupec vidi: Vključeno',
     customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
     exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
@@ -174,6 +181,12 @@ const TXT = {
     sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
     sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', sillMaterial: 'Material',
     sillMaterials: { none: 'No material', pvc_white: 'PVC, white', pvc_oak: 'PVC, oak decor', pvc_anthracite: 'PVC, anthracite', wood_oak: 'Wood, oak', wood_walnut: 'Wood, walnut', granite: 'Granite, grey', granite_dark: 'Granite, dark', marble: 'Marble', alu_white: 'Aluminium, white', alu_silver: 'Aluminium, silver', alu_anthracite: 'Aluminium, anthracite', alu_brown: 'Aluminium, brown' } as Record<string, string>, quickAdd: 'Quick add:', addPicture: 'Add a picture',
+    shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase price and how it is counted: per m² of the window, per opening sash or per piece (once per window). In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. The margin is added to the whole window at the end.',
+    shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCost: 'Purchase price',
+    shadeUnits: { m2: 'Per m² of window', sash: 'Per sash', piece: 'Per piece (once per window)' } as Record<string, string>,
+    shadeIcons: { blinds: 'Blinds', roller: 'Roller shutter', pleated: 'Pleated', screen: 'Framed screen', screen_roll: 'Roll-up screen', none: 'No picture' } as Record<string, string>,
+    shadeDescPh: 'e.g. 80 mm slats, manual belt drive.', addShade: 'Add shading', addScreen: 'Add insect screen',
+    shadePhotoRemoveMsg: (n: string) => `The photo of "${n}" is removed the next time you save the price list. The drawing is shown instead.`,
     sillPhotoRemoveMsg: (n: string) => `The photo of sill "${n}" is removed the next time you save the price list. The drawing is shown instead.`, customerSeesIncluded: 'Customer sees: Included',
     customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
     exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
@@ -313,6 +326,7 @@ export default function PriceListSetupPage() {
       if (!pr.glass?.length) pr.glass = sampleGlass(pr.glass_m2)
       if (!pr.handles?.length) pr.handles = sampleHandles()
       if (!pr.sills?.length) pr.sills = sampleSills()
+      if (!pr.shading?.length) pr.shading = sampleShading()
       // profile colours per material: the usual ones to start with
       pr.colors = { ...(pr.colors ?? {}) }
       for (const m of MATERIALS) if (!pr.colors[m]) pr.colors[m] = sampleColors()
@@ -1302,12 +1316,99 @@ export default function PriceListSetupPage() {
             })()}
           </Step>
 
-          {/* 9+. extras and services (colour, glass and handles of built windows have their own steps) */}
+          {/* 9. shading and insect screens: purchase price per m² of the window, per opening sash or per piece */}
+          <Step n={9} title={T.shadeTitle} hint={T.shadeHint}>
+            {(() => {
+              const all = pricing.shading ?? []
+              const setAll = (next: ShadingType[]) => { setPricing(x => ({ ...x, shading: next })); touch() }
+              const set = (id: string, patch: Partial<ShadingType>) => setAll(all.map(x => x.id === id ? { ...x, ...patch } : x))
+              const upload = (id: string, f: File) => uploadRoofPhoto(id, f, url => set(id, { image_url: url }), 'shading')
+              return <div className="space-y-5">
+                {(['shade', 'screen'] as const).map(kind => {
+                  const list = all.filter(x => x.kind === kind)
+                  return <div key={kind}>
+                    <div className="text-sm font-medium text-gray-900 mb-2">{kind === 'shade' ? T.shadeShades : T.shadeScreens}</div>
+                    {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
+                      {list.map(x => {
+                        const noPic = !x.image_url && (x.icon ?? 'none') === 'none'
+                        return <div key={x.id} className="px-4 py-4 flex gap-4">
+                          {/* picture: photo, drawing, or an empty box that asks for a picture */}
+                          <div className="shrink-0 hidden sm:flex flex-col items-center gap-1.5 w-[104px] self-start">
+                            {noPic && uploadingKey !== x.id
+                              ? <label className={cn('w-full h-[80px] flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 bg-white text-xs font-medium text-gray-500', canEdit && 'cursor-pointer hover:border-gray-400 hover:text-gray-700')}>
+                                  <ImagePlus className="w-5 h-5" />{T.addPicture}
+                                  {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) upload(x.id, f) }} />}
+                                </label>
+                              : <div className="w-full h-[80px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+                                  {uploadingKey === x.id ? <span className="text-xs text-[#7f7f7f]">…</span>
+                                    : x.image_url ? <img src={x.image_url} alt={x.name} className="max-w-full max-h-full object-contain p-1" />
+                                    : <ShadingIcon kind={x.icon} size={64} />}
+                                </div>}
+                            {canEdit && !noPic && <div className="flex items-center gap-1">
+                              <label className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer">
+                                <Upload className="w-3.5 h-3.5" />{x.image_url ? T.changePhoto : T.choosePhoto}
+                                <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) upload(x.id, f) }} />
+                              </label>
+                              {x.image_url && <button type="button" title={T.remove} onClick={() => askRemove('', () => set(x.id, { image_url: null }), T.shadePhotoRemoveMsg(x.name))}
+                                className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>}
+                            </div>}
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-3">
+                              <input value={x.name} onChange={e => set(x.id, { name: e.target.value })} disabled={!canEdit} placeholder={kind === 'shade' ? T.shadeNamePh : T.screenNamePh}
+                                className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                              {canEdit && <button type="button" onClick={() => askRemove(x.name, () => setAll(all.filter(y => y.id !== x.id)))} title={T.remove}
+                                className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                              <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeDrawing}</label>
+                                <select value={x.icon ?? 'none'} disabled={!canEdit} onChange={e => set(x.id, { icon: e.target.value as ShadingType['icon'] })}
+                                  className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                  {SHADING_ICONS.map(k => <option key={k} value={k}>{T.shadeIcons[k]}</option>)}
+                                </select>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeUnit}</label>
+                                <select value={x.unit} disabled={!canEdit} onChange={e => set(x.id, { unit: e.target.value as ShadingType['unit'] })}
+                                  className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                  {(['m2', 'sash', 'piece'] as const).map(u => <option key={u} value={u}>{T.shadeUnits[u]}</option>)}
+                                </select>
+                              </div>
+                              <NumberInput label={T.shadeCost} unit={x.unit === 'm2' ? `${cur}/m²` : `${cur}/${T.perHandle}`} value={x.cost} onValue={v => set(x.id, { cost: v ?? 0 })} decimals={2} />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
+                              <textarea value={x.description ?? ''} onChange={e => set(x.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.shadeDescPh} rows={2}
+                                className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                          </div>
+                        </div>
+                      })}
+                    </div>}
+                    {canEdit && (() => {
+                      const unused = STANDARD_SHADING.filter(st => st.kind === kind && !list.some(x => x.name.trim().toLowerCase() === st.name.toLowerCase()))
+                      return <div className="flex flex-wrap items-center gap-2">
+                        <button type="button" onClick={() => setAll([...all, { id: newSillId(), kind, name: '', unit: kind === 'shade' ? 'm2' : 'sash', icon: 'none', cost: 0 }])}
+                          className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{kind === 'shade' ? T.addShade : T.addScreen}</button>
+                        {unused.length > 0 && <span className="text-xs font-medium text-[#7f7f7f]">{T.quickAdd}</span>}
+                        {unused.map(st => <button key={st.name} type="button" onClick={() => setAll([...all, { ...st, id: newSillId() }])}
+                          className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">
+                          <ShadingIcon kind={st.icon} size={16} />+ {st.name}</button>)}
+                      </div>
+                    })()}
+                  </div>
+                })}
+              </div>
+            })()}
+          </Step>
+
+          {/* 10+. extras and services (colour, glass and handles of built windows have their own steps) */}
           {sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).map((sec, i) => {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + 9} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + 10} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">
@@ -1344,7 +1445,7 @@ export default function PriceListSetupPage() {
           })}
 
           {/* last: glass, labour, waste and margin (the margin goes on the whole window) */}
-          <Step n={9 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
+          <Step n={10 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
               <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
