@@ -171,13 +171,13 @@ export interface ShadingType {
   icon?: ShadingIconKind; image_url?: string | null
 }
 export const STANDARD_SHADING: Omit<ShadingType, 'id'>[] = [
-  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon z jermenom.', unit: 'm2', cost: 70, fixed: 60, min: 230, allows_screen: true },
-  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 70, fixed: 180, min: 400, allows_screen: true },
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon z jermenom.', unit: 'm2', cost: 70, fixed: 60, min: 230, allows_screen: false },
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 70, fixed: 180, min: 400, allows_screen: false },
   { kind: 'shade', icon: 'roller', name: 'Rolete, ročni pogon', description: 'Nadometna omarica, aluminijaste lamele.', unit: 'm2', cost: 55, fixed: 40, min: 175, allows_screen: true },
   { kind: 'shade', icon: 'roller', name: 'Rolete z motorjem', description: 'Nadometna omarica, elektromotor s stikalom.', unit: 'm2', cost: 55, fixed: 160, min: 350, allows_screen: true },
   { kind: 'shade', icon: 'pleated', name: 'Notranje plise senčilo', description: 'Na krilu, se premika gor in dol.', unit: 'sash', cost: 45 },
   { kind: 'screen', icon: 'screen', name: 'Okvirni komarnik', description: 'Fiksni aluminijast okvir z mrežico, na vsako krilo.', unit: 'sash', cost: 25 },
-  { kind: 'screen', icon: 'screen_roll', name: 'Rolo komarnik', description: 'Mrežica se navije v omarico. Z roleto ali žaluzijami si deli omarico in vodila.', unit: 'm2', fixed: 40, per_w: 15, per_h: 12, cost: 20, min: 130,
+  { kind: 'screen', icon: 'screen_roll', name: 'Rolo komarnik', description: 'Mrežica se navije v omarico. Z roleto si deli omarico in vodila.', unit: 'm2', fixed: 40, per_w: 15, per_h: 12, cost: 20, min: 130,
     can_integrate: true, integrated: { fixed: 15, cost: 20 } },
   { kind: 'screen', icon: 'pleated', name: 'Plise komarnik', description: 'Zložljiva mrežica, primerna za balkonska vrata.', unit: 'm2', fixed: 80, cost: 40, min: 170 },
 ]

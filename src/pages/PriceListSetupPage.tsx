@@ -341,8 +341,8 @@ export default function PriceListSetupPage() {
       if (!pr.shading?.length) pr.shading = sampleShading()
       // 'per piece' is no longer offered: it is the same as per window with only a fixed amount
       pr.shading = pr.shading.map(x => x.unit === 'piece' ? { ...x, unit: 'm2', fixed: (x.fixed ?? 0) + x.cost, cost: 0 } : x)
-      // shadings saved before "built-in screen" existed: outside blinds and rollers allow it
-      pr.shading = pr.shading.map(x => x.kind === 'shade' && x.allows_screen === undefined ? { ...x, allows_screen: x.icon === 'blinds' || x.icon === 'roller' } : x)
+      // shadings saved before "built-in screen" existed: roller shutters allow it
+      pr.shading = pr.shading.map(x => x.kind === 'shade' && x.allows_screen === undefined ? { ...x, allows_screen: x.icon === 'roller' } : x)
       // profile colours per material: the usual ones to start with
       pr.colors = { ...(pr.colors ?? {}) }
       for (const m of MATERIALS) if (!pr.colors[m]) pr.colors[m] = sampleColors()
