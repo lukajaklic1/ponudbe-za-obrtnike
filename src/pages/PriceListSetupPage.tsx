@@ -7,6 +7,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import { toast } from '../components/ui/Toast'
 import Button from '../components/ui/Button'
 import NumberInput from '../components/ui/NumberInput'
+import Checkbox from '../components/ui/Checkbox'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
@@ -1201,9 +1202,7 @@ export default function PriceListSetupPage() {
                             onChange={(look, code) => set(h.id, { look, code })} />
                           <NumberInput label={T.handleCost} unit={`${cur}/${T.perHandle}`} value={h.cost} onValue={v => set(h.id, { cost: v ?? 0 })} decimals={2} />
                         </div>
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                          <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
-                        </label>
+                        <Checkbox checked={!!h.lockable} onChange={v => { if (canEdit) set(h.id, { lockable: v }) }} label={T.handleKeyYes} />
                       </div>
                     </div>
                   })}
