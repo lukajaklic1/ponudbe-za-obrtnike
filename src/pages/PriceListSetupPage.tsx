@@ -93,11 +93,11 @@ const TXT = {
     metrePrices: 'Nabavne cene profila na tekoči meter', frameM: 'Okvir', sashM: 'Krilo', mullionM: 'Steber / prečka', beadM: 'Pritrdilna letvica',
     widths: 'Pogledne širine profilov', frameW: 'Okvir', sashW: 'Krilo', mullionW: 'Steber',
     s3: 'Delo, odrez in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
-    glassTitle: 'Katere tipe stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je privzeto vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.',
-    glassName: 'Steklo', glassLayers: 'Slojev', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', makeBase: 'Nastavi kot osnovno', addGlass: 'Dodaj steklo',
+    glassTitle: 'Katere tipe stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je privzeto vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno. Toplotna prehodnost pove, koliko toplote uide skozi steklo: manjša številka pomeni boljšo izolacijo (dvoslojno steklo okoli 1,1, troslojno 0,5 do 0,7).',
+    glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', makeBase: 'Nastavi kot osnovno', addGlass: 'Dodaj steklo',
     handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je standardna in je vključena v ceno.',
     handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'S ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
-    glassDescPh: 'Opis za kupca, npr. 4/16/4, ekonomično', customerSeesIncluded: 'Kupec vidi: Vključeno',
+    glassDescPh: 'npr. 4/16/4, ekonomično', customerSeesIncluded: 'Kupec vidi: Vključeno',
     customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
     exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
     hwTitle: 'Koliko znašajo dodatni stroški okovja?', exTitle: 'Primer izračuna',
@@ -158,11 +158,11 @@ const TXT = {
     metrePrices: 'Purchase price of the profile per metre', frameM: 'Frame', sashM: 'Sash', mullionM: 'Mullion / transom', beadM: 'Glazing bead',
     widths: 'Visible widths frame / sash / mullion', frameW: 'Frame', sashW: 'Sash', mullionW: 'Mullion',
     s3: 'Labour, waste and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
-    glassTitle: 'Which types of glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.',
-    glassName: 'Glass', glassLayers: 'Panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', makeBase: 'Make base', addGlass: 'Add glass',
+    glassTitle: 'Which types of glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end. Thermal transmittance tells how much heat escapes through the glass: the lower, the better (double glazing about 1.1, triple 0.5 to 0.7).',
+    glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', makeBase: 'Make base', addGlass: 'Add glass',
     handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the standard one and is included.',
     handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'With key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
-    glassDescPh: 'Description for the customer, e.g. 4/16/4, economical', customerSeesIncluded: 'Customer sees: Included',
+    glassDescPh: 'e.g. 4/16/4, economical', customerSeesIncluded: 'Customer sees: Included',
     customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
     exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
     hwTitle: 'What are the additional hardware costs?', exTitle: 'Example',
@@ -1135,7 +1135,7 @@ export default function PriceListSetupPage() {
                     </div>
                     {/* line 2: Ug, panes, purchase price */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:pl-[52px]">
-                      <NumberInput label="Ug" unit="W/m²K" value={g.ug ?? null} onValue={v => set(g.id, { ug: v })} decimals={1} />
+                      <NumberInput label={T.ugLabel} unit="W/m²K" value={g.ug ?? null} onValue={v => set(g.id, { ug: v })} decimals={1} />
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-[#7f7f7f]">{T.glassLayers}</label>
                         <select value={g.layers ?? 2} disabled={!canEdit} onChange={e => set(g.id, { layers: Number(e.target.value) })}
@@ -1147,6 +1147,7 @@ export default function PriceListSetupPage() {
                     </div>
                     {/* line 3: description on the customer's card */}
                     <div className="sm:pl-[52px]">
+                      <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
                       <input value={g.description ?? ''} onChange={e => set(g.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.glassDescPh}
                         className="w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <p className="text-xs font-medium text-[#7f7f7f] mt-1.5">{i === 0 ? T.customerSeesIncluded : (() => {
