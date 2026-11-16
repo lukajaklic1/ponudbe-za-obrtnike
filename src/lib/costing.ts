@@ -1,4 +1,5 @@
 import { WINDOW_COLORS, encodeColor } from './colors'
+import { ralHex } from './ral'
 // Window costing like a window maker does it: profile metres, glass area, hardware per
 // opening sash, labour and margin. All lengths in mm, prices per metre / m² / piece.
 //
@@ -50,12 +51,41 @@ export interface PricingSettings {
   glass?: GlassType[]
   /** handles, purchase price per handle (the first one is the standard handle, included in the price) */
   handles?: HandleType[]
+  /** yes / no extras of a window (sills, shading, safety glass …), purchase prices */
+  extras?: ExtraItem[]
+}
+
+/** How an extra is counted on one window. */
+export type ExtraUnit = 'piece' | 'sash' | 'window_m2' | 'glass_m2' | 'width' | 'perimeter'
+export const EXTRA_UNITS: ExtraUnit[] = ['piece', 'sash', 'window_m2', 'glass_m2', 'width', 'perimeter']
+export type ExtraGroup = 'glass' | 'sill' | 'shading' | 'other'
+export const EXTRA_GROUP_KEYS: ExtraGroup[] = ['glass', 'sill', 'shading', 'other']
+/** A yes / no extra (e.g. inner sill per metre of width): purchase price per unit; the margin goes on the whole window. */
+export interface ExtraItem { id: string; name: string; description?: string; group: ExtraGroup; unit: ExtraUnit; cost: number }
+
+export function sampleExtras(): ExtraItem[] {
+  return [
+    { id: rid(), group: 'glass', name: 'Varnostno steklo', description: 'Lepljeno steklo VSG 33.1, ob razbitju ostane v kosu.', unit: 'glass_m2', cost: 28 },
+    { id: rid(), group: 'glass', name: 'Ornamentno steklo', description: 'Motno steklo za kopalnico ali stopnišče.', unit: 'glass_m2', cost: 12 },
+    { id: rid(), group: 'glass', name: 'Topel rob', description: 'Distančnik iz umetne mase, manj rosenja ob robu stekla.', unit: 'perimeter', cost: 1.5 },
+    { id: rid(), group: 'glass', name: 'Prečke v steklu', description: 'Dekorativne prečke med stekli.', unit: 'window_m2', cost: 20 },
+    { id: rid(), group: 'sill', name: 'Notranja polica PVC', description: 'Bela, globina do 30 cm.', unit: 'width', cost: 9 },
+    { id: rid(), group: 'sill', name: 'Zunanja ALU polica', description: 'Barvana, s stranskimi zaključki.', unit: 'width', cost: 14 },
+    { id: rid(), group: 'shading', name: 'Komarnik', description: 'Okvirni komarnik za vsako krilo.', unit: 'sash', cost: 25 },
+    { id: rid(), group: 'shading', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon.', unit: 'window_m2', cost: 95 },
+    { id: rid(), group: 'shading', name: 'Rolete', description: 'Nadometne rolete z ročnim pogonom.', unit: 'window_m2', cost: 75 },
+    { id: rid(), group: 'other', name: 'Prezračevalnik v okvirju', description: 'Samodejno prezračevanje brez odpiranja okna.', unit: 'piece', cost: 18 },
+  ]
 }
 
 /** A glass package (e.g. double glazing Ug 1,1): cost per m² of glass; the margin is added on the whole window. */
 export interface GlassType { id: string; name: string; description?: string; ug?: number | null; layers?: number; cost_m2: number }
 /** A handle: look as in lib/colors (#hex …), cost per handle; lockable = with a key. */
-export interface HandleType { id: string; name: string; look?: string; cost: number; lockable?: boolean }
+export interface HandleType {
+  id: string; name: string; look?: string; cost: number; lockable?: boolean
+  /** RAL code of the colour (e.g. "RAL 9016"), photo of the handle (public URL; missing = drawn handle) */
+  code?: string; image_url?: string | null
+}
 
 /** Sashes that get a handle (a passive sash is opened from the other one, a fixed field has none). */
 export const HANDLE_OPENINGS: Opening[] = ['tilt_turn', 'turn', 'tilt', 'slide_window', 'slide', 'lift_slide']
@@ -69,13 +99,25 @@ export function sampleGlass(base = 26): GlassType[] {
     { id: rid(), name: 'Troslojno steklo', description: '4/14/4/14/4, najboljša izolacija in manj hrupa.', ug: 0.5, layers: 3, cost_m2: base + 26 },
   ]
 }
+/** Common handle colours (RAL where there is one; metallic looks for silver, titanium, stainless steel, brass). */
+export const HANDLE_COLORS: { sl: string; en: string; code?: string; look: string }[] = [
+  { sl: 'Bela', en: 'White', code: 'RAL 9016', look: ralHex('RAL 9016') ?? '#f1f0ea' },
+  { sl: 'Srebrna', en: 'Silver', code: 'RAL 9006', look: (ralHex('RAL 9006') ?? '#a1a1a0') + '|metal' },
+  { sl: 'Titan', en: 'Titanium', code: 'RAL 9007', look: (ralHex('RAL 9007') ?? '#878581') + '|metal' },
+  { sl: 'Inox (nerjaveče jeklo)', en: 'Stainless steel', look: '#c4c7c8|metal' },
+  { sl: 'Medenina (zlata)', en: 'Brass (gold)', look: '#b8963e|metal' },
+  { sl: 'Rjava', en: 'Brown', code: 'RAL 8017', look: ralHex('RAL 8017') ?? '#45322e' },
+  { sl: 'Antracit', en: 'Anthracite', code: 'RAL 7016', look: ralHex('RAL 7016') ?? '#383e42' },
+  { sl: 'Črna', en: 'Black', code: 'RAL 9005', look: ralHex('RAL 9005') ?? '#0a0a0a' },
+]
+const hc = (sl: string) => HANDLE_COLORS.find(c => c.sl === sl)!
 export function sampleHandles(): HandleType[] {
   return [
-    { id: rid(), name: 'Kljuka bela', look: '#ffffff', cost: 6 },
-    { id: rid(), name: 'Kljuka srebrna', look: '#c0c0c0|metal', cost: 8 },
-    { id: rid(), name: 'Kljuka rjava', look: '#5b3a29', cost: 8 },
-    { id: rid(), name: 'Kljuka antracit', look: '#383e42', cost: 9 },
-    { id: rid(), name: 'Kljuka s ključem', look: '#ffffff', cost: 18, lockable: true },
+    { id: rid(), name: 'Kljuka bela', look: hc('Bela').look, code: hc('Bela').code, cost: 6 },
+    { id: rid(), name: 'Kljuka srebrna', look: hc('Srebrna').look, code: hc('Srebrna').code, cost: 8 },
+    { id: rid(), name: 'Kljuka rjava', look: hc('Rjava').look, code: hc('Rjava').code, cost: 8 },
+    { id: rid(), name: 'Kljuka antracit', look: hc('Antracit').look, code: hc('Antracit').code, cost: 9 },
+    { id: rid(), name: 'Kljuka s ključem', look: hc('Bela').look, code: hc('Bela').code, cost: 18, lockable: true },
   ]
 }
 /** Chosen glass / handle, or the first one (standard); null when the supplier has none. */
@@ -231,7 +273,7 @@ const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
  * @param glassId / handleId chosen glass package and handle (missing = the first one = standard)
  */
 export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrices, s: PricingSettings,
-  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; glassId?: string | null; handleId?: string | null; labels?: Partial<Record<string, string>> } = {}): Costing {
+  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; glassId?: string | null; handleId?: string | null; extraIds?: string[] | null; labels?: Partial<Record<string, string>> } = {}): Costing {
   const fw = p.frame_w ?? 70, sw = p.sash_w ?? 78, mw = p.mullion_w ?? 82
   const L = (k: string, d: string) => opts.labels?.[k] ?? d
   const cols = layout.cols
@@ -299,6 +341,14 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   add('glass', gl ? `${L('glass', 'Steklo')}: ${gl.name}` : L('glass', 'Steklo'), glassArea, 'm²', (gl ? gl.cost_m2 : s.glass_m2) + (opts.glassExtraM2 ?? 0))
   for (const [k, v] of Object.entries(hw)) add('hw_' + k, L('hw_' + k, 'Okovje ' + k), v.n, 'kos', v.total / v.n)
   if (hd) add('handle', `${L('handle', 'Kljuke')}: ${hd.name}`, handles, 'kos', hd.cost)
+  // chosen yes / no extras, counted per window
+  for (const x of s.extras ?? []) {
+    if (!opts.extraIds?.includes(x.id)) continue
+    const [qty, unit]: [number, CutLine['unit']] =
+      x.unit === 'sash' ? [sashes, 'kos'] : x.unit === 'window_m2' ? [W * H / 1e6, 'm²'] : x.unit === 'glass_m2' ? [glassArea, 'm²']
+      : x.unit === 'width' ? [W / 1000, 'm'] : x.unit === 'perimeter' ? [2 * (W + H) / 1000, 'm'] : [1, 'kos']
+    add('x_' + x.id, x.name, qty, unit, x.cost)
+  }
   add('labour', L('labour', 'Delo'), 1, 'kos', s.labour_window + sashes * s.labour_sash)
 
   const cost = lines.reduce((a, l) => a + l.total, 0)

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { Calculator, Plus, Trash2, Check, Settings2, Upload, ChevronDown } from 'lucide-react'
+import { Calculator, Plus, Trash2, Check, Settings2, Upload, ChevronDown, Pipette } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -13,7 +13,7 @@ import ProfileSection from '../components/ProfileSection'
 import { costWindow, specToLayout, CALC_LABELS, glassOf, handleOf, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
-import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType } from '../lib/costing'
+import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
 import HandleIcon from '../components/HandleIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
@@ -96,8 +96,8 @@ const TXT = {
     s3: 'Delo, odrez in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
     glassTitle: 'Katere tipe stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je privzeto vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.',
     glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', addGlass: 'Dodaj steklo',
-    handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je osnovna in je privzeto vključena v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.', handleColor: 'Barva kljuke', pickColor: 'Izberi barvo',
-    handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'S ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
+    handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je osnovna in je privzeto vključena v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.', handleColor: 'Barva kljuke', customColor: 'Barva po meri …', customShort: 'Po meri', choosePhoto: 'Izberi fotografijo', changePhoto: 'Zamenjaj', handlePhotoRemoveMsg: (n: string) => `Fotografija kljuke »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala narisana kljuka.`,
+    handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'Zaklepanje s ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
     glassDescPh: 'npr. 4/16/4, ekonomično', customerSeesIncluded: 'Kupec vidi: Vključeno',
     customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
     exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
@@ -161,8 +161,8 @@ const TXT = {
     s3: 'Labour, waste and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
     glassTitle: 'Which types of glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.',
     glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', addGlass: 'Add glass',
-    handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the base one and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.', handleColor: 'Handle colour', pickColor: 'Pick a colour',
-    handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'With key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
+    handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the base one and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.', handleColor: 'Handle colour', customColor: 'Custom colour …', customShort: 'Custom', choosePhoto: 'Choose a photo', changePhoto: 'Replace', handlePhotoRemoveMsg: (n: string) => `The photo of handle "${n}" is removed the next time you save the price list. The drawn handle is shown instead.`,
+    handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'Locks with a key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
     glassDescPh: 'e.g. 4/16/4, economical', customerSeesIncluded: 'Customer sees: Included',
     customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
     exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
@@ -499,12 +499,12 @@ export default function PriceListSetupPage() {
   }
   async function removePhoto(p: ProfileRow) { await setPhoto(p, null) }
   /** roof window model picture → public 'logos' bucket; kept in the price list (saved with "Shrani cenik") */
-  async function uploadRoofPhoto(id: string, file: File, done: (url: string) => void) {
+  async function uploadRoofPhoto(id: string, file: File, done: (url: string) => void, folder = 'roof') {
     if (!company) return
     if (file.size > 2 * 1024 * 1024) { toast.error('Max 2 MB'); return }
     setUploadingKey(id)
     const ext = (file.name.split('.').pop() || 'png').toLowerCase()
-    const path = `${company.id}/roof/${Date.now()}.${ext}`
+    const path = `${company.id}/${folder}/${Date.now()}.${ext}`
     const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type })
     setUploadingKey(null)
     if (error) { toast.error(error.message); return }
@@ -1169,10 +1169,23 @@ export default function PriceListSetupPage() {
               return <div className="space-y-3">
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                   {list.map((h, i) => {
-                    const spec = parseColor(h.look ?? '#ffffff')
                     return <div key={h.id} className="px-4 py-4 flex gap-4">
-                      {/* the handle picture on the left, over the whole row */}
-                      <div className="shrink-0 hidden sm:flex w-[84px] justify-center rounded-lg bg-gray-50 border border-gray-100 py-2 self-start"><HandleIcon look={h.look} lockable={h.lockable} size={64} /></div>
+                      {/* the handle picture on the left: the supplier's photo, or the drawn handle in its colour */}
+                      <div className="shrink-0 hidden sm:flex flex-col items-center gap-1.5 w-[104px] self-start">
+                        <div className="w-full h-[92px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+                          {uploadingKey === h.id ? <span className="text-xs text-[#7f7f7f]">…</span>
+                            : h.image_url ? <img src={h.image_url} alt={h.name} className="max-w-full max-h-full object-contain p-1" />
+                            : <HandleIcon look={h.look} lockable={h.lockable} size={64} />}
+                        </div>
+                        {canEdit && <div className="flex items-center gap-1">
+                          <label className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer">
+                            <Upload className="w-3.5 h-3.5" />{h.image_url ? T.changePhoto : T.choosePhoto}
+                            <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(h.id, f, url => set(h.id, { image_url: url }), 'handles') }} />
+                          </label>
+                          {h.image_url && <button type="button" title={T.remove} onClick={() => askRemove('', () => set(h.id, { image_url: null }), T.handlePhotoRemoveMsg(h.name))}
+                            className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>}
+                        </div>}
+                      </div>
                       <div className="flex-1 min-w-0 space-y-2">
                         {/* line 1: name, base badge, remove */}
                         <div className="flex items-center gap-3">
@@ -1183,20 +1196,14 @@ export default function PriceListSetupPage() {
                             className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                         </div>
                         {/* line 2: colour, purchase price, with a key */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-xs font-medium text-[#7f7f7f]">{T.handleColor}</span>
-                            <label className={cn('relative flex items-center gap-2 h-10 rounded-lg border border-gray-200 px-2 text-sm text-gray-700', canEdit && 'cursor-pointer hover:border-gray-400')}>
-                              {spec && <ColorSwatch spec={spec} size={24} rounded={6} />}
-                              <span>{T.pickColor}</span>
-                              {canEdit && <input type="color" value={spec?.hex ?? '#ffffff'} onChange={e => set(h.id, { look: encodeColor({ ...(spec ?? { finish: 'smooth' }), hex: e.target.value } as any) })} className="absolute inset-0 opacity-0 cursor-pointer" />}
-                            </label>
-                          </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-3 items-start">
+                          <HandleColorPicker label={T.handleColor} look={h.look} code={h.code} disabled={!canEdit} customLabel={T.customColor} customShort={T.customShort} lang={lang}
+                            onChange={(look, code) => set(h.id, { look, code })} />
                           <NumberInput label={T.handleCost} unit={`${cur}/${T.perHandle}`} value={h.cost} onValue={v => set(h.id, { cost: v ?? 0 })} decimals={2} />
-                          <label className="inline-flex items-center gap-2 text-sm text-gray-700 h-10 sm:mt-[20px]">
-                            <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
-                          </label>
                         </div>
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                          <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
+                        </label>
                       </div>
                     </div>
                   })}
@@ -1429,4 +1436,63 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
       {children}
     </section>
   )
+}
+
+
+/** Handle colour: a dropdown (like the filters) with a colour circle per common colour; the last entry opens
+ *  the colour picker, and a picked colour snaps to the nearest RAL. */
+function HandleColorPicker({ label, look, code, disabled, onChange, customLabel, customShort, lang }: {
+  label: string; look?: string; code?: string; disabled?: boolean; onChange: (look: string, code: string | undefined) => void
+  customLabel: string; customShort: string; lang: string
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const pickRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
+  const spec = parseColor(look ?? '#ffffff')
+  const preset = HANDLE_COLORS.find(c => c.look.toLowerCase() === (look ?? '').toLowerCase())
+  const nameOf = (c: typeof HANDLE_COLORS[number]) => (lang === 'en' ? c.en : c.sl)
+  const customCode = code || (spec ? `RAL ${ralNearest(spec.hex).code}` : '')
+  const circle = (lk: string, size = 20) => { const sp = parseColor(lk); return sp ? <ColorSwatch spec={sp} size={size} rounded={size / 2} /> : null }
+  return <div className="flex flex-col gap-1" ref={ref}>
+    <span className="text-xs font-medium text-[#7f7f7f]">{label}</span>
+    <div className="relative">
+      <button type="button" disabled={disabled} onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2 h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white pl-2.5 pr-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:hover:border-gray-200">
+        {circle(look ?? '#ffffff')}
+        <span className="flex-1 min-w-0 truncate">
+          <span className="text-gray-900">{preset ? nameOf(preset) : customShort}</span>
+          <span className="text-[#7f7f7f]"> {preset ? preset.code ?? '' : customCode}</span>
+        </span>
+        <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+      </button>
+      {open && <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-full w-max">
+        {HANDLE_COLORS.map(c => {
+          const on = preset?.look === c.look
+          return <button key={c.look} type="button" onClick={() => { onChange(c.look, c.code); setOpen(false) }}
+            className={cn('flex w-full items-center gap-2.5 px-3 py-1.5 text-sm whitespace-nowrap hover:bg-[#f6f6f6] transition-colors', on ? 'text-gray-900 font-medium' : 'text-gray-700')}>
+            {circle(c.look)}
+            <span className="flex-1 text-left">{nameOf(c)}</span>
+            {c.code && <span className="text-xs text-[#7f7f7f]">{c.code}</span>}
+            <Check className={cn('w-3.5 h-3.5', on ? 'text-gray-900' : 'invisible')} />
+          </button>
+        })}
+        <div className="my-1 border-t border-gray-100" />
+        {/* own colour: opens the colour picker */}
+        <button type="button" onClick={() => { setOpen(false); pickRef.current?.click() }}
+          className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm whitespace-nowrap text-gray-700 hover:bg-[#f6f6f6] transition-colors">
+          <span className="w-5 h-5 rounded-full shrink-0 border border-dashed border-gray-300 bg-white flex items-center justify-center"><Pipette className="w-3 h-3 text-gray-500" /></span>
+          <span className="flex-1 text-left">{customLabel}</span>
+          {!preset && <span className="text-xs text-[#7f7f7f]">{customCode}</span>}
+          <Check className={cn('w-3.5 h-3.5', !preset ? 'text-gray-900' : 'invisible')} />
+        </button>
+      </div>}
+      <input ref={pickRef} type="color" value={spec?.hex ?? '#ffffff'} tabIndex={-1} aria-hidden className="absolute left-2 bottom-0 w-6 h-0 opacity-0 pointer-events-none"
+        onChange={e => { const near = ralNearest(e.target.value); onChange(encodeColor({ ...(spec ?? { finish: 'smooth' }), hex: near.hex } as any), `RAL ${near.code}`) }} />
+    </div>
+  </div>
 }

@@ -60,7 +60,7 @@ const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
     qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
-    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', glassTitle: 'Steklo', handleTitle: 'Kljuka', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
+    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
@@ -80,7 +80,7 @@ const TXT = {
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
     qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
-    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', glassTitle: 'Glass', handleTitle: 'Handle', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
+    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
@@ -692,8 +692,11 @@ export default function ConfiguratorPage() {
                       className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
-                      <div className="flex justify-center py-1"><HandleIcon look={h.look} lockable={h.lockable} size={56} /></div>
-                      <div className="text-sm font-medium text-gray-900 mt-1 flex-1">{h.name}</div>
+                      <div className="flex justify-center items-center h-[72px] py-1">
+                        {h.image_url ? <img src={h.image_url} alt={h.name} className="max-h-full max-w-full object-contain" /> : <HandleIcon look={h.look} lockable={h.lockable} size={56} />}
+                      </div>
+                      <div className="text-sm font-medium text-gray-900 mt-1">{h.name}</div>
+                      <div className="text-xs text-gray-500 mt-0.5 flex-1">{h.lockable ? T.lockable : ''}</div>
                       <div className="text-sm font-semibold text-gray-900 mt-1">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
                     </button>
                   })}
