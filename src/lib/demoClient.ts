@@ -362,6 +362,7 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
         builder: wp.offer?.windows || wp.offer?.slidingWindows || wp.offer?.doors || wp.offer?.sliding || (wp.offer?.roof !== false && wp.roof) ? { offer: wp.offer, colors: wp.colors ?? null,
           glass: (wp.glass ?? []).map((g: Row) => ({ ...g, cost_m2: r2(Number(g.cost_m2 ?? 0) * mf) })),
           handles: (wp.handles ?? []).map((h: Row) => ({ ...h, cost: r2(Number(h.cost ?? 0) * mf) })),
+          sills: (wp.sills ?? []).map((x: Row) => ({ ...x, cost_m: r2(Number(x.cost_m ?? 0) * mf) })),
           roof: wp.offer?.roof !== false && wp.roof ? {
           models: wp.roof.models ?? [], flashings: wp.roof.flashings ?? [],
         } : null, pricing: {

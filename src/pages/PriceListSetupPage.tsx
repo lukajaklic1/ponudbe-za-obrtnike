@@ -15,11 +15,12 @@ import ProfileSection from '../components/ProfileSection'
 import { costWindow, specToLayout, CALC_LABELS, glassOf, handleOf, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
-import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType } from '../lib/costing'
+import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, sampleSills, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType, type SillType } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
 import HandleIcon from '../components/HandleIcon'
+import SillIcon from '../components/SillIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
-const OWN_STEP_GROUPS = ['color', 'glass', 'handle']
+const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill']
 import { cn } from '../lib/cn'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import ColorSwatch from '../components/ColorSwatch'
@@ -100,7 +101,9 @@ const TXT = {
     glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', addGlass: 'Dodaj steklo',
     handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je osnovna in je privzeto vključena v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.', handleColor: 'Barva kljuke', customColor: 'Barva po meri …', customShort: 'Po meri', choosePhoto: 'Izberi fotografijo', changePhoto: 'Zamenjaj', handlePhotoRemoveMsg: (n: string) => `Fotografija kljuke »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala narisana kljuka.`,
     handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'Zaklepanje s ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
-    glassDescPh: 'npr. 4/16/4, ekonomično', customerSeesIncluded: 'Kupec vidi: Vključeno',
+    glassDescPh: 'npr. 4/16/4, ekonomično',
+    sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
+    sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', customerSeesIncluded: 'Kupec vidi: Vključeno',
     customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
     exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
     hwTitle: 'Koliko znašajo dodatni stroški okovja?', exTitle: 'Primer izračuna',
@@ -165,7 +168,9 @@ const TXT = {
     glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', addGlass: 'Add glass',
     handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the base one and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.', handleColor: 'Handle colour', customColor: 'Custom colour …', customShort: 'Custom', choosePhoto: 'Choose a photo', changePhoto: 'Replace', handlePhotoRemoveMsg: (n: string) => `The photo of handle "${n}" is removed the next time you save the price list. The drawn handle is shown instead.`,
     handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'Locks with a key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
-    glassDescPh: 'e.g. 4/16/4, economical', customerSeesIncluded: 'Customer sees: Included',
+    glassDescPh: 'e.g. 4/16/4, economical',
+    sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
+    sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', customerSeesIncluded: 'Customer sees: Included',
     customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
     exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
     hwTitle: 'What are the additional hardware costs?', exTitle: 'Example',
@@ -303,6 +308,7 @@ export default function PriceListSetupPage() {
       // glass packages and handles: start from samples; the base glass keeps the old single glass price
       if (!pr.glass?.length) pr.glass = sampleGlass(pr.glass_m2)
       if (!pr.handles?.length) pr.handles = sampleHandles()
+      if (!pr.sills?.length) pr.sills = sampleSills()
       // profile colours per material: the usual ones to start with
       pr.colors = { ...(pr.colors ?? {}) }
       for (const m of MATERIALS) if (!pr.colors[m]) pr.colors[m] = sampleColors()
@@ -1214,12 +1220,54 @@ export default function PriceListSetupPage() {
             })()}
           </Step>
 
-          {/* 8+. extras and services (colour, glass and handles of built windows have their own steps) */}
+          {/* 8. window sills: inside and outside, purchase price per metre of the window width */}
+          <Step n={8} title={T.sillTitle} hint={T.sillHint}>
+            {(() => {
+              const all = pricing.sills ?? []
+              const setAll = (next: SillType[]) => { setPricing(x => ({ ...x, sills: next })); touch() }
+              const set = (id: string, patch: Partial<SillType>) => setAll(all.map(x => x.id === id ? { ...x, ...patch } : x))
+              return <div className="space-y-5">
+                {(['inner', 'outer'] as const).map(side => {
+                  const list = all.filter(x => x.side === side)
+                  return <div key={side}>
+                    <div className="text-sm font-medium text-gray-900 mb-2">{side === 'inner' ? T.sillInner : T.sillOuter}</div>
+                    {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
+                      {list.map(x => <div key={x.id} className="px-4 py-4 flex gap-4">
+                        <div className="shrink-0 hidden sm:flex w-[84px] h-[64px] items-center justify-center rounded-lg bg-gray-50 border border-gray-100 self-start">
+                          <SillIcon side={side} />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="flex items-center gap-3">
+                            <input value={x.name} onChange={e => set(x.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.sillName}
+                              className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            {canEdit && <button type="button" onClick={() => askRemove(x.name, () => setAll(all.filter(y => y.id !== x.id)))} title={T.remove}
+                              className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3 items-start">
+                            <NumberInput label={T.sillCost} unit={`${cur}/m`} value={x.cost_m} onValue={v => set(x.id, { cost_m: v ?? 0 })} decimals={2} />
+                            <div>
+                              <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
+                              <textarea value={x.description ?? ''} onChange={e => set(x.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.sillDescPh} rows={2}
+                                className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>)}
+                    </div>}
+                    {canEdit && <button type="button" onClick={() => setAll([...all, { id: newRoofId(), side, name: '', cost_m: 0 }])}
+                      className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{side === 'inner' ? T.addSillInner : T.addSillOuter}</button>}
+                  </div>
+                })}
+              </div>
+            })()}
+          </Step>
+
+          {/* 9+. extras and services (colour, glass and handles of built windows have their own steps) */}
           {sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).map((sec, i) => {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + 8} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + 9} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">
@@ -1256,7 +1304,7 @@ export default function PriceListSetupPage() {
           })}
 
           {/* last: glass, labour, waste and margin (the margin goes on the whole window) */}
-          <Step n={8 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
+          <Step n={9 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
               <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />

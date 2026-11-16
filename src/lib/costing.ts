@@ -53,6 +53,8 @@ export interface PricingSettings {
   handles?: HandleType[]
   /** yes / no extras of a window (sills, shading, safety glass …), purchase prices */
   extras?: ExtraItem[]
+  /** window sills, purchase price per metre (the sill is as long as the window is wide) */
+  sills?: SillType[]
 }
 
 /** How an extra is counted on one window. */
@@ -121,6 +123,22 @@ export function sampleHandles(): HandleType[] {
   ]
 }
 /** Chosen glass / handle, or the first one (standard); null when the supplier has none. */
+/** A window sill: inside (notranja) or outside (zunanja), purchase price per metre of the window width. */
+export interface SillType { id: string; side: 'inner' | 'outer'; name: string; description?: string; cost_m: number }
+export function sampleSills(): SillType[] {
+  return [
+    { id: rid(), side: 'inner', name: 'PVC polica, bela', description: 'Globina do 30 cm, z zaključnimi kapami.', cost_m: 9 },
+    { id: rid(), side: 'inner', name: 'PVC polica, hrast', description: 'Dekor lesa, globina do 30 cm.', cost_m: 13 },
+    { id: rid(), side: 'inner', name: 'Kamnita polica', description: 'Naravni kamen, poliran rob.', cost_m: 45 },
+    { id: rid(), side: 'outer', name: 'Aluminijasta polica, bela', description: 'S stranskimi zaključki, globina do 25 cm.', cost_m: 12 },
+    { id: rid(), side: 'outer', name: 'Aluminijasta polica, antracit', description: 'S stranskimi zaključki, globina do 25 cm.', cost_m: 14 },
+    { id: rid(), side: 'outer', name: 'Kamnita polica', description: 'Naravni kamen z odkapnim robom.', cost_m: 40 },
+  ]
+}
+/** Chosen sill on one side (none when the id is missing or unknown). */
+export const sillOf = (s: Pick<PricingSettings, 'sills'>, side: SillType['side'], id?: string | null) =>
+  id ? s.sills?.find(x => x.id === id && x.side === side) ?? null : null
+
 export const glassOf = (s: Pick<PricingSettings, 'glass'>, id?: string | null) => s.glass?.find(g => g.id === id) ?? s.glass?.[0] ?? null
 export const handleOf = (s: Pick<PricingSettings, 'handles'>, id?: string | null) => s.handles?.find(h => h.id === id) ?? s.handles?.[0] ?? null
 
@@ -273,7 +291,7 @@ const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
  * @param glassId / handleId chosen glass package and handle (missing = the first one = standard)
  */
 export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrices, s: PricingSettings,
-  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; glassId?: string | null; handleId?: string | null; extraIds?: string[] | null; labels?: Partial<Record<string, string>> } = {}): Costing {
+  opts: { colorPct?: number; bothSides?: boolean; glassExtraM2?: number; glassId?: string | null; handleId?: string | null; extraIds?: string[] | null; sillIn?: string | null; sillOut?: string | null; labels?: Partial<Record<string, string>> } = {}): Costing {
   const fw = p.frame_w ?? 70, sw = p.sash_w ?? 78, mw = p.mullion_w ?? 82
   const L = (k: string, d: string) => opts.labels?.[k] ?? d
   const cols = layout.cols
@@ -341,6 +359,10 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   add('glass', gl ? `${L('glass', 'Steklo')}: ${gl.name}` : L('glass', 'Steklo'), glassArea, 'm²', (gl ? gl.cost_m2 : s.glass_m2) + (opts.glassExtraM2 ?? 0))
   for (const [k, v] of Object.entries(hw)) add('hw_' + k, L('hw_' + k, 'Okovje ' + k), v.n, 'kos', v.total / v.n)
   if (hd) add('handle', `${L('handle', 'Kljuke')}: ${hd.name}`, handles, 'kos', hd.cost)
+  // window sills: as long as the window is wide
+  for (const sl of [sillOf(s, 'inner', opts.sillIn), sillOf(s, 'outer', opts.sillOut)]) {
+    if (sl) add('sill_' + sl.side, `${L('sill_' + sl.side, sl.side === 'inner' ? 'Notranja polica' : 'Zunanja polica')}: ${sl.name}`, W / 1000, 'm', sl.cost_m)
+  }
   // chosen yes / no extras, counted per window
   for (const x of s.extras ?? []) {
     if (!opts.extraIds?.includes(x.id)) continue
@@ -673,7 +695,7 @@ export function presets(sp: WindowSpec): { key: string; main: Field[] }[] {
 /** Labels of the cut list lines (internal costing view). */
 export const CALC_LABELS = {
   sl: { frame: 'Okvir', mullion: 'Steber / prečka', sash: 'Krila', bead: 'Pritrdilne letvice', glass: 'Steklo', handle: 'Kljuke', labour: 'Delo',
-    hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno' },
+    hw_tilt_turn: 'Okovje odpiranje in kip', hw_turn: 'Okovje odpiranje', hw_tilt: 'Okovje kip', hw_passive: 'Okovje pasivno krilo', hw_slide_window: 'Okovje drsno okno', hw_slide: 'Okovje drsno', hw_lift_slide: 'Okovje dvižno-drsno', sill_inner: 'Notranja polica', sill_outer: 'Zunanja polica' },
   en: { frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', handle: 'Handles', labour: 'Labour',
-    hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide' },
+    hw_tilt_turn: 'Hardware tilt & turn', hw_turn: 'Hardware turn', hw_tilt: 'Hardware tilt', hw_passive: 'Hardware passive sash', hw_slide_window: 'Hardware sliding window', hw_slide: 'Hardware sliding', hw_lift_slide: 'Hardware lift & slide', sill_inner: 'Inner sill', sill_outer: 'Outer sill' },
 }
