@@ -160,7 +160,7 @@ BEGIN
                 FROM jsonb_array_elements(v) x))
                 FROM jsonb_each(COALESCE(c.window_pricing->'colors', '{}'::jsonb)) AS e(k, v)),
       -- glass packages and handles: purchase prices with the margin folded in (0 when prices are hidden)
-      'glass', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', g->>'id', 'name', g->>'name', 'ug', (g->>'ug')::numeric, 'layers', (g->>'layers')::integer,
+      'glass', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', g->>'id', 'name', g->>'name', 'description', g->>'description', 'ug', (g->>'ug')::numeric, 'layers', (g->>'layers')::integer,
                   'cost_m2', CASE WHEN c.configurator_show_prices THEN round(COALESCE((g->>'cost_m2')::numeric, 0) * mf, 2) ELSE 0 END) ORDER BY i), '[]'::jsonb)
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'glass', '[]'::jsonb)) WITH ORDINALITY AS t(g, i)),
       'handles', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', x->>'id', 'name', x->>'name', 'look', x->>'look', 'lockable', COALESCE((x->>'lockable')::boolean, false),

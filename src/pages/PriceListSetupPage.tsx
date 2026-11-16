@@ -97,6 +97,8 @@ const TXT = {
     glassName: 'Steklo', glassLayers: 'Slojev', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', makeBase: 'Nastavi kot osnovno', addGlass: 'Dodaj steklo',
     handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je standardna in je vključena v ceno.',
     handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'S ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
+    glassDescPh: 'Opis za kupca, npr. 4/16/4, ekonomično', customerSeesIncluded: 'Kupec vidi: Vključeno',
+    customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
     exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
     hwTitle: 'Koliko znašajo dodatni stroški okovja?', exTitle: 'Primer izračuna',
     exIntro: (w: string, h: string, prof: string) => `Dvokrilno okno ${w} × ${h} mm brez stebra: levo pasivno krilo brez kljuke, desno odpiranje in kip, profil ${prof}.`, exNoProfile: '(najprej dodajte profil v koraku 3)',
@@ -110,7 +112,7 @@ const TXT = {
     exSrcProfile: (p: string) => `korak 3, profil ${p}`, exSrcFixed: 'stalna vrednost v izračunu', exSrcTable: (row: string) => `tabela zgoraj, vrstica »${row}«`,
     exWindow: 'Okovje okna', exTiltSash: 'Okovje pasivnega krila', exTtSash: 'Okovje krila odpiranje in kip',
     exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `Okno nima stebra, zato se od širine odšteje le okvir na obeh straneh (${fw} mm), preostanek si delita krili; od višine se odšteje okvir zgoraj in spodaj. Krilo je na vsaki strani za ${ov} mm večje od odprtine, ker prekriva okvir, zato ima vsako krilo obseg ${per} m. Levo krilo je pasivno: nima kljuke, zaklene se z zapahi in se odpre šele za desnim. Okovje se izračuna za vsako krilo posebej po cenah njegovega načina odpiranja: pasivno krilo ${tilt} €, krilo odpiranje in kip ${tt} €. Okovje celega okna je vsota obeh, ${tot} €. To je strošek, marža se doda na celotno okno.`, exFormulaL: 'Okovje krila', exPerM: 'doplačilo na meter', exPerimeter: 'obseg krila', exSash: 'Krilo', exHw: 'Okovje krila',
-    exWords: (fx: string, pm: string, per: string, tot: string) => `Vsako krilo dobi fiksno doplačilo ${fx} €, nato se za vsak meter obsega krila prišteje še ${pm} €. Krilo z obsegom ${per} m ima tako okovje v vrednosti ${tot} €. Dvokrilno okno ima dve krili, zato se okovje izračuna za vsako krilo posebej in sešteje. Znesek je strošek; marža se doda na celotno okno.`, hwIntro: 'Vnesite dodatne stroške, povezane z okovjem. Nastavite lahko fiksno doplačilo na krilo ter dodatno plačilo na tekoči meter obsega krila. Vnašajte samo stroškovne cene, ki bodo dodane k nabavnim cenam profilov. Marža bo uporabljena na celoto.', perSash: 'krilo', hwFixed: 'Fiksno doplačilo na krilo', hwPerM: 'Doplačilo na tekoči meter obsega krila', hwHint: 'Okovje krila = fiksni znesek + cena × obseg krila. Primer: krilo 130 × 150 cm ima obseg 5,6 m, pri 20 € + 1 €/tm je okovje 25,60 €. Pasivno krilo je drugo krilo dvokrilnega okna brez stebrička (brez kljuke).', hw: { tilt_turn: 'Odpiranje in kip', turn: 'Samo odpiranje', tilt: 'Samo kip', passive: 'Pasivno krilo brez kljuke', slide_window: 'Drsno okno', slide: 'Drsna stena (PSK)', lift_slide: 'Dvižno-drsna stena' },
+    exWords: (fx: string, pm: string, per: string, tot: string) => `Vsako krilo dobi fiksno doplačilo ${fx} €, nato se za vsak meter obsega krila prišteje še ${pm} €. Krilo z obsegom ${per} m ima tako okovje v vrednosti ${tot} €. Dvokrilno okno ima dve krili, zato se okovje izračuna za vsako krilo posebej in sešteje. Znesek je strošek; marža se doda na celotno okno.`, hwIntro: 'Vnesite dodatne stroške, povezane z okovjem. Nastavite lahko fiksno doplačilo na krilo ter dodatno plačilo na tekoči meter obsega krila. Vnašajte samo stroškovne cene, ki bodo dodane k nabavnim cenam profilov. Marža bo vkalkulirana na koncu na celoto.', perSash: 'krilo', hwFixed: 'Fiksno doplačilo na krilo', hwPerM: 'Doplačilo na tekoči meter obsega krila', hwHint: 'Okovje krila = fiksni znesek + cena × obseg krila. Primer: krilo 130 × 150 cm ima obseg 5,6 m, pri 20 € + 1 €/tm je okovje 25,60 €. Pasivno krilo je drugo krilo dvokrilnega okna brez stebrička (brez kljuke).', hw: { tilt_turn: 'Odpiranje in kip', turn: 'Samo odpiranje', tilt: 'Samo kip', passive: 'Pasivno krilo brez kljuke', slide_window: 'Drsno okno', slide: 'Drsna stena (PSK)', lift_slide: 'Dvižno-drsna stena' },
     glassM2: 'Osnovno steklo', labourWindow: 'Delo na okno', labourSash: 'Delo na krilo', waste: 'Odrez profilov', margin: 'Marža', bothSides: 'Barva obojestransko',
     calc: 'Kalkulacija', cost: 'Strošek', marginLine: 'Marža', windowPrice: 'Cena okna',
     s4: 'V katerih barvah so profili?', s4hint: 'Za vsak material izberite barve, ki jih ponujate. Doplačilo v % se prišteje k ceni profilov.',
@@ -160,6 +162,8 @@ const TXT = {
     glassName: 'Glass', glassLayers: 'Panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', makeBase: 'Make base', addGlass: 'Add glass',
     handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the standard one and is included.',
     handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'With key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
+    glassDescPh: 'Description for the customer, e.g. 4/16/4, economical', customerSeesIncluded: 'Customer sees: Included',
+    customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
     exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
     hwTitle: 'What are the additional hardware costs?', exTitle: 'Example',
     exIntro: (w: string, h: string, prof: string) => `Double window ${w} × ${h} mm without a mullion: left passive sash without a handle, right sash tilt & turn, profile ${prof}.`, exNoProfile: '(add a profile in step 3 first)',
@@ -173,7 +177,7 @@ const TXT = {
     exSrcProfile: (p: string) => `step 3, profile ${p}`, exSrcFixed: 'fixed value of the calculation', exSrcTable: (row: string) => `table above, row "${row}"`,
     exWindow: 'Hardware of the window', exTiltSash: 'Passive sash hardware', exTtSash: 'Tilt & turn sash hardware',
     exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `The window has no mullion, so only the frame on both sides (${fw} mm) is taken off the width and the sashes share the rest; the frame top and bottom is taken off the height. A sash is ${ov} mm larger than its opening on every side because it overlaps the frame, so each sash has a ${per} m perimeter. The left sash is passive: no handle, locked with bolts, it opens only after the right one. The hardware is worked out per sash with the prices of its opening: passive sash ${tilt} €, tilt & turn sash ${tt} €. The window's hardware is the sum, ${tot} €. This is a cost; the margin is added to the whole window.`, exFormulaL: 'Sash hardware', exPerM: 'amount per metre', exPerimeter: 'sash perimeter', exSash: 'Sash', exHw: 'Sash hardware',
-    exWords: (fx: string, pm: string, per: string, tot: string) => `Every sash gets the fixed amount of ${fx} €, then ${pm} € for every metre of its perimeter. A sash with a ${per} m perimeter therefore has hardware worth ${tot} €. A double window has two sashes, so the hardware is worked out per sash and added up. The amount is a cost; the margin is added to the whole window.`, hwIntro: 'Enter the additional costs of the hardware: a fixed amount per sash and an amount per metre of the sash perimeter. Enter cost prices only; they are added to the purchase prices of the profiles. The margin is applied to the total.', perSash: 'sash', hwFixed: 'Fixed', hwPerM: 'Per metre of sash perimeter', hwHint: 'Sash hardware = fixed amount + price × sash perimeter. Example: a 130 × 150 cm sash has a 5.6 m perimeter; at 20 € + 1 €/m the hardware is 25.60 €. A passive sash is the second sash of a double window without a mullion (no handle).', hw: { tilt_turn: 'Tilt & turn', turn: 'Turn only', tilt: 'Tilt only', passive: 'Passive sash (no handle)', slide_window: 'Sliding window', slide: 'Sliding wall (PSK)', lift_slide: 'Lift & slide wall' },
+    exWords: (fx: string, pm: string, per: string, tot: string) => `Every sash gets the fixed amount of ${fx} €, then ${pm} € for every metre of its perimeter. A sash with a ${per} m perimeter therefore has hardware worth ${tot} €. A double window has two sashes, so the hardware is worked out per sash and added up. The amount is a cost; the margin is added to the whole window.`, hwIntro: 'Enter the additional costs of the hardware. You can set a fixed amount per sash and an extra amount per metre of the sash perimeter. Enter cost prices only; they are added to the purchase prices of the profiles. The margin is added to the whole at the end.', perSash: 'sash', hwFixed: 'Fixed', hwPerM: 'Per metre of sash perimeter', hwHint: 'Sash hardware = fixed amount + price × sash perimeter. Example: a 130 × 150 cm sash has a 5.6 m perimeter; at 20 € + 1 €/m the hardware is 25.60 €. A passive sash is the second sash of a double window without a mullion (no handle).', hw: { tilt_turn: 'Tilt & turn', turn: 'Turn only', tilt: 'Tilt only', passive: 'Passive sash (no handle)', slide_window: 'Sliding window', slide: 'Sliding wall (PSK)', lift_slide: 'Lift & slide wall' },
     glassM2: 'Base glass', labourWindow: 'Labour per window', labourSash: 'Labour per sash', waste: 'Profile waste', margin: 'Margin', bothSides: 'Colour both sides',
     calc: 'Costing', cost: 'Cost', marginLine: 'Margin', windowPrice: 'Window price',
     s4: 'Which colours are the profiles in?', s4hint: 'Choose the colours you offer for every material. The % surcharge is added to the profile price.',
@@ -459,6 +463,13 @@ export default function PriceListSetupPage() {
   const setPrice = (patch: Partial<PricingSettings>) => { setPricing(x => ({ ...x, ...patch })); touch() }
   const setHw = (k: keyof PricingSettings['hw'], v: number | null) => { setPricing(x => ({ ...x, hw: { ...x.hw, [k]: v ?? 0 } })); touch() }
   const setHwM = (k: keyof PricingSettings['hw'], v: number | null) => { setPricing(x => ({ ...x, hw_m: { ...x.hw_m, [k]: v ?? 0 } })); touch() }
+  /** sale price of a reference window (double, both sashes tilt & turn, 1200 × 1400, first profile) — for "the customer sees + X €" */
+  const exampleSale = (o: { glassId?: string; handleId?: string }) => {
+    const prof = profiles.find(p => matOn[p.material]) ?? profiles[0]
+    if (!prof) return null
+    return costWindow(specToLayout(makeSpec(2)), 1200, 1400, toPrices(prof), pricing, o).price
+  }
+  const signed = (v: number) => `${v >= 0 ? '+' : '−'} ${Math.abs(Math.round(v)).toLocaleString('de-DE')} ${cur === 'EUR' ? '€' : cur}`
   const salePrice = (p: ProfileRow, tpl: WindowTemplate, w: number, h: number) => Math.max(p.min ?? 0, costWindow(layoutFor(tpl), w, h, toPrices(p), pricing).price)
   function toggleMaterial(m: WindowMaterial) {
     const on = !matOn[m]
@@ -1134,6 +1145,15 @@ export default function PriceListSetupPage() {
                       </div>
                       <NumberInput label={T.glassCost} unit={`${cur}/m²`} value={g.cost_m2} onValue={v => set(g.id, { cost_m2: v ?? 0 })} decimals={2} />
                     </div>
+                    {/* line 3: description on the customer's card */}
+                    <div className="sm:pl-[52px]">
+                      <input value={g.description ?? ''} onChange={e => set(g.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.glassDescPh}
+                        className="w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <p className="text-xs font-medium text-[#7f7f7f] mt-1.5">{i === 0 ? T.customerSeesIncluded : (() => {
+                        const a = exampleSale({ glassId: list[0].id }), b = exampleSale({ glassId: g.id })
+                        return a == null || b == null ? '' : T.customerSees(signed(b - a))
+                      })()}</p>
+                    </div>
                   </div>)}
                 </div>
                 {canEdit && <button type="button" onClick={() => setList([...list, { id: newRoofId(), name: '', ug: null, layers: 2, cost_m2: 0 }])}
@@ -1174,6 +1194,10 @@ export default function PriceListSetupPage() {
                           <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
                         </label>
                       </div>
+                      <p className="text-xs font-medium text-[#7f7f7f] sm:pl-[52px]">{i === 0 ? T.customerSeesIncluded : (() => {
+                        const a = exampleSale({ handleId: list[0].id }), b = exampleSale({ handleId: h.id })
+                        return a == null || b == null ? '' : T.customerSees(signed(b - a))
+                      })()}</p>
                     </div>
                   })}
                 </div>

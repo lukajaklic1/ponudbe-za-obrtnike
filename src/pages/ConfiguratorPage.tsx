@@ -660,21 +660,24 @@ export default function ConfiguratorPage() {
 
               {/* glass package: cards with Ug; the first one is included */}
               {spec && glassList.length > 1 && <Section n={nextStep()} title={T.glassTitle} accent={accent}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {glassList.map((g, i) => {
-                    const on = (glassList.find(x => x.id === it.glass) ?? glassList[0]).id === g.id
-                    const d = on ? null : diffWith({ glass: g.id })
+                    const sel = glassList.find(x => x.id === it.glass) ?? glassList[0]
+                    const on = sel.id === g.id
+                    // price against the base glass, so every card keeps its own surcharge
+                    const d = i === 0 ? null : (() => {
+                      if (!show) return null
+                      const base = specBase({ ...it, glass: glassList[0].id }), p = specBase({ ...it, glass: g.id })
+                      return base == null || p == null ? null : Math.round(p - base)
+                    })()
                     return <button key={g.id} onClick={() => update({ glass: g.id })}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
-                      <div className="flex items-start gap-3">
-                        <GlassIcon layers={g.layers ?? 2} />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-900">{g.name}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">{[g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')} W/m²K` : null, g.layers ? T.layers(g.layers) : null].filter(Boolean).join(' · ')}</div>
-                        </div>
-                        <span className="text-xs text-gray-500 whitespace-nowrap">{i === 0 ? T.included : d != null ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</span>
-                      </div>
+                      {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                      <div className="flex justify-center py-2"><GlassIcon layers={g.layers ?? 2} size={88} /></div>
+                      <div className="text-sm font-semibold text-gray-900 mt-1">{g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')}` : g.name}</div>
+                      <div className="text-xs text-gray-600 mt-1 flex-1">{g.ug != null ? g.name : null}{g.description ? <>{g.ug != null ? ' ' : ''}{g.description}</> : null}</div>
+                      <div className="text-sm font-semibold text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
                     </button>
                   })}
                 </div>

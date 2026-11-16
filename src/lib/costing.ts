@@ -53,7 +53,7 @@ export interface PricingSettings {
 }
 
 /** A glass package (e.g. double glazing Ug 1,1): cost per m² of glass; the margin is added on the whole window. */
-export interface GlassType { id: string; name: string; ug?: number | null; layers?: number; cost_m2: number }
+export interface GlassType { id: string; name: string; description?: string; ug?: number | null; layers?: number; cost_m2: number }
 /** A handle: look as in lib/colors (#hex …), cost per handle; lockable = with a key. */
 export interface HandleType { id: string; name: string; look?: string; cost: number; lockable?: boolean }
 
@@ -63,10 +63,10 @@ export const HANDLE_OPENINGS: Opening[] = ['tilt_turn', 'turn', 'tilt', 'slide_w
 /** Sample glass packages; the others are priced relative to the base glass (default 26 €/m²). */
 export function sampleGlass(base = 26): GlassType[] {
   return [
-    { id: rid(), name: 'Dvoslojno steklo', ug: 1.1, layers: 2, cost_m2: base },
-    { id: rid(), name: 'Dvoslojno steklo z argonom', ug: 1.0, layers: 2, cost_m2: base + 4 },
-    { id: rid(), name: 'Troslojno steklo', ug: 0.7, layers: 3, cost_m2: base + 16 },
-    { id: rid(), name: 'Troslojno steklo, toplejše', ug: 0.5, layers: 3, cost_m2: base + 26 },
+    { id: rid(), name: 'Dvoslojno steklo', description: '4/16/4, ekonomično.', ug: 1.1, layers: 2, cost_m2: base },
+    { id: rid(), name: 'Dvoslojno steklo', description: '4/16/4 z argonom, boljša toplotna izolacija.', ug: 1.0, layers: 2, cost_m2: base + 4 },
+    { id: rid(), name: 'Troslojno steklo', description: '4/12/4/12/4, odlična toplotna izolacija.', ug: 0.7, layers: 3, cost_m2: base + 16 },
+    { id: rid(), name: 'Troslojno steklo', description: '4/14/4/14/4, najboljša izolacija in manj hrupa.', ug: 0.5, layers: 3, cost_m2: base + 26 },
   ]
 }
 export function sampleHandles(): HandleType[] {
