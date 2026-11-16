@@ -1148,8 +1148,8 @@ export default function PriceListSetupPage() {
                     {/* line 3: description on the customer's card */}
                     <div className="sm:pl-[52px]">
                       <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
-                      <input value={g.description ?? ''} onChange={e => set(g.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.glassDescPh}
-                        className="w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <textarea value={g.description ?? ''} onChange={e => set(g.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.glassDescPh} rows={2}
+                        className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <p className="text-xs font-medium text-[#7f7f7f] mt-1.5">{i === 0 ? T.customerSeesIncluded : (() => {
                         const a = exampleSale({ glassId: list[0].id }), b = exampleSale({ glassId: g.id })
                         return a == null || b == null ? '' : T.customerSees(signed(b - a))
