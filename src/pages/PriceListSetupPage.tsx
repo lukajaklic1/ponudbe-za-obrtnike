@@ -1150,10 +1150,6 @@ export default function PriceListSetupPage() {
                       <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
                       <textarea value={g.description ?? ''} onChange={e => set(g.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.glassDescPh} rows={2}
                         className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      <p className="text-xs font-medium text-[#7f7f7f] mt-1.5">{i === 0 ? T.customerSeesIncluded : (() => {
-                        const a = exampleSale({ glassId: list[0].id }), b = exampleSale({ glassId: g.id })
-                        return a == null || b == null ? '' : T.customerSees(signed(b - a))
-                      })()}</p>
                     </div>
                   </div>)}
                 </div>
@@ -1195,10 +1191,6 @@ export default function PriceListSetupPage() {
                           <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
                         </label>
                       </div>
-                      <p className="text-xs font-medium text-[#7f7f7f] sm:pl-[52px]">{i === 0 ? T.customerSeesIncluded : (() => {
-                        const a = exampleSale({ handleId: list[0].id }), b = exampleSale({ handleId: h.id })
-                        return a == null || b == null ? '' : T.customerSees(signed(b - a))
-                      })()}</p>
                     </div>
                   })}
                 </div>
