@@ -154,7 +154,7 @@ export function sampleSills(): SillType[] {
 export const newSillId = () => rid()
 /** Shading or insect screen. Priced per m² of the window, per opening sash or per piece (one per window). */
 export type ShadingUnit = 'm2' | 'sash' | 'piece' // 'piece' only in old price lists (shown as per window)
-export type ShadingIconKind = 'blinds' | 'roller' | 'pleated' | 'screen' | 'screen_roll' | 'none'
+export type ShadingIconKind = 'blinds' | 'roller' | 'pleated' | 'screen' | 'screen_roll' | 'screen_pleated' | 'none'
 export interface ShadingType {
   id: string; kind: 'shade' | 'screen'; name: string; description?: string
   unit: ShadingUnit; cost: number
@@ -179,7 +179,7 @@ export const STANDARD_SHADING: Omit<ShadingType, 'id'>[] = [
   { kind: 'screen', icon: 'screen', name: 'Okvirni komarnik', description: 'Fiksni aluminijast okvir z mrežico, na vsako krilo.', unit: 'sash', fixed: 8, per_w: 4, per_h: 4, cost: 6 },
   { kind: 'screen', icon: 'screen_roll', name: 'Rolo komarnik', description: 'Mrežica se navije v omarico. Z roleto si deli omarico in vodila.', unit: 'm2', fixed: 40, per_w: 15, per_h: 12, cost: 20, min: 130,
     can_integrate: true, integrated: { fixed: 15, cost: 20 } },
-  { kind: 'screen', icon: 'pleated', name: 'Plise komarnik', description: 'Zložljiva mrežica, primerna za balkonska vrata.', unit: 'm2', fixed: 80, cost: 40, min: 170 },
+  { kind: 'screen', icon: 'screen_pleated', name: 'Plise komarnik', description: 'Zložljiva mrežica, primerna za balkonska vrata.', unit: 'm2', fixed: 80, cost: 40, min: 170 },
 ]
 export const sampleShading = (): ShadingType[] => STANDARD_SHADING.map(x => ({ ...x, id: rid() }))
 /** Chosen shading / screen (none when the id is missing or unknown). */

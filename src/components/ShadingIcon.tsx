@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-export const SHADING_ICONS = ['blinds', 'roller', 'pleated', 'screen', 'screen_roll', 'none'] as const
+export const SHADING_ICONS = ['blinds', 'roller', 'pleated', 'screen', 'screen_roll', 'screen_pleated', 'none'] as const
 
 /**
  * Square picture of a shading product on a window: external blinds (slats), roller shutter (box + slats),
@@ -38,6 +38,16 @@ export default function ShadingIcon({ kind, size = 64 }: { kind?: string | null;
         <rect x="12" y="12" width="36" height="2.5" fill="#9ca3af" />
         <path d={'M12 15 ' + Array.from({ length: 12 }, (_, i) => `L48 ${16 + i * 2.2} L12 ${17.1 + i * 2.2}`).join(' ')} fill="#f5efe6" stroke="#d6c7b2" strokeWidth="0.5" strokeLinejoin="round" />
         <rect x="12" y="42" width="36" height="2" fill="#9ca3af" />
+      </>
+      break
+    case 'screen_pleated':
+      // pleated insect screen on a door: mesh folded like an accordion (vertical pleats), pull bar on the right
+      body = <>{frame}
+        <rect x="12" y="12" width="32" height="38" fill={`url(#${mesh})`} />
+        {Array.from({ length: 10 }, (_, i) => <rect key={i} x={12 + i * 3.2} y="12" width="1.6" height="38" fill="#9ca3af" opacity="0.35" />)}
+        {Array.from({ length: 11 }, (_, i) => <line key={'l' + i} x1={12 + i * 3.2} y1="12" x2={12 + i * 3.2} y2="50" stroke="#6b7280" strokeWidth="0.5" />)}
+        <rect x="44" y="11" width="3.5" height="40" rx="1" fill="#6b7280" />
+        <rect x="12" y="10" width="36" height="2" fill="#9ca3af" /><rect x="12" y="50" width="36" height="2" fill="#9ca3af" />
       </>
       break
     case 'screen':

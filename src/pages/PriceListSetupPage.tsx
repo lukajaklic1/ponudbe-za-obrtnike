@@ -114,7 +114,7 @@ const TXT = {
     shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine',
     shadeFixedSash: 'Fiksni znesek na krilo', shadePerWSash: 'Na meter širine krila', shadePerHSash: 'Na meter višine krila', shadeCostM2Sash: 'Na m² krila', shadeMin: 'Najnižja prodajna cena na okno',
     shadeUnits: { m2: 'Na okno', sash: 'Na krilo' } as Record<string, string>,
-    shadeIcons: { blinds: 'Žaluzije', roller: 'Rolete', pleated: 'Plise', screen: 'Okvirni komarnik', screen_roll: 'Rolo komarnik', none: 'Brez slike' } as Record<string, string>,
+    shadeIcons: { blinds: 'Žaluzije', roller: 'Rolete', pleated: 'Plise senčilo', screen: 'Okvirni komarnik', screen_roll: 'Rolo komarnik', screen_pleated: 'Plise komarnik', none: 'Brez slike' } as Record<string, string>,
     shadeDescPh: 'npr. Lamele 80 mm, ročni pogon z jermenom.', addShade: 'Dodaj senčilo', addScreen: 'Dodaj komarnik',
     shadePhotoRemoveMsg: (n: string) => `Fotografija »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`,
     sillPhotoRemoveMsg: (n: string) => `Fotografija police »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`, customerSeesIncluded: 'Kupec vidi: Vključeno',
@@ -194,7 +194,7 @@ const TXT = {
     shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height',
     shadeFixedSash: 'Fixed amount per sash', shadePerWSash: 'Per metre of sash width', shadePerHSash: 'Per metre of sash height', shadeCostM2Sash: 'Per m² of sash', shadeMin: 'Lowest sale price per window',
     shadeUnits: { m2: 'Per window', sash: 'Per sash' } as Record<string, string>,
-    shadeIcons: { blinds: 'Blinds', roller: 'Roller shutter', pleated: 'Pleated', screen: 'Framed screen', screen_roll: 'Roll-up screen', none: 'No picture' } as Record<string, string>,
+    shadeIcons: { blinds: 'Blinds', roller: 'Roller shutter', pleated: 'Pleated blind', screen: 'Framed screen', screen_roll: 'Roll-up screen', screen_pleated: 'Pleated screen', none: 'No picture' } as Record<string, string>,
     shadeDescPh: 'e.g. 80 mm slats, manual belt drive.', addShade: 'Add shading', addScreen: 'Add insect screen',
     shadePhotoRemoveMsg: (n: string) => `The photo of "${n}" is removed the next time you save the price list. The drawing is shown instead.`,
     sillPhotoRemoveMsg: (n: string) => `The photo of sill "${n}" is removed the next time you save the price list. The drawing is shown instead.`, customerSeesIncluded: 'Customer sees: Included',
@@ -343,6 +343,8 @@ export default function PriceListSetupPage() {
       if (!pr.shading?.length) pr.shading = sampleShading()
       // 'per piece' is no longer offered: it is the same as per window with only a fixed amount
       pr.shading = pr.shading.map(x => x.unit === 'piece' ? { ...x, unit: 'm2', fixed: (x.fixed ?? 0) + x.cost, cost: 0 } : x)
+      // insect screens drawn with the pleated-blind picture get their own pleated-screen picture
+      pr.shading = pr.shading.map(x => x.kind === 'screen' && x.icon === 'pleated' ? { ...x, icon: 'screen_pleated' } : x)
       // per sash used to be one price per sash: it is the fixed amount per sash now
       pr.shading = pr.shading.map(x => x.unit === 'sash' && x.fixed === undefined && x.per_w === undefined ? { ...x, fixed: x.cost, cost: 0 } : x)
       // shadings saved before "built-in screen" existed: roller shutters allow it
@@ -1390,7 +1392,7 @@ export default function PriceListSetupPage() {
                                 <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeDrawing}</label>
                                 <select value={x.icon ?? 'none'} disabled={!canEdit} onChange={e => { const icon = e.target.value as ShadingType['icon']; set(x.id, { icon, ...(icon === 'roller' || icon === 'blinds' ? {} : { allows_screen: false }) }) }}
                                   className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                  {SHADING_ICONS.filter(k => kind === 'shade' ? ['blinds', 'roller', 'pleated', 'none'].includes(k) : ['screen', 'screen_roll', 'pleated', 'none'].includes(k)).map(k => <option key={k} value={k}>{T.shadeIcons[k]}</option>)}
+                                  {SHADING_ICONS.filter(k => kind === 'shade' ? ['blinds', 'roller', 'pleated', 'none'].includes(k) : ['screen', 'screen_roll', 'screen_pleated', 'none'].includes(k)).map(k => <option key={k} value={k}>{T.shadeIcons[k]}</option>)}
                                 </select>
                               </div>
                               <div className="flex flex-col gap-1">
