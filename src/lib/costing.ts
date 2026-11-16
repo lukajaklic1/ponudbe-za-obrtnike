@@ -124,15 +124,19 @@ export function sampleHandles(): HandleType[] {
 }
 /** Chosen glass / handle, or the first one (standard); null when the supplier has none. */
 /** A window sill: inside (notranja) or outside (zunanja), purchase price per metre of the window width. */
-export interface SillType { id: string; side: 'inner' | 'outer'; name: string; description?: string; cost_m: number }
+export interface SillType {
+  id: string; side: 'inner' | 'outer'; name: string; description?: string; cost_m: number
+  /** material for the drawing (stone, pvc, wood, alu, alu_dark) and the supplier's photo (public URL; missing = drawing) */
+  material?: string; image_url?: string | null
+}
 export function sampleSills(): SillType[] {
   return [
-    { id: rid(), side: 'inner', name: 'PVC polica, bela', description: 'Globina do 30 cm, z zaključnimi kapami.', cost_m: 9 },
-    { id: rid(), side: 'inner', name: 'PVC polica, hrast', description: 'Dekor lesa, globina do 30 cm.', cost_m: 13 },
-    { id: rid(), side: 'inner', name: 'Kamnita polica', description: 'Naravni kamen, poliran rob.', cost_m: 45 },
-    { id: rid(), side: 'outer', name: 'Aluminijasta polica, bela', description: 'S stranskimi zaključki, globina do 25 cm.', cost_m: 12 },
-    { id: rid(), side: 'outer', name: 'Aluminijasta polica, antracit', description: 'S stranskimi zaključki, globina do 25 cm.', cost_m: 14 },
-    { id: rid(), side: 'outer', name: 'Kamnita polica', description: 'Naravni kamen z odkapnim robom.', cost_m: 40 },
+    { id: rid(), side: 'inner', material: 'pvc', name: 'PVC polica, bela', description: 'Globina do 30 cm, z zaključnimi kapami.', cost_m: 9 },
+    { id: rid(), side: 'inner', material: 'wood', name: 'Lesena polica, hrast', description: 'Masiven hrast, oljen, globina do 30 cm.', cost_m: 28 },
+    { id: rid(), side: 'inner', material: 'stone', name: 'Granitna polica', description: 'Naravni granit, poliran rob.', cost_m: 45 },
+    { id: rid(), side: 'outer', material: 'alu', name: 'Aluminijasta polica, srebrna', description: 'S stranskimi zaključki in odkapnim robom, globina do 25 cm.', cost_m: 12 },
+    { id: rid(), side: 'outer', material: 'alu_dark', name: 'Aluminijasta polica, antracit', description: 'S stranskimi zaključki in odkapnim robom, globina do 25 cm.', cost_m: 14 },
+    { id: rid(), side: 'outer', material: 'stone', name: 'Granitna polica', description: 'Naravni granit z odkapnim utorom.', cost_m: 40 },
   ]
 }
 /** Chosen sill on one side (none when the id is missing or unknown). */

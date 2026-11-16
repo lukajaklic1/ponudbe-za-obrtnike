@@ -170,6 +170,7 @@ BEGIN
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'handles', '[]'::jsonb)) WITH ORDINALITY AS t(x, i)),
       -- window sills (inside / outside): purchase price per metre with the margin folded in
       'sills', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', x->>'id', 'side', x->>'side', 'name', x->>'name', 'description', x->>'description',
+                  'material', x->>'material', 'image_url', x->>'image_url',
                   'cost_m', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'cost_m')::numeric, 0) * mf, 2) ELSE 0 END) ORDER BY i), '[]'::jsonb)
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'sills', '[]'::jsonb)) WITH ORDINALITY AS t(x, i)),
       -- roof windows: catalogue of models in standard sizes; sale prices (no margin)

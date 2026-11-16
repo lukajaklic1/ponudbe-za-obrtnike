@@ -18,7 +18,7 @@ import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, sampleSills, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType, type SillType } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
 import HandleIcon from '../components/HandleIcon'
-import SillIcon from '../components/SillIcon'
+import SillIcon, { SILL_MATERIALS } from '../components/SillIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
 const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill']
 import { cn } from '../lib/cn'
@@ -103,7 +103,9 @@ const TXT = {
     handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'Zaklepanje s ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
     glassDescPh: 'npr. 4/16/4, ekonomično',
     sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
-    sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', customerSeesIncluded: 'Kupec vidi: Vključeno',
+    sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', sillMaterial: 'Material',
+    sillMaterials: { stone: 'Granit / kamen', pvc: 'PVC', wood: 'Les', alu: 'Aluminij, srebrn', alu_dark: 'Aluminij, temen' } as Record<string, string>,
+    sillPhotoRemoveMsg: (n: string) => `Fotografija police »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`, customerSeesIncluded: 'Kupec vidi: Vključeno',
     customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
     exDataGlass: 'Osnovno steklo', exDataHandle: 'Standardna kljuka', exSrcGlass: 'korak 6, prvo steklo', exSrcHandle: 'korak 7, prva kljuka',
     hwTitle: 'Koliko znašajo dodatni stroški okovja?', exTitle: 'Primer izračuna',
@@ -170,7 +172,9 @@ const TXT = {
     handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'Locks with a key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
     glassDescPh: 'e.g. 4/16/4, economical',
     sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
-    sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', customerSeesIncluded: 'Customer sees: Included',
+    sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', sillMaterial: 'Material',
+    sillMaterials: { stone: 'Granite / stone', pvc: 'PVC', wood: 'Wood', alu: 'Aluminium, silver', alu_dark: 'Aluminium, dark' } as Record<string, string>,
+    sillPhotoRemoveMsg: (n: string) => `The photo of sill "${n}" is removed the next time you save the price list. The drawing is shown instead.`, customerSeesIncluded: 'Customer sees: Included',
     customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
     exDataGlass: 'Base glass', exDataHandle: 'Standard handle', exSrcGlass: 'step 6, first glass', exSrcHandle: 'step 7, first handle',
     hwTitle: 'What are the additional hardware costs?', exTitle: 'Example',
@@ -1233,8 +1237,21 @@ export default function PriceListSetupPage() {
                     <div className="text-sm font-medium text-gray-900 mb-2">{side === 'inner' ? T.sillInner : T.sillOuter}</div>
                     {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
                       {list.map(x => <div key={x.id} className="px-4 py-4 flex gap-4">
-                        <div className="shrink-0 hidden sm:flex w-[84px] h-[64px] items-center justify-center rounded-lg bg-gray-50 border border-gray-100 self-start">
-                          <SillIcon side={side} />
+                        {/* picture: the supplier's photo, or the drawing of the material */}
+                        <div className="shrink-0 hidden sm:flex flex-col items-center gap-1.5 w-[104px] self-start">
+                          <div className="w-full h-[72px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+                            {uploadingKey === x.id ? <span className="text-xs text-[#7f7f7f]">…</span>
+                              : x.image_url ? <img src={x.image_url} alt={x.name} className="max-w-full max-h-full object-contain p-1" />
+                              : <SillIcon material={x.material} size={92} />}
+                          </div>
+                          {canEdit && <div className="flex items-center gap-1">
+                            <label className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 cursor-pointer">
+                              <Upload className="w-3.5 h-3.5" />{x.image_url ? T.changePhoto : T.choosePhoto}
+                              <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(x.id, f, url => set(x.id, { image_url: url }), 'sills') }} />
+                            </label>
+                            {x.image_url && <button type="button" title={T.remove} onClick={() => askRemove('', () => set(x.id, { image_url: null }), T.sillPhotoRemoveMsg(x.name))}
+                              className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>}
+                          </div>}
                         </div>
                         <div className="flex-1 min-w-0 space-y-2">
                           <div className="flex items-center gap-3">
@@ -1243,13 +1260,20 @@ export default function PriceListSetupPage() {
                             {canEdit && <button type="button" onClick={() => askRemove(x.name, () => setAll(all.filter(y => y.id !== x.id)))} title={T.remove}
                               className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3 items-start">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-medium text-[#7f7f7f]">{T.sillMaterial}</label>
+                              <select value={x.material ?? 'pvc'} disabled={!canEdit} onChange={e => set(x.id, { material: e.target.value })}
+                                className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                {SILL_MATERIALS.map(mt => <option key={mt} value={mt}>{T.sillMaterials[mt]}</option>)}
+                              </select>
+                            </div>
                             <NumberInput label={T.sillCost} unit={`${cur}/m`} value={x.cost_m} onValue={v => set(x.id, { cost_m: v ?? 0 })} decimals={2} />
-                            <div>
+                          </div>
+                          <div>
                               <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
                               <textarea value={x.description ?? ''} onChange={e => set(x.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.sillDescPh} rows={2}
                                 className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            </div>
                           </div>
                         </div>
                       </div>)}
