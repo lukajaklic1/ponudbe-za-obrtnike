@@ -89,8 +89,16 @@ const TXT = {
     surcharge: 'Doplačilo',
     metrePrices: 'Nabavne cene profila na tekoči meter', frameM: 'Okvir', sashM: 'Krilo', mullionM: 'Steber / prečka', beadM: 'Pritrdilna letvica',
     widths: 'Pogledne širine profilov', frameW: 'Okvir', sashW: 'Krilo', mullionW: 'Steber',
-    s3: 'Okovje, steklo, delo in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
-    hwTitle: 'Okovje na krilo', perSash: 'krilo', hwFixed: 'Fiksno', hwPerM: 'Na tm obsega krila', hwHint: 'Okovje krila = fiksni znesek + cena × obseg krila. Primer: krilo 130 × 150 cm ima obseg 5,6 m, pri 20 € + 1 €/tm je okovje 25,60 €. Pasivno krilo je drugo krilo dvokrilnega okna brez stebrička (brez kljuke).', hw: { tilt_turn: 'Odpiranje in kip', turn: 'Samo odpiranje', tilt: 'Samo kip', passive: 'Pasivno krilo (brez kljuke)', slide_window: 'Drsno okno', slide: 'Drsna stena (PSK)', lift_slide: 'Dvižno-drsna stena' },
+    s3: 'Steklo, delo in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
+    hwTitle: 'Koliko znašajo dodatni stroški okovja?', exTitle: 'Primer izračuna',
+    exIntro: (w: string, h: string, prof: string) => `Dvokrilno okno ${w} × ${h} mm brez stebra: levo pasivno krilo brez kljuke, desno odpiranje in kip, profil ${prof}.`, exNoProfile: '(najprej dodajte profil v koraku 3)',
+    exOpening: 'Odprtina za krilo', exWide: 'široka', exHigh: 'visoka', exSashSize: 'Velikost krila', exPerimeterL: 'Obseg krila', exData: 'Uporabljeni podatki', exCalc: 'Izračun', exStepSize: 'Mere krila', exStepPassive: 'Okovje levega krila (pasivno krilo brez kljuke)', exStepTt: 'Okovje desnega krila (odpiranje in kip)', exStepTotal: 'Okovje celega okna',
+    exFixedPart: 'Fiksno doplačilo', exOpenW: 'Širina odprtine', exOpenH: 'Višina odprtine', exSashW: 'Širina krila', exSashH: 'Višina krila', exMetrePart: 'Doplačilo za obseg', exSashTotal: 'Okovje krila', exDataWindow: 'Mere okna', exDataFrame: 'Pogledna širina okvirja', exDataOverlap: 'Prekrivanje krila čez okvir (na vsako stran)',
+    exDataPassive: 'Okovje pasivnega krila', exDataTt: 'Okovje krila odpiranje in kip', exSrcExample: 'izbrano za primer',
+    exSrcProfile: (p: string) => `korak 3, profil ${p}`, exSrcFixed: 'stalna vrednost v izračunu', exSrcTable: (row: string) => `tabela zgoraj, vrstica »${row}«`,
+    exWindow: 'Okovje okna', exTiltSash: 'Okovje pasivnega krila', exTtSash: 'Okovje krila odpiranje in kip',
+    exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `Okno nima stebra, zato se od širine odšteje le okvir na obeh straneh (${fw} mm), preostanek si delita krili; od višine se odšteje okvir zgoraj in spodaj. Krilo je na vsaki strani za ${ov} mm večje od odprtine, ker prekriva okvir, zato ima vsako krilo obseg ${per} m. Levo krilo je pasivno: nima kljuke, zaklene se z zapahi in se odpre šele za desnim. Okovje se izračuna za vsako krilo posebej po cenah njegovega načina odpiranja: pasivno krilo ${tilt} €, krilo odpiranje in kip ${tt} €. Okovje celega okna je vsota obeh, ${tot} €. To je strošek, marža se doda na celotno okno.`, exFormulaL: 'Okovje krila', exPerM: 'doplačilo na meter', exPerimeter: 'obseg krila', exSash: 'Krilo', exHw: 'Okovje krila',
+    exWords: (fx: string, pm: string, per: string, tot: string) => `Vsako krilo dobi fiksno doplačilo ${fx} €, nato se za vsak meter obsega krila prišteje še ${pm} €. Krilo z obsegom ${per} m ima tako okovje v vrednosti ${tot} €. Dvokrilno okno ima dve krili, zato se okovje izračuna za vsako krilo posebej in sešteje. Znesek je strošek; marža se doda na celotno okno.`, hwIntro: 'Vnesite dodatne stroške, povezane z okovjem. Nastavite lahko fiksno doplačilo na krilo ter dodatno plačilo na tekoči meter obsega krila. Vnašajte samo stroškovne cene, ki bodo dodane k nabavnim cenam profilov. Marža bo uporabljena na celoto.', perSash: 'krilo', hwFixed: 'Fiksno doplačilo na krilo', hwPerM: 'Doplačilo na tekoči meter obsega krila', hwHint: 'Okovje krila = fiksni znesek + cena × obseg krila. Primer: krilo 130 × 150 cm ima obseg 5,6 m, pri 20 € + 1 €/tm je okovje 25,60 €. Pasivno krilo je drugo krilo dvokrilnega okna brez stebrička (brez kljuke).', hw: { tilt_turn: 'Odpiranje in kip', turn: 'Samo odpiranje', tilt: 'Samo kip', passive: 'Pasivno krilo brez kljuke', slide_window: 'Drsno okno', slide: 'Drsna stena (PSK)', lift_slide: 'Dvižno-drsna stena' },
     glassM2: 'Osnovno steklo', labourWindow: 'Delo na okno', labourSash: 'Delo na krilo', waste: 'Odrez profilov', margin: 'Marža', bothSides: 'Barva obojestransko',
     calc: 'Kalkulacija', cost: 'Strošek', marginLine: 'Marža', windowPrice: 'Cena okna',
     s4: 'V katerih barvah so profili?', s4hint: 'Za vsak material izberite barve, ki jih ponujate. Doplačilo v % se prišteje k ceni profilov.',
@@ -135,8 +143,16 @@ const TXT = {
     surcharge: 'Surcharge',
     metrePrices: 'Purchase price of the profile per metre', frameM: 'Frame', sashM: 'Sash', mullionM: 'Mullion / transom', beadM: 'Glazing bead',
     widths: 'Visible widths frame / sash / mullion', frameW: 'Frame', sashW: 'Sash', mullionW: 'Mullion',
-    s3: 'Hardware, glass, labour and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
-    hwTitle: 'Hardware per sash', perSash: 'sash', hwFixed: 'Fixed', hwPerM: 'Per metre of sash perimeter', hwHint: 'Sash hardware = fixed amount + price × sash perimeter. Example: a 130 × 150 cm sash has a 5.6 m perimeter; at 20 € + 1 €/m the hardware is 25.60 €. A passive sash is the second sash of a double window without a mullion (no handle).', hw: { tilt_turn: 'Tilt & turn', turn: 'Turn only', tilt: 'Tilt only', passive: 'Passive sash (no handle)', slide_window: 'Sliding window', slide: 'Sliding wall (PSK)', lift_slide: 'Lift & slide wall' },
+    s3: 'Glass, labour and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
+    hwTitle: 'What are the additional hardware costs?', exTitle: 'Example',
+    exIntro: (w: string, h: string, prof: string) => `Double window ${w} × ${h} mm without a mullion: left passive sash without a handle, right sash tilt & turn, profile ${prof}.`, exNoProfile: '(add a profile in step 3 first)',
+    exOpening: 'Opening for a sash', exWide: 'wide', exHigh: 'high', exSashSize: 'Sash size', exPerimeterL: 'Sash perimeter', exData: 'Data used', exCalc: 'Calculation', exStepSize: 'Sash size', exStepPassive: 'Left sash hardware (passive, no handle)', exStepTt: 'Right sash hardware (tilt & turn)', exStepTotal: 'Hardware of the whole window',
+    exFixedPart: 'Fixed amount', exOpenW: 'Opening width', exOpenH: 'Opening height', exSashW: 'Sash width', exSashH: 'Sash height', exMetrePart: 'Amount for the perimeter', exSashTotal: 'Sash hardware', exDataWindow: 'Window size', exDataFrame: 'Visible width of the frame', exDataOverlap: 'Sash overlap over the frame (each side)',
+    exDataPassive: 'Passive sash hardware', exDataTt: 'Tilt & turn sash hardware', exSrcExample: 'chosen for the example',
+    exSrcProfile: (p: string) => `step 3, profile ${p}`, exSrcFixed: 'fixed value of the calculation', exSrcTable: (row: string) => `table above, row "${row}"`,
+    exWindow: 'Hardware of the window', exTiltSash: 'Passive sash hardware', exTtSash: 'Tilt & turn sash hardware',
+    exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `The window has no mullion, so only the frame on both sides (${fw} mm) is taken off the width and the sashes share the rest; the frame top and bottom is taken off the height. A sash is ${ov} mm larger than its opening on every side because it overlaps the frame, so each sash has a ${per} m perimeter. The left sash is passive: no handle, locked with bolts, it opens only after the right one. The hardware is worked out per sash with the prices of its opening: passive sash ${tilt} €, tilt & turn sash ${tt} €. The window's hardware is the sum, ${tot} €. This is a cost; the margin is added to the whole window.`, exFormulaL: 'Sash hardware', exPerM: 'amount per metre', exPerimeter: 'sash perimeter', exSash: 'Sash', exHw: 'Sash hardware',
+    exWords: (fx: string, pm: string, per: string, tot: string) => `Every sash gets the fixed amount of ${fx} €, then ${pm} € for every metre of its perimeter. A sash with a ${per} m perimeter therefore has hardware worth ${tot} €. A double window has two sashes, so the hardware is worked out per sash and added up. The amount is a cost; the margin is added to the whole window.`, hwIntro: 'Enter the additional costs of the hardware: a fixed amount per sash and an amount per metre of the sash perimeter. Enter cost prices only; they are added to the purchase prices of the profiles. The margin is applied to the total.', perSash: 'sash', hwFixed: 'Fixed', hwPerM: 'Per metre of sash perimeter', hwHint: 'Sash hardware = fixed amount + price × sash perimeter. Example: a 130 × 150 cm sash has a 5.6 m perimeter; at 20 € + 1 €/m the hardware is 25.60 €. A passive sash is the second sash of a double window without a mullion (no handle).', hw: { tilt_turn: 'Tilt & turn', turn: 'Turn only', tilt: 'Tilt only', passive: 'Passive sash (no handle)', slide_window: 'Sliding window', slide: 'Sliding wall (PSK)', lift_slide: 'Lift & slide wall' },
     glassM2: 'Base glass', labourWindow: 'Labour per window', labourSash: 'Labour per sash', waste: 'Profile waste', margin: 'Margin', bothSides: 'Colour both sides',
     calc: 'Costing', cost: 'Cost', marginLine: 'Margin', windowPrice: 'Window price',
     s4: 'Which colours are the profiles in?', s4hint: 'Choose the colours you offer for every material. The % surcharge is added to the profile price.',
@@ -1046,27 +1062,99 @@ export default function PriceListSetupPage() {
             </div>
           </Step>
 
-          <Step n={5} title={T.s3} hint={T.s3hint}>
+          <Step n={5} title={T.hwTitle} hint={T.hwIntro}>
             <div className="space-y-5">
               <div>
-                <div className="text-xs font-medium text-[#7f7f7f] mb-1">{T.hwTitle}</div>
                 <div className="rounded-lg border border-gray-200 divide-y divide-gray-100">
                   {(['tilt_turn', 'turn', 'tilt', 'passive', 'slide_window', 'slide', 'lift_slide'] as const).map(k => (
-                    <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_150px_150px] gap-3 items-end px-3 py-2.5">
+                    <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_240px_240px] gap-3 items-end px-3 py-2.5">
                       <div className="text-sm text-gray-900 pb-2">{T.hw[k]}</div>
                       <NumberInput label={T.hwFixed} unit={`${cur}/${T.perSash}`} value={pricing.hw[k]} onValue={v => setHw(k, v)} decimals={2} />
-                      <NumberInput label={T.hwPerM} unit={`${cur}/tm`} value={pricing.hw_m[k]} onValue={v => setHwM(k, v)} decimals={2} />
+                      <NumberInput label={T.hwPerM} unit={`${cur}/m`} value={pricing.hw_m[k]} onValue={v => setHwM(k, v)} decimals={2} />
                     </div>
                   ))}
                 </div>
-                <p className="text-xs font-medium text-[#7f7f7f] mt-2">{T.hwHint}</p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <NumberInput label={T.glassM2} unit={`${cur}/m²`} value={pricing.glass_m2} onValue={v => setPrice({ glass_m2: v ?? 0 })} decimals={2} />
-                <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
-                <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
-                <NumberInput label={T.waste} unit="%" value={pricing.waste_pct} onValue={v => setPrice({ waste_pct: v ?? 0 })} decimals={0} />
-                <NumberInput label={T.margin} unit="%" value={pricing.margin_pct} onValue={v => setPrice({ margin_pct: v ?? 0 })} decimals={0} />
+                {/* worked example: the whole hardware of a double window without a mullion (passive + tilt & turn sash),
+                    with the first profile and the supplier's own prices: data first, then the calculation step by step */}
+                {(() => {
+                  const prof = profiles.find(p => matOn[p.material]) ?? profiles[0]
+                  const fw = prof?.frame_w ?? 70, OV = 8
+                  const W = 1200, H = 1400
+                  const fxT = pricing.hw.passive ?? 0, pmT = pricing.hw_m.passive ?? 0
+                  const fxK = pricing.hw.tilt_turn ?? 0, pmK = pricing.hw_m.tilt_turn ?? 0
+                  const openW = (W - 2 * fw) / 2, openH = H - 2 * fw
+                  const sashW = openW + 2 * OV, sashH = openH + 2 * OV
+                  const per = 2 * (sashW + sashH) / 1000
+                  const tilt = fxT + pmT * per, tt = fxK + pmK * per, total = tilt + tt
+                  const n = (v: number, d = 2) => v.toLocaleString('sl-SI', { minimumFractionDigits: d, maximumFractionDigits: d })
+                  const line = (label: string, value: React.ReactNode) => <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-x-4 gap-y-0.5 py-1">
+                    <span className="text-[#7f7f7f]">{label}</span><span className="text-gray-900 tabular-nums">{value}</span>
+                  </div>
+                  const step = (no: number, title: string, children: React.ReactNode) => <div className="rounded-lg bg-white border border-gray-200 px-4 py-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="w-5 h-5 rounded-full bg-gray-900 text-white text-[11px] font-semibold flex items-center justify-center">{no}</span>
+                      <span className="text-sm font-medium text-gray-900">{title}</span>
+                    </div>
+                    <div className="text-sm">{children}</div>
+                  </div>
+                  return <div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 px-5 py-5 space-y-6">
+                    <div>
+                      <div className="text-base font-medium text-gray-900">{T.exTitle}</div>
+                      <p className="text-sm text-gray-600 mt-1">{T.exIntro(n(W, 0), n(H, 0), prof?.name || T.exNoProfile)}</p>
+                    </div>
+                    {/* 1. the data, each with where it comes from */}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 mb-2">{T.exData}</div>
+                      <div className="rounded-lg bg-white border border-gray-200 divide-y divide-gray-100 text-sm">
+                        {([
+                          [T.exDataWindow, `${n(W, 0)} × ${n(H, 0)} mm`, T.exSrcExample],
+                          [T.exDataFrame, `${n(fw, 0)} mm`, T.exSrcProfile(prof?.name || T.exNoProfile)],
+                          [T.exDataOverlap, `${OV} mm`, T.exSrcFixed],
+                          [T.exDataPassive, `${n(fxT)} € + ${n(pmT)} €/m`, T.exSrcTable(T.hw.passive)],
+                          [T.exDataTt, `${n(fxK)} € + ${n(pmK)} €/m`, T.exSrcTable(T.hw.tilt_turn)],
+                        ] as [string, string, string][]).map(([k, v, src]) => (
+                          <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_160px_minmax(0,1.4fr)] gap-x-4 gap-y-0.5 px-4 py-2">
+                            <span className="text-gray-700">{k}</span>
+                            <span className="text-gray-900 font-medium tabular-nums">{v}</span>
+                            <span className="text-xs font-medium text-[#7f7f7f] sm:self-center">{src}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* 2. the calculation, one step at a time */}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 mb-2">{T.exCalc}</div>
+                      <div className="flex flex-col md:flex-row gap-5 items-start">
+                        <div className="shrink-0 rounded-lg bg-white border border-gray-200 p-3">
+                          <SpecDrawing spec={{ ...makeSpec(2), main: [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }] }} width={W} height={H} size={170} showDims />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-3">
+                          {step(1, T.exStepSize, <>
+                            {line(T.exOpenW, <>({n(W, 0)} − 2 × {n(fw, 0)}) / 2 = {n(openW, 0)} mm</>)}
+                            {line(T.exOpenH, <>{n(H, 0)} − 2 × {n(fw, 0)} = {n(openH, 0)} mm</>)}
+                            {line(T.exSashW, <>{n(openW, 0)} + 2 × {OV} = {n(sashW, 0)} mm</>)}
+                            {line(T.exSashH, <>{n(openH, 0)} + 2 × {OV} = {n(sashH, 0)} mm</>)}
+                            {line(T.exPerimeterL, <>2 × ({n(sashW / 1000, 3)} m + {n(sashH / 1000, 3)} m) = <b className="font-medium">{n(per)} m</b></>)}
+                          </>)}
+                          {step(2, T.exStepPassive, <>
+                            {line(T.exFixedPart, <>{n(fxT)} €</>)}
+                            {line(T.exMetrePart, <>{n(pmT)} €/m × {n(per)} m = {n(pmT * per)} €</>)}
+                            {line(T.exSashTotal, <>{n(fxT)} € + {n(pmT * per)} € = <b className="font-medium">{n(tilt)} €</b></>)}
+                          </>)}
+                          {step(3, T.exStepTt, <>
+                            {line(T.exFixedPart, <>{n(fxK)} €</>)}
+                            {line(T.exMetrePart, <>{n(pmK)} €/m × {n(per)} m = {n(pmK * per)} €</>)}
+                            {line(T.exSashTotal, <>{n(fxK)} € + {n(pmK * per)} € = <b className="font-medium">{n(tt)} €</b></>)}
+                          </>)}
+                          {step(4, T.exStepTotal, <>
+                            {line(T.exWindow, <>{n(tilt)} € + {n(tt)} € = <b className="font-semibold text-base">{n(total)} €</b></>)}
+                          </>)}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">{T.exWords2(n(fw, 0), String(OV), n(per), n(tilt), n(tt), n(total))}</p>
+                  </div>
+                })()}
               </div>
             </div>
           </Step>
@@ -1111,6 +1199,17 @@ export default function PriceListSetupPage() {
               </Step>
             )
           })}
+
+          {/* last: glass, labour, waste and margin (the margin goes on the whole window) */}
+          <Step n={6 + sections.filter(sec => sec.group !== 'color').length} title={T.s3} hint={T.s3hint}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <NumberInput label={T.glassM2} unit={`${cur}/m²`} value={pricing.glass_m2} onValue={v => setPrice({ glass_m2: v ?? 0 })} decimals={2} />
+              <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
+              <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
+              <NumberInput label={T.waste} unit="%" value={pricing.waste_pct} onValue={v => setPrice({ waste_pct: v ?? 0 })} decimals={0} />
+              <NumberInput label={T.margin} unit="%" value={pricing.margin_pct} onValue={v => setPrice({ margin_pct: v ?? 0 })} decimals={0} />
+            </div>
+          </Step>
 
           <Link to="/windows/advanced" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900"><Settings2 className="w-4 h-4" />{T.advanced}</Link>
         </div>}
