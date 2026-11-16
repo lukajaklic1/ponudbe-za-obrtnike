@@ -10,7 +10,7 @@ import NumberInput from '../components/ui/NumberInput'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
-import { costWindow, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
+import { costWindow, specToLayout, CALC_LABELS, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import { sampleRoofCatalog, newRoofId, sampleColors, type RoofCatalog, type RoofOpening, type ProfileColor } from '../lib/costing'
@@ -95,6 +95,10 @@ const TXT = {
     exOpening: 'Odprtina za krilo', exWide: 'široka', exHigh: 'visoka', exSashSize: 'Velikost krila', exPerimeterL: 'Obseg krila', exData: 'Uporabljeni podatki', exCalc: 'Izračun', exStepSize: 'Mere krila', exStepPassive: 'Okovje levega krila (pasivno krilo brez kljuke)', exStepTt: 'Okovje desnega krila (odpiranje in kip)', exStepTotal: 'Okovje celega okna',
     exFixedPart: 'Fiksno doplačilo', exOpenW: 'Širina odprtine', exOpenH: 'Višina odprtine', exSashW: 'Širina krila', exSashH: 'Višina krila', exMetrePart: 'Doplačilo za obseg', exSashTotal: 'Okovje krila', exDataWindow: 'Mere okna', exDataFrame: 'Pogledna širina okvirja', exDataOverlap: 'Prekrivanje krila čez okvir (na vsako stran)',
     exDataPassive: 'Okovje pasivnega krila', exDataTt: 'Okovje krila odpiranje in kip', exSrcExample: 'izbrano za primer',
+    exDataProfileM: 'Nabavne cene profila', exDataLabour: 'Delo (okno + 2 krili)', exSrcLast: 'zadnji korak',
+    exStepHw: 'Okovje okna', exStepCost: 'Strošek materiala in dela', exStepPrice: 'Cena okna',
+    exWasteNote: (w: string) => `Dolžine profilov vključujejo ${w} % odreza. Barva bela, brez doplačila.`, exNoVat: 'brez DDV',
+    exWords3: (per: string, hw: string, cost: string, m: string, price: string) => `Iz mer okna aplikacija izračuna dolžine okvirja, kril in letvic ter površino stekla. Vsako krilo ima obseg ${per} m, okovje obeh kril skupaj stane ${hw} €. Profili, steklo, okovje in delo skupaj dajo strošek ${cost} €. Na strošek se doda marža ${m} %, tako je cena okna ${price} € brez DDV. Tako aplikacija izračuna vsako okno v konfiguratorju.`,
     exSrcProfile: (p: string) => `korak 3, profil ${p}`, exSrcFixed: 'stalna vrednost v izračunu', exSrcTable: (row: string) => `tabela zgoraj, vrstica »${row}«`,
     exWindow: 'Okovje okna', exTiltSash: 'Okovje pasivnega krila', exTtSash: 'Okovje krila odpiranje in kip',
     exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `Okno nima stebra, zato se od širine odšteje le okvir na obeh straneh (${fw} mm), preostanek si delita krili; od višine se odšteje okvir zgoraj in spodaj. Krilo je na vsaki strani za ${ov} mm večje od odprtine, ker prekriva okvir, zato ima vsako krilo obseg ${per} m. Levo krilo je pasivno: nima kljuke, zaklene se z zapahi in se odpre šele za desnim. Okovje se izračuna za vsako krilo posebej po cenah njegovega načina odpiranja: pasivno krilo ${tilt} €, krilo odpiranje in kip ${tt} €. Okovje celega okna je vsota obeh, ${tot} €. To je strošek, marža se doda na celotno okno.`, exFormulaL: 'Okovje krila', exPerM: 'doplačilo na meter', exPerimeter: 'obseg krila', exSash: 'Krilo', exHw: 'Okovje krila',
@@ -149,6 +153,10 @@ const TXT = {
     exOpening: 'Opening for a sash', exWide: 'wide', exHigh: 'high', exSashSize: 'Sash size', exPerimeterL: 'Sash perimeter', exData: 'Data used', exCalc: 'Calculation', exStepSize: 'Sash size', exStepPassive: 'Left sash hardware (passive, no handle)', exStepTt: 'Right sash hardware (tilt & turn)', exStepTotal: 'Hardware of the whole window',
     exFixedPart: 'Fixed amount', exOpenW: 'Opening width', exOpenH: 'Opening height', exSashW: 'Sash width', exSashH: 'Sash height', exMetrePart: 'Amount for the perimeter', exSashTotal: 'Sash hardware', exDataWindow: 'Window size', exDataFrame: 'Visible width of the frame', exDataOverlap: 'Sash overlap over the frame (each side)',
     exDataPassive: 'Passive sash hardware', exDataTt: 'Tilt & turn sash hardware', exSrcExample: 'chosen for the example',
+    exDataProfileM: 'Purchase prices of the profile', exDataLabour: 'Labour (window + 2 sashes)', exSrcLast: 'last step',
+    exStepHw: 'Hardware of the window', exStepCost: 'Cost of material and labour', exStepPrice: 'Window price',
+    exWasteNote: (w: string) => `Profile lengths include ${w} % waste. Colour white, no surcharge.`, exNoVat: 'excl. VAT',
+    exWords3: (per: string, hw: string, cost: string, m: string, price: string) => `From the window size the app works out the lengths of the frame, sashes and beads and the glass area. Each sash has a ${per} m perimeter; the hardware of both sashes costs ${hw} €. Profiles, glass, hardware and labour add up to a cost of ${cost} €. The ${m} % margin is added to the cost, so the window price is ${price} € excl. VAT. This is how the app prices every window in the configurator.`,
     exSrcProfile: (p: string) => `step 3, profile ${p}`, exSrcFixed: 'fixed value of the calculation', exSrcTable: (row: string) => `table above, row "${row}"`,
     exWindow: 'Hardware of the window', exTiltSash: 'Passive sash hardware', exTtSash: 'Tilt & turn sash hardware',
     exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `The window has no mullion, so only the frame on both sides (${fw} mm) is taken off the width and the sashes share the rest; the frame top and bottom is taken off the height. A sash is ${ov} mm larger than its opening on every side because it overlaps the frame, so each sash has a ${per} m perimeter. The left sash is passive: no handle, locked with bolts, it opens only after the right one. The hardware is worked out per sash with the prices of its opening: passive sash ${tilt} €, tilt & turn sash ${tt} €. The window's hardware is the sum, ${tot} €. This is a cost; the margin is added to the whole window.`, exFormulaL: 'Sash hardware', exPerM: 'amount per metre', exPerimeter: 'sash perimeter', exSash: 'Sash', exHw: 'Sash hardware',
@@ -1074,87 +1082,6 @@ export default function PriceListSetupPage() {
                     </div>
                   ))}
                 </div>
-                {/* worked example: the whole hardware of a double window without a mullion (passive + tilt & turn sash),
-                    with the first profile and the supplier's own prices: data first, then the calculation step by step */}
-                {(() => {
-                  const prof = profiles.find(p => matOn[p.material]) ?? profiles[0]
-                  const fw = prof?.frame_w ?? 70, OV = 8
-                  const W = 1200, H = 1400
-                  const fxT = pricing.hw.passive ?? 0, pmT = pricing.hw_m.passive ?? 0
-                  const fxK = pricing.hw.tilt_turn ?? 0, pmK = pricing.hw_m.tilt_turn ?? 0
-                  const openW = (W - 2 * fw) / 2, openH = H - 2 * fw
-                  const sashW = openW + 2 * OV, sashH = openH + 2 * OV
-                  const per = 2 * (sashW + sashH) / 1000
-                  const tilt = fxT + pmT * per, tt = fxK + pmK * per, total = tilt + tt
-                  const n = (v: number, d = 2) => v.toLocaleString('sl-SI', { minimumFractionDigits: d, maximumFractionDigits: d })
-                  const line = (label: string, value: React.ReactNode) => <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-x-4 gap-y-0.5 py-1">
-                    <span className="text-[#7f7f7f]">{label}</span><span className="text-gray-900 tabular-nums">{value}</span>
-                  </div>
-                  const step = (no: number, title: string, children: React.ReactNode) => <div className="rounded-lg bg-white border border-gray-200 px-4 py-3">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="w-5 h-5 rounded-full bg-gray-900 text-white text-[11px] font-semibold flex items-center justify-center">{no}</span>
-                      <span className="text-sm font-medium text-gray-900">{title}</span>
-                    </div>
-                    <div className="text-sm">{children}</div>
-                  </div>
-                  return <div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 px-5 py-5 space-y-6">
-                    <div>
-                      <div className="text-base font-medium text-gray-900">{T.exTitle}</div>
-                      <p className="text-sm text-gray-600 mt-1">{T.exIntro(n(W, 0), n(H, 0), prof?.name || T.exNoProfile)}</p>
-                    </div>
-                    {/* 1. the data, each with where it comes from */}
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 mb-2">{T.exData}</div>
-                      <div className="rounded-lg bg-white border border-gray-200 divide-y divide-gray-100 text-sm">
-                        {([
-                          [T.exDataWindow, `${n(W, 0)} × ${n(H, 0)} mm`, T.exSrcExample],
-                          [T.exDataFrame, `${n(fw, 0)} mm`, T.exSrcProfile(prof?.name || T.exNoProfile)],
-                          [T.exDataOverlap, `${OV} mm`, T.exSrcFixed],
-                          [T.exDataPassive, `${n(fxT)} € + ${n(pmT)} €/m`, T.exSrcTable(T.hw.passive)],
-                          [T.exDataTt, `${n(fxK)} € + ${n(pmK)} €/m`, T.exSrcTable(T.hw.tilt_turn)],
-                        ] as [string, string, string][]).map(([k, v, src]) => (
-                          <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_160px_minmax(0,1.4fr)] gap-x-4 gap-y-0.5 px-4 py-2">
-                            <span className="text-gray-700">{k}</span>
-                            <span className="text-gray-900 font-medium tabular-nums">{v}</span>
-                            <span className="text-xs font-medium text-[#7f7f7f] sm:self-center">{src}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {/* 2. the calculation, one step at a time */}
-                    <div>
-                      <div className="text-sm font-medium text-gray-900 mb-2">{T.exCalc}</div>
-                      <div className="flex flex-col md:flex-row gap-5 items-start">
-                        <div className="shrink-0 rounded-lg bg-white border border-gray-200 p-3">
-                          <SpecDrawing spec={{ ...makeSpec(2), main: [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }] }} width={W} height={H} size={170} showDims />
-                        </div>
-                        <div className="flex-1 min-w-0 space-y-3">
-                          {step(1, T.exStepSize, <>
-                            {line(T.exOpenW, <>({n(W, 0)} − 2 × {n(fw, 0)}) / 2 = {n(openW, 0)} mm</>)}
-                            {line(T.exOpenH, <>{n(H, 0)} − 2 × {n(fw, 0)} = {n(openH, 0)} mm</>)}
-                            {line(T.exSashW, <>{n(openW, 0)} + 2 × {OV} = {n(sashW, 0)} mm</>)}
-                            {line(T.exSashH, <>{n(openH, 0)} + 2 × {OV} = {n(sashH, 0)} mm</>)}
-                            {line(T.exPerimeterL, <>2 × ({n(sashW / 1000, 3)} m + {n(sashH / 1000, 3)} m) = <b className="font-medium">{n(per)} m</b></>)}
-                          </>)}
-                          {step(2, T.exStepPassive, <>
-                            {line(T.exFixedPart, <>{n(fxT)} €</>)}
-                            {line(T.exMetrePart, <>{n(pmT)} €/m × {n(per)} m = {n(pmT * per)} €</>)}
-                            {line(T.exSashTotal, <>{n(fxT)} € + {n(pmT * per)} € = <b className="font-medium">{n(tilt)} €</b></>)}
-                          </>)}
-                          {step(3, T.exStepTt, <>
-                            {line(T.exFixedPart, <>{n(fxK)} €</>)}
-                            {line(T.exMetrePart, <>{n(pmK)} €/m × {n(per)} m = {n(pmK * per)} €</>)}
-                            {line(T.exSashTotal, <>{n(fxK)} € + {n(pmK * per)} € = <b className="font-medium">{n(tt)} €</b></>)}
-                          </>)}
-                          {step(4, T.exStepTotal, <>
-                            {line(T.exWindow, <>{n(tilt)} € + {n(tt)} € = <b className="font-semibold text-base">{n(total)} €</b></>)}
-                          </>)}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 leading-relaxed">{T.exWords2(n(fw, 0), String(OV), n(per), n(tilt), n(tt), n(total))}</p>
-                  </div>
-                })()}
               </div>
             </div>
           </Step>
@@ -1210,6 +1137,100 @@ export default function PriceListSetupPage() {
               <NumberInput label={T.margin} unit="%" value={pricing.margin_pct} onValue={v => setPrice({ margin_pct: v ?? 0 })} decimals={0} />
             </div>
           </Step>
+
+          {/* worked example at the very bottom: the whole price of a double window without a mullion (passive + tilt & turn sash),
+              with the first profile and the supplier's own prices from all steps above: data first, then the calculation step by step */}
+          {(() => {
+            const prof = profiles.find(p => matOn[p.material]) ?? profiles[0]
+            const pp: ProfilePrices = prof ? toPrices(prof) : { frame_m: 0, sash_m: 0, mullion_m: 0, bead_m: 0 }
+            const fw = pp.frame_w ?? 70, OV = 8
+            const W = 1200, H = 1400
+            const spec: WindowSpec = { ...makeSpec(2), main: [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }] }
+            const calc = costWindow(specToLayout(spec), W, H, pp, pricing, { labels: CALC_LABELS[lang === 'en' ? 'en' : 'sl'] })
+            const fxT = pricing.hw.passive ?? 0, pmT = pricing.hw_m.passive ?? 0
+            const fxK = pricing.hw.tilt_turn ?? 0, pmK = pricing.hw_m.tilt_turn ?? 0
+            const openW = (W - 2 * fw) / 2, openH = H - 2 * fw
+            const sashW = openW + 2 * OV, sashH = openH + 2 * OV
+            const per = 2 * (sashW + sashH) / 1000
+            const tilt = fxT + pmT * per, tt = fxK + pmK * per
+            const marginAmt = calc.price - calc.cost
+            const n = (v: number, d = 2) => v.toLocaleString(lang === 'en' ? 'en-GB' : 'sl-SI', { minimumFractionDigits: d, maximumFractionDigits: d })
+            const line = (label: string, value: React.ReactNode) => <div key={label} className="grid grid-cols-1 sm:grid-cols-[240px_1fr] gap-x-4 gap-y-0.5 py-1">
+              <span className="text-[#7f7f7f]">{label}</span><span className="text-gray-900 tabular-nums">{value}</span>
+            </div>
+            const step = (no: number, title: string, children: React.ReactNode) => <div className="rounded-lg bg-white border border-gray-200 px-4 py-3">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="w-5 h-5 rounded-full bg-gray-900 text-white text-[11px] font-semibold flex items-center justify-center">{no}</span>
+                <span className="text-sm font-medium text-gray-900">{title}</span>
+              </div>
+              <div className="text-sm">{children}</div>
+            </div>
+            const pname = prof?.name || T.exNoProfile
+            return <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-5 space-y-6">
+              <div>
+                <div className="text-base font-medium text-gray-900">{T.exTitle}</div>
+                <p className="text-sm text-gray-600 mt-1">{T.exIntro(n(W, 0), n(H, 0), pname)}</p>
+              </div>
+              {/* 1. the data, each with where it comes from */}
+              <div>
+                <div className="text-sm font-medium text-gray-900 mb-2">{T.exData}</div>
+                <div className="rounded-lg bg-white border border-gray-200 divide-y divide-gray-100 text-sm">
+                  {([
+                    [T.exDataWindow, `${n(W, 0)} × ${n(H, 0)} mm`, T.exSrcExample],
+                    [T.exDataFrame, `${n(fw, 0)} mm`, T.exSrcProfile(pname)],
+                    [T.exDataProfileM, `${T.frameM} ${n(pp.frame_m)} €/m · ${T.sashM} ${n(pp.sash_m)} €/m · ${T.beadM} ${n(pp.bead_m)} €/m`, T.exSrcProfile(pname)],
+                    [T.exDataOverlap, `${OV} mm`, T.exSrcFixed],
+                    [T.exDataPassive, `${n(fxT)} € + ${n(pmT)} €/m`, T.exSrcTable(T.hw.passive)],
+                    [T.exDataTt, `${n(fxK)} € + ${n(pmK)} €/m`, T.exSrcTable(T.hw.tilt_turn)],
+                    [T.glassM2, `${n(pricing.glass_m2)} €/m²`, T.exSrcLast],
+                    [T.exDataLabour, `${n(pricing.labour_window)} € + 2 × ${n(pricing.labour_sash)} €`, T.exSrcLast],
+                    [T.waste, `${n(pricing.waste_pct, 0)} %`, T.exSrcLast],
+                    [T.margin, `${n(pricing.margin_pct, 0)} %`, T.exSrcLast],
+                  ] as [string, string, string][]).map(([k, v, src]) => (
+                    <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] gap-x-4 gap-y-0.5 px-4 py-2">
+                      <span className="text-gray-700">{k}</span>
+                      <span className="text-gray-900 font-medium tabular-nums">{v}</span>
+                      <span className="text-xs font-medium text-[#7f7f7f] sm:self-center">{src}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* 2. the calculation, one step at a time */}
+              <div>
+                <div className="text-sm font-medium text-gray-900 mb-2">{T.exCalc}</div>
+                <div className="flex flex-col gap-3">
+                  <div className="self-start rounded-lg bg-white border border-gray-200 p-3">
+                    <SpecDrawing spec={spec} width={W} height={H} size={170} showDims />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-3">
+                    {step(1, T.exStepSize, <>
+                      {line(T.exOpenW, <>({n(W, 0)} − 2 × {n(fw, 0)}) / 2 = {n(openW, 0)} mm</>)}
+                      {line(T.exOpenH, <>{n(H, 0)} − 2 × {n(fw, 0)} = {n(openH, 0)} mm</>)}
+                      {line(T.exSashW, <>{n(openW, 0)} + 2 × {OV} = {n(sashW, 0)} mm</>)}
+                      {line(T.exSashH, <>{n(openH, 0)} + 2 × {OV} = {n(sashH, 0)} mm</>)}
+                      {line(T.exPerimeterL, <>2 × ({n(sashW / 1000, 3)} m + {n(sashH / 1000, 3)} m) = <b className="font-medium">{n(per)} m</b></>)}
+                    </>)}
+                    {step(2, T.exStepHw, <>
+                      {line(T.hw.passive, <>{n(fxT)} € + {n(pmT)} €/m × {n(per)} m = <b className="font-medium">{n(tilt)} €</b></>)}
+                      {line(T.hw.tilt_turn, <>{n(fxK)} € + {n(pmK)} €/m × {n(per)} m = <b className="font-medium">{n(tt)} €</b></>)}
+                      {line(T.exWindow, <>{n(tilt)} € + {n(tt)} € = <b className="font-medium">{n(tilt + tt)} €</b></>)}
+                    </>)}
+                    {step(3, T.exStepCost, <>
+                      <p className="text-xs font-medium text-[#7f7f7f] mb-1">{T.exWasteNote(n(pricing.waste_pct, 0))}</p>
+                      {calc.lines.map(l => line(l.label, <>{n(l.qty, l.unit === 'kos' ? 0 : 2)} {l.unit} × {n(l.price)} € = {n(l.total)} €</>))}
+                      <div className="border-t border-gray-100 mt-1 pt-1">{line(T.cost, <b className="font-medium">{n(calc.cost)} €</b>)}</div>
+                    </>)}
+                    {step(4, T.exStepPrice, <>
+                      {line(T.cost, <>{n(calc.cost)} €</>)}
+                      {line(`${T.marginLine} ${n(pricing.margin_pct, 0)} %`, <>{n(calc.cost)} € × {n(pricing.margin_pct, 0)} % = {n(marginAmt)} €</>)}
+                      {line(T.windowPrice, <>{n(calc.cost)} € + {n(marginAmt)} € = <b className="font-semibold text-base">{n(calc.price)} €</b> <span className="text-xs text-[#7f7f7f]">{T.exNoVat}</span></>)}
+                    </>)}
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">{T.exWords3(n(per), n(tilt + tt), n(calc.cost), n(pricing.margin_pct, 0), n(calc.price))}</p>
+            </div>
+          })()}
 
           <Link to="/windows/advanced" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900"><Settings2 className="w-4 h-4" />{T.advanced}</Link>
         </div>}
