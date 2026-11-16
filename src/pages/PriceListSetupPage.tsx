@@ -120,7 +120,7 @@ const TXT = {
     colorName: 'Barva', colorCode: 'Oznaka', badRal: (c: string) => `Oznaka »${c}« ne predstavlja RAL barve. Preverite kodo ali barvo izberite s klikom na vzorec.`, ralHint: 'Vpišite RAL kodo (npr. RAL 7016) in vzorec se obarva sam. Lahko pa kliknete vzorec in barvo izberete.', colorOne: 'Doplačilo za eno stran', colorBoth: 'Doplačilo za obe strani', addColor: 'Dodaj barvo …', ownColor: 'Lastna barva', colorsNoMaterial: 'Najprej v koraku 3 izberite material.',
     s2: 'Iz katerih materialov so okna, ki jih ponujate?', s2hint: 'Izberite materiale ter pod vsakim kreirajte profile, ki jih ponujate. Za vsak profil vpišite nabavne cene na tekoči meter ter najnižjo ceno okna v primeru manjših oken.',
     matName: 'Naziv profila', matNamePh: 'npr. PVC 82 mm, 7 komor', perM2: 'Cena na m²', minPrice: 'Najnižja cena okna',
-    description: 'Opis za stranko', descriptionPh: 'npr. Uw do 0,75 W/m²K, primerno za pasivne hiše', addProfile: 'Dodaj profil', removeProfile: 'Odstrani profil', removeTitle: 'Odstranim profil?',
+    description: 'Opis za stranko', descriptionPh: 'npr. Uw do 0,75 W/m²K, primerno za pasivne hiše', addProfile: 'Dodaj profil', removeProfile: 'Odstrani profil', removeTitle: 'Odstranim profil?', removeItemTitle: 'Res želite odstraniti?', removeItemMsg: (n: string) => n.trim() ? `»${n.trim()}« bo odstranjeno iz cenika, ko ga shranite.` : 'Vrstica bo odstranjena iz cenika, ko ga shranite.', photoRemoveMsg: (n: string) => `Slika profila »${n}« bo takoj odstranjena.`,
     removeMsg: (n: string) => `Profil »${n}« bo dokončno odstranjen iz cenika šele, ko shranite cenik. Poslane ponudbe ostanejo nespremenjene.`, minTitle: 'Najnižja prodajna cena okna brez DDV', minHint: 'Določite najnižjo prodajno ceno okna. Če je izračunana cena manjšega okna nižja, se upošteva ta cena.',
     metrePricesHint: 'Vpišite nabavne cene profilov na tekoči meter brez DDV.', widthsHint: 'Kolikšen del profila se vidi. Iz tega se izračuna velikost stekla.', usedFor: 'Uporablja se za', usedForTitle: 'Pri katerih izdelkih ponujate ta profil?', usedForHint: 'Profil bo stranki na voljo samo pri izbranih skupinah, po navedenih cenah.', colProfile: 'Profil', colFrame: 'Okvir €/m', colSash: 'Krilo €/m', colMullion: 'Steber €/m', colBead: 'Letvica €/m', colUsedFor: 'Uporablja se za', allProducts: 'Vsi izdelki', noProducts: 'Nikjer', editProfile: 'Uredi', showProfiles: 'Profili',
     profileCount: (n: number) => `${n} ${n % 100 === 1 ? 'profil' : n % 100 === 2 ? 'profila' : n % 100 === 3 || n % 100 === 4 ? 'profili' : 'profilov'}`,
@@ -185,7 +185,7 @@ const TXT = {
     colorName: 'Colour', colorCode: 'Code', badRal: (c: string) => `"${c}" is not a RAL colour. Check the code or pick the colour by clicking the swatch.`, ralHint: 'Type a RAL code (e.g. RAL 7016) and the swatch takes its colour. Or click the swatch to pick a colour.', colorOne: 'Surcharge, one side', colorBoth: 'Surcharge, both sides', addColor: 'Add colour …', ownColor: 'Own colour', colorsNoMaterial: 'Choose a material in step 3 first.',
     s2: 'Which materials are your windows made of?', s2hint: 'Select the materials and create the profiles you offer under each. For every profile enter the purchase prices per metre and the minimum price of a window for smaller windows.',
     matName: 'Profile name', matNamePh: 'e.g. PVC 82 mm, 7 chambers', perM2: 'Price per m²', minPrice: 'Minimum window price',
-    description: 'Description for customers', descriptionPh: 'e.g. Uw up to 0.75 W/m²K, passive-house ready', addProfile: 'Add profile', removeProfile: 'Remove profile', removeTitle: 'Remove the profile?',
+    description: 'Description for customers', descriptionPh: 'e.g. Uw up to 0.75 W/m²K, passive-house ready', addProfile: 'Add profile', removeProfile: 'Remove profile', removeTitle: 'Remove the profile?', removeItemTitle: 'Remove it?', removeItemMsg: (n: string) => n.trim() ? `"${n.trim()}" is removed from the price list when you save it.` : 'The row is removed from the price list when you save it.', photoRemoveMsg: (n: string) => `The picture of profile "${n}" is removed right away.`,
     removeMsg: (n: string) => `Profile "${n}" is permanently removed from the price list only when you save it. Sent quotes stay as they are.`, minTitle: 'Minimum sale price of a window excl. VAT', minHint: 'Set the lowest sale price of a window. If the calculated price of a smaller window is lower, this price is used.',
     metrePricesHint: 'Enter the purchase prices of the profiles per metre, excl. VAT.', widthsHint: 'How much of the profile is visible. The glass size follows from it.', usedFor: 'Used for', usedForTitle: 'For which products do you offer this profile?', usedForHint: 'Customers get the profile only for the selected groups, at these prices.', colProfile: 'Profile', colFrame: 'Frame €/m', colSash: 'Sash €/m', colMullion: 'Mullion €/m', colBead: 'Bead €/m', colUsedFor: 'Used for', allProducts: 'All products', noProducts: 'Nowhere', editProfile: 'Edit', showProfiles: 'Profiles',
     profileCount: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`,
@@ -253,6 +253,9 @@ export default function PriceListSetupPage() {
   const [openMat, setOpenMat] = useState<Record<string, boolean>>({})
   const [openProf, setOpenProf] = useState<Record<string, boolean>>({})
   const [profileToRemove, setProfileToRemove] = useState<ProfileRow | null>(null)
+  /** any other row with a bin: asks first, then removes (saved with the price list) */
+  const [pendingRemove, setPendingRemove] = useState<{ name: string; run: () => void; msg?: string } | null>(null)
+  const askRemove = (name: string, run: () => void, msg?: string) => setPendingRemove({ name, run, msg })
   const [openColors, setOpenColors] = useState<Record<string, boolean>>({})
   const [folds, setFolds] = useState<Record<string, boolean>>({})
   const toggleFold = (k: string) => setFolds(f => ({ ...f, [k]: !f[k] }))
@@ -626,6 +629,9 @@ export default function PriceListSetupPage() {
       <ConfirmDialog open={!!profileToRemove} onClose={() => setProfileToRemove(null)} danger
         title={T.removeTitle} message={profileToRemove ? T.removeMsg(profileToRemove.name || L.materials[profileToRemove.material]) : ''} confirmLabel={T.removeProfile}
         onConfirm={() => { if (profileToRemove) removeProfile(profileToRemove); setProfileToRemove(null) }} />
+      <ConfirmDialog open={!!pendingRemove} onClose={() => setPendingRemove(null)} danger
+        title={T.removeItemTitle} message={pendingRemove ? pendingRemove.msg ?? T.removeItemMsg(pendingRemove.name) : ''} confirmLabel={T.remove}
+        onConfirm={() => { pendingRemove?.run(); setPendingRemove(null) }} />
       <PageHeader title={T.title} icon={Calculator} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
       <div className="p-4 lg:p-6 pb-28">
         <div className="min-w-0">
@@ -780,7 +786,7 @@ export default function PriceListSetupPage() {
                             <option value="top">{T.roofTop}</option>
                           </select>
                         </div>
-                        {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) })} title={T.remove}
+                        {canEdit && <button type="button" onClick={() => askRemove(m.name, () => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) }))} title={T.remove}
                           className="h-[38px] px-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                       </div>
                       <div className="grid md:grid-cols-[1fr_280px] gap-3">
@@ -803,7 +809,7 @@ export default function PriceListSetupPage() {
                               <span className="text-sm text-gray-400">×</span>
                               <div className="w-28"><NumberInput value={sz.h} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, h: v ?? 0 } : x) })} /></div>
                               <div className="w-36"><NumberInput value={sz.price} unit={cur} decimals={2} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, price: v ?? 0 } : x) })} /></div>
-                              {canEdit && <button type="button" onClick={() => setModel(m.id, { sizes: m.sizes.filter(x => x.id !== sz.id) })} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                              {canEdit && <button type="button" onClick={() => askRemove(`${sz.w} × ${sz.h} cm`, () => setModel(m.id, { sizes: m.sizes.filter(x => x.id !== sz.id) }))} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                             </div>
                           ))}
                         </div>
@@ -821,7 +827,7 @@ export default function PriceListSetupPage() {
                         <div key={f.id} className="flex flex-wrap items-center gap-2">
                           <input value={f.name} onChange={e => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, name: e.target.value } : x) })} disabled={!canEdit} className={cn(inputCls, 'flex-1 min-w-[220px] w-auto')} />
                           <div className="w-36"><NumberInput value={f.price} unit={cur} decimals={2} onValue={v => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, price: v ?? 0 } : x) })} /></div>
-                          {canEdit && <button type="button" onClick={() => setRoof({ ...roof, flashings: roof.flashings.filter(x => x.id !== f.id) })} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                          {canEdit && <button type="button" onClick={() => askRemove(f.name, () => setRoof({ ...roof, flashings: roof.flashings.filter(x => x.id !== f.id) }))} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                         </div>
                       ))}
                     </div>
@@ -910,7 +916,7 @@ export default function PriceListSetupPage() {
                             </label>
                             {canEdit && <div className="flex items-center justify-between mt-2 text-xs font-medium text-[#7f7f7f]">
                               <span className="inline-flex items-center gap-1"><Upload className="w-3 h-3" />{uploadingKey === p.key ? '…' : p.image_url ? T.photoChange : T.photo}</span>
-                              {p.image_url && <button type="button" onClick={() => removePhoto(p)} className="hover:text-red-600" title={T.photoRemove}><Trash2 className="w-3.5 h-3.5" /></button>}
+                              {p.image_url && <button type="button" onClick={() => askRemove('', () => removePhoto(p), T.photoRemoveMsg(p.name || L.materials[p.material]))} className="hover:text-red-600" title={T.photoRemove}><Trash2 className="w-3.5 h-3.5" /></button>}
                             </div>}
                           </div>
                           <div className="flex-1 min-w-0 divide-y divide-gray-200/70">
@@ -1065,7 +1071,7 @@ export default function PriceListSetupPage() {
                               className="hidden md:block w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             <div className="hidden md:block"><NumberInput unit="%" value={c.one} onValue={v => setColor(c.id, { one: v ?? 0 })} decimals={0} /></div>
                             <div className="hidden md:block"><NumberInput unit="%" value={c.both} onValue={v => setColor(c.id, { both: v ?? 0 })} decimals={0} /></div>
-                            {canEdit ? <button type="button" onClick={() => setList(list.filter(x => x.id !== c.id))} title={T.remove}
+                            {canEdit ? <button type="button" onClick={() => askRemove(c.name, () => setList(list.filter(x => x.id !== c.id)))} title={T.remove}
                               className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button> : <span />}
                             {badRal && <p className="col-span-full -mt-1 md:pl-[48px] text-xs font-medium" style={{ color: '#874d00' }}>{T.badRal(code)}</p>}
                           </div>
@@ -1123,7 +1129,7 @@ export default function PriceListSetupPage() {
                       {i === 0
                         ? <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>
                         : canEdit && <button type="button" onClick={() => setList([g, ...list.filter(x => x.id !== g.id)])} className="shrink-0 text-xs font-medium text-gray-500 hover:text-gray-900">{T.makeBase}</button>}
-                      {canEdit && list.length > 1 && <button type="button" onClick={() => setList(list.filter(x => x.id !== g.id))} title={T.remove}
+                      {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(g.name, () => setList(list.filter(x => x.id !== g.id)))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
                     {/* line 2: Ug, panes, purchase price */}
@@ -1174,7 +1180,7 @@ export default function PriceListSetupPage() {
                         {i === 0
                           ? <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>
                           : canEdit && <button type="button" onClick={() => setList([h, ...list.filter(x => x.id !== h.id)])} className="shrink-0 text-xs font-medium text-gray-500 hover:text-gray-900">{T.makeBase}</button>}
-                        {canEdit && list.length > 1 && <button type="button" onClick={() => setList(list.filter(x => x.id !== h.id))} title={T.remove}
+                        {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(h.name, () => setList(list.filter(x => x.id !== h.id)))} title={T.remove}
                           className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                       </div>
                       {/* line 2: purchase price, with a key */}
@@ -1218,7 +1224,7 @@ export default function PriceListSetupPage() {
                         className={cn('inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border text-xs font-medium', r.is_default ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-400 hover:text-gray-700')}>
                         {r.is_default && <Check className="w-3 h-3" />}{T.dflt}
                       </button>
-                      {canEdit && <button type="button" onClick={() => removeOption(r)} title={T.remove} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                      {canEdit && <button type="button" onClick={() => askRemove(r.name, () => removeOption(r))} title={T.remove} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
                   ))}
                 </div>
