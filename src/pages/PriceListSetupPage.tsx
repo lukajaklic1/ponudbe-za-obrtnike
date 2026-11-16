@@ -15,6 +15,7 @@ import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
+import HandleIcon from '../components/HandleIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
 const OWN_STEP_GROUPS = ['color', 'glass', 'handle']
 import { cn } from '../lib/cn'
@@ -95,7 +96,7 @@ const TXT = {
     s3: 'Delo, odrez in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
     glassTitle: 'Katere tipe stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je privzeto vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.',
     glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', addGlass: 'Dodaj steklo',
-    handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je standardna in je vključena v ceno.',
+    handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je osnovna in je privzeto vključena v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.', handleColor: 'Barva kljuke', pickColor: 'Izberi barvo',
     handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'S ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
     glassDescPh: 'npr. 4/16/4, ekonomično', customerSeesIncluded: 'Kupec vidi: Vključeno',
     customerSees: (v: string) => `Kupec vidi pri dvokrilnem oknu 1200 × 1400 mm: ${v} (z maržo)`,
@@ -160,7 +161,7 @@ const TXT = {
     s3: 'Labour, waste and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
     glassTitle: 'Which types of glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.',
     glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', addGlass: 'Add glass',
-    handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the standard one and is included.',
+    handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the base one and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.', handleColor: 'Handle colour', pickColor: 'Pick a colour',
     handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'With key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
     glassDescPh: 'e.g. 4/16/4, economical', customerSeesIncluded: 'Customer sees: Included',
     customerSees: (v: string) => `Customer sees on a double window 1200 × 1400 mm: ${v} (with margin)`,
@@ -1169,25 +1170,33 @@ export default function PriceListSetupPage() {
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                   {list.map((h, i) => {
                     const spec = parseColor(h.look ?? '#ffffff')
-                    return <div key={h.id} className="px-4 py-3 space-y-2">
-                      {/* line 1: swatch (click to pick the colour), name, base badge, remove */}
-                      <div className="flex items-center gap-3">
-                        <label className={cn('relative w-10 h-10 shrink-0', canEdit && 'cursor-pointer')}>
-                          {spec && <ColorSwatch spec={spec} size={40} rounded={8} />}
-                          {canEdit && <input type="color" value={spec?.hex ?? '#ffffff'} onChange={e => set(h.id, { look: encodeColor({ ...(spec ?? { finish: 'smooth' }), hex: e.target.value } as any) })} className="absolute inset-0 opacity-0 cursor-pointer" />}
-                        </label>
-                        <input value={h.name} onChange={e => set(h.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.handleName}
-                          className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>}
-                        {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(h.name, () => setList(list.filter(x => x.id !== h.id)))} title={T.remove}
-                          className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
-                      </div>
-                      {/* line 2: purchase price, with a key */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end sm:pl-[52px]">
-                        <NumberInput label={T.handleCost} unit={`${cur}/${T.perHandle}`} value={h.cost} onValue={v => set(h.id, { cost: v ?? 0 })} decimals={2} />
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-700 h-10">
-                          <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
-                        </label>
+                    return <div key={h.id} className="px-4 py-4 flex gap-4">
+                      {/* the handle picture on the left, over the whole row */}
+                      <div className="shrink-0 hidden sm:flex w-[84px] justify-center rounded-lg bg-gray-50 border border-gray-100 py-2 self-start"><HandleIcon look={h.look} lockable={h.lockable} size={64} /></div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        {/* line 1: name, base badge, remove */}
+                        <div className="flex items-center gap-3">
+                          <input value={h.name} onChange={e => set(h.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.handleName}
+                            className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>}
+                          {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(h.name, () => setList(list.filter(x => x.id !== h.id)))} title={T.remove}
+                            className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                        </div>
+                        {/* line 2: colour, purchase price, with a key */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-[#7f7f7f]">{T.handleColor}</span>
+                            <label className={cn('relative flex items-center gap-2 h-10 rounded-lg border border-gray-200 px-2 text-sm text-gray-700', canEdit && 'cursor-pointer hover:border-gray-400')}>
+                              {spec && <ColorSwatch spec={spec} size={24} rounded={6} />}
+                              <span>{T.pickColor}</span>
+                              {canEdit && <input type="color" value={spec?.hex ?? '#ffffff'} onChange={e => set(h.id, { look: encodeColor({ ...(spec ?? { finish: 'smooth' }), hex: e.target.value } as any) })} className="absolute inset-0 opacity-0 cursor-pointer" />}
+                            </label>
+                          </div>
+                          <NumberInput label={T.handleCost} unit={`${cur}/${T.perHandle}`} value={h.cost} onValue={v => set(h.id, { cost: v ?? 0 })} decimals={2} />
+                          <label className="inline-flex items-center gap-2 text-sm text-gray-700 h-10 sm:mt-[20px]">
+                            <input type="checkbox" checked={!!h.lockable} disabled={!canEdit} onChange={e => set(h.id, { lockable: e.target.checked })} className="rounded border-gray-300" />{T.handleKeyYes}
+                          </label>
+                        </div>
                       </div>
                     </div>
                   })}

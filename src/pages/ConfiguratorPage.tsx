@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, KeyRound } from 'lucide-react'
+import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -11,6 +11,7 @@ import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import type { RoofCatalog } from '../lib/costing'
 import GlassIcon from '../components/GlassIcon'
+import HandleIcon from '../components/HandleIcon'
 import {
   costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey, makeDoorSpec, makeWallSpec, type BuilderKind, roofUnitPrice, productGroupOf, profileServes, colorPctOf, type ColorCatalog,
   type WindowSpec, type Band, type Offer, type PricingSettings, type GlassType, type HandleType,
@@ -303,12 +304,6 @@ export default function ConfiguratorPage() {
   /** extras groups shown for this window: built windows take colour / glass / handle from the builder's own catalogues */
   const extraGroups = data ? OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)
     && !(spec && ((g === 'color' && data.builder?.colors) || (g === 'glass' && glassList.length) || (g === 'handle' && handleList.length)))) : []
-  /** price difference to the current choice, for the "+ 12 €" on a card (null when prices are hidden / no change) */
-  const diffWith = (patch: Partial<Item>) => {
-    if (!show) return null
-    const now = specBase(it), p = specBase({ ...it, ...patch })
-    return now == null || p == null || Math.round(p - now) === 0 ? null : Math.round(p - now)
-  }
   let stepNo = 0
   const nextStep = () => ++stepNo
   const update = (patch: Partial<Item>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
@@ -685,18 +680,21 @@ export default function ConfiguratorPage() {
 
               {/* handle: one per sash that opens with a handle */}
               {spec && handleList.length > 1 && <Section n={nextStep()} title={T.handleTitle} accent={accent}>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   {handleList.map((h, i) => {
                     const on = (handleList.find(x => x.id === it.handle) ?? handleList[0]).id === h.id
-                    const d = on ? null : diffWith({ handle: h.id })
-                    const look = h.look ? parseColor(h.look) : null
+                    // price against the standard handle, so every card keeps its own surcharge
+                    const d = i === 0 || !show ? null : (() => {
+                      const base = specBase({ ...it, handle: handleList[0].id }), p = specBase({ ...it, handle: h.id })
+                      return base == null || p == null ? null : Math.round(p - base)
+                    })()
                     return <button key={h.id} onClick={() => update({ handle: h.id })}
-                      className={cn('inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border bg-white text-sm transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
-                      {look ? <ColorSwatch spec={look} size={22} rounded={6} /> : <span className="w-[22px]" />}
-                      <span className="text-gray-900">{h.name}</span>
-                      {h.lockable && <KeyRound className="w-3.5 h-3.5 text-gray-500" />}
-                      <span className="text-xs text-gray-500">{i === 0 ? T.included : d != null ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</span>
+                      {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                      <div className="flex justify-center py-1"><HandleIcon look={h.look} lockable={h.lockable} size={56} /></div>
+                      <div className="text-sm font-medium text-gray-900 mt-1 flex-1">{h.name}</div>
+                      <div className="text-sm font-semibold text-gray-900 mt-1">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
                     </button>
                   })}
                 </div>
