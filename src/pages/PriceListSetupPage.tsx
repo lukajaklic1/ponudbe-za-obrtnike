@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
-import { Calculator, Plus, Trash2, Check, Settings2, Upload, ChevronDown, Pipette, ImagePlus } from 'lucide-react'
+import { Calculator, Plus, Trash2, Check, Settings2, Upload, ChevronDown, Pipette, ImagePlus, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -106,6 +106,7 @@ const TXT = {
     sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
     sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', sillMaterial: 'Material',
     sillMaterials: { none: 'Brez materiala', pvc_white: 'PVC, bela', pvc_oak: 'PVC, dekor hrast', pvc_anthracite: 'PVC, antracit', wood_oak: 'Les, hrast', wood_walnut: 'Les, oreh', granite: 'Granit, siv', granite_dark: 'Granit, temen', marble: 'Marmor', alu_white: 'Aluminij, bel', alu_silver: 'Aluminij, srebrn', alu_anthracite: 'Aluminij, antracit', alu_brown: 'Aluminij, rjav' } as Record<string, string>, quickAdd: 'Hitro dodaj:', addPicture: 'Dodaj sliko',
+    sampleTitle: 'Cenik je izpolnjen z vzorčnimi cenami.', sampleText: 'Preverite in popravite jih na svoje nabavne cene, preden objavite konfigurator. Opozorilo izgine, ko cenik prvič shranite.',
     shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavne cene in izberite, kako se obračuna: na okno ali na vsako krilo, ki se odpira. Pri obračunu na okno se seštejejo fiksni znesek (pogon, končni deli), cena na meter širine (omarica), na meter višine (vodila) in na m² (lamele); kar ne potrebujete, pustite na 0. Najnižja prodajna cena velja za majhna okna: stranka nikoli ne plača manj od te cene. Če je komarnik vgrajen v omarico senčila, se omarica in vodila ne štejeta dvakrat: velja cena »ko je vgrajen v senčilo«. Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se v kalkulaciji doda na koncu na celotno okno.',
     shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Na m²', shadeCostSash: 'Nabavna cena na krilo',
     allowsScreen: 'Omogoča vgrajen komarnik (skupna omarica in vodila)', canIntegrate: 'Lahko je vgrajen v senčilo',
@@ -184,6 +185,7 @@ const TXT = {
     sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
     sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', sillMaterial: 'Material',
     sillMaterials: { none: 'No material', pvc_white: 'PVC, white', pvc_oak: 'PVC, oak decor', pvc_anthracite: 'PVC, anthracite', wood_oak: 'Wood, oak', wood_walnut: 'Wood, walnut', granite: 'Granite, grey', granite_dark: 'Granite, dark', marble: 'Marble', alu_white: 'Aluminium, white', alu_silver: 'Aluminium, silver', alu_anthracite: 'Aluminium, anthracite', alu_brown: 'Aluminium, brown' } as Record<string, string>, quickAdd: 'Quick add:', addPicture: 'Add a picture',
+    sampleTitle: 'The price list is filled with sample prices.', sampleText: 'Check them and change them to your own purchase prices before you publish the configurator. This notice goes away when you save the price list for the first time.',
     shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase prices and how they are counted: per window or per opening sash. Per window the fixed amount (drive, end parts), the price per metre of width (box), per metre of height (guides) and per m² (slats) are added up; leave at 0 what you do not need. The lowest sale price is for small windows: the customer never pays less than this price. When an insect screen is built into the box of the shading, the box and guides are not counted twice: the "built into a shading" price applies. In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. In the costing the margin is added to the whole window at the end.',
     shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Per m²', shadeCostSash: 'Purchase price per sash',
     allowsScreen: 'An insect screen can be built in (shared box and guides)', canIntegrate: 'Can be built into a shading',
@@ -279,6 +281,8 @@ export default function PriceListSetupPage() {
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [options, setOptions] = useState<OptionRow[]>([])
   const [pricing, setPricing] = useState<PricingSettings>(pricingFrom(null))
+  /** the price list was never saved: everything shown is a sample */
+  const [isSample, setIsSample] = useState(false)
   const [openSash, setOpenSash] = useState<string | null>(null)
   const [variantTab, setVariantTab] = useState<Record<string, string>>({})
   const [openMat, setOpenMat] = useState<Record<string, boolean>>({})
@@ -325,7 +329,9 @@ export default function PriceListSetupPage() {
       ...metreOrSample(x),
     })))
     {
-      const pr = pricingFrom((c.data as { window_pricing?: unknown } | null)?.window_pricing ?? company.window_pricing)
+      const rawPricing = (c.data as { window_pricing?: unknown } | null)?.window_pricing ?? company.window_pricing
+      setIsSample(!rawPricing || typeof rawPricing !== 'object' || !('offer' in (rawPricing as object)))
+      const pr = pricingFrom(rawPricing)
       // roof windows start from a sample range the supplier edits (saved with the price list)
       if (!pr.roof) pr.roof = sampleRoofCatalog()
       // glass packages and handles: start from samples; the base glass keeps the old single glass price
@@ -648,6 +654,7 @@ export default function PriceListSetupPage() {
         if (error) throw error
       }
       toast.success(T.saved)
+      setIsSample(false)
       await load()
     } catch (e) {
       toast.error((e as Error).message)
@@ -672,6 +679,10 @@ export default function PriceListSetupPage() {
       <PageHeader title={T.title} icon={Calculator} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
       <div className="p-4 lg:p-6 pb-28">
         <div className="min-w-0">
+        {isSample && !loading && <div className="mb-5 flex items-start gap-3 rounded-xl px-4 py-3 text-sm" style={{ color: '#874d00', backgroundColor: '#fff3cc', border: '1px solid #ffe5a0' }}>
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+          <div><div className="font-medium">{T.sampleTitle}</div><div className="mt-0.5">{T.sampleText}</div></div>
+        </div>}
 
         {loading ? <div className="text-sm text-gray-400">…</div> : <div className="space-y-6">
           {/* 1. shapes */}
