@@ -96,8 +96,11 @@ BEGIN
   -- shading, insect screens …: purchase price per m² of the window, per opening sash or per piece
   FOR it IN SELECT * FROM jsonb_array_elements(COALESCE(items, '[]'::jsonb)) LOOP
     -- fixed part (only per m²) + price × quantity, never below the lowest amount
-    xs := xs + GREATEST(COALESCE((it->>'min')::numeric, 0),
-      CASE WHEN it->>'unit' = 'm2' THEN COALESCE((it->>'fixed')::numeric, 0) ELSE 0 END
+    -- min is the lowest SALE price: turned back into a cost so the margin brings it to exactly that price
+    xs := xs + GREATEST(COALESCE((it->>'min')::numeric, 0) / (1 + COALESCE((p->>'margin_pct')::numeric, 45) / 100),
+      CASE WHEN it->>'unit' = 'm2' THEN COALESCE((it->>'fixed')::numeric, 0)
+                                      + COALESCE((it->>'per_w')::numeric, 0) * w / 1000.0
+                                      + COALESCE((it->>'per_h')::numeric, 0) * h / 1000.0 ELSE 0 END
       + COALESCE((it->>'cost')::numeric, 0) * CASE it->>'unit'
           WHEN 'm2' THEN w * h / 1000000.0 WHEN 'sash' THEN sashes WHEN 'piece' THEN 1 ELSE 0 END);
   END LOOP;
@@ -189,7 +192,9 @@ BEGIN
                   'unit', x->>'unit', 'icon', x->>'icon', 'image_url', x->>'image_url',
                   'cost', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'cost')::numeric, 0) * mf, 2) ELSE 0 END,
                   'fixed', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'fixed')::numeric, 0) * mf, 2) ELSE 0 END,
-                  'min', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'min')::numeric, 0) * mf, 2) ELSE 0 END) ORDER BY i), '[]'::jsonb)
+                  'per_w', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'per_w')::numeric, 0) * mf, 2) ELSE 0 END,
+                  'per_h', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'per_h')::numeric, 0) * mf, 2) ELSE 0 END,
+                  'min', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'min')::numeric, 0), 2) ELSE 0 END) ORDER BY i), '[]'::jsonb)
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'shading', '[]'::jsonb)) WITH ORDINALITY AS t(x, i)),
       -- roof windows: catalogue of models in standard sizes; sale prices (no margin)
       'roof', CASE WHEN COALESCE((c.window_pricing->'offer'->>'roof')::boolean, true) AND c.window_pricing ? 'roof' THEN json_build_object(

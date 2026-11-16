@@ -153,25 +153,27 @@ export function sampleSills(): SillType[] {
 }
 export const newSillId = () => rid()
 /** Shading or insect screen. Priced per m² of the window, per opening sash or per piece (one per window). */
-export type ShadingUnit = 'm2' | 'sash' | 'piece'
+export type ShadingUnit = 'm2' | 'sash' | 'piece' // 'piece' only in old price lists (shown as per window)
 export type ShadingIconKind = 'blinds' | 'roller' | 'pleated' | 'screen' | 'screen_roll' | 'none'
 export interface ShadingType {
   id: string; kind: 'shade' | 'screen'; name: string; description?: string
   unit: ShadingUnit; cost: number
-  /** fixed amount per piece (drive, end parts; only with 'm2') and the lowest amount charged (purchase prices) */
+  /** fixed amount per piece (drive, end parts; only with 'm2'; purchase price) and the lowest SALE price of the item */
   fixed?: number; min?: number
+  /** per window (only with 'm2'): price per metre of the window width (box, top rail) and of the height (side guides) */
+  per_w?: number; per_h?: number
   /** drawing (blinds, roller, pleated, screen, screen_roll, none) and the supplier's photo */
   icon?: ShadingIconKind; image_url?: string | null
 }
 export const STANDARD_SHADING: Omit<ShadingType, 'id'>[] = [
-  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon z jermenom.', unit: 'm2', cost: 70, fixed: 60, min: 160 },
-  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 70, fixed: 180, min: 280 },
-  { kind: 'shade', icon: 'roller', name: 'Rolete, ročni pogon', description: 'Nadometna omarica, aluminijaste lamele.', unit: 'm2', cost: 55, fixed: 40, min: 120 },
-  { kind: 'shade', icon: 'roller', name: 'Rolete z motorjem', description: 'Nadometna omarica, elektromotor s stikalom.', unit: 'm2', cost: 55, fixed: 160, min: 240 },
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije', description: 'Lamele 80 mm, ročni pogon z jermenom.', unit: 'm2', cost: 70, fixed: 60, min: 230 },
+  { kind: 'shade', icon: 'blinds', name: 'Zunanje žaluzije z motorjem', description: 'Lamele 80 mm, elektromotor s stikalom.', unit: 'm2', cost: 70, fixed: 180, min: 400 },
+  { kind: 'shade', icon: 'roller', name: 'Rolete, ročni pogon', description: 'Nadometna omarica, aluminijaste lamele.', unit: 'm2', cost: 55, fixed: 40, min: 175 },
+  { kind: 'shade', icon: 'roller', name: 'Rolete z motorjem', description: 'Nadometna omarica, elektromotor s stikalom.', unit: 'm2', cost: 55, fixed: 160, min: 350 },
   { kind: 'shade', icon: 'pleated', name: 'Notranje plise senčilo', description: 'Na krilu, se premika gor in dol.', unit: 'sash', cost: 45 },
   { kind: 'screen', icon: 'screen', name: 'Okvirni komarnik', description: 'Fiksni aluminijast okvir z mrežico, na vsako krilo.', unit: 'sash', cost: 25 },
   { kind: 'screen', icon: 'screen_roll', name: 'Rolo komarnik', description: 'Mrežica se navije v omarico, na vsako krilo.', unit: 'sash', cost: 45 },
-  { kind: 'screen', icon: 'pleated', name: 'Plise komarnik', description: 'Zložljiva mrežica, primerna za balkonska vrata.', unit: 'piece', cost: 120 },
+  { kind: 'screen', icon: 'pleated', name: 'Plise komarnik', description: 'Zložljiva mrežica, primerna za balkonska vrata.', unit: 'm2', fixed: 80, cost: 40, min: 170 },
 ]
 export const sampleShading = (): ShadingType[] => STANDARD_SHADING.map(x => ({ ...x, id: rid() }))
 /** Chosen shading / screen (none when the id is missing or unknown). */
@@ -411,7 +413,10 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     if (!sh) continue
     // fixed part + price × quantity, never below the lowest amount
     const q = sh.unit === 'm2' ? W * H / 1e6 : sh.unit === 'sash' ? sashes : 1
-    const amount = Math.max(sh.min ?? 0, (sh.unit === 'm2' ? sh.fixed ?? 0 : 0) + sh.cost * q)
+    // the lowest sale price is turned back into a cost, so the margin added to the window brings it to exactly that price
+    // per window: fixed + width × €/m + height × €/m + area × €/m², all added up
+    const byWindow = sh.unit === 'm2' ? (sh.fixed ?? 0) + (sh.per_w ?? 0) * W / 1000 + (sh.per_h ?? 0) * H / 1000 : 0
+    const amount = Math.max((sh.min ?? 0) / (1 + (s.margin_pct ?? 0) / 100), byWindow + sh.cost * q)
     add('shade_' + sh.kind, `${L('shade_' + sh.kind, sh.kind === 'shade' ? 'Senčilo' : 'Komarnik')}: ${sh.name}`, 1, 'kos', amount)
   }
   // chosen yes / no extras, counted per window

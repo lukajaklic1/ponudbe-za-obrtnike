@@ -106,11 +106,10 @@ const TXT = {
     sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
     sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', sillMaterial: 'Material',
     sillMaterials: { none: 'Brez materiala', pvc_white: 'PVC, bela', pvc_oak: 'PVC, dekor hrast', pvc_anthracite: 'PVC, antracit', wood_oak: 'Les, hrast', wood_walnut: 'Les, oreh', granite: 'Granit, siv', granite_dark: 'Granit, temen', marble: 'Marmor', alu_white: 'Aluminij, bel', alu_silver: 'Aluminij, srebrn', alu_anthracite: 'Aluminij, antracit', alu_brown: 'Aluminij, rjav' } as Record<string, string>, quickAdd: 'Hitro dodaj:', addPicture: 'Dodaj sliko',
-    shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavne cene in izberite, kako se obračuna: na m² okna (s fiksnim zneskom za pogon in najnižjim zneskom za majhna okna), na vsako krilo, ki se odpira, ali na kos (enkrat na okno). Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se doda na koncu na celotno okno.',
-    shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Nabavna cena na m²', shadeCostSash: 'Nabavna cena na krilo', shadeCostPiece: 'Nabavna cena na kos',
-    shadeFixed: 'Fiksni znesek na kos', shadeMin: 'Najnižji znesek',
-    shadeFormulaM2: 'Fiksni znesek + cena na m² × površina okna, a nikoli manj od najnižjega zneska.', shadeFormula: 'Cena × število, a nikoli manj od najnižjega zneska.',
-    shadeUnits: { m2: 'Na m² okna', sash: 'Na krilo', piece: 'Na kos (enkrat na okno)' } as Record<string, string>,
+    shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavne cene in izberite, kako se obračuna: na okno ali na vsako krilo, ki se odpira. Pri obračunu na okno se seštejejo fiksni znesek (pogon, končni deli), cena na meter širine (omarica), na meter višine (vodila) in na m² (lamele); kar ne potrebujete, pustite na 0. Najnižja prodajna cena velja za majhna okna: stranka nikoli ne plača manj od nje. Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se doda na koncu na celotno okno.',
+    shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Na m²', shadeCostSash: 'Nabavna cena na krilo',
+    shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine', shadeMin: 'Najnižja prodajna cena na okno',
+    shadeUnits: { m2: 'Na okno', sash: 'Na krilo' } as Record<string, string>,
     shadeIcons: { blinds: 'Žaluzije', roller: 'Rolete', pleated: 'Plise', screen: 'Okvirni komarnik', screen_roll: 'Rolo komarnik', none: 'Brez slike' } as Record<string, string>,
     shadeDescPh: 'npr. Lamele 80 mm, ročni pogon z jermenom.', addShade: 'Dodaj senčilo', addScreen: 'Dodaj komarnik',
     shadePhotoRemoveMsg: (n: string) => `Fotografija »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`,
@@ -183,11 +182,10 @@ const TXT = {
     sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
     sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', sillMaterial: 'Material',
     sillMaterials: { none: 'No material', pvc_white: 'PVC, white', pvc_oak: 'PVC, oak decor', pvc_anthracite: 'PVC, anthracite', wood_oak: 'Wood, oak', wood_walnut: 'Wood, walnut', granite: 'Granite, grey', granite_dark: 'Granite, dark', marble: 'Marble', alu_white: 'Aluminium, white', alu_silver: 'Aluminium, silver', alu_anthracite: 'Aluminium, anthracite', alu_brown: 'Aluminium, brown' } as Record<string, string>, quickAdd: 'Quick add:', addPicture: 'Add a picture',
-    shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase price and how it is counted: per m² of the window, per opening sash or per piece (once per window). In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. The margin is added to the whole window at the end.',
-    shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Purchase price per m²', shadeCostSash: 'Purchase price per sash', shadeCostPiece: 'Purchase price per piece',
-    shadeFixed: 'Fixed amount per piece', shadeMin: 'Lowest amount',
-    shadeFormulaM2: 'Fixed amount + price per m² × window area, but never less than the lowest amount.', shadeFormula: 'Price × quantity, but never less than the lowest amount.',
-    shadeUnits: { m2: 'Per m² of window', sash: 'Per sash', piece: 'Per piece (once per window)' } as Record<string, string>,
+    shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase prices and how they are counted: per window or per opening sash. Per window the fixed amount (drive, end parts), the price per metre of width (box), per metre of height (guides) and per m² (slats) are added up; leave at 0 what you do not need. The lowest sale price is for small windows: the customer never pays less. In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. The margin is added to the whole window at the end.',
+    shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Per m²', shadeCostSash: 'Purchase price per sash',
+    shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height', shadeMin: 'Lowest sale price per window',
+    shadeUnits: { m2: 'Per window', sash: 'Per sash' } as Record<string, string>,
     shadeIcons: { blinds: 'Blinds', roller: 'Roller shutter', pleated: 'Pleated', screen: 'Framed screen', screen_roll: 'Roll-up screen', none: 'No picture' } as Record<string, string>,
     shadeDescPh: 'e.g. 80 mm slats, manual belt drive.', addShade: 'Add shading', addScreen: 'Add insect screen',
     shadePhotoRemoveMsg: (n: string) => `The photo of "${n}" is removed the next time you save the price list. The drawing is shown instead.`,
@@ -331,6 +329,8 @@ export default function PriceListSetupPage() {
       if (!pr.handles?.length) pr.handles = sampleHandles()
       if (!pr.sills?.length) pr.sills = sampleSills()
       if (!pr.shading?.length) pr.shading = sampleShading()
+      // 'per piece' is no longer offered: it is the same as per window with only a fixed amount
+      pr.shading = pr.shading.map(x => x.unit === 'piece' ? { ...x, unit: 'm2', fixed: (x.fixed ?? 0) + x.cost, cost: 0 } : x)
       // profile colours per material: the usual ones to start with
       pr.colors = { ...(pr.colors ?? {}) }
       for (const m of MATERIALS) if (!pr.colors[m]) pr.colors[m] = sampleColors()
@@ -1364,7 +1364,7 @@ export default function PriceListSetupPage() {
                               {canEdit && <button type="button" onClick={() => askRemove(x.name, () => setAll(all.filter(y => y.id !== x.id)))} title={T.remove}
                                 className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                               <div className="flex flex-col gap-1">
                                 <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeDrawing}</label>
                                 <select value={x.icon ?? 'none'} disabled={!canEdit} onChange={e => set(x.id, { icon: e.target.value as ShadingType['icon'] })}
@@ -1376,16 +1376,22 @@ export default function PriceListSetupPage() {
                                 <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeUnit}</label>
                                 <select value={x.unit} disabled={!canEdit} onChange={e => set(x.id, { unit: e.target.value as ShadingType['unit'] })}
                                   className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                  {(['m2', 'sash', 'piece'] as const).map(u => <option key={u} value={u}>{T.shadeUnits[u]}</option>)}
+                                  {(['m2', 'sash'] as const).map(u => <option key={u} value={u}>{T.shadeUnits[u]}</option>)}
                                 </select>
                               </div>
-                              <NumberInput label={x.unit === 'm2' ? T.shadeCostM2 : x.unit === 'sash' ? T.shadeCostSash : T.shadeCostPiece} unit={x.unit === 'm2' ? `${cur}/m²` : `${cur}/${T.perHandle}`} value={x.cost} onValue={v => set(x.id, { cost: v ?? 0 })} decimals={2} />
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                              {x.unit === 'm2' && <NumberInput label={T.shadeFixed} unit={cur} value={x.fixed ?? 0} onValue={v => set(x.id, { fixed: v ?? 0 })} decimals={2} />}
                               <NumberInput label={T.shadeMin} unit={cur} value={x.min ?? 0} onValue={v => set(x.id, { min: v ?? 0 })} decimals={2} />
-                              <p className="sm:col-span-3 -mt-1 text-xs font-medium text-[#7f7f7f]">{x.unit === 'm2' ? T.shadeFormulaM2 : T.shadeFormula}</p>
                             </div>
+                            {/* purchase prices: per window all four are added up; per sash / piece one price */}
+                            {x.unit === 'm2'
+                              ? <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 items-start">
+                                  <NumberInput label={T.shadeFixed} unit={cur} value={x.fixed ?? 0} onValue={v => set(x.id, { fixed: v ?? 0 })} decimals={2} />
+                                  <NumberInput label={T.shadePerW} unit={`${cur}/m`} value={x.per_w ?? 0} onValue={v => set(x.id, { per_w: v ?? 0 })} decimals={2} />
+                                  <NumberInput label={T.shadePerH} unit={`${cur}/m`} value={x.per_h ?? 0} onValue={v => set(x.id, { per_h: v ?? 0 })} decimals={2} />
+                                  <NumberInput label={T.shadeCostM2} unit={`${cur}/m²`} value={x.cost} onValue={v => set(x.id, { cost: v ?? 0 })} decimals={2} />
+                                </div>
+                              : <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 items-start">
+                                  <NumberInput label={T.shadeCostSash} unit={`${cur}/${T.perHandle}`} value={x.cost} onValue={v => set(x.id, { cost: v ?? 0 })} decimals={2} />
+                                </div>}
                             <div>
                               <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
                               <textarea value={x.description ?? ''} onChange={e => set(x.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.shadeDescPh} rows={2}
