@@ -94,7 +94,7 @@ const TXT = {
     widths: 'Pogledne širine profilov', frameW: 'Okvir', sashW: 'Krilo', mullionW: 'Steber',
     s3: 'Delo, odrez in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
     glassTitle: 'Katere tipe stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je privzeto vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.',
-    glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', makeBase: 'Nastavi kot osnovno', addGlass: 'Dodaj steklo',
+    glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', addGlass: 'Dodaj steklo',
     handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je standardna in je vključena v ceno.',
     handleName: 'Kljuka', handleKey: 'Ključ', handleKeyYes: 'S ključem', handleCost: 'Nabavna cena', perHandle: 'kos', addHandle: 'Dodaj kljuko',
     glassDescPh: 'npr. 4/16/4, ekonomično', customerSeesIncluded: 'Kupec vidi: Vključeno',
@@ -159,7 +159,7 @@ const TXT = {
     widths: 'Visible widths frame / sash / mullion', frameW: 'Frame', sashW: 'Sash', mullionW: 'Mullion',
     s3: 'Labour, waste and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
     glassTitle: 'Which types of glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.',
-    glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', makeBase: 'Make base', addGlass: 'Add glass',
+    glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', addGlass: 'Add glass',
     handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the standard one and is included.',
     handleName: 'Handle', handleKey: 'Key', handleKeyYes: 'With key', handleCost: 'Purchase price', perHandle: 'pc', addHandle: 'Add handle',
     glassDescPh: 'e.g. 4/16/4, economical', customerSeesIncluded: 'Customer sees: Included',
@@ -1126,9 +1126,7 @@ export default function PriceListSetupPage() {
                       <GlassIcon layers={g.layers ?? 2} />
                       <input value={g.name} onChange={e => set(g.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.glassName}
                         className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      {i === 0
-                        ? <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>
-                        : canEdit && <button type="button" onClick={() => setList([g, ...list.filter(x => x.id !== g.id)])} className="shrink-0 text-xs font-medium text-gray-500 hover:text-gray-900">{T.makeBase}</button>}
+                      {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>}
                       {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(g.name, () => setList(list.filter(x => x.id !== g.id)))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
@@ -1177,9 +1175,7 @@ export default function PriceListSetupPage() {
                         </label>
                         <input value={h.name} onChange={e => set(h.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.handleName}
                           className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        {i === 0
-                          ? <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>
-                          : canEdit && <button type="button" onClick={() => setList([h, ...list.filter(x => x.id !== h.id)])} className="shrink-0 text-xs font-medium text-gray-500 hover:text-gray-900">{T.makeBase}</button>}
+                        {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>}
                         {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(h.name, () => setList(list.filter(x => x.id !== h.id)))} title={T.remove}
                           className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                       </div>
