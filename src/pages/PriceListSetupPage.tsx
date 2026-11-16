@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import { Calculator, Plus, Trash2, Check, Settings2, Upload, ChevronDown, Pipette } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -1445,13 +1446,35 @@ function HandleColorPicker({ label, look, code, disabled, onChange, customLabel,
   customLabel: string; customShort: string; lang: string
 }) {
   const [open, setOpen] = useState(false)
+  // the menu is drawn over the whole page (portal), so no card or list can cut it off;
+  // it opens upwards when there is not enough room below the field
+  const [pos, setPos] = useState<{ left: number; width: number; top?: number; bottom?: number }>({ left: 0, width: 0 })
   const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const pickRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
-    const close = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    if (!open) return
+    const close = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (!ref.current?.contains(t) && !menuRef.current?.contains(t)) setOpen(false)
+    }
+    const shut = () => setOpen(false)
     document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [])
+    window.addEventListener('scroll', shut, true)
+    window.addEventListener('resize', shut)
+    return () => { document.removeEventListener('mousedown', close); window.removeEventListener('scroll', shut, true); window.removeEventListener('resize', shut) }
+  }, [open])
+  function toggle() {
+    if (open) { setOpen(false); return }
+    const b = btnRef.current?.getBoundingClientRect()
+    if (!b) return
+    const MENU_H = 360, below = window.innerHeight - b.bottom
+    setPos(below < MENU_H && b.top > below
+      ? { left: b.left, width: b.width, bottom: window.innerHeight - b.top + 4 }
+      : { left: b.left, width: b.width, top: b.bottom + 4 })
+    setOpen(true)
+  }
   const spec = parseColor(look ?? '#ffffff')
   const preset = HANDLE_COLORS.find(c => c.look.toLowerCase() === (look ?? '').toLowerCase())
   const nameOf = (c: typeof HANDLE_COLORS[number]) => (lang === 'en' ? c.en : c.sl)
@@ -1460,7 +1483,7 @@ function HandleColorPicker({ label, look, code, disabled, onChange, customLabel,
   return <div className="flex flex-col gap-1" ref={ref}>
     <span className="text-xs font-medium text-[#7f7f7f]">{label}</span>
     <div className="relative">
-      <button type="button" disabled={disabled} onClick={() => setOpen(o => !o)}
+      <button ref={btnRef} type="button" disabled={disabled} onClick={toggle}
         className="w-full flex items-center gap-2 h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white pl-2.5 pr-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:hover:border-gray-200">
         {circle(look ?? '#ffffff')}
         <span className="flex-1 min-w-0 truncate">
@@ -1469,7 +1492,8 @@ function HandleColorPicker({ label, look, code, disabled, onChange, customLabel,
         </span>
         <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
       </button>
-      {open && <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-full w-max">
+      {open && createPortal(<div ref={menuRef} className="fixed z-[100] bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-max max-h-[80vh] overflow-y-auto"
+        style={{ left: pos.left, minWidth: pos.width, top: pos.top, bottom: pos.bottom }}>
         {HANDLE_COLORS.map(c => {
           const on = preset?.look === c.look
           return <button key={c.look} type="button" onClick={() => { onChange(c.look, c.code); setOpen(false) }}
@@ -1489,7 +1513,7 @@ function HandleColorPicker({ label, look, code, disabled, onChange, customLabel,
           {!preset && <span className="text-xs text-[#7f7f7f]">{customCode}</span>}
           <Check className={cn('w-3.5 h-3.5', !preset ? 'text-gray-900' : 'invisible')} />
         </button>
-      </div>}
+      </div>, document.body)}
       <input ref={pickRef} type="color" value={spec?.hex ?? '#ffffff'} tabIndex={-1} aria-hidden className="absolute left-2 bottom-0 w-6 h-0 opacity-0 pointer-events-none"
         onChange={e => { const near = ralNearest(e.target.value); onChange(encodeColor({ ...(spec ?? { finish: 'smooth' }), hex: near.hex } as any), `RAL ${near.code}`) }} />
     </div>
