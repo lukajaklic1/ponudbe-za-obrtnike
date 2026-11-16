@@ -463,13 +463,6 @@ export default function PriceListSetupPage() {
   const setPrice = (patch: Partial<PricingSettings>) => { setPricing(x => ({ ...x, ...patch })); touch() }
   const setHw = (k: keyof PricingSettings['hw'], v: number | null) => { setPricing(x => ({ ...x, hw: { ...x.hw, [k]: v ?? 0 } })); touch() }
   const setHwM = (k: keyof PricingSettings['hw'], v: number | null) => { setPricing(x => ({ ...x, hw_m: { ...x.hw_m, [k]: v ?? 0 } })); touch() }
-  /** sale price of a reference window (double, both sashes tilt & turn, 1200 × 1400, first profile) — for "the customer sees + X €" */
-  const exampleSale = (o: { glassId?: string; handleId?: string }) => {
-    const prof = profiles.find(p => matOn[p.material]) ?? profiles[0]
-    if (!prof) return null
-    return costWindow(specToLayout(makeSpec(2)), 1200, 1400, toPrices(prof), pricing, o).price
-  }
-  const signed = (v: number) => `${v >= 0 ? '+' : '−'} ${Math.abs(Math.round(v)).toLocaleString('de-DE')} ${cur === 'EUR' ? '€' : cur}`
   const salePrice = (p: ProfileRow, tpl: WindowTemplate, w: number, h: number) => Math.max(p.min ?? 0, costWindow(layoutFor(tpl), w, h, toPrices(p), pricing).price)
   function toggleMaterial(m: WindowMaterial) {
     const on = !matOn[m]
