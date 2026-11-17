@@ -211,7 +211,7 @@ export default function QuotesPage() {
             <p className="text-sm text-gray-600">{s.noQuotes}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm font-normal min-w-[720px]">
+          <div className="overflow-x-auto"><table className="w-full text-sm font-medium min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['assignee', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} style={{ width: ['10%', '22%', '20%', '14%', '11%', '10%', '10%', '3%'][i], minWidth: key === 'customer' ? 200 : i === 2 ? 180 : undefined }} className={`${key === 'created_at' ? 'hidden 2xl:table-cell ' : ''}${key === 'value' ? 'text-right !pr-8' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
@@ -224,10 +224,10 @@ export default function QuotesPage() {
               {paged.map(q => (
                 <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="font-semibold text-gray-900 whitespace-nowrap">{q.quote_number}</span>
+                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
                   <td className="px-4 py-3 max-w-0">
-                    <div className="text-gray-900 font-semibold truncate">{q.customers?.name ?? '—'}</div>
+                    <div className="text-gray-900 truncate">{q.customers?.name ?? '—'}</div>
                     {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
                   </td>
                   <td className="px-4 py-3 max-w-0">

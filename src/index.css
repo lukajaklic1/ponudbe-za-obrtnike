@@ -165,7 +165,7 @@ fieldset:disabled textarea:focus {
 /* tables: light grey header with dividers between columns, rows split by hairlines */
 .robust main table { border-collapse: separate; border-spacing: 0; }
 .robust main thead tr, .robust main thead { background: #fafafa; }
-.robust main thead th { font-size: 15px; font-weight: 400; color: #5f5f5f; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #dfdfdf; }
+.robust main thead th { font-size: 15px; font-weight: 500; color: #5f5f5f; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #dfdfdf; }
 /* sort arrows in front of the column name, like Levelpath */
 .robust main th > span.inline-flex { flex-direction: row-reverse; justify-content: flex-end; }
 .robust main th > span.inline-flex > span.ml-1 { margin-left: 0; margin-right: 6px; }
@@ -186,7 +186,7 @@ fieldset:disabled textarea:focus {
 .robust main .table-footer { border-color: #dfdfdf; }
 .robust main .rounded-xl:has(+ .table-footer) { box-shadow: none; }
 /* first column (the record's name) a little stronger; header labels on one line */
-.robust main tbody tr:not(:has(input, textarea)) > td:first-child { font-weight: 600; }
+.robust main tbody tr:not(:has(input, textarea)) > td:first-child { font-weight: 500; }
 .robust main thead th { vertical-align: middle; line-height: 20px; }
 .robust main thead th > span.inline-flex { vertical-align: middle; }
 /* table text as big as the sidebar (15 px); rows with fields (quote lines) keep their own size */
