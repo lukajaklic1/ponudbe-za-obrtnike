@@ -186,7 +186,7 @@ fieldset:disabled textarea:focus {
 .robust main .table-footer { border-color: #dfdfdf; }
 .robust main .rounded-xl:has(+ .table-footer) { box-shadow: none; }
 /* first column (the record's name) a little stronger; header labels on one line */
-.robust main tbody tr:not(:has(input, textarea)) > td:first-child { font-weight: 500; }
+.robust main tbody tr:not(:has(input, textarea)) > td:first-child { font-weight: 600; }
 .robust main thead th { vertical-align: middle; line-height: 20px; }
 .robust main thead th > span.inline-flex { vertical-align: middle; }
 /* table text as big as the sidebar (15 px); rows with fields (quote lines) keep their own size */
