@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Table2, Grid2x2, Building2, PanelLeft, ChevronDown,
+  LayoutDashboard, ChartColumn, FileText, Users, UserCog, Settings, LogOut, X, Table2, Grid2x2, Building2, PanelLeft, ChevronDown,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -17,7 +17,7 @@ interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?:
 
 // Top-level items, then named sections (Attio-style small labels, collapsible)
 const TOP: NavItem[] = [
-  { to: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
+  { to: '/dashboard', icon: ChartColumn, key: 'dashboard' },
 ]
 const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [
   { id: 'sales', items: [
