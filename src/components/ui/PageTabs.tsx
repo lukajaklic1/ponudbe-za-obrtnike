@@ -17,7 +17,7 @@ export function PageTabs({ tabs, active, onChange }: { tabs: PageTab[]; active: 
         const on = t.key === active
         return (
           <button key={t.key} type="button" onClick={() => onChange?.(t.key)}
-            className={cn('inline-flex items-center gap-2 pb-2 text-[15px] font-medium border-b-2 transition-colors',
+            className={cn('inline-flex items-center gap-2 pb-2 text-[15px] font-medium border-b-[3px] transition-colors',
               on ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-600 hover:text-gray-900')}>
             {t.label}
             {t.count !== undefined && (
