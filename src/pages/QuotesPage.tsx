@@ -205,7 +205,7 @@ export default function QuotesPage() {
         ) : (
           <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
-              {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', sl ? 'Kontakt' : 'Contact'], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
+              {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} style={{ width: ['10%', '22%', '20%', '14%', '11%', '10%', '10%', '3%'][i], minWidth: key === 'customer' ? 200 : i === 2 ? 180 : undefined }} className={`${key === 'created_at' ? 'hidden 2xl:table-cell ' : ''}${key === 'value' ? 'text-right !pr-8' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
@@ -224,7 +224,6 @@ export default function QuotesPage() {
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 truncate">{q.contact_email || q.customers?.email || '—'}</div>
-                    {(q.contact_phone || q.customers?.phone) && <div className="text-[13px] text-gray-600 whitespace-nowrap mt-0.5">{q.contact_phone || q.customers?.phone}</div>}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
