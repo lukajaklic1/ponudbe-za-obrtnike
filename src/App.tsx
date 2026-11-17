@@ -10,7 +10,7 @@ import RegisterPage from './pages/RegisterPage'
 import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
 import CustomersPage from './pages/CustomersPage'
-import WindowCatalogPage from './pages/WindowCatalogPage'
+import ConfiguratorSettingsPage from './pages/ConfiguratorSettingsPage'
 import PriceListSetupPage from './pages/PriceListSetupPage'
 import ConfiguratorPage from './pages/ConfiguratorPage'
 import QuotesPage from './pages/QuotesPage'
@@ -70,7 +70,8 @@ export default function Root() {
             <Route path="/customers"             element={<App><CustomersPage /></App>} />
             <Route path="/price-list"            element={<Navigate to="/windows" replace />} />
             <Route path="/windows"               element={<App><PriceListSetupPage /></App>} />
-            <Route path="/windows/advanced"      element={<App><WindowCatalogPage /></App>} />
+            <Route path="/windows/advanced"      element={<Navigate to="/configurator" replace />} />
+            <Route path="/configurator"          element={<App><ConfiguratorSettingsPage /></App>} />
             {/* Old links to hidden / removed modules */}
             {['/jobs', '/calendar', '/invoices/*', '/invoices', '/bills'].map(p =>
               <Route key={p} path={p} element={<Navigate to="/quotes" replace />} />)}

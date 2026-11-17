@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Calculator, Building2, PanelLeft, ChevronDown,
+  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Calculator, Building2, PanelLeft, ChevronDown, Globe,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -10,7 +10,7 @@ import { useLanguage } from '../../hooks/useLanguage'
 import { cn } from '../../lib/cn'
 import AppLogo from '../ui/AppLogo'
 
-type NavKey = 'dashboard' | 'windows' | 'quotes' | 'customers'
+type NavKey = 'dashboard' | 'windows' | 'configurator' | 'quotes' | 'customers'
 type PermModule = 'quotes' | 'customers' | 'price_list'
 interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?: PermModule }
 
@@ -23,6 +23,7 @@ const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [
     { to: '/quotes',     icon: FileText, key: 'quotes',    mod: 'quotes' },
     { to: '/customers',  icon: Users,    key: 'customers', mod: 'customers' },
     { to: '/windows',    icon: Calculator,     key: 'windows',  mod: 'price_list' },
+    { to: '/configurator', icon: Globe,        key: 'configurator', mod: 'price_list' },
   ] },
 ]
 

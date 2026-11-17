@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Select from '../components/ui/Select'
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
-import { Calculator, Plus, Trash2, Check, Settings2, Upload, ChevronDown, Pipette, ImagePlus, AlertTriangle } from 'lucide-react'
+import { Calculator, Plus, Trash2, Check, Upload, ChevronDown, Pipette, ImagePlus, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -168,7 +168,6 @@ const TXT = {
     add: 'Dodaj', name: 'Naziv', price: 'Cena', dflt: 'Privzeto', quick: 'Hitro dodaj:', remove: 'Odstrani',
     save: 'Shrani cenik', saved: 'Cenik je shranjen', unsaved: 'Spremembe niso shranjene',
     example: 'Primer', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
-    advanced: 'Napredno: cenovne matrike in spletni konfigurator',
     preview: 'Predogled cene', live: 'v živo', width: 'Širina', height: 'Višina', totalNet: 'Skupaj brez DDV', previewHint: 'Vključene so privzete izbire. Tako bo stranka videla ceno v konfiguratorju.',
   },
   en: {
@@ -265,7 +264,6 @@ const TXT = {
     add: 'Add', name: 'Name', price: 'Price', dflt: 'Default', quick: 'Quick add:', remove: 'Remove',
     save: 'Save price list', saved: 'Price list saved', unsaved: 'Unsaved changes',
     example: 'Example', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
-    advanced: 'Advanced: price matrices and online configurator',
     preview: 'Price preview', live: 'live', width: 'Width', height: 'Height', totalNet: 'Total excl. VAT', previewHint: 'Default choices are included. This is the price the customer sees in the configurator.',
   },
 }
@@ -1740,7 +1738,6 @@ export default function PriceListSetupPage() {
             </div>
           })()}
 
-          <Link to="/windows/advanced" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900"><Settings2 className="w-4 h-4" />{T.advanced}</Link>
         </div>}
         </div>
 
