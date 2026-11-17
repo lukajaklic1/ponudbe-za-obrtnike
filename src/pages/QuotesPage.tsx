@@ -216,7 +216,7 @@ export default function QuotesPage() {
               {paged.map(q => (
                 <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="!font-normal text-gray-900 whitespace-nowrap">{q.quote_number}</span>
+                    <span className="font-medium text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 font-medium truncate">{q.customers?.name ?? '—'}</div>
