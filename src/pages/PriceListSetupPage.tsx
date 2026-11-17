@@ -21,7 +21,7 @@ import HandleIcon from '../components/HandleIcon'
 import SillIcon, { SILL_MATERIALS, sillMaterialOf } from '../components/SillIcon'
 import ShadingIcon, { SHADING_ICONS } from '../components/ShadingIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
-const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill', 'shading']
+const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill', 'shading', 'installation']
 import { cn } from '../lib/cn'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import ColorSwatch from '../components/ColorSwatch'
@@ -50,9 +50,9 @@ interface ProfileRow {
 const toPrices = (p: ProfileRow): ProfilePrices => ({ frame_m: p.frame_m ?? 0, sash_m: p.sash_m ?? 0, mullion_m: p.mullion_m ?? 0, bead_m: p.bead_m ?? 0, frame_w: p.frame_w, sash_w: p.sash_w, mullion_w: p.mullion_w })
 // reference window used to compare profiles and to derive the per-m² price for the current configurator
 const REF = { template: 'double_mullion' as WindowTemplate, w: 1200, h: 1400 }
-interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string }
+interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string; description?: string }
 
-interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string }
+interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string; description?: string }
 interface Section { group: OptionGroup; title: string; hint: string; units: OptionPricing[]; single: boolean; presets: Preset[] }
 
 function metreOrSample(x: Partial<WindowSystem> & { material: WindowMaterial }) {
@@ -110,6 +110,11 @@ const TXT = {
     shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavne cene in izberite, kako se obračuna: na okno ali na vsako krilo, ki se odpira. Seštejejo se fiksni znesek (pogon, končni deli), cena na meter širine (omarica), na meter višine (vodila) in na m² (lamele, mreža); pri obračunu na krilo za vsako krilo, ki se odpira, posebej. Kar ne potrebujete, pustite na 0. Najnižja prodajna cena velja za majhna okna: stranka nikoli ne plača manj od te cene. Če je komarnik vgrajen v omarico senčila, se omarica in vodila ne štejeta dvakrat: velja cena »ko je vgrajen v senčilo«. Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se v kalkulaciji doda na koncu na celotno okno.',
     shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Na m²',
     allowsScreen: 'Omogoča vgrajen komarnik (skupna omarica in vodila)', canIntegrate: 'Lahko je vgrajen v senčilo',
+    installTitle: 'Katere vrste montaže ponujate?',
+    installHint: 'Tukaj vpišite prodajne cene brez DDV, marža se jim ne prišteje. Stranka v konfiguratorju izbere eno vrsto montaže, prva na seznamu je izbrana vnaprej. Obseg okna je 2 × (širina + višina).',
+    installNamePh: 'npr. Klasična montaža', installPrice: 'Prodajna cena', installUnit: 'Obračun', addInstall: 'Dodaj montažo',
+    installUnits: { perimeter: 'Na tekoči meter obsega okna', piece: 'Na okno' } as Record<string, string>,
+    installDescPh: 'npr. Okno pritrdimo s sidri, režo zapolnimo s PU peno.', installFirst: 'Izbrana vnaprej',
     integratedTitle: 'Nabavna cena za komarnik, ko je vgrajen v senčilo (Upoštevajte samo strošek dodatnih delov, ki jih komarnik doda: mreža, letev …)',
     shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine',
     shadeFixedSash: 'Fiksni znesek na krilo', shadePerWSash: 'Na meter širine krila', shadePerHSash: 'Na meter višine krila', shadeCostM2Sash: 'Na m² krila', shadeMin: 'Najnižja prodajna cena na okno',
@@ -190,6 +195,11 @@ const TXT = {
     shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase prices and how they are counted: per window or per opening sash. The fixed amount (drive, end parts), the price per metre of width (box), per metre of height (guides) and per m² (slats, mesh) are added up; per sash for every opening sash. Leave at 0 what you do not need. The lowest sale price is for small windows: the customer never pays less than this price. When an insect screen is built into the box of the shading, the box and guides are not counted twice: the "built into a shading" price applies. In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. In the costing the margin is added to the whole window at the end.',
     shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Per m²',
     allowsScreen: 'An insect screen can be built in (shared box and guides)', canIntegrate: 'Can be built into a shading',
+    installTitle: 'Which kinds of installation do you offer?',
+    installHint: 'Enter sale prices without VAT here, no margin is added to them. The customer picks one kind of installation in the configurator, the first one in the list is picked in advance. The window perimeter is 2 × (width + height).',
+    installNamePh: 'e.g. Standard installation', installPrice: 'Sale price', installUnit: 'Counted', addInstall: 'Add installation',
+    installUnits: { perimeter: 'Per metre of window perimeter', piece: 'Per window' } as Record<string, string>,
+    installDescPh: 'e.g. The window is fixed with anchors, the gap is filled with PU foam.', installFirst: 'Picked in advance',
     integratedTitle: 'Purchase price of the screen when built into a shading (count only the extra parts the screen adds: mesh, bar …)',
     shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height',
     shadeFixedSash: 'Fixed amount per sash', shadePerWSash: 'Per metre of sash width', shadePerHSash: 'Per metre of sash height', shadeCostM2Sash: 'Per m² of sash', shadeMin: 'Lowest sale price per window',
@@ -254,7 +264,10 @@ function sectionsFor(lang: 'sl' | 'en'): Section[] {
       presets: [{ name: 'Zunanje žaluzije', pricing: 'm2', price: 160 }, { name: 'Rolete', pricing: 'm2', price: 120 }, { name: 'Komarnik', pricing: 'piece', price: 65 }] },
     { group: 'installation', title: sl ? 'Montaža' : 'Installation', hint: sl ? 'Montaža na tekoči meter obsega okna 2 × (širina + višina) ali na kos. Stranka izbere eno.' : 'Installation per metre of perimeter 2 × (width + height) or per piece. The customer picks one.',
       units: ['perimeter', 'piece'], single: true,
-      presets: [{ name: 'Klasična montaža (PU pena, sidra)', pricing: 'perimeter', price: 9 }, { name: 'RAL montaža (tesnilni trakovi)', pricing: 'perimeter', price: 16 }] },
+      presets: [
+        { name: 'Klasična montaža', pricing: 'perimeter', price: 9, description: 'Okno pritrdimo s sidri, režo med oknom in zidom zapolnimo s PU peno.' },
+        { name: 'RAL montaža', pricing: 'perimeter', price: 16, description: 'Montaža po smernicah RAL: notranji parozaporni in zunanji paroprepustni trak. Spoj ostane suh in tesen, primerno za nizkoenergijske hiše.' },
+      ] },
     { group: 'removal', title: sl ? 'Demontaža' : 'Removal', hint: sl ? 'Demontaža starih oken, na tm obsega ali na kos.' : 'Removing old windows, per metre of perimeter or per piece.',
       units: ['perimeter', 'piece'], single: false,
       presets: [{ name: 'Demontaža starih oken', pricing: 'perimeter', price: 6 }] },
@@ -361,7 +374,16 @@ export default function PriceListSetupPage() {
     }
     setMatOn(Object.fromEntries(MATERIALS.map(m => [m, sys.some(x => x.material === m && x.is_active !== false)])))
     setRemovedProfiles([])
-    setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined })))
+    setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined, description: x.group_key === 'color' ? undefined : x.description ?? '' })))
+    {
+      // a new price list starts with sample kinds of installation, like the other steps
+      const rawPricing = (c.data as { window_pricing?: unknown } | null)?.window_pricing ?? company.window_pricing
+      const fresh = !rawPricing || typeof rawPricing !== 'object' || !('offer' in (rawPricing as object))
+      if (fresh && !opt.some(x => x.group_key === 'installation')) {
+        const sec = sections.find(x => x.group === 'installation')!
+        setOptions(xs => [...xs, ...sec.presets.map((pr, i) => ({ key: nk(), group_key: 'installation' as OptionGroup, name: pr.name, pricing: pr.pricing, price: pr.price, is_default: i === 0, description: pr.description ?? '' }))])
+      }
+    }
     setRemoved([]); setDirty(false); setLoading(false)
   }
 
@@ -583,7 +605,7 @@ export default function PriceListSetupPage() {
   const setOption = (key: string, patch: Partial<OptionRow>) => { setOptions(xs => xs.map(x => x.key === key ? { ...x, ...patch } : x)); touch() }
   function addOption(sec: Section, preset?: Preset) {
     const first = !options.some(o => o.group_key === sec.group)
-    setOptions(xs => [...xs, { key: nk(), group_key: sec.group, name: preset?.name ?? '', pricing: preset?.pricing ?? sec.units[0], price: preset?.price ?? null, is_default: sec.single && first, swatch: sec.group === 'color' ? preset?.swatch ?? '#ffffff' : undefined }])
+    setOptions(xs => [...xs, { key: nk(), group_key: sec.group, name: preset?.name ?? '', pricing: preset?.pricing ?? sec.units[0], price: preset?.price ?? null, is_default: sec.single && first, swatch: sec.group === 'color' ? preset?.swatch ?? '#ffffff' : undefined, description: preset?.description ?? '' }])
     touch()
   }
   function removeOption(row: OptionRow) {
@@ -651,9 +673,11 @@ export default function PriceListSetupPage() {
       if (removed.length) {
         const { error } = await supabase.from('window_options' as any).delete().in('id', removed); if (error) throw error
       }
+      const firstInstall = options.find(o => o.group_key === 'installation' && o.name.trim())?.key
       for (const [i, o] of options.entries()) {
         if (!o.name.trim()) continue
-        const payload = { group_key: o.group_key, name: o.name.trim(), pricing: o.pricing, price: o.price ?? 0, is_default: o.is_default, is_active: true, sort_order: i, updated_at: now, ...(o.group_key === 'color' ? { description: o.swatch ?? null } : {}) }
+        const isDefault = o.group_key === 'installation' ? o.key === firstInstall : o.is_default
+        const payload = { group_key: o.group_key, name: o.name.trim(), pricing: o.pricing, price: o.price ?? 0, is_default: isDefault, is_active: true, sort_order: i, updated_at: now, description: o.group_key === 'color' ? o.swatch ?? null : o.description?.trim() || null }
         const { error } = o.id
           ? await supabase.from('window_options' as any).update(payload).eq('id', o.id)
           : await supabase.from('window_options' as any).insert({ ...payload, company_id: company.id })
@@ -1453,12 +1477,55 @@ export default function PriceListSetupPage() {
             })()}
           </Step>
 
-          {/* 10+. extras and services (colour, glass and handles of built windows have their own steps) */}
+          {/* 10. kinds of installation: sale prices, the customer picks one, the first is picked in advance */}
+          <Step n={10} title={T.installTitle} hint={T.installHint}>
+            {(() => {
+              const sec = sections.find(x => x.group === 'installation')!
+              const rows = options.filter(o => o.group_key === 'installation')
+              const unused = sec.presets.filter(pr => !rows.some(r => r.name.trim().toLowerCase() === pr.name.toLowerCase()))
+              return <>
+                {rows.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
+                  {rows.map((r, i) => <div key={r.key} className="px-4 py-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <input value={r.name} onChange={e => setOption(r.key, { name: e.target.value })} disabled={!canEdit} placeholder={T.installNamePh}
+                        className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      {i === 0 && <span className="shrink-0 text-xs font-medium text-[#7f7f7f]">{T.installFirst}</span>}
+                      {canEdit && <button type="button" onClick={() => askRemove(r.name, () => removeOption(r))} title={T.remove}
+                        className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                      <NumberInput label={T.installPrice} unit={r.pricing === 'perimeter' ? `${cur}/m` : cur} value={r.price} onValue={v => setOption(r.key, { price: v })} decimals={2} />
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-[#7f7f7f]">{T.installUnit}</label>
+                        <select value={r.pricing} disabled={!canEdit} onChange={e => setOption(r.key, { pricing: e.target.value as OptionPricing })}
+                          className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          {(['perimeter', 'piece'] as const).map(u => <option key={u} value={u}>{T.installUnits[u]}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
+                      <textarea value={r.description ?? ''} onChange={e => setOption(r.key, { description: e.target.value })} disabled={!canEdit} placeholder={T.installDescPh} rows={2}
+                        className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>)}
+                </div>}
+                {canEdit && <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{T.addInstall}</button>
+                  {unused.length > 0 && <span className="text-xs font-medium text-[#7f7f7f]">{T.quickAdd}</span>}
+                  {unused.map(pr => <button key={pr.name} type="button" onClick={() => addOption(sec, pr)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">+ {pr.name}</button>)}
+                </div>}
+              </>
+            })()}
+          </Step>
+
+          {/* 11+. extras and services (colour, glass and handles of built windows have their own steps) */}
           {sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).map((sec, i) => {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + 10} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + 11} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">
@@ -1495,7 +1562,7 @@ export default function PriceListSetupPage() {
           })}
 
           {/* last: glass, labour, waste and margin (the margin goes on the whole window) */}
-          <Step n={10 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
+          <Step n={11 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
               <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
