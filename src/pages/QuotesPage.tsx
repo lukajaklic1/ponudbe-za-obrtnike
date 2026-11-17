@@ -231,7 +231,7 @@ export default function QuotesPage() {
                     {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
                   </td>
                   <td className="px-4 py-3 max-w-0">
-                    <div className="text-gray-900 truncate">{q.contact_email || q.customers?.email || '—'}</div>
+                    <div className="text-[#5f5f5f] truncate">{q.contact_email || q.customers?.email || '—'}</div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
@@ -314,7 +314,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
   const label = assignee ? `${assignee.first_name} ${assignee.last_name}` : null
 
   if (!canEdit) {
-    return label ? <span className="text-[15px] font-medium text-gray-900 whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
+    return label ? <span className="text-[15px] text-[#5f5f5f] whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
   }
 
   return (
@@ -322,7 +322,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
       <button
         onClick={() => setOpen(o => !o)}
         disabled={saving}
-        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[15px] font-medium text-gray-900 hover:bg-gray-100 transition-colors whitespace-nowrap">
+        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[15px] text-[#5f5f5f] hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap">
         {saving
           ? <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           : label
