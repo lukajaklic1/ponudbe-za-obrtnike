@@ -206,7 +206,7 @@ export default function QuotesPage() {
           <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', sl ? 'Kontakt' : 'Contact'], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`${key === 'value' ? 'text-right' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                <th key={i} style={{ width: ['10%', '22%', '20%', '14%', '11%', '10%', '10%', '3%'][i], minWidth: key === 'customer' ? 200 : i === 2 ? 180 : undefined }} className={`${key === 'created_at' ? 'hidden 2xl:table-cell ' : ''}${key === 'value' ? 'text-right !pr-8' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                 </th>
@@ -218,26 +218,26 @@ export default function QuotesPage() {
                   <td className="px-4 py-3">
                     <span className="!font-normal text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
-                  <td className="px-4 py-3 max-w-[260px]">
+                  <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 font-medium truncate">{q.customers?.name ?? '—'}</div>
                     {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
                   </td>
-                  <td className="px-4 py-3 max-w-[240px]">
+                  <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 truncate">{q.contact_email || q.customers?.email || '—'}</div>
                     {(q.contact_phone || q.customers?.phone) && <div className="text-[13px] text-gray-600 whitespace-nowrap mt-0.5">{q.contact_phone || q.customers?.phone}</div>}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex flex-col items-start gap-0.5">
+                    <div className="flex items-center gap-2">
                       <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                       {q.status === 'sent' && (() => {
                         const n = waitingDays(q) ?? 0
                         return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
-                          className="text-[13px] whitespace-nowrap pl-0.5" style={{ color: '#5f5f5f' }}>{sentAgo(n)}</span>
+                          className="text-[13px] whitespace-nowrap" style={{ color: '#5f5f5f' }}>{sentAgo(n)}</span>
                       })()}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
-                  <td className="px-4 py-3 !text-[#5f5f5f] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
+                  <td className="px-4 !pr-8 py-3 text-right tabular-nums whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
+                  <td className="hidden 2xl:table-cell px-4 py-3 !text-[#5f5f5f] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <AssigneeCell
                       quoteId={q.id}
