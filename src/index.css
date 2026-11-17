@@ -144,7 +144,7 @@ fieldset:disabled textarea:focus {
 
 
 /* ── Levelpath look: neutral greys, white cards with hairline borders, black actions ── */
-.robust main { background: #f6f6f6; color: #1a1a1a; }
+.robust main { background: #ffffff; color: #1a1a1a; }
 .robust h1, .robust h2, .robust h3 { letter-spacing: -0.01em; }
 /* top-level cards: hairline border and the faintest shadow (cards inside cards stay flat) */
 .robust main :is(.rounded-xl, .rounded-2xl).border:not(:is(.rounded-xl, .rounded-2xl).border .rounded-xl) {
