@@ -111,7 +111,6 @@ const TXT = {
     shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Na m²',
     allowsScreen: 'Omogoča vgrajen komarnik (skupna omarica in vodila)', canIntegrate: 'Lahko je vgrajen v senčilo',
     integratedTitle: 'Nabavna cena za komarnik, ko je vgrajen v senčilo (Upoštevajte samo strošek dodatnih delov, ki jih komarnik doda: mreža, letev …)',
-    integratedHint: 'Omarica in vodila so že zajeti v ceni rolete, zato jih tukaj ne vpisujte. Ko stranka izbere roleto in ta komarnik, se namesto običajne cene komarnika upošteva ta znesek.',
     shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine',
     shadeFixedSash: 'Fiksni znesek na krilo', shadePerWSash: 'Na meter širine krila', shadePerHSash: 'Na meter višine krila', shadeCostM2Sash: 'Na m² krila', shadeMin: 'Najnižja prodajna cena na okno',
     shadeUnits: { m2: 'Na okno', sash: 'Na krilo' } as Record<string, string>,
@@ -192,7 +191,6 @@ const TXT = {
     shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Per m²',
     allowsScreen: 'An insect screen can be built in (shared box and guides)', canIntegrate: 'Can be built into a shading',
     integratedTitle: 'Purchase price of the screen when built into a shading (count only the extra parts the screen adds: mesh, bar …)',
-    integratedHint: 'The box and guides are already in the price of the roller shutter, so do not enter them here. When the customer picks the roller shutter and this screen, this amount is used instead of the normal screen price.',
     shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height',
     shadeFixedSash: 'Fixed amount per sash', shadePerWSash: 'Per metre of sash width', shadePerHSash: 'Per metre of sash height', shadeCostM2Sash: 'Per m² of sash', shadeMin: 'Lowest sale price per window',
     shadeUnits: { m2: 'Per window', sash: 'Per sash' } as Record<string, string>,
@@ -1419,8 +1417,7 @@ export default function PriceListSetupPage() {
                               : <div className="space-y-2">
                                   <Checkbox checked={!!x.can_integrate} onChange={v => { if (canEdit) set(x.id, { can_integrate: v, integrated: x.integrated ?? {} }) }} label={T.canIntegrate} />
                                   {x.can_integrate && <div className="rounded-lg bg-[#f6f6f6] border border-gray-200 p-3">
-                                    <div className="text-xs font-medium text-[#7f7f7f]">{T.integratedTitle}</div>
-                                    <p className="text-xs text-[#7f7f7f] mt-0.5 mb-3">{T.integratedHint}</p>
+                                    <div className="text-xs font-medium text-[#7f7f7f] mb-3">{T.integratedTitle}</div>
                                     <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 items-start">
                                       {(['fixed', 'per_w', 'per_h', 'cost'] as const).map(f => (
                                         <NumberInput key={f} label={f === 'fixed' ? T.shadeFixed : f === 'per_w' ? T.shadePerW : f === 'per_h' ? T.shadePerH : T.shadeCostM2}
