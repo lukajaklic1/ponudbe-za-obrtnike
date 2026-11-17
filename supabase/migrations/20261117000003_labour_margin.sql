@@ -2,7 +2,8 @@
 -- 20261117000003_labour_margin.sql
 -- Two margins: one on the window material (margin_pct), one on the labour (labour_margin_pct).
 -- Labour can also be counted per metre of frame and mullions (labour_frame_m) and per metre of sash profile
--- (labour_sash_m), 0 when not set. Safe to run again.
+-- (labour_sash_m), 0 when not set. Every pane of glass is billed at least glass_min_m2 (0 = real area).
+-- Safe to run again.
 -- Price lists without labour_margin_pct keep using the material margin for labour, so no price changes.
 -- ============================================================
 
@@ -28,6 +29,8 @@ DECLARE
   sash    numeric := 0;
   bead    numeric := 0;
   glass   numeric := 0;
+  -- the glazier bills every pane at least this area
+  gmin    numeric := COALESCE((p->>'glass_min_m2')::numeric, 0);
   sashes  integer := 0;
   handles integer := 0;
   hw      numeric := 0;
@@ -77,7 +80,7 @@ BEGIN
     op := COALESCE(r.f->>'opening', 'fixed');
     IF op = 'fixed' THEN
       bead  := bead + 2 * (r.cw + r.ch);
-      glass := glass + r.cw * r.ch / 1000000;
+      glass := glass + GREATEST(r.cw * r.ch / 1000000.0, gmin);
     ELSE
       sashes := sashes + 1;
       -- a passive sash is opened from the other one: no handle
@@ -87,7 +90,7 @@ BEGIN
       sash := sash + 2 * (sw2 + sh2);
       gw := GREATEST(0, sw2 - 2 * sw); gh := GREATEST(0, sh2 - 2 * sw);
       bead  := bead + 2 * (gw + gh);
-      glass := glass + gw * gh / 1000000;
+      glass := glass + GREATEST(gw * gh / 1000000.0, gmin);
       -- hardware per sash = fixed + price per metre of the sash perimeter
       hw := hw + COALESCE((p->'hw'->>op)::numeric,
               CASE op WHEN 'tilt_turn' THEN 20 WHEN 'turn' THEN 15 WHEN 'tilt' THEN 18 WHEN 'passive' THEN 10 WHEN 'slide_window' THEN 40 WHEN 'slide' THEN 120 WHEN 'lift_slide' THEN 450 ELSE 0 END)
@@ -235,6 +238,7 @@ BEGIN
         'hw', (SELECT jsonb_object_agg(k, round(v::numeric * mf, 2)) FROM jsonb_each_text(hw) AS t(k, v)),
         'hw_m', (SELECT jsonb_object_agg(k, round(v::numeric * mf, 2)) FROM jsonb_each_text(hwm) AS t(k, v)),
         'glass_m2', round(COALESCE((c.window_pricing->>'glass_m2')::numeric, 32) * mf, 2),
+        'glass_min_m2', COALESCE((c.window_pricing->>'glass_min_m2')::numeric, 0),
         'labour_window', round(COALESCE((c.window_pricing->>'labour_window')::numeric, 30) * lmf, 2),
         'labour_sash', round(COALESCE((c.window_pricing->>'labour_sash')::numeric, 22) * lmf, 2),
         'labour_frame_m', round(COALESCE((c.window_pricing->>'labour_frame_m')::numeric, 0) * lmf, 2),

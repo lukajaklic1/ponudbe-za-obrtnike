@@ -99,6 +99,7 @@ const TXT = {
     metrePrices: 'Nabavne cene profila na tekoči meter', frameM: 'Okvir', sashM: 'Krilo', mullionM: 'Steber / prečka', beadM: 'Pritrdilna letvica',
     widths: 'Pogledne širine profilov', frameW: 'Okvir', sashW: 'Krilo', mullionW: 'Steber',
     s3: 'Delo, odrez in marža', s3hint: 'Pri delu vpišite svoje stroške brez marže. Za okvir in za vsako krilo vpišete fiksni strošek, ki je enak pri vsakem kosu (priprava, vgradnja okovja, nastavitev), in strošek na tekoči meter, ki raste z velikostjo (razrez, varjenje, čiščenje spojev). Prečke se štejejo k okvirju. Česar ne potrebujete, pustite na 0. Odrez je delež profila, ki ob rezanju gre v izgubo. Marža na material se doda na profile, okovje, steklo, kljuke, police in senčila, marža na delo pa na strošek dela. Storitvam v naslednjih točkah se ne prišteje, ker zanje vpišete prodajne cene.',
+    glassMin: 'Najmanjša obračunska površina na steklo', glassMinHint: 'Steklar vsako steklo zaračuna najmanj za to površino, tudi če je manjše (običajno 0,3 do 0,5 m²). Velja za vsa stekla. Če vam steklar zaračuna dejansko površino, pustite na 0.',
     glassTitle: 'Katere tipe stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je privzeto vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.',
     glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', addGlass: 'Dodaj steklo',
     handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je osnovna in je privzeto vključena v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.', handleColor: 'Barva kljuke', customColor: 'Barva po meri …', customShort: 'Po meri', choosePhoto: 'Izberi fotografijo', changePhoto: 'Zamenjaj', handlePhotoRemoveMsg: (n: string) => `Fotografija kljuke »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala narisana kljuka.`,
@@ -195,6 +196,7 @@ const TXT = {
     metrePrices: 'Purchase price of the profile per metre', frameM: 'Frame', sashM: 'Sash', mullionM: 'Mullion / transom', beadM: 'Glazing bead',
     widths: 'Visible widths frame / sash / mullion', frameW: 'Frame', sashW: 'Sash', mullionW: 'Mullion',
     s3: 'Labour, waste and margin', s3hint: 'For labour enter your own costs without margin. For the frame and for every sash enter a fixed cost that is the same for every piece (preparation, fitting hardware, adjusting) and a cost per metre that grows with the size (cutting, welding, cleaning the joints). Mullions count with the frame. Leave at 0 what you do not need. Waste is the share of the profile lost when cutting. The material margin goes on the profiles, hardware, glass, handles, sills and shading, the labour margin on the labour cost. Neither is added to the services in the next steps, because you enter sale prices for them.',
+    glassMin: 'Smallest billed area per pane', glassMinHint: 'The glazier bills every pane at least this area, even when it is smaller (usually 0.3 to 0.5 m²). Applies to all glass. If your glazier bills the real area, leave at 0.',
     glassTitle: 'Which types of glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.',
     glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', addGlass: 'Add glass',
     handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the base one and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.', handleColor: 'Handle colour', customColor: 'Custom colour …', customShort: 'Custom', choosePhoto: 'Choose a photo', changePhoto: 'Replace', handlePhotoRemoveMsg: (n: string) => `The photo of handle "${n}" is removed the next time you save the price list. The drawn handle is shown instead.`,
@@ -1326,6 +1328,13 @@ export default function PriceListSetupPage() {
                 </div>
                 {canEdit && <button type="button" onClick={() => setList([...list, { id: newRoofId(), name: '', ug: null, layers: 2, cost_m2: 0 }])}
                   className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addGlass}</button>}
+                {/* the glazier's smallest billed area, for all glass */}
+                <div className="mt-5 pt-4 border-t border-gray-100">
+                  <div className="sm:max-w-[calc(50%-6px)]">
+                    <NumberInput label={T.glassMin} unit="m²" value={pricing.glass_min_m2 ?? 0} onValue={v => setPrice({ glass_min_m2: v ?? 0 })} decimals={2} />
+                  </div>
+                  <p className="text-xs font-medium text-[#7f7f7f] mt-1.5">{T.glassMinHint}</p>
+                </div>
               </div>
             })()}
           </Step>

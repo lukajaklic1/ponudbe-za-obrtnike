@@ -36,6 +36,8 @@ export interface PricingSettings {
   hw: Record<Exclude<Opening, 'fixed'>, number>
   hw_m: Record<Exclude<Opening, 'fixed'>, number>
   glass_m2: number
+  /** the glazier bills every pane at least this area (m²); 0 = the real area */
+  glass_min_m2?: number
   labour_window: number
   labour_sash: number
   /** labour per metre of frame and mullions (cutting, welding …); 0 when not used */
@@ -359,7 +361,9 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const botH = layout.bottom ? Math.round(H * layout.bottom.ratio) : 0
   const innerW = W - 2 * fw
 
-  let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, sashes = 0, handles = 0
+  let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, glassBill = 0, sashes = 0, handles = 0
+  // every pane is billed at least the glazier's smallest area
+  const pane = (a: number) => { glassArea += a; glassBill += Math.max(a, s.glass_min_m2 ?? 0) }
   // sizes of the opening sashes added up (for shading / screens priced per sash)
   let sashWSum = 0, sashHSum = 0, sashArea = 0
   const hw: Record<string, { n: number; total: number }> = {}
@@ -369,7 +373,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     if (cw <= 0 || ch <= 0) return
     if (f.opening === 'fixed') {
       beadLen += 2 * (cw + ch)
-      glassArea += (cw * ch) / 1e6
+      pane((cw * ch) / 1e6)
       return
     }
     sashes++
@@ -379,7 +383,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     sashLen += 2 * (sashW + sashH)
     const gw = Math.max(0, sashW - 2 * sw), gh = Math.max(0, sashH - 2 * sw)
     beadLen += 2 * (gw + gh)
-    glassArea += (gw * gh) / 1e6
+    pane((gw * gh) / 1e6)
     const k = f.opening as keyof PricingSettings['hw']
     const cur = hw[k] ?? { n: 0, total: 0 }
     hw[k] = { n: cur.n + 1, total: cur.total + (s.hw[k] ?? 0) + (s.hw_m?.[k] ?? 0) * 2 * (sashW + sashH) / 1000 }
@@ -419,7 +423,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   add('bead', L('bead', 'Pritrdilne letvice'), m(beadLen), 'm', p.bead_m * colorF)
   const profileCost = lines.reduce((a, l) => a + l.total, 0)
   const gl = glassOf(s, opts.glassId), hd = handleOf(s, opts.handleId)
-  add('glass', gl ? `${L('glass', 'Steklo')}: ${gl.name}` : L('glass', 'Steklo'), glassArea, 'm²', (gl ? gl.cost_m2 : s.glass_m2) + (opts.glassExtraM2 ?? 0))
+  add('glass', gl ? `${L('glass', 'Steklo')}: ${gl.name}` : L('glass', 'Steklo'), glassBill, 'm²', (gl ? gl.cost_m2 : s.glass_m2) + (opts.glassExtraM2 ?? 0))
   for (const [k, v] of Object.entries(hw)) add('hw_' + k, L('hw_' + k, 'Okovje ' + k), v.n, 'kos', v.total / v.n)
   if (hd) add('handle', `${L('handle', 'Kljuke')}: ${hd.name}`, handles, 'kos', hd.cost)
   // window sills: as long as the window is wide
