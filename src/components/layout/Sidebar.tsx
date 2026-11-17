@@ -61,7 +61,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       onClick={handleNavClick}
       className={({ isActive }) => cn(
         'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-        isActive ? 'nav-active bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]' : 'text-[#131313] hover:bg-[#eeeeee]',
+        isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
       )}
     >
       <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
@@ -133,7 +133,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
 'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]' : 'text-[#131313] hover:bg-[#eeeeee]',
+            isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
           )}
         >
           <UserCog className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
@@ -144,7 +144,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
 'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]' : 'text-[#131313] hover:bg-[#eeeeee]',
+            isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
           )}
         >
           <Settings className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
