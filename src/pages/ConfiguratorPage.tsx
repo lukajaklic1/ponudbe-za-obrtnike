@@ -211,8 +211,12 @@ export default function ConfiguratorPage() {
   }
   const serviceRows = useMemo(() => {
     if (!data) return []
-    const wins = items.map(x => ({ width: x.width ?? 0, height: x.height ?? 0, quantity: x.quantity, base: baseOf(x) }))
-    return data.options.filter(o => services.includes(o.id)).map(o => ({ option: o, ...serviceLine(o, wins) }))
+    const wins = items.map(x => ({ width: x.width ?? 0, height: x.height ?? 0, quantity: x.quantity, base: baseOf(x),
+      sills: (x.sills?.in ? 1 : 0) + (x.sills?.out ? 1 : 0), shades: x.shading?.shade ? 1 : 0, screens: x.shading?.screen ? 1 : 0 }))
+    // work on chosen sills / shadings / insect screens comes automatically with the chosen installation
+    const installing = data.options.some(o => o.group_key === 'installation' && services.includes(o.id))
+    const auto = (o: WindowOption) => !!o.per_item && o.per_item !== 'window'
+    return data.options.filter(o => auto(o) ? installing : services.includes(o.id)).map(o => ({ option: o, ...serviceLine(o, wins) })).filter(r => !auto(r.option) || r.qty > 0)
   }, [data, items, services])
   function toggleService(o: WindowOption) {
     // one way of installation at a time; everything else is an on/off add-on
@@ -791,10 +795,10 @@ export default function ConfiguratorPage() {
               {data.options.some(isService) && <Section n={nextStep()} title={T.step5} accent={accent}>
                 <p className="text-xs text-gray-500 -mt-1 mb-3">{T.servicesHint}</p>
                 <div className="space-y-4">
-                  {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g)).map(g => <div key={g}>
+                  {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g && (!o.per_item || o.per_item === 'window'))).map(g => <div key={g}>
                     <div className="text-xs font-medium text-gray-500 mb-1.5">{L.groups[g]}</div>
                     <div className="flex flex-wrap gap-2">
-                      {data.options.filter(o => o.group_key === g).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
+                      {data.options.filter(o => o.group_key === g && (!o.per_item || o.per_item === 'window')).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
                         {o.name}{show && <span className="ml-1.5 opacity-70">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
                       </Chip>)}
                     </div>
@@ -868,7 +872,7 @@ export default function ConfiguratorPage() {
               {serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 space-y-1">
                 <li className="text-xs font-medium text-gray-500">{T.servicesTitle}</li>
                 {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-gray-700 min-w-0 truncate">{r.option.name} <span className="text-xs text-gray-400">{r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
+                  <span className="text-gray-700 min-w-0 truncate">{r.option.name} <span className="text-xs text-gray-400">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
                   {show && <span className="text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
                 </li>)}
               </ul>}

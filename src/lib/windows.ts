@@ -45,6 +45,8 @@ export interface WindowOption {
   pricing: OptionPricing; price: number | null; is_default: boolean; sort_order?: number; is_active?: boolean
   /** amount per window added on top of price (installation, removal) */
   price_piece?: number | null
+  /** what the per-piece amount counts: every window, or only chosen sills / shadings / insect screens */
+  per_item?: 'window' | 'sill' | 'shade' | 'screen' | null
 }
 
 export const TEMPLATES: WindowTemplate[] = [
@@ -152,8 +154,14 @@ export function unitPrice(base: number | null, w: number, h: number, options: Wi
 }
 
 /** Services for a whole order: quantity summed over all windows (same rules as the server). */
-export function serviceLine(o: WindowOption, windows: { width: number; height: number; quantity: number; base: number | null }[]) {
+export function serviceLine(o: WindowOption, windows: { width: number; height: number; quantity: number; base: number | null; sills?: number; shades?: number; screens?: number }[]) {
   const price = Number(o.price ?? 0)
+  // only the chosen pieces count (same as the server)
+  if (o.per_item && o.per_item !== 'window') {
+    const n = windows.reduce((a, w) => a + (o.per_item === 'sill' ? w.sills ?? 0 : o.per_item === 'shade' ? w.shades ?? 0 : w.screens ?? 0) * (w.quantity || 0), 0)
+    const unit = r2(Number(o.price_piece ?? 0))
+    return { qty: n, unitPrice: unit, total: r2(n * unit) }
+  }
   let qty = 0
   for (const w of windows) {
     const q = w.quantity || 0

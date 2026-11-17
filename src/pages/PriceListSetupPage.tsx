@@ -50,9 +50,10 @@ interface ProfileRow {
 const toPrices = (p: ProfileRow): ProfilePrices => ({ frame_m: p.frame_m ?? 0, sash_m: p.sash_m ?? 0, mullion_m: p.mullion_m ?? 0, bead_m: p.bead_m ?? 0, frame_w: p.frame_w, sash_w: p.sash_w, mullion_w: p.mullion_w })
 // reference window used to compare profiles and to derive the per-m² price for the current configurator
 const REF = { template: 'double_mullion' as WindowTemplate, w: 1200, h: 1400 }
-interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string; description?: string; price_piece?: number | null }
+interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string; description?: string; price_piece?: number | null; per_item?: PerItem }
 
-interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string; description?: string; price_piece?: number; /** filled in for a new price list (the rest only under quick add) */ sample?: boolean }
+type PerItem = 'window' | 'sill' | 'shade' | 'screen'
+interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string; description?: string; price_piece?: number; per_item?: PerItem; /** filled in for a new price list (the rest only under quick add) */ sample?: boolean }
 interface Section { group: OptionGroup; title: string; hint: string; units: OptionPricing[]; single: boolean; presets: Preset[] }
 
 function metreOrSample(x: Partial<WindowSystem> & { material: WindowMaterial }) {
@@ -112,9 +113,10 @@ const TXT = {
     allowsScreen: 'Omogoča vgrajen komarnik (skupna omarica in vodila)', canIntegrate: 'Lahko je vgrajen v senčilo',
     installTitle: 'Katere vrste montaže ponujate?',
     installHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Cena za eno okno je znesek na okno + znesek na tekoči meter × obseg okna, kjer je obseg 2 × (širina + višina). Primer: okno 1,2 × 1,4 m ima obseg 5,2 m; pri 20 € na okno in 6 €/m je montaža 20 + 6 × 5,2 = 51,20 €. Česar ne potrebujete, pustite na 0. Stranka v konfiguratorju izbere eno vrsto montaže, prva na seznamu je izbrana vnaprej.',
-    servicePerWindow: 'Na okno', servicePerMetre: 'Na tekoči meter obsega okna', serviceFlat: 'Pavšal na ponudbo',
+    servicePerWindow: 'Na okno', servicePerMetre: 'Na tekoči meter obsega okna', serviceFlat: 'Pavšal na ponudbo', servicePerPiece: 'Cena na kos',
+    perItemLabel: 'Zaračuna se', perItems: { window: 'Za vsako okno', sill: 'Za vsako izbrano polico', shade: 'Za vsako izbrano senčilo', screen: 'Za vsak izbran komarnik' } as Record<string, string>,
     finishTitle: 'Katera zaključna dela ponujate?',
-    finishHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Cena se izračuna enako kot pri montaži: znesek na okno + znesek na tekoči meter × obseg okna. Česar ne potrebujete, pustite na 0. Stranka v konfiguratorju izbere, katera zaključna dela potrebuje.',
+    finishHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Cena se izračuna enako kot pri montaži: znesek na okno + znesek na tekoči meter × obseg okna. Česar ne potrebujete, pustite na 0. Postavke za vsako okno stranka izbere sama. Postavke za vsako izbrano polico, senčilo ali komarnik se dodajo samodejno, ko stranka izbere montažo, in se štejejo samo za kose, ki jih je izbrala.',
     finishNamePh: 'npr. Zidarska obdelava špalet', finishDescPh: 'npr. Špalete po montaži zidarsko obdelamo.', addFinish: 'Dodaj zaključno delo',
     transportTitle: 'Kaj zaračunate za prevoz in odvoz?',
     transportHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Pavšal se zaračuna enkrat na ponudbo, znesek na okno pa za vsako okno. Česar ne potrebujete, pustite na 0. Stranka v konfiguratorju izbere, kaj potrebuje.',
@@ -207,9 +209,10 @@ const TXT = {
     allowsScreen: 'An insect screen can be built in (shared box and guides)', canIntegrate: 'Can be built into a shading',
     installTitle: 'Which kinds of installation do you offer?',
     installHint: 'Enter sale prices without VAT, no margin is added to them. The price for one window is the amount per window + the amount per metre × the window perimeter, where the perimeter is 2 × (width + height). Example: a 1.2 × 1.4 m window has a perimeter of 5.2 m; at 20 € per window and 6 €/m the installation is 20 + 6 × 5.2 = 51.20 €. Leave at 0 what you do not need. The customer picks one kind of installation in the configurator, the first one in the list is picked in advance.',
-    servicePerWindow: 'Per window', servicePerMetre: 'Per metre of window perimeter', serviceFlat: 'Flat per quote',
+    servicePerWindow: 'Per window', servicePerMetre: 'Per metre of window perimeter', serviceFlat: 'Flat per quote', servicePerPiece: 'Price per piece',
+    perItemLabel: 'Charged', perItems: { window: 'For every window', sill: 'For every chosen sill', shade: 'For every chosen shading', screen: 'For every chosen insect screen' } as Record<string, string>,
     finishTitle: 'Which finishing work do you offer?',
-    finishHint: 'Enter sale prices without VAT, no margin is added to them. The price is worked out like installation: the amount per window + the amount per metre × the window perimeter. Leave at 0 what you do not need. The customer picks in the configurator which finishing work they need.',
+    finishHint: 'Enter sale prices without VAT, no margin is added to them. The price is worked out like installation: the amount per window + the amount per metre × the window perimeter. Leave at 0 what you do not need. The customer picks items charged per window. Items charged for every chosen sill, shading or insect screen are added automatically when the customer picks an installation, and count only the pieces they picked.',
     finishNamePh: 'e.g. Plastering the reveals', finishDescPh: 'e.g. The reveals are plastered after installation.', addFinish: 'Add finishing work',
     transportTitle: 'What do you charge for transport and disposal?',
     transportHint: 'Enter sale prices without VAT, no margin is added to them. The flat amount is charged once per quote, the amount per window for every window. Leave at 0 what you do not need. The customer picks in the configurator what they need.',
@@ -301,10 +304,10 @@ function sectionsFor(lang: 'sl' | 'en'): Section[] {
       presets: [
         { name: 'Montaža zaključnih letvic, silikoniranje, manjše kitanje', pricing: 'perimeter', price: 3.44, description: 'Rego med oknom in zidom zaključimo z letvicami in silikonom, manjše poškodbe zakitamo.' },
         { name: 'Pokrivna letev 30 mm, bela, znotraj in zunaj', pricing: 'perimeter', price: 4.74, description: 'Bela pokrivna letev širine 30 mm na notranji in zunanji strani okna.' },
-        { name: 'Kitanje pod polico', pricing: 'perimeter', price: 0, price_piece: 6.58, description: 'Prostor pod polico zapolnimo in zakitamo.' },
-        { name: 'Montaža polic', pricing: 'perimeter', price: 0, price_piece: 9.16, description: 'Montaža notranje ali zunanje police.' },
-        { name: 'Montaža predokenskih rolet', pricing: 'perimeter', price: 0, price_piece: 15.74, description: 'Montaža rolete z omarico pred oknom.' },
-        { name: 'Montaža fiksnih komarnikov', pricing: 'perimeter', price: 0, price_piece: 4.58, description: 'Namestitev fiksnega komarnika na okno.' },
+        { name: 'Kitanje pod polico', pricing: 'perimeter', price: 0, price_piece: 6.58, per_item: 'sill', description: 'Prostor pod polico zapolnimo in zakitamo.' },
+        { name: 'Montaža polic', pricing: 'perimeter', price: 0, price_piece: 9.16, per_item: 'sill', description: 'Montaža notranje ali zunanje police.' },
+        { name: 'Montaža predokenskih rolet', pricing: 'perimeter', price: 0, price_piece: 15.74, per_item: 'shade', description: 'Montaža rolete z omarico pred oknom.' },
+        { name: 'Montaža fiksnih komarnikov', pricing: 'perimeter', price: 0, price_piece: 4.58, per_item: 'screen', description: 'Namestitev fiksnega komarnika na okno.' },
         { name: 'Zidarska obdelava špalet', pricing: 'perimeter', price: 12, description: 'Špalete po montaži zidarsko obdelamo in pripravimo za pleskanje.' },
       ] },
     { group: 'transport', title: sl ? 'Prevoz in odvoz' : 'Transport and disposal', hint: sl ? 'Pavšal enkrat na ponudbo.' : 'Flat, once per quote.',
@@ -312,7 +315,6 @@ function sectionsFor(lang: 'sl' | 'en'): Section[] {
       presets: [
         { name: 'Dostava na objekt', pricing: 'flat', price: 50, description: 'Okna pripeljemo na vaš naslov.' },
         { name: 'Odvoz starih oken na deponijo', pricing: 'flat', price: 0, price_piece: 16.46, description: 'Stara okna odpeljemo in oddamo na deponijo.' },
-        { name: 'Odvoz embalaže in gradbenih odpadkov', pricing: 'flat', price: 40, description: 'Po montaži odpeljemo embalažo in odpadke.' },
       ] },
   ]
 }
@@ -411,7 +413,7 @@ export default function PriceListSetupPage() {
     }
     setMatOn(Object.fromEntries(MATERIALS.map(m => [m, sys.some(x => x.material === m && x.is_active !== false)])))
     setRemovedProfiles([])
-    setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined, description: x.group_key === 'color' ? undefined : x.description ?? '', price_piece: x.price_piece == null ? 0 : Number(x.price_piece) }))
+    setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined, description: x.group_key === 'color' ? undefined : x.description ?? '', price_piece: x.price_piece == null ? 0 : Number(x.price_piece), per_item: (x.per_item ?? 'window') as PerItem }))
       // installation / removal: an amount per window plus per metre of perimeter (older per-window rows move over)
       .map(r => (r.group_key === 'transport' && r.pricing !== 'flat') ? { ...r, pricing: 'flat' as OptionPricing, price_piece: (r.price_piece ?? 0) + (r.pricing === 'piece' ? r.price ?? 0 : 0), price: 0 } : r)
       .map(r => (r.group_key === 'installation' || r.group_key === 'removal' || r.group_key === 'finishing') && r.pricing !== 'perimeter'
@@ -648,7 +650,7 @@ export default function PriceListSetupPage() {
   const setOption = (key: string, patch: Partial<OptionRow>) => { setOptions(xs => xs.map(x => x.key === key ? { ...x, ...patch } : x)); touch() }
   function addOption(sec: Section, preset?: Preset) {
     const first = !options.some(o => o.group_key === sec.group)
-    setOptions(xs => [...xs, { key: nk(), group_key: sec.group, name: preset?.name ?? '', pricing: preset?.pricing ?? sec.units[0], price: preset?.price ?? null, is_default: sec.single && first, swatch: sec.group === 'color' ? preset?.swatch ?? '#ffffff' : undefined, description: preset?.description ?? '', price_piece: preset?.price_piece ?? 0 }])
+    setOptions(xs => [...xs, { key: nk(), group_key: sec.group, name: preset?.name ?? '', pricing: preset?.pricing ?? sec.units[0], price: preset?.price ?? null, is_default: sec.single && first, swatch: sec.group === 'color' ? preset?.swatch ?? '#ffffff' : undefined, description: preset?.description ?? '', price_piece: preset?.price_piece ?? 0, per_item: preset?.per_item ?? 'window' }])
     touch()
   }
   function removeOption(row: OptionRow) {
@@ -720,7 +722,7 @@ export default function PriceListSetupPage() {
       for (const [i, o] of options.entries()) {
         if (!o.name.trim()) continue
         const isDefault = o.group_key === 'installation' ? o.key === firstInstall : o.is_default
-        const payload = { group_key: o.group_key, name: o.name.trim(), pricing: o.pricing, price: o.price ?? 0, is_default: isDefault, is_active: true, sort_order: i, updated_at: now, description: o.group_key === 'color' ? o.swatch ?? null : o.description?.trim() || null, ...(['installation', 'removal', 'finishing', 'transport'].includes(o.group_key) ? { price_piece: o.price_piece ?? 0 } : {}) }
+        const payload = { group_key: o.group_key, name: o.name.trim(), pricing: o.pricing, price: o.price ?? 0, is_default: isDefault, is_active: true, sort_order: i, updated_at: now, description: o.group_key === 'color' ? o.swatch ?? null : o.description?.trim() || null, ...(['installation', 'removal', 'finishing', 'transport'].includes(o.group_key) ? { price_piece: o.price_piece ?? 0 } : {}), ...(o.group_key === 'finishing' ? { per_item: o.per_item ?? 'window' } : {}) }
         const { error } = o.id
           ? await supabase.from('window_options' as any).update(payload).eq('id', o.id)
           : await supabase.from('window_options' as any).insert({ ...payload, company_id: company.id })
@@ -742,7 +744,7 @@ export default function PriceListSetupPage() {
   // live preview (like Fenestro): one example window, base price + every default choice as its own line
 
   // services entered as sale prices (installation, removal): one card per kind, with a description for the customer
-  function serviceCards(group: OptionGroup, firstPicked: boolean, t: { namePh: string; descPh: string; add: string }, flat = false) {
+  function serviceCards(group: OptionGroup, firstPicked: boolean, t: { namePh: string; descPh: string; add: string }, flat = false, perItem = false) {
               const sec = sections.find(x => x.group === group)!
               const rows = options.filter(o => o.group_key === group)
               const unused = sec.presets.filter(pr => !rows.some(r => r.name.trim().toLowerCase() === pr.name.toLowerCase()))
@@ -756,12 +758,23 @@ export default function PriceListSetupPage() {
                       {canEdit && <button type="button" onClick={() => askRemove(r.name, () => removeOption(r))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                    {perItem && <div className="flex flex-col gap-1 sm:max-w-[calc(50%-6px)]">
+                      <label className="text-xs font-medium text-[#7f7f7f]">{T.perItemLabel}</label>
+                      <select value={r.per_item ?? 'window'} disabled={!canEdit} onChange={e => { const per = e.target.value as PerItem; setOption(r.key, per === 'window' ? { per_item: per } : { per_item: per, price: 0 }) }}
+                        className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {(['window', 'sill', 'shade', 'screen'] as const).map(k => <option key={k} value={k}>{T.perItems[k]}</option>)}
+                      </select>
+                    </div>}
+                    {perItem && (r.per_item ?? 'window') !== 'window'
+                      ? <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                          <NumberInput label={T.servicePerPiece} unit={cur} value={r.price_piece ?? 0} onValue={v => setOption(r.key, { price_piece: v ?? 0 })} decimals={2} />
+                        </div>
+                      : <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                       <NumberInput label={T.servicePerWindow} unit={cur} value={r.price_piece ?? 0} onValue={v => setOption(r.key, { price_piece: v ?? 0 })} decimals={2} />
                       {flat
                         ? <NumberInput label={T.serviceFlat} unit={cur} value={r.price ?? 0} onValue={v => setOption(r.key, { price: v ?? 0, pricing: 'flat' })} decimals={2} />
                         : <NumberInput label={T.servicePerMetre} unit={`${cur}/m`} value={r.price ?? 0} onValue={v => setOption(r.key, { price: v ?? 0, pricing: 'perimeter' })} decimals={2} />}
-                    </div>
+                    </div>}
                     <div>
                       <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
                       <textarea value={r.description ?? ''} onChange={e => setOption(r.key, { description: e.target.value })} disabled={!canEdit} placeholder={t.descPh} rows={2}
@@ -1569,7 +1582,7 @@ export default function PriceListSetupPage() {
 
           {/* 12. finishing work: the customer picks what they need */}
           <Step n={12} title={T.finishTitle} hint={T.finishHint}>
-            {serviceCards('finishing', false, { namePh: T.finishNamePh, descPh: T.finishDescPh, add: T.addFinish })}
+            {serviceCards('finishing', false, { namePh: T.finishNamePh, descPh: T.finishDescPh, add: T.addFinish }, false, true)}
           </Step>
 
           {/* 13. transport and disposal: a flat amount per quote plus an amount per window */}
