@@ -98,7 +98,7 @@ const TXT = {
     surcharge: 'Doplačilo',
     metrePrices: 'Nabavne cene profila na tekoči meter', frameM: 'Okvir', sashM: 'Krilo', mullionM: 'Steber / prečka', beadM: 'Pritrdilna letvica',
     widths: 'Pogledne širine profilov', frameW: 'Okvir', sashW: 'Krilo', mullionW: 'Steber',
-    s3: 'Delo, odrez in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril.',
+    s3: 'Delo, odrez in marža', s3hint: 'Velja za vse profile. Iz tega in dolžin profilov aplikacija izračuna ceno vsakega okna, tudi vseh kombinacij kril. Marža se doda na celotno okno: profile, okovje, steklo, kljuke, police in senčila. Storitvam v naslednjih točkah se ne prišteje, ker zanje vpišete prodajne cene.',
     glassTitle: 'Katere tipe stekla ponujate?', glassHint: 'Vnesite nabavno ceno stekla na m². Prvo steklo je osnovno in je privzeto vključeno v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.',
     glassName: 'Steklo', ugLabel: 'Toplotna prehodnost', glassDescLabel: 'Opis za kupca', glassLayers: 'Število stekel', glassCost: 'Nabavna cena', layers2: 'Dvoslojno', layers3: 'Troslojno', baseIncluded: 'Osnovno, vključeno', addGlass: 'Dodaj steklo',
     handleTitle: 'Katere kljuke ponujate?', handleHint: 'Vnesite nabavno ceno ene kljuke. Okno dobi toliko kljuk, kolikor ima kril, ki se odpirajo s kljuko (pasivno krilo in fiksni del je nimata). Prva kljuka je osnovna in je privzeto vključena v ceno okna, pri ostalih stranka v konfiguratorju vidi doplačilo. Marža se doda na koncu na celotno okno.', handleColor: 'Barva kljuke', customColor: 'Barva po meri …', customShort: 'Po meri', choosePhoto: 'Izberi fotografijo', changePhoto: 'Zamenjaj', handlePhotoRemoveMsg: (n: string) => `Fotografija kljuke »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala narisana kljuka.`,
@@ -125,7 +125,7 @@ const TXT = {
     installUnits: { perimeter: 'Na tekoči meter obsega okna', piece: 'Na okno' } as Record<string, string>,
     installDescPh: 'npr. Okno pritrdimo s sidri, režo zapolnimo s PU peno.', installFirst: 'Izbrana vnaprej',
     removalTitle: 'Katere vrste demontaže ponujate?',
-    removalHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Cena se izračuna enako kot pri montaži: znesek na okno + znesek na tekoči meter × obseg okna. Česar ne potrebujete, pustite na 0. Stranka v konfiguratorju izbere, ali potrebuje demontažo in katero, vnaprej ni izbrana nobena. Odvoz starih oken na deponijo vpišete v točki 13.',
+    removalHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Cena se izračuna enako kot pri montaži: znesek na okno + znesek na tekoči meter × obseg okna. Česar ne potrebujete, pustite na 0. Stranka v konfiguratorju izbere, ali potrebuje demontažo in katero, vnaprej ni izbrana nobena. Odvoz starih oken na deponijo vpišete v točki 14.',
     removalNamePh: 'npr. Demontaža starih oken', addRemoval: 'Dodaj demontažo', removalDescPh: 'npr. Stara okna previdno odstranimo, da se zid čim manj poškoduje.',
     integratedTitle: 'Nabavna cena za komarnik, ko je vgrajen v senčilo (Upoštevajte samo strošek dodatnih delov, ki jih komarnik doda: mreža, letev …)',
     shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine',
@@ -194,7 +194,7 @@ const TXT = {
     surcharge: 'Surcharge',
     metrePrices: 'Purchase price of the profile per metre', frameM: 'Frame', sashM: 'Sash', mullionM: 'Mullion / transom', beadM: 'Glazing bead',
     widths: 'Visible widths frame / sash / mullion', frameW: 'Frame', sashW: 'Sash', mullionW: 'Mullion',
-    s3: 'Labour, waste and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination.',
+    s3: 'Labour, waste and margin', s3hint: 'Applies to all profiles. Together with the profile lengths the app prices every window and every sash combination. The margin goes on the whole window: profiles, hardware, glass, handles, sills and shading. It is not added to the services in the next steps, because you enter sale prices for them.',
     glassTitle: 'Which types of glass do you offer?', glassHint: 'Enter the purchase price of the glass per m². The first glass is the base glass and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.',
     glassName: 'Glass', ugLabel: 'Thermal transmittance', glassDescLabel: 'Description for the customer', glassLayers: 'Number of panes', glassCost: 'Purchase price', layers2: 'Double', layers3: 'Triple', baseIncluded: 'Base, included', addGlass: 'Add glass',
     handleTitle: 'Which handles do you offer?', handleHint: 'Enter the purchase price of one handle. A window gets one handle per sash that opens with a handle (a passive sash and a fixed field have none). The first handle is the base one and is included in the window price by default; for the others the customer sees the surcharge in the configurator. The margin is added to the whole window at the end.', handleColor: 'Handle colour', customColor: 'Custom colour …', customShort: 'Custom', choosePhoto: 'Choose a photo', changePhoto: 'Replace', handlePhotoRemoveMsg: (n: string) => `The photo of handle "${n}" is removed the next time you save the price list. The drawn handle is shown instead.`,
@@ -221,7 +221,7 @@ const TXT = {
     installUnits: { perimeter: 'Per metre of window perimeter', piece: 'Per window' } as Record<string, string>,
     installDescPh: 'e.g. The window is fixed with anchors, the gap is filled with PU foam.', installFirst: 'Picked in advance',
     removalTitle: 'Which kinds of removal do you offer?',
-    removalHint: 'Enter sale prices without VAT, no margin is added to them. The price is worked out like installation: the amount per window + the amount per metre × the window perimeter. Leave at 0 what you do not need. The customer picks in the configurator whether they need removal and which, none is picked in advance. Disposal of old windows goes in step 13.',
+    removalHint: 'Enter sale prices without VAT, no margin is added to them. The price is worked out like installation: the amount per window + the amount per metre × the window perimeter. Leave at 0 what you do not need. The customer picks in the configurator whether they need removal and which, none is picked in advance. Disposal of old windows goes in step 14.',
     removalNamePh: 'e.g. Removing old windows', addRemoval: 'Add removal', removalDescPh: 'e.g. Old windows are taken out carefully so the wall is damaged as little as possible.',
     integratedTitle: 'Purchase price of the screen when built into a shading (count only the extra parts the screen adds: mesh, bar …)',
     shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height',
@@ -1570,23 +1570,33 @@ export default function PriceListSetupPage() {
             })()}
           </Step>
 
-          {/* 10. kinds of installation: the customer picks one, the first is picked in advance */}
-          <Step n={10} title={T.installTitle} hint={T.installHint}>
+          {/* 10. labour, waste and margin: closes the window itself (the margin goes on the whole window, not on the services below) */}
+          <Step n={10} title={T.s3} hint={T.s3hint}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
+              <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
+              <NumberInput label={T.waste} unit="%" value={pricing.waste_pct} onValue={v => setPrice({ waste_pct: v ?? 0 })} decimals={0} />
+              <NumberInput label={T.margin} unit="%" value={pricing.margin_pct} onValue={v => setPrice({ margin_pct: v ?? 0 })} decimals={0} />
+            </div>
+          </Step>
+
+          {/* 11. kinds of installation: the customer picks one, the first is picked in advance */}
+          <Step n={11} title={T.installTitle} hint={T.installHint}>
             {serviceCards('installation', true, { namePh: T.installNamePh, descPh: T.installDescPh, add: T.addInstall })}
           </Step>
 
-          {/* 11. kinds of removal: the customer picks one or none, nothing picked in advance */}
-          <Step n={11} title={T.removalTitle} hint={T.removalHint}>
+          {/* 12. kinds of removal: the customer picks one or none, nothing picked in advance */}
+          <Step n={12} title={T.removalTitle} hint={T.removalHint}>
             {serviceCards('removal', false, { namePh: T.removalNamePh, descPh: T.removalDescPh, add: T.addRemoval })}
           </Step>
 
-          {/* 12. finishing work: the customer picks what they need */}
-          <Step n={12} title={T.finishTitle} hint={T.finishHint}>
+          {/* 13. finishing work: the customer picks what they need */}
+          <Step n={13} title={T.finishTitle} hint={T.finishHint}>
             {serviceCards('finishing', false, { namePh: T.finishNamePh, descPh: T.finishDescPh, add: T.addFinish }, false, true)}
           </Step>
 
-          {/* 13. transport and disposal: a flat amount per quote plus an amount per window */}
-          <Step n={13} title={T.transportTitle} hint={T.transportHint}>
+          {/* 14. transport and disposal: a flat amount per quote plus an amount per window */}
+          <Step n={14} title={T.transportTitle} hint={T.transportHint}>
             {serviceCards('transport', false, { namePh: T.transportNamePh, descPh: T.transportDescPh, add: T.addTransport }, true)}
           </Step>
 
@@ -1595,7 +1605,7 @@ export default function PriceListSetupPage() {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + 14} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + 15} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">
@@ -1631,15 +1641,6 @@ export default function PriceListSetupPage() {
             )
           })}
 
-          {/* last: glass, labour, waste and margin (the margin goes on the whole window) */}
-          <Step n={14 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
-              <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
-              <NumberInput label={T.waste} unit="%" value={pricing.waste_pct} onValue={v => setPrice({ waste_pct: v ?? 0 })} decimals={0} />
-              <NumberInput label={T.margin} unit="%" value={pricing.margin_pct} onValue={v => setPrice({ margin_pct: v ?? 0 })} decimals={0} />
-            </div>
-          </Step>
 
           {/* worked example at the very bottom: the whole price of a double window without a mullion (passive + tilt & turn sash),
               with the first profile and the supplier's own prices from all steps above: data first, then the calculation step by step */}
