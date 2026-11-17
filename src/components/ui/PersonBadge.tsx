@@ -1,6 +1,6 @@
 // Avatars: quiet grey circle with the initials everywhere in lists (Levelpath style),
-// the deep teal one only for the signed-in person at the bottom of the sidebar.
-const BRAND_COLOR = '#0d5c6e'
+// the black one only for the signed-in person at the bottom of the sidebar.
+const BRAND_COLOR = '#131313'
 
 export function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -13,7 +13,7 @@ export function avatarColor(_name?: string) {
 
 /**
  * Round avatar. `tone="neutral"` (default): light grey circle, thin border, first letter in dark grey.
- * `tone="brand"`: deep teal circle with white initials (only for "you" in the sidebar).
+ * `tone="brand"`: black circle with white initials (only for "you" in the sidebar).
  */
 export function Avatar({ name, size = 24, tone = 'neutral' }: { name: string; size?: number; tone?: 'neutral' | 'brand' }) {
   if (tone === 'brand') {
