@@ -186,7 +186,7 @@ export default function DashboardPage() {
     { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#e5eeff]',   iconColor: 'text-[#215bcf]' },
     { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-[#fff3cc]',   iconColor: 'text-[#874d00]' },
     { key: 'won',    label: sl ? 'Dobljene' : 'Won',             icon: Trophy,       bg: 'bg-[#e0fced]',   iconColor: 'text-[#007d53]' },
-    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#f4f4f5]',   iconColor: 'text-[#52525b]' },
+    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#f4f4f5]',   iconColor: 'text-[#5f5f5f]' },
   ] as const
 
   const periods = [
@@ -304,8 +304,8 @@ export default function DashboardPage() {
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#484848' }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#484848' }} axisLine={false} tickLine={false} width={60} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5f5f5f' }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5f5f5f' }} axisLine={false} tickLine={false} width={60} />
                   <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
                   <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
@@ -320,8 +320,8 @@ export default function DashboardPage() {
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#484848' }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#484848' }} axisLine={false} tickLine={false} width={32} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5f5f5f' }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#5f5f5f' }} axisLine={false} tickLine={false} width={32} />
                   <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
                   <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
@@ -402,8 +402,8 @@ export default function DashboardPage() {
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }} barCategoryGap={8}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} />
-                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#484848' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#484848' }} axisLine={false} tickLine={false}
+                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5f5f5f' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#5f5f5f' }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0} %)`, sl ? 'Vrednost' : 'Value']}
                         cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />

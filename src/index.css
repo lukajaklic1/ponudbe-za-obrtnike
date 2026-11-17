@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.text-label { color: #484848; }
+.text-label { color: #5f5f5f; }
 
 /* ── Landing page animations ── */
 @keyframes fadeUp {
@@ -118,15 +118,15 @@ select:disabled {
 fieldset:disabled input,
 fieldset:disabled textarea {
   background-color: #f9fafb !important;
-  color: #52525b !important;
+  color: #5f5f5f !important;
   border-color: #dfdfdf !important;
   cursor: not-allowed;
 }
 
 fieldset:disabled select {
   background-color: #f9fafb !important;
-  color: #52525b !important;
-  -webkit-text-fill-color: #52525b !important;
+  color: #5f5f5f !important;
+  -webkit-text-fill-color: #5f5f5f !important;
   border-color: #dfdfdf !important;
   cursor: not-allowed;
 }
