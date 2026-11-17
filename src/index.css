@@ -191,3 +191,5 @@ fieldset:disabled textarea:focus {
 .robust main thead th > span.inline-flex { vertical-align: middle; }
 /* table text as big as the sidebar (15 px); rows with fields (quote lines) keep their own size */
 .robust main tbody tr:not(:has(input, textarea)) > td { font-size: 15px; }
+/* a little less side padding in table cells so more columns fit */
+.robust main :is(thead th, tbody td).px-4 { padding-left: 14px; padding-right: 14px; }
