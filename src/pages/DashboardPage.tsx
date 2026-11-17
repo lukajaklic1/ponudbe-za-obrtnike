@@ -183,8 +183,8 @@ export default function DashboardPage() {
 
   const st = statusStats
   const kpis = [
-    { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#dbfce7]',   iconColor: 'text-[#3d6d51]' },
-    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-[#fef3cd]',   iconColor: 'text-[#907c49]' },
+    { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#dbfce7]',   iconColor: 'text-[#267a47]' },
+    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-[#fef3cd]',   iconColor: 'text-[#8a6100]' },
     { key: 'won',    label: sl ? 'Dobljene' : 'Won',             icon: Trophy,       bg: 'bg-[#e0fced]',   iconColor: 'text-[#007d53]' },
     { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#f4f4f5]',   iconColor: 'text-[#5f5f5f]' },
   ] as const

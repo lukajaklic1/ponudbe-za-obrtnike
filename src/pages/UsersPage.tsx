@@ -221,14 +221,14 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={u.is_admin ? { backgroundColor: '#dbfce7', color: '#3d6d51' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
+                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={u.is_admin ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
                         {u.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {u.is_active
-                        ? <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#dbfce7', color: '#3d6d51' }}>{t.common.active}</span>
-                        : <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#ececec', color: '#4a4a4a' }}>{s.inactive}</span>}
+                        ? <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>{t.common.active}</span>
+                        : <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#ececec', color: '#4a4a4a' }}>{s.inactive}</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
@@ -242,19 +242,19 @@ export default function UsersPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#fef3cd' }}>
-                          <Mail className="w-3.5 h-3.5" style={{ color: '#907c49' }} />
+                          <Mail className="w-3.5 h-3.5" style={{ color: '#8a6100' }} />
                         </div>
                         <span className="text-gray-500">{invite.first_name} {invite.last_name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{invite.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${invite.is_admin ? 'bg-[#dbfce7] text-[#3d6d51]' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${invite.is_admin ? 'bg-[#dbfce7] text-[#267a47]' : 'bg-gray-100 text-gray-600'}`}>
                         {invite.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#fef3cd', color: '#907c49' }}>{s.invited}</span>
+                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#fef3cd', color: '#8a6100' }}>{s.invited}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">

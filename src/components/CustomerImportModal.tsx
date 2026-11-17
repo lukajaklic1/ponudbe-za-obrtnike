@@ -127,9 +127,9 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
                         <td className="px-3 py-2 text-gray-500 w-28 whitespace-nowrap">{typeLabels[r.customer_type]}</td>
                         <td className="px-3 py-2 text-gray-500 w-28">{r.address_city ?? ''}</td>
                         <td className="px-3 py-2 w-40 text-right">
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={
+                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold whitespace-nowrap" style={
                             r.error ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
-                              : { backgroundColor: '#dbfce7', color: '#3d6d51' }}>
+                              : { backgroundColor: '#dbfce7', color: '#267a47' }}>
                             {r.error ? T.errors[r.error] : T.newRow}
                           </span>
                         </td>

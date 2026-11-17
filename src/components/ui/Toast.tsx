@@ -41,7 +41,7 @@ export function Toaster() {
           key={t.id}
           className={cn(
             'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-in slide-in-from-bottom-2',
-            t.type === 'success' ? 'bg-gray-900 text-white' : t.type === 'warning' ? 'bg-[#fef3cd] text-[#907c49]' : 'bg-red-600 text-white',
+            t.type === 'success' ? 'bg-gray-900 text-white' : t.type === 'warning' ? 'bg-[#fef3cd] text-[#8a6100]' : 'bg-red-600 text-white',
           )}
         >
           {t.type === 'success'

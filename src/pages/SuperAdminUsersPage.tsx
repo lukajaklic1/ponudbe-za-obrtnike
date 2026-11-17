@@ -141,11 +141,11 @@ export default function SuperAdminUsersPage() {
                       </td>
                       <td className="px-4 py-3">
                         {u.is_super_admin ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#dbfce7', color: '#3d6d51' }}>Super admin</span>
+                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>Super admin</span>
                         ) : u.is_admin ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#f3e8ff', border: '1px solid #ead5ff', color: '#7e22ce' }}>Admin</span>
+                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>Admin</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500">Uporabnik</span>
+                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500">Uporabnik</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -153,9 +153,9 @@ export default function SuperAdminUsersPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-md text-xs font-medium"
+                        <span className="px-2 py-0.5 rounded-lg text-xs font-semibold"
                           style={u.is_active
-                            ? { backgroundColor: '#dbfce7', color: '#3d6d51' }
+                            ? { backgroundColor: '#dbfce7', color: '#267a47' }
                             : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
                           {u.is_active ? 'Aktiven' : 'Deaktiviran'}
                         </span>

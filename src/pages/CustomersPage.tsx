@@ -215,7 +215,7 @@ export default function CustomersPage() {
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.address_city ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{counts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#dbfce7', color: '#3d6d51' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
+                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
                         {(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}
                       </span>
                     </td>

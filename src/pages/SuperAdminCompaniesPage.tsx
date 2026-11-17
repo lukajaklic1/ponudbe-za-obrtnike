@@ -125,9 +125,9 @@ export default function SuperAdminCompaniesPage() {
                         <span className="text-gray-600 whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-md text-xs font-medium"
+                        <span className="px-2 py-0.5 rounded-lg text-xs font-semibold"
                           style={c.is_active
-                            ? { backgroundColor: '#dbfce7', color: '#3d6d51' }
+                            ? { backgroundColor: '#dbfce7', color: '#267a47' }
                             : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
                           {c.is_active ? 'Aktivno' : 'Deaktivirano'}
                         </span>
