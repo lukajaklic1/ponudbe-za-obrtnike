@@ -21,7 +21,7 @@ import HandleIcon from '../components/HandleIcon'
 import SillIcon, { SILL_MATERIALS, sillMaterialOf } from '../components/SillIcon'
 import ShadingIcon, { SHADING_ICONS } from '../components/ShadingIcon'
 /** option groups that have their own step in the price list (not the generic name + price rows) */
-const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill', 'shading', 'installation']
+const OWN_STEP_GROUPS = ['color', 'glass', 'handle', 'sill', 'shading', 'installation', 'removal']
 import { cn } from '../lib/cn'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import ColorSwatch from '../components/ColorSwatch'
@@ -115,6 +115,9 @@ const TXT = {
     installNamePh: 'npr. Klasična montaža', installPrice: 'Prodajna cena', installUnit: 'Obračun', addInstall: 'Dodaj montažo',
     installUnits: { perimeter: 'Na tekoči meter obsega okna', piece: 'Na okno' } as Record<string, string>,
     installDescPh: 'npr. Okno pritrdimo s sidri, režo zapolnimo s PU peno.', installFirst: 'Izbrana vnaprej',
+    removalTitle: 'Katere vrste demontaže ponujate?',
+    removalHint: 'Tukaj vpišite prodajne cene brez DDV, marža se jim ne prišteje. Stranka v konfiguratorju izbere, ali potrebuje demontažo in katero. Vnaprej ni izbrana nobena. Odvoz starih oken vpišete v točki 13.',
+    removalNamePh: 'npr. Demontaža starih oken', addRemoval: 'Dodaj demontažo', removalDescPh: 'npr. Stara okna previdno odstranimo, da se zid čim manj poškoduje.',
     integratedTitle: 'Nabavna cena za komarnik, ko je vgrajen v senčilo (Upoštevajte samo strošek dodatnih delov, ki jih komarnik doda: mreža, letev …)',
     shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine',
     shadeFixedSash: 'Fiksni znesek na krilo', shadePerWSash: 'Na meter širine krila', shadePerHSash: 'Na meter višine krila', shadeCostM2Sash: 'Na m² krila', shadeMin: 'Najnižja prodajna cena na okno',
@@ -200,6 +203,9 @@ const TXT = {
     installNamePh: 'e.g. Standard installation', installPrice: 'Sale price', installUnit: 'Counted', addInstall: 'Add installation',
     installUnits: { perimeter: 'Per metre of window perimeter', piece: 'Per window' } as Record<string, string>,
     installDescPh: 'e.g. The window is fixed with anchors, the gap is filled with PU foam.', installFirst: 'Picked in advance',
+    removalTitle: 'Which kinds of removal do you offer?',
+    removalHint: 'Enter sale prices without VAT here, no margin is added to them. The customer picks in the configurator whether they need removal and which. None is picked in advance. Disposal of old windows goes in step 13.',
+    removalNamePh: 'e.g. Removing old windows', addRemoval: 'Add removal', removalDescPh: 'e.g. Old windows are taken out carefully so the wall is damaged as little as possible.',
     integratedTitle: 'Purchase price of the screen when built into a shading (count only the extra parts the screen adds: mesh, bar …)',
     shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height',
     shadeFixedSash: 'Fixed amount per sash', shadePerWSash: 'Per metre of sash width', shadePerHSash: 'Per metre of sash height', shadeCostM2Sash: 'Per m² of sash', shadeMin: 'Lowest sale price per window',
@@ -270,7 +276,10 @@ function sectionsFor(lang: 'sl' | 'en'): Section[] {
       ] },
     { group: 'removal', title: sl ? 'Demontaža' : 'Removal', hint: sl ? 'Demontaža starih oken, na tm obsega ali na kos.' : 'Removing old windows, per metre of perimeter or per piece.',
       units: ['perimeter', 'piece'], single: false,
-      presets: [{ name: 'Demontaža starih oken', pricing: 'perimeter', price: 6 }] },
+      presets: [
+        { name: 'Demontaža starih oken', pricing: 'perimeter', price: 6, description: 'Stara okna previdno odstranimo, da se zid in špalete čim manj poškodujejo.' },
+        { name: 'Demontaža starih senčil', pricing: 'piece', price: 15, description: 'Odstranimo stare rolete ali žaluzije skupaj z omarico in vodili.' },
+      ] },
     { group: 'finishing', title: sl ? 'Zaključna dela' : 'Finishing', hint: sl ? 'Obdelava špalet, montaža polic …' : 'Reveal finishing, fitting sills …',
       units: ['perimeter', 'width', 'piece'], single: false,
       presets: [{ name: 'Zidarska obdelava špalet', pricing: 'perimeter', price: 12 }, { name: 'Montaža notranjih polic', pricing: 'width', price: 14 }] },
@@ -376,12 +385,14 @@ export default function PriceListSetupPage() {
     setRemovedProfiles([])
     setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined, description: x.group_key === 'color' ? undefined : x.description ?? '' })))
     {
-      // a new price list starts with sample kinds of installation, like the other steps
+      // installation and removal start with sample kinds until the price list is saved with them once
+      // (after that an empty list stays empty, because the supplier removed them on purpose)
       const rawPricing = (c.data as { window_pricing?: unknown } | null)?.window_pricing ?? company.window_pricing
-      const fresh = !rawPricing || typeof rawPricing !== 'object' || !('offer' in (rawPricing as object))
-      if (fresh && !opt.some(x => x.group_key === 'installation')) {
-        const sec = sections.find(x => x.group === 'installation')!
-        setOptions(xs => [...xs, ...sec.presets.map((pr, i) => ({ key: nk(), group_key: 'installation' as OptionGroup, name: pr.name, pricing: pr.pricing, price: pr.price, is_default: i === 0, description: pr.description ?? '' }))])
+      const seeded = !!rawPricing && typeof rawPricing === 'object' && !!(rawPricing as { services_seeded?: boolean }).services_seeded
+      for (const g of ['installation', 'removal'] as OptionGroup[]) {
+        if (seeded || opt.some(x => x.group_key === g)) continue
+        const sec = sections.find(x => x.group === g)!
+        setOptions(xs => [...xs, ...sec.presets.map((pr, i) => ({ key: nk(), group_key: g, name: pr.name, pricing: pr.pricing, price: pr.price, is_default: g === 'installation' && i === 0, description: pr.description ?? '' }))])
       }
     }
     setRemoved([]); setDirty(false); setLoading(false)
@@ -625,7 +636,7 @@ export default function PriceListSetupPage() {
     try {
       const now = new Date().toISOString()
       // offer (types, top lights, opening types …) and price settings first
-      { const { error } = await supabase.from('companies').update({ window_pricing: { ...pricing, glass_m2: pricing.glass?.[0]?.cost_m2 ?? pricing.glass_m2 }, updated_at: now } as any).eq('id', company.id); if (error) throw error }
+      { const { error } = await supabase.from('companies').update({ window_pricing: { ...pricing, glass_m2: pricing.glass?.[0]?.cost_m2 ?? pricing.glass_m2, services_seeded: true }, updated_at: now } as any).eq('id', company.id); if (error) throw error }
       // profiles → window_systems (a material that is switched off keeps its profiles, inactive)
       if (removedProfiles.length) {
         const { error } = await supabase.from('window_systems' as any).delete().in('id', removedProfiles); if (error) throw error
@@ -697,6 +708,47 @@ export default function PriceListSetupPage() {
   const offer = pricing.offer
 
   // live preview (like Fenestro): one example window, base price + every default choice as its own line
+
+  // services entered as sale prices (installation, removal): one card per kind, with a description for the customer
+  function serviceCards(group: OptionGroup, firstPicked: boolean, t: { namePh: string; descPh: string; add: string }) {
+              const sec = sections.find(x => x.group === group)!
+              const rows = options.filter(o => o.group_key === group)
+              const unused = sec.presets.filter(pr => !rows.some(r => r.name.trim().toLowerCase() === pr.name.toLowerCase()))
+              return <>
+                {rows.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
+                  {rows.map((r, i) => <div key={r.key} className="px-4 py-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <input value={r.name} onChange={e => setOption(r.key, { name: e.target.value })} disabled={!canEdit} placeholder={t.namePh}
+                        className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      {firstPicked && i === 0 && <span className="shrink-0 text-xs font-medium text-[#7f7f7f]">{T.installFirst}</span>}
+                      {canEdit && <button type="button" onClick={() => askRemove(r.name, () => removeOption(r))} title={T.remove}
+                        className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                      <NumberInput label={T.installPrice} unit={r.pricing === 'perimeter' ? `${cur}/m` : cur} value={r.price} onValue={v => setOption(r.key, { price: v })} decimals={2} />
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-[#7f7f7f]">{T.installUnit}</label>
+                        <select value={r.pricing} disabled={!canEdit} onChange={e => setOption(r.key, { pricing: e.target.value as OptionPricing })}
+                          className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          {(['perimeter', 'piece'] as const).map(u => <option key={u} value={u}>{T.installUnits[u]}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
+                      <textarea value={r.description ?? ''} onChange={e => setOption(r.key, { description: e.target.value })} disabled={!canEdit} placeholder={t.descPh} rows={2}
+                        className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>)}
+                </div>}
+                {canEdit && <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{t.add}</button>
+                  {unused.length > 0 && <span className="text-xs font-medium text-[#7f7f7f]">{T.quickAdd}</span>}
+                  {unused.map(pr => <button key={pr.name} type="button" onClick={() => addOption(sec, pr)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">+ {pr.name}</button>)}
+                </div>}
+              </>
+  }
 
   return (
     <div>
@@ -1477,47 +1529,14 @@ export default function PriceListSetupPage() {
             })()}
           </Step>
 
-          {/* 10. kinds of installation: sale prices, the customer picks one, the first is picked in advance */}
+          {/* 10. kinds of installation: the customer picks one, the first is picked in advance */}
           <Step n={10} title={T.installTitle} hint={T.installHint}>
-            {(() => {
-              const sec = sections.find(x => x.group === 'installation')!
-              const rows = options.filter(o => o.group_key === 'installation')
-              const unused = sec.presets.filter(pr => !rows.some(r => r.name.trim().toLowerCase() === pr.name.toLowerCase()))
-              return <>
-                {rows.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
-                  {rows.map((r, i) => <div key={r.key} className="px-4 py-4 space-y-2">
-                    <div className="flex items-center gap-3">
-                      <input value={r.name} onChange={e => setOption(r.key, { name: e.target.value })} disabled={!canEdit} placeholder={T.installNamePh}
-                        className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      {i === 0 && <span className="shrink-0 text-xs font-medium text-[#7f7f7f]">{T.installFirst}</span>}
-                      {canEdit && <button type="button" onClick={() => askRemove(r.name, () => removeOption(r))} title={T.remove}
-                        className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-                      <NumberInput label={T.installPrice} unit={r.pricing === 'perimeter' ? `${cur}/m` : cur} value={r.price} onValue={v => setOption(r.key, { price: v })} decimals={2} />
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium text-[#7f7f7f]">{T.installUnit}</label>
-                        <select value={r.pricing} disabled={!canEdit} onChange={e => setOption(r.key, { pricing: e.target.value as OptionPricing })}
-                          className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          {(['perimeter', 'piece'] as const).map(u => <option key={u} value={u}>{T.installUnits[u]}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>
-                      <textarea value={r.description ?? ''} onChange={e => setOption(r.key, { description: e.target.value })} disabled={!canEdit} placeholder={T.installDescPh} rows={2}
-                        className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                  </div>)}
-                </div>}
-                {canEdit && <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{T.addInstall}</button>
-                  {unused.length > 0 && <span className="text-xs font-medium text-[#7f7f7f]">{T.quickAdd}</span>}
-                  {unused.map(pr => <button key={pr.name} type="button" onClick={() => addOption(sec, pr)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">+ {pr.name}</button>)}
-                </div>}
-              </>
-            })()}
+            {serviceCards('installation', true, { namePh: T.installNamePh, descPh: T.installDescPh, add: T.addInstall })}
+          </Step>
+
+          {/* 11. kinds of removal: the customer picks one or none, nothing picked in advance */}
+          <Step n={11} title={T.removalTitle} hint={T.removalHint}>
+            {serviceCards('removal', false, { namePh: T.removalNamePh, descPh: T.removalDescPh, add: T.addRemoval })}
           </Step>
 
           {/* 11+. extras and services (colour, glass and handles of built windows have their own steps) */}
@@ -1525,7 +1544,7 @@ export default function PriceListSetupPage() {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + 11} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + 12} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">
@@ -1562,7 +1581,7 @@ export default function PriceListSetupPage() {
           })}
 
           {/* last: glass, labour, waste and margin (the margin goes on the whole window) */}
-          <Step n={11 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
+          <Step n={12 + sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).length} title={T.s3} hint={T.s3hint}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
               <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
