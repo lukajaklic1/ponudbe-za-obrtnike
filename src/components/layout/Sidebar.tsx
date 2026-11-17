@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Calculator, Building2, PanelLeft, ChevronDown, Globe,
+  LayoutDashboard, FileText, Users, UserCog, Settings, LogOut, X, Tag, Grid2x2, Building2, PanelLeft, ChevronDown,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -23,8 +23,8 @@ const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [
   { id: 'sales', items: [
     { to: '/quotes',     icon: FileText, key: 'quotes',    mod: 'quotes' },
     { to: '/customers',  icon: Users,    key: 'customers', mod: 'customers' },
-    { to: '/windows',    icon: Calculator,     key: 'windows',  mod: 'price_list' },
-    { to: '/configurator', icon: Globe,        key: 'configurator', mod: 'price_list' },
+    { to: '/windows',    icon: Tag,            key: 'windows',  mod: 'price_list' },
+    { to: '/configurator', icon: Grid2x2,      key: 'configurator', mod: 'price_list' },
   ] },
 ]
 
@@ -64,7 +64,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1a1a1a] hover:bg-[#f5f6f7]',
       )}
     >
-      <Icon className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={1.75} />
+      <Icon className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={2} />
       {t.nav[key]}
     </NavLink>
   )
@@ -99,7 +99,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {company && (
         <div className="px-3 pt-3 pb-1">
           <div className="flex items-center gap-2.5 px-3 py-2.5 bg-white rounded-lg border border-gray-200">
-            <Building2 className="w-4 h-4 text-[#484848] shrink-0" strokeWidth={1.75} />
+            <Building2 className="w-4 h-4 text-[#484848] shrink-0" strokeWidth={2} />
             <p className="text-[15px] font-semibold text-gray-900 truncate">{company.name}</p>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1a1a1a] hover:bg-[#f5f6f7]',
           )}
         >
-          <UserCog className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={1.75} />
+          <UserCog className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={2} />
           {t.nav.users}
         </NavLink>}
         {profile?.is_admin && <NavLink
@@ -147,7 +147,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1a1a1a] hover:bg-[#f5f6f7]',
           )}
         >
-          <Settings className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={1.75} />
+          <Settings className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={2} />
           {t.nav.settings}
         </NavLink>}
 
