@@ -204,9 +204,9 @@ export default function QuotesPage() {
             <p className="text-sm text-gray-600">{s.noQuotes}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[920px]">
+          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[820px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
-              {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['', t.common.phone], ['', t.od.siteAddress], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
+              {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['', t.common.phone], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
@@ -219,10 +219,12 @@ export default function QuotesPage() {
                   <td className="px-4 py-3">
                     <span className="font-medium text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-900 whitespace-nowrap">{q.customers?.name ?? '—'}</td>
+                  <td className="px-4 py-3 max-w-[300px]">
+                    <div className="text-gray-900 font-medium truncate">{q.customers?.name ?? '—'}</div>
+                    {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
+                  </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{q.contact_email || q.customers?.email || '—'}</td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{q.contact_phone || q.customers?.phone || '—'}</td>
-                  <td className="px-4 py-3 text-gray-600 max-w-[220px] truncate">{q.site_address || '—'}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
