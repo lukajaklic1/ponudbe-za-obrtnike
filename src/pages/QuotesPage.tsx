@@ -12,9 +12,9 @@ import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
-import { DateFilter } from '../components/ui/DateFilter'
+import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { PersonBadge, Avatar } from '../components/ui/PersonBadge'
-import { QuoteStatusBadge, ORANGE, YELLOW } from '../components/ui/QuoteStatusBadge'
+import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
 
@@ -172,8 +172,7 @@ export default function QuotesPage() {
             { value: 'none', label: s.noAssignee },
           ]}
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
-        <DateFilter label={sl ? 'Ustvarjeno od' : 'Created from'} value={dateFrom} allLabel={sl ? 'Vse' : 'Any'} max={dateTo || undefined} onChange={v => { setDateFrom(v); setPage(1) }} />
-        <DateFilter label={sl ? 'Ustvarjeno do' : 'Created to'} value={dateTo} allLabel={sl ? 'Vse' : 'Any'} min={dateFrom || undefined} onChange={v => { setDateTo(v); setPage(1) }} />
+        <DateRangeFilter label={sl ? 'Ustvarjeno' : 'Created'} from={dateFrom} to={dateTo} onChange={(f, t2) => { setDateFrom(f); setDateTo(t2); setPage(1) }} />
         <div className="ml-auto inline-flex h-8 items-stretch rounded-[10px] border border-gray-200 bg-white overflow-hidden">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
@@ -207,7 +206,7 @@ export default function QuotesPage() {
           <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', sl ? 'Kontakt' : 'Contact'], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                <th key={i} className={`${key === 'value' ? 'text-right' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                 </th>
@@ -215,9 +214,9 @@ export default function QuotesPage() {
             </tr></thead>
             <tbody className="divide-y divide-gray-200">
               {paged.map(q => (
-                <tr key={q.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
+                <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="font-medium text-gray-900 whitespace-nowrap">{q.quote_number}</span>
+                    <span className="!font-normal text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
                   <td className="px-4 py-3 max-w-[210px]">
                     <div className="text-gray-900 font-medium truncate">{q.customers?.name ?? '—'}</div>
@@ -233,11 +232,11 @@ export default function QuotesPage() {
                       {q.status === 'sent' && (() => {
                         const n = waitingDays(q) ?? 0
                         return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
-                          className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={n >= 16 ? ORANGE : YELLOW}>{sentAgo(n)}</span>
+                          className="text-[13px] whitespace-nowrap" style={{ color: '#5f5f5f' }}>{sentAgo(n)}</span>
                       })()}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
+                  <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
                   <td className="px-4 py-3 !text-[#5f5f5f] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <AssigneeCell
@@ -252,7 +251,7 @@ export default function QuotesPage() {
                   </td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <div className="flex justify-end">
-                      <button onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                      <button onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
@@ -326,7 +325,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
               </>
             : <span className="text-gray-500 font-normal">{noAssigneeLabel}</span>
         }
-        <ChevronDown className="w-3 h-3 shrink-0 text-gray-400 ml-0.5" />
+        <ChevronDown className="w-3 h-3 shrink-0 text-gray-400 ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
       {open && (
         <div className="absolute z-30 mt-1 left-0 w-60 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">

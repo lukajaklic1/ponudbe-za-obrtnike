@@ -98,7 +98,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {/* Company pill */}
       {company && (
         <div className="px-3 pt-3 pb-1">
-          <div className="flex items-center gap-2.5 px-3 py-2.5 bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center gap-2.5 px-3 py-2">
             <Building2 className="w-4 h-4 text-[#5f5f5f] shrink-0" strokeWidth={2} />
             <p className="text-[15px] font-semibold text-gray-900 truncate">{company.name}</p>
           </div>

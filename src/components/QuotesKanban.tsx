@@ -105,7 +105,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       {(() => {
                         const d = waitingDays(q)
                         if (d == null) return null
-                        const color = d >= 14 ? '#9e3f00' : d >= 7 ? '#874d00' : '#6b7280'
+                        const color = '#5f5f5f'
                         return <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap" style={{ color }} title={labels.inStatus}><Clock className="w-3.5 h-3.5" />{d} d</span>
                       })()}
                     </div>

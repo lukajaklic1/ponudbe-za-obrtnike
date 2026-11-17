@@ -11,10 +11,10 @@ export function avatarColor(_name?: string) {
 }
 
 /** Round avatar with the person's initials. */
-export function Avatar({ name, size = 22 }: { name: string; size?: number }) {
+export function Avatar({ name, size = 24 }: { name: string; size?: number }) {
   return (
     <span className="inline-flex items-center justify-center rounded-full text-white font-semibold shrink-0 select-none"
-      style={{ backgroundColor: avatarColor(name), width: size, height: size, fontSize: Math.round(size * 0.42), letterSpacing: '0.02em' }}>
+      style={{ backgroundColor: avatarColor(name), width: size, height: size, fontSize: Math.max(10, Math.round(size * 0.42)), letterSpacing: '0.02em' }}>
       {initialsOf(name)}
     </span>
   )

@@ -171,7 +171,7 @@ fieldset:disabled textarea:focus {
 .robust main th > span.inline-flex > span.ml-1 { margin-left: 0; margin-right: 6px; }
 .robust main th.text-right > span.inline-flex { justify-content: flex-start; }
 .robust main tbody td { border-bottom: 1px solid #efefef; color: #131313; }
-.robust main tbody tr:not(:has(input, textarea)) > td { padding-top: 14px; padding-bottom: 14px; }
+.robust main tbody tr:not(:has(input, textarea)) > td { padding-top: 9px; padding-bottom: 9px; }
 .robust main tbody tr:last-child td { border-bottom: 0; }
 .robust main tbody tr:hover td { background: #fafafa; }
 /* popups: the button row at the bottom sits on a light grey strip (like Levelpath) */
