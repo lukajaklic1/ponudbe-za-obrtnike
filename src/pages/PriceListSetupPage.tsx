@@ -1417,7 +1417,7 @@ export default function PriceListSetupPage() {
                               : <div className="space-y-2">
                                   <Checkbox checked={!!x.can_integrate} onChange={v => { if (canEdit) set(x.id, { can_integrate: v, integrated: x.integrated ?? {} }) }} label={T.canIntegrate} />
                                   {x.can_integrate && <div className="rounded-lg bg-[#f6f6f6] border border-gray-200 p-3">
-                                    <div className="text-xs font-medium text-[#7f7f7f] mb-3">{T.integratedTitle}</div>
+                                    <div className="text-xs font-medium text-[#7f7f7f] mb-4">{T.integratedTitle}</div>
                                     <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 items-start">
                                       {(['fixed', 'per_w', 'per_h', 'cost'] as const).map(f => (
                                         <NumberInput key={f} label={f === 'fixed' ? T.shadeFixed : f === 'per_w' ? T.shadePerW : f === 'per_h' ? T.shadePerH : T.shadeCostM2}
