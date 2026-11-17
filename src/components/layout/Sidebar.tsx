@@ -116,7 +116,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           return (
             <div key={sec.id} className="mt-4">
               <button type="button" onClick={() => toggleSection(sec.id)}
-                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-medium text-[#484848] hover:text-gray-900 rounded-md">
+                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-semibold text-[#1a1a1a] rounded-md">
                 <ChevronDown className={cn('w-3 h-3 transition-transform order-last opacity-0 group-hover/sec:opacity-100', !open && '-rotate-90')} />
                 {t.nav.sections[sec.id]}
               </button>
