@@ -38,8 +38,10 @@ export interface PricingSettings {
   glass_m2: number
   labour_window: number
   labour_sash: number
-  /** labour per metre of profile (cutting, welding, cleaning …); 0 when not used */
-  labour_m?: number
+  /** labour per metre of frame and mullions (cutting, welding …); 0 when not used */
+  labour_frame_m?: number
+  /** labour per metre of sash profile; 0 when not used */
+  labour_sash_m?: number
   waste_pct: number
   margin_pct: number
   /** margin on the labour; the material margin when not set */
@@ -448,8 +450,8 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
       : x.unit === 'width' ? [W / 1000, 'm'] : x.unit === 'perimeter' ? [2 * (W + H) / 1000, 'm'] : [1, 'kos']
     add('x_' + x.id, x.name, qty, unit, x.cost)
   }
-  // labour: fixed per window + per sash + per metre of profile (frame, sashes, mullions, beads)
-  const labour = s.labour_window + sashes * s.labour_sash + (s.labour_m ?? 0) * (frameLen + sashLen + mullionLen + beadLen) / 1000
+  // labour: frame (fixed per window + per metre of frame and mullions) and sashes (fixed per sash + per metre of sash profile)
+  const labour = s.labour_window + (s.labour_frame_m ?? 0) * (frameLen + mullionLen) / 1000 + sashes * s.labour_sash + (s.labour_sash_m ?? 0) * sashLen / 1000
   add('labour', L('labour', 'Delo'), 1, 'kos', labour)
 
   const cost = lines.reduce((a, l) => a + l.total, 0)

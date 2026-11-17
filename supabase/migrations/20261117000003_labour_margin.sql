@@ -1,7 +1,8 @@
 -- ============================================================
 -- 20261117000003_labour_margin.sql
 -- Two margins: one on the window material (margin_pct), one on the labour (labour_margin_pct).
--- Labour can also be counted per metre of profile (labour_m: cutting, welding …), 0 when not set.
+-- Labour can also be counted per metre of frame and mullions (labour_frame_m) and per metre of sash profile
+-- (labour_sash_m), 0 when not set. Safe to run again.
 -- Price lists without labour_margin_pct keep using the material margin for labour, so no price changes.
 -- ============================================================
 
@@ -124,7 +125,8 @@ BEGIN
   -- the material margin goes on the material, the labour margin on the labour (same as material when not set)
   RETURN round(cost * (1 + COALESCE((p->>'margin_pct')::numeric, 45) / 100)
              + (COALESCE((p->>'labour_window')::numeric, 30) + sashes * COALESCE((p->>'labour_sash')::numeric, 22)
-                + COALESCE((p->>'labour_m')::numeric, 0) * ((2 * (w + h)) + mull + sash + bead) / 1000.0)
+                + COALESCE((p->>'labour_frame_m')::numeric, 0) * ((2 * (w + h)) + mull) / 1000.0
+                + COALESCE((p->>'labour_sash_m')::numeric, 0) * sash / 1000.0)
                * (1 + COALESCE((p->>'labour_margin_pct')::numeric, (p->>'margin_pct')::numeric, 45) / 100), 2);
 END;
 $$;
@@ -235,7 +237,8 @@ BEGIN
         'glass_m2', round(COALESCE((c.window_pricing->>'glass_m2')::numeric, 32) * mf, 2),
         'labour_window', round(COALESCE((c.window_pricing->>'labour_window')::numeric, 30) * lmf, 2),
         'labour_sash', round(COALESCE((c.window_pricing->>'labour_sash')::numeric, 22) * lmf, 2),
-        'labour_m', round(COALESCE((c.window_pricing->>'labour_m')::numeric, 0) * lmf, 2),
+        'labour_frame_m', round(COALESCE((c.window_pricing->>'labour_frame_m')::numeric, 0) * lmf, 2),
+        'labour_sash_m', round(COALESCE((c.window_pricing->>'labour_sash_m')::numeric, 0) * lmf, 2),
         'waste_pct', COALESCE((c.window_pricing->>'waste_pct')::numeric, 6),
         'margin_pct', 0, 'labour_margin_pct', 0,
         'both_sides_pct', COALESCE((c.window_pricing->>'both_sides_pct')::numeric, 10)) END) END

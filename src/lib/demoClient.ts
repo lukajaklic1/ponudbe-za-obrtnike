@@ -371,7 +371,7 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
         } : null, pricing: {
           hw: Object.fromEntries(Object.entries(hw).map(([k, v]) => [k, r2(Number(v) * mf)])),
           hw_m: Object.fromEntries(Object.entries(hwM).map(([k, v]) => [k, r2(Number(v) * mf)])),
-          glass_m2: r2(Number(wp.glass_m2 ?? 32) * mf), labour_window: r2(Number(wp.labour_window ?? 30) * lmf), labour_sash: r2(Number(wp.labour_sash ?? 22) * lmf), labour_m: r2(Number(wp.labour_m ?? 0) * lmf),
+          glass_m2: r2(Number(wp.glass_m2 ?? 32) * mf), labour_window: r2(Number(wp.labour_window ?? 30) * lmf), labour_sash: r2(Number(wp.labour_sash ?? 22) * lmf), labour_frame_m: r2(Number(wp.labour_frame_m ?? 0) * lmf), labour_sash_m: r2(Number(wp.labour_sash_m ?? 0) * lmf),
           waste_pct: Number(wp.waste_pct ?? 6), margin_pct: 0, labour_margin_pct: 0, both_sides_pct: Number(wp.both_sides_pct ?? 10),
         } } : null,
       }, error: null }
