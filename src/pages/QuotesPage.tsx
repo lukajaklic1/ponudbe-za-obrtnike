@@ -10,6 +10,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import Button from '../components/ui/Button'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
+import { PageTabs } from '../components/ui/PageTabs'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
@@ -154,7 +155,8 @@ export default function QuotesPage() {
 
   return (
     <div>
-      <PageHeader title={s.quotes} icon={FileText} count={rows.length} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
+      <PageHeader title={s.quotes} icon={FileText} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
+      <PageTabs tabs={[{ key: 'quotes', label: s.quotes, count: rows.length }]} active="quotes" />
       <div className="px-6 py-5">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">

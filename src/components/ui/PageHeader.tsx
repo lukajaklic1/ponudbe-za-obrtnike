@@ -8,13 +8,15 @@ interface PageHeaderProps {
   icon?: LucideIcon
   count?: number
   action?: React.ReactNode
+  /** tabs follow right under the header: no line between them */
+  flush?: boolean
 }
 
-export function PageHeader({ title, count, action }: PageHeaderProps) {
+export function PageHeader({ title, count, action, flush }: PageHeaderProps) {
   const { collapsed, toggle } = useSidebarCollapse()
 
   return (
-    <div className="h-14 flex items-center justify-between px-6 border-b border-gray-200 bg-white shrink-0">
+    <div className={`h-14 flex items-center justify-between px-6 bg-white shrink-0 ${flush ? '' : 'border-b border-gray-200'}`}>
       <div className="flex items-center gap-2">
         {collapsed && (
           <button

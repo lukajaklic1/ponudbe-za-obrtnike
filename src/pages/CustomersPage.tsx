@@ -15,6 +15,7 @@ import Checkbox from '../components/ui/Checkbox'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
+import { PageTabs } from '../components/ui/PageTabs'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import type { Customer } from '../types/database'
 
@@ -159,10 +160,11 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <PageHeader title={s.customers} icon={Users} count={rows.length} action={canEdit && <div className="flex gap-2">
+      <PageHeader title={s.customers} icon={Users} action={canEdit && <div className="flex gap-2">
         <Button variant="secondary" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />{o.importServices}</Button>
         <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{s.newCustomer}</Button>
       </div>} />
+      <PageTabs tabs={[{ key: 'customers', label: s.customers, count: rows.length }]} active="customers" />
       <div className="px-6 py-5">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">

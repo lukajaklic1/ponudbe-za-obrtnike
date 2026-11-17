@@ -13,6 +13,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
+import { PageTabs } from '../components/ui/PageTabs'
 import { Avatar } from '../components/ui/PersonBadge'
 import type { User as AppUser, UserPermission, UserInvitation } from '../types/database'
 
@@ -173,7 +174,8 @@ export default function UsersPage() {
 
   return (
     <div>
-      <PageHeader title={t.nav.users} icon={UserCog} count={users.length + invites.length} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
+      <PageHeader title={t.nav.users} icon={UserCog} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
+      <PageTabs tabs={[{ key: 'users', label: t.nav.users, count: users.length + invites.length }]} active="users" />
       <div className="px-6 py-5">
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative">
