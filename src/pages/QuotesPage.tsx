@@ -199,8 +199,6 @@ export default function QuotesPage() {
             empty: sl ? 'Ni ponudb' : 'No quotes', total: sl ? 'Skupaj brez DDV' : 'Total excl. VAT',
             created: t.common.created, validUntil: sl ? 'Velja do' : 'Valid until', value: t.od.totalNet,
             assignee: s.assignee, noAssignee: s.noAssignee, customer: s.customer, site: t.od.siteAddress, phone: t.common.phone, inStatus: sl ? 'Dni v trenutnem statusu' : 'Days in current status',
-            showRecent: sl ? 'Samo zadnjih 30 dni' : 'Last 30 days only',
-            olderHidden: (n: number) => sl ? `Pokaži vse (${n} starejših)` : `Show all (${n} older)`,
           }}
           onOpen={openQuote} onMove={requestMove} />
       ) : (<>

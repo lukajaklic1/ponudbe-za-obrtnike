@@ -12,16 +12,12 @@ export const ALLOWED_MOVES: Partial<Record<QuoteStatus, QuoteStatus[]>> = {
   sent: ['won', 'lost'],
 }
 
-// Won / lost columns grow for ever: by default they show only the last 30 days
-const RECENT_ONLY: QuoteStatus[] = ['won', 'lost']
-const RECENT_DAYS = 30
-
 interface Props {
   statuses: QuoteStatus[]
   quotes: KanbanQuote[]
   canEdit: boolean
   statusLabels: Record<string, string>
-  labels: { empty: string; total: string; created: string; validUntil: string; value: string; assignee: string; noAssignee: string; customer: string; site: string; phone: string; inStatus: string; showAll?: string; showRecent?: string; olderHidden?: (n: number) => string }
+  labels: { empty: string; total: string; created: string; validUntil: string; value: string; assignee: string; noAssignee: string; customer: string; site: string; phone: string; inStatus: string }
   money: (n: number) => string
   waitingDays: (q: Quote) => number | null
   onOpen: (q: KanbanQuote) => void
@@ -32,9 +28,7 @@ interface Props {
 export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, labels, money, waitingDays, onOpen, onMove }: Props) {
   const [dragging, setDragging] = useState<KanbanQuote | null>(null)
   const [overCol, setOverCol] = useState<QuoteStatus | null>(null)
-  const [showAll, setShowAll] = useState<Partial<Record<QuoteStatus, boolean>>>({})
   const canMove = (q: KanbanQuote | null, to: QuoteStatus) => !!q && canEdit && (ALLOWED_MOVES[q.status] ?? []).includes(to)
-  const recent = (q: KanbanQuote) => Date.now() - Date.parse(q.updated_at ?? q.created_at) <= RECENT_DAYS * 86400000
 
   function drop(to: QuoteStatus) {
     const q = dragging
@@ -45,10 +39,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
   return (
     <div className="flex gap-3 overflow-x-auto pb-2">
       {statuses.map(st => {
-        const all = quotes.filter(q => q.status === st)
-        const limited = RECENT_ONLY.includes(st) && !showAll[st]
-        const cards = limited ? all.filter(recent) : all
-        const hidden = all.length - cards.length
+        const cards = quotes.filter(q => q.status === st)
         const total = cards.reduce((sum, q) => sum + (Number(q.total_net) || 0), 0)
         const droppable = canMove(dragging, st)
         const dimmed = !!dragging && dragging.status !== st && !droppable
@@ -97,13 +88,6 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                 )
               })}
               {cards.length === 0 && <p className="text-[13px] font-medium text-[#4f4f4f] text-center py-8">{labels.empty}</p>}
-              {/* older won / lost quotes */}
-              {RECENT_ONLY.includes(st) && (hidden > 0 || showAll[st]) && (
-                <button type="button" onClick={() => setShowAll(s => ({ ...s, [st]: !s[st] }))}
-                  className="mt-1 py-1.5 rounded-lg text-[13px] font-medium text-[#4f4f4f] hover:text-gray-900 hover:bg-[#efefef] transition-colors">
-                  {showAll[st] ? (labels.showRecent ?? 'Samo zadnjih 30 dni') : (labels.olderHidden ? labels.olderHidden(hidden) : `Pokaži vse (${hidden} starejših)`)}
-                </button>
-              )}
             </div>
           </div>
         )
