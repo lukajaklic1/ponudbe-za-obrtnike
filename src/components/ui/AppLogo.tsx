@@ -14,9 +14,9 @@ export function FenestrioMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="1.5 1.5 21 21" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       {/* left wing, tilted slightly open */}
-      <path d="M11 2.6 C6 5.6 3.9 9.6 3.9 13.6 C3.9 17.6 6.8 20.7 11 21.3 Z" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="1.1" strokeLinejoin="round" transform="rotate(-11 11 21.3)" />
+      <path d="M10.5 3.4 C6.2 3.4 3.4 7.3 3.4 12 C3.4 16.7 6.2 20.6 10.5 20.6 Z" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2" strokeLinejoin="round" transform="rotate(-6 10.5 20.6)" />
       {/* right wing, the mirror image */}
-      <path d="M13 2.6 C18 5.6 20.1 9.6 20.1 13.6 C20.1 17.6 17.2 20.7 13 21.3 Z" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="1.1" strokeLinejoin="round" transform="rotate(11 13 21.3)" />
+      <path d="M13.5 3.4 C17.8 3.4 20.6 7.3 20.6 12 C20.6 16.7 17.8 20.6 13.5 20.6 Z" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2" strokeLinejoin="round" transform="rotate(6 13.5 20.6)" />
     </svg>
   )
 }
