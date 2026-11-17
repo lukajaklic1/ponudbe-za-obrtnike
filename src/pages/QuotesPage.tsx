@@ -14,7 +14,7 @@ import { PageTabs } from '../components/ui/PageTabs'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
-import { PersonBadge, Avatar } from '../components/ui/PersonBadge'
+import { Avatar } from '../components/ui/PersonBadge'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
@@ -63,7 +63,7 @@ export default function QuotesPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = usePageSize('quotes')
   const [openMenu, setOpenMenu] = useState<string | null>(null)
-  const [sortKey, setSortKey] = useState<'quote_number' | 'customer' | 'status' | 'waiting' | 'value' | 'created_at'>('created_at')
+  const [sortKey, setSortKey] = useState<'quote_number' | 'customer' | 'status' | 'waiting' | 'value' | 'created_at' | 'assignee'>('created_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   function handleSort(k: typeof sortKey) { setSortKey(k); setSortDir(d => k === sortKey ? (d === 'asc' ? 'desc' : 'asc') : 'asc'); setPage(1) }
   const [view, setView] = useState<'list' | 'kanban'>(() => {
@@ -128,6 +128,12 @@ export default function QuotesPage() {
     }
     if (sortKey === 'value') return ((Number(a.total_net) || 0) - (Number(b.total_net) || 0)) * mul
     if (sortKey === 'created_at') return a.created_at.localeCompare(b.created_at) * mul
+    if (sortKey === 'assignee') {
+      // quotes without anybody assigned always go last
+      const na = a.assignee ? `${a.assignee.first_name} ${a.assignee.last_name}` : '', nb = b.assignee ? `${b.assignee.first_name} ${b.assignee.last_name}` : ''
+      if (!na || !nb) return !na ? (!nb ? 0 : 1) : -1
+      return na.localeCompare(nb, 'sl') * mul
+    }
     return 0
   })
   const paged = sortedFiltered.slice((page - 1) * pageSize, page * pageSize)
@@ -175,10 +181,10 @@ export default function QuotesPage() {
           ]}
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
         <DateRangeFilter label={sl ? 'Ustvarjeno' : 'Created'} from={dateFrom} to={dateTo} onChange={(f, t2) => { setDateFrom(f); setDateTo(t2); setPage(1) }} />
-        <div className="ml-auto inline-flex h-8 items-stretch rounded-[10px] border border-gray-200 bg-white overflow-hidden">
+        <div className="ml-auto inline-flex h-8 items-stretch gap-0.5 p-[3px] rounded-[10px] bg-[#f1f1f1]">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`px-3 flex items-center transition-colors [&+&]:border-l [&+&]:border-gray-200 ${view === v ? 'bg-[#e7e7e7] text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
+              className={`w-8 flex items-center justify-center rounded-[7px] transition-colors ${view === v ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]' : 'text-gray-500 hover:text-gray-900'}`}>
               <Icon className="w-4 h-4" />
             </button>
           ))}
@@ -207,7 +213,7 @@ export default function QuotesPage() {
         ) : (
           <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
-              {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
+              {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['assignee', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} style={{ width: ['10%', '22%', '20%', '14%', '11%', '10%', '10%', '3%'][i], minWidth: key === 'customer' ? 200 : i === 2 ? 180 : undefined }} className={`${key === 'created_at' ? 'hidden 2xl:table-cell ' : ''}${key === 'value' ? 'text-right !pr-8' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
@@ -308,7 +314,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
   const label = assignee ? `${assignee.first_name} ${assignee.last_name}` : null
 
   if (!canEdit) {
-    return label ? <PersonBadge name={label} /> : <span className="text-gray-400">—</span>
+    return label ? <span className="text-[15px] font-medium text-gray-900 whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
   }
 
   return (
@@ -316,12 +322,11 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
       <button
         onClick={() => setOpen(o => !o)}
         disabled={saving}
-        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-sm font-medium text-gray-900 hover:bg-gray-100 transition-colors whitespace-nowrap">
+        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[15px] font-medium text-gray-900 hover:bg-gray-100 transition-colors whitespace-nowrap">
         {saving
           ? <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           : label
             ? <>
-                <Avatar name={label} />
                 <span>{label}</span>
               </>
             : <span className="text-gray-500 font-normal">{noAssigneeLabel}</span>

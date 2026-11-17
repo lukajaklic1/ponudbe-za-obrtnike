@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Avatar } from './ui/PersonBadge'
 import { Euro, MapPin, UserRound, FileText, Clock, Phone } from 'lucide-react'
 import type { Quote, QuoteStatus } from '../types/database'
 
@@ -92,7 +91,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       <CardRow icon={UserRound} title={labels.assignee}>
                         {assignee
                           ? <span className="inline-flex items-center gap-1.5 min-w-0">
-                              <Avatar name={assignee} size={20} />
+
                               <span className="truncate">{assignee}</span>
                             </span>
                           : <span className="text-gray-400">{labels.noAssignee}</span>}
