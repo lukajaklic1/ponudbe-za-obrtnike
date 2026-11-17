@@ -6,17 +6,21 @@ interface AppLogoProps {
 }
 
 /**
- * Fenestrio mark: two solid leaf-shaped sashes (a window with two wings) opening outwards,
- * a straight edge where they close, a soft curve outside, a narrow gap between them.
- * Organic and bold, so it reads at 16 px as well.
+ * Fenestrio mark: one solid round shape cut by two parallel slanted slits, like a sash tilting open (bold single-shape mark).
+ * Heavy, rounded and simple, so it reads at 16 px as well.
  */
 export function FenestrioMark({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="1.5 1.5 21 21" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      {/* left wing, tilted slightly open */}
-      <path d="M10.5 3.4 C6.2 3.4 3.4 7.3 3.4 12 C3.4 16.7 6.2 20.6 10.5 20.6 Z" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2" strokeLinejoin="round" transform="rotate(-6 10.5 20.6)" />
-      {/* right wing, the mirror image */}
-      <path d="M13.5 3.4 C17.8 3.4 20.6 7.3 20.6 12 C20.6 16.7 17.8 20.6 13.5 20.6 Z" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2" strokeLinejoin="round" transform="rotate(6 13.5 20.6)" />
+    <svg width={size} height={size} viewBox="2.6 2.6 18.8 18.8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      {/* one solid circle cut by two parallel slanted slits, like sashes tilting open; the slits are transparent */}
+      <defs>
+        <mask id="fenestrio-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+          <rect width="24" height="24" fill="#ffffff" />
+          <path d="M0 17.8 L24 12.6" stroke="#000000" strokeWidth="2" />
+          <path d="M0 11.4 L24 6.2" stroke="#000000" strokeWidth="2" />
+        </mask>
+      </defs>
+      <circle mask="url(#fenestrio-cut)" cx="12" cy="12" r="9" fill="#1a1a1a" />
     </svg>
   )
 }
@@ -28,7 +32,7 @@ export default function AppLogo({ size = 'md', showName = true, dark = false }: 
 
   return (
     <div className="flex items-center gap-2">
-      <span className="-translate-y-[1px]"><FenestrioMark size={dim} /></span>
+      <span className="-translate-y-[2px]"><FenestrioMark size={dim} /></span>
       {showName && (
         <span className={`font-bold tracking-[-0.035em] leading-none ${fontSize} ${textColor}`}>
           fenestrio
