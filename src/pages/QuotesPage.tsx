@@ -161,7 +161,7 @@ export default function QuotesPage() {
         <div className="relative">
           <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={sl ? 'Išči po številki, stranki, e-pošti, telefonu …' : 'Search number, customer, email, phone …'}
-            className="h-9 pl-9 pr-3 rounded-lg border border-gray-200 bg-white text-sm placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
+            className="h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
         </div>
         <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
@@ -174,7 +174,7 @@ export default function QuotesPage() {
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno od' : 'Created from'} value={dateFrom} allLabel={sl ? 'Vse' : 'Any'} max={dateTo || undefined} onChange={v => { setDateFrom(v); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno do' : 'Created to'} value={dateTo} allLabel={sl ? 'Vse' : 'Any'} min={dateFrom || undefined} onChange={v => { setDateTo(v); setPage(1) }} />
-        <div className="ml-auto inline-flex h-9 items-stretch rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <div className="ml-auto inline-flex h-8 items-stretch rounded-[10px] border border-gray-200 bg-white overflow-hidden">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
               className={`px-3 flex items-center transition-colors [&+&]:border-l [&+&]:border-gray-200 ${view === v ? 'bg-[#e7e7e7] text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
