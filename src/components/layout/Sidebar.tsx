@@ -81,7 +81,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   return (
     <aside className="w-72 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
       {/* App logo — same height as PageHeader (h-[57px]) */}
-      <div className="h-[68px] px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+      <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <AppLogo size="md" />
         <div className="flex items-center gap-1">
           <button onClick={toggle} className="hidden lg:flex p-1.5 text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] rounded-md transition-colors" title="Hide sidebar">
