@@ -43,6 +43,8 @@ export interface WindowPrice {
 export interface WindowOption {
   id: string; company_id?: string; group_key: OptionGroup; name: string; description: string | null
   pricing: OptionPricing; price: number | null; is_default: boolean; sort_order?: number; is_active?: boolean
+  /** amount per window added on top of price (installation, removal) */
+  price_piece?: number | null
 }
 
 export const TEMPLATES: WindowTemplate[] = [
@@ -164,6 +166,13 @@ export function serviceLine(o: WindowOption, windows: { width: number; height: n
   if (o.pricing === 'percent') {
     const sum = windows.reduce((a, w) => a + (w.base ?? 0) * (w.quantity || 0), 0)
     return { qty: 1, unitPrice: r2(sum * price / 100), total: r2(sum * price / 100) }
+  }
+  // an amount per window on top: one line per window with the average price (same as the server)
+  const pcs = windows.reduce((a, w) => a + (w.quantity || 0), 0)
+  const perWindow = Number(o.price_piece ?? 0)
+  if (perWindow && pcs > 0) {
+    const unit = r2(perWindow + qty * price / pcs)
+    return { qty: pcs, unitPrice: unit, total: r2(pcs * unit) }
   }
   qty = r2(qty)
   return { qty, unitPrice: r2(price), total: r2(qty * price) }

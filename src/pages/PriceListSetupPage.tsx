@@ -50,9 +50,9 @@ interface ProfileRow {
 const toPrices = (p: ProfileRow): ProfilePrices => ({ frame_m: p.frame_m ?? 0, sash_m: p.sash_m ?? 0, mullion_m: p.mullion_m ?? 0, bead_m: p.bead_m ?? 0, frame_w: p.frame_w, sash_w: p.sash_w, mullion_w: p.mullion_w })
 // reference window used to compare profiles and to derive the per-m² price for the current configurator
 const REF = { template: 'double_mullion' as WindowTemplate, w: 1200, h: 1400 }
-interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string; description?: string }
+interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string; description?: string; price_piece?: number | null }
 
-interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string; description?: string }
+interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string; description?: string; price_piece?: number }
 interface Section { group: OptionGroup; title: string; hint: string; units: OptionPricing[]; single: boolean; presets: Preset[] }
 
 function metreOrSample(x: Partial<WindowSystem> & { material: WindowMaterial }) {
@@ -111,12 +111,13 @@ const TXT = {
     shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Na m²',
     allowsScreen: 'Omogoča vgrajen komarnik (skupna omarica in vodila)', canIntegrate: 'Lahko je vgrajen v senčilo',
     installTitle: 'Katere vrste montaže ponujate?',
-    installHint: 'Tukaj vpišite prodajne cene brez DDV, marža se jim ne prišteje. Stranka v konfiguratorju izbere eno vrsto montaže, prva na seznamu je izbrana vnaprej. Obseg okna je 2 × (širina + višina).',
+    installHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Cena za eno okno je znesek na okno + znesek na tekoči meter × obseg okna, kjer je obseg 2 × (širina + višina). Primer: okno 1,2 × 1,4 m ima obseg 5,2 m; pri 20 € na okno in 6 €/m je montaža 20 + 6 × 5,2 = 51,20 €. Česar ne potrebujete, pustite na 0. Stranka v konfiguratorju izbere eno vrsto montaže, prva na seznamu je izbrana vnaprej.',
+    servicePerWindow: 'Na okno', servicePerMetre: 'Na tekoči meter obsega okna',
     installNamePh: 'npr. Klasična montaža', installPrice: 'Prodajna cena', installUnit: 'Obračun', addInstall: 'Dodaj montažo',
     installUnits: { perimeter: 'Na tekoči meter obsega okna', piece: 'Na okno' } as Record<string, string>,
     installDescPh: 'npr. Okno pritrdimo s sidri, režo zapolnimo s PU peno.', installFirst: 'Izbrana vnaprej',
     removalTitle: 'Katere vrste demontaže ponujate?',
-    removalHint: 'Tukaj vpišite prodajne cene brez DDV, marža se jim ne prišteje. Stranka v konfiguratorju izbere, ali potrebuje demontažo in katero. Vnaprej ni izbrana nobena. Odvoz starih oken vpišete v točki 13.',
+    removalHint: 'Vpišite prodajne cene brez DDV, marža se jim ne prišteje. Cena se izračuna enako kot pri montaži: znesek na okno + znesek na tekoči meter × obseg okna. Česar ne potrebujete, pustite na 0. Stranka v konfiguratorju izbere, ali potrebuje demontažo in katero, vnaprej ni izbrana nobena. Odvoz starih oken vpišete v točki 13.',
     removalNamePh: 'npr. Demontaža starih oken', addRemoval: 'Dodaj demontažo', removalDescPh: 'npr. Stara okna previdno odstranimo, da se zid čim manj poškoduje.',
     integratedTitle: 'Nabavna cena za komarnik, ko je vgrajen v senčilo (Upoštevajte samo strošek dodatnih delov, ki jih komarnik doda: mreža, letev …)',
     shadeFixed: 'Fiksni znesek', shadePerW: 'Na meter širine', shadePerH: 'Na meter višine',
@@ -199,12 +200,13 @@ const TXT = {
     shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Per m²',
     allowsScreen: 'An insect screen can be built in (shared box and guides)', canIntegrate: 'Can be built into a shading',
     installTitle: 'Which kinds of installation do you offer?',
-    installHint: 'Enter sale prices without VAT here, no margin is added to them. The customer picks one kind of installation in the configurator, the first one in the list is picked in advance. The window perimeter is 2 × (width + height).',
+    installHint: 'Enter sale prices without VAT, no margin is added to them. The price for one window is the amount per window + the amount per metre × the window perimeter, where the perimeter is 2 × (width + height). Example: a 1.2 × 1.4 m window has a perimeter of 5.2 m; at 20 € per window and 6 €/m the installation is 20 + 6 × 5.2 = 51.20 €. Leave at 0 what you do not need. The customer picks one kind of installation in the configurator, the first one in the list is picked in advance.',
+    servicePerWindow: 'Per window', servicePerMetre: 'Per metre of window perimeter',
     installNamePh: 'e.g. Standard installation', installPrice: 'Sale price', installUnit: 'Counted', addInstall: 'Add installation',
     installUnits: { perimeter: 'Per metre of window perimeter', piece: 'Per window' } as Record<string, string>,
     installDescPh: 'e.g. The window is fixed with anchors, the gap is filled with PU foam.', installFirst: 'Picked in advance',
     removalTitle: 'Which kinds of removal do you offer?',
-    removalHint: 'Enter sale prices without VAT here, no margin is added to them. The customer picks in the configurator whether they need removal and which. None is picked in advance. Disposal of old windows goes in step 13.',
+    removalHint: 'Enter sale prices without VAT, no margin is added to them. The price is worked out like installation: the amount per window + the amount per metre × the window perimeter. Leave at 0 what you do not need. The customer picks in the configurator whether they need removal and which, none is picked in advance. Disposal of old windows goes in step 13.',
     removalNamePh: 'e.g. Removing old windows', addRemoval: 'Add removal', removalDescPh: 'e.g. Old windows are taken out carefully so the wall is damaged as little as possible.',
     integratedTitle: 'Purchase price of the screen when built into a shading (count only the extra parts the screen adds: mesh, bar …)',
     shadeFixed: 'Fixed amount', shadePerW: 'Per metre of width', shadePerH: 'Per metre of height',
@@ -271,14 +273,14 @@ function sectionsFor(lang: 'sl' | 'en'): Section[] {
     { group: 'installation', title: sl ? 'Montaža' : 'Installation', hint: sl ? 'Montaža na tekoči meter obsega okna 2 × (širina + višina) ali na kos. Stranka izbere eno.' : 'Installation per metre of perimeter 2 × (width + height) or per piece. The customer picks one.',
       units: ['perimeter', 'piece'], single: true,
       presets: [
-        { name: 'Klasična montaža', pricing: 'perimeter', price: 9, description: 'Okno pritrdimo s sidri, režo med oknom in zidom zapolnimo s PU peno.' },
-        { name: 'RAL montaža', pricing: 'perimeter', price: 16, description: 'Montaža po smernicah RAL: notranji parozaporni in zunanji paroprepustni trak. Spoj ostane suh in tesen, primerno za nizkoenergijske hiše.' },
+        { name: 'Klasična montaža', pricing: 'perimeter', price: 6, price_piece: 20, description: 'Okno pritrdimo s sidri, režo med oknom in zidom zapolnimo s PU peno.' },
+        { name: 'RAL montaža', pricing: 'perimeter', price: 12, price_piece: 25, description: 'Montaža po smernicah RAL: notranji parozaporni in zunanji paroprepustni trak. Spoj ostane suh in tesen, primerno za nizkoenergijske hiše.' },
       ] },
     { group: 'removal', title: sl ? 'Demontaža' : 'Removal', hint: sl ? 'Demontaža starih oken, na tm obsega ali na kos.' : 'Removing old windows, per metre of perimeter or per piece.',
       units: ['perimeter', 'piece'], single: false,
       presets: [
-        { name: 'Demontaža starih oken', pricing: 'perimeter', price: 6, description: 'Stara okna previdno odstranimo, da se zid in špalete čim manj poškodujejo.' },
-        { name: 'Demontaža starih senčil', pricing: 'piece', price: 15, description: 'Odstranimo stare rolete ali žaluzije skupaj z omarico in vodili.' },
+        { name: 'Demontaža starih oken', pricing: 'perimeter', price: 3, price_piece: 10, description: 'Stara okna previdno odstranimo, da se zid in špalete čim manj poškodujejo.' },
+        { name: 'Demontaža starih senčil', pricing: 'perimeter', price: 0, price_piece: 15, description: 'Odstranimo stare rolete ali žaluzije skupaj z omarico in vodili.' },
       ] },
     { group: 'finishing', title: sl ? 'Zaključna dela' : 'Finishing', hint: sl ? 'Obdelava špalet, montaža polic …' : 'Reveal finishing, fitting sills …',
       units: ['perimeter', 'width', 'piece'], single: false,
@@ -383,7 +385,10 @@ export default function PriceListSetupPage() {
     }
     setMatOn(Object.fromEntries(MATERIALS.map(m => [m, sys.some(x => x.material === m && x.is_active !== false)])))
     setRemovedProfiles([])
-    setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined, description: x.group_key === 'color' ? undefined : x.description ?? '' })))
+    setOptions(opt.map(x => ({ key: nk(), id: x.id, group_key: x.group_key, name: x.name, pricing: x.pricing, price: x.price == null ? null : Number(x.price), is_default: x.is_default, swatch: x.group_key === 'color' && /^#[0-9a-f]{6}$/i.test(x.description ?? '') ? x.description! : undefined, description: x.group_key === 'color' ? undefined : x.description ?? '', price_piece: x.price_piece == null ? 0 : Number(x.price_piece) }))
+      // installation / removal: an amount per window plus per metre of perimeter (older per-window rows move over)
+      .map(r => (r.group_key === 'installation' || r.group_key === 'removal') && r.pricing !== 'perimeter'
+        ? { ...r, pricing: 'perimeter' as OptionPricing, price_piece: (r.price_piece ?? 0) + (r.pricing === 'piece' ? r.price ?? 0 : 0), price: r.pricing === 'piece' ? 0 : r.price } : r))
     {
       // installation and removal start with sample kinds until the price list is saved with them once
       // (after that an empty list stays empty, because the supplier removed them on purpose)
@@ -392,7 +397,7 @@ export default function PriceListSetupPage() {
       for (const g of ['installation', 'removal'] as OptionGroup[]) {
         if (seeded || opt.some(x => x.group_key === g)) continue
         const sec = sections.find(x => x.group === g)!
-        setOptions(xs => [...xs, ...sec.presets.map((pr, i) => ({ key: nk(), group_key: g, name: pr.name, pricing: pr.pricing, price: pr.price, is_default: g === 'installation' && i === 0, description: pr.description ?? '' }))])
+        setOptions(xs => [...xs, ...sec.presets.map((pr, i) => ({ key: nk(), group_key: g, name: pr.name, pricing: pr.pricing, price: pr.price, price_piece: pr.price_piece ?? 0, is_default: g === 'installation' && i === 0, description: pr.description ?? '' }))])
       }
     }
     setRemoved([]); setDirty(false); setLoading(false)
@@ -616,7 +621,7 @@ export default function PriceListSetupPage() {
   const setOption = (key: string, patch: Partial<OptionRow>) => { setOptions(xs => xs.map(x => x.key === key ? { ...x, ...patch } : x)); touch() }
   function addOption(sec: Section, preset?: Preset) {
     const first = !options.some(o => o.group_key === sec.group)
-    setOptions(xs => [...xs, { key: nk(), group_key: sec.group, name: preset?.name ?? '', pricing: preset?.pricing ?? sec.units[0], price: preset?.price ?? null, is_default: sec.single && first, swatch: sec.group === 'color' ? preset?.swatch ?? '#ffffff' : undefined, description: preset?.description ?? '' }])
+    setOptions(xs => [...xs, { key: nk(), group_key: sec.group, name: preset?.name ?? '', pricing: preset?.pricing ?? sec.units[0], price: preset?.price ?? null, is_default: sec.single && first, swatch: sec.group === 'color' ? preset?.swatch ?? '#ffffff' : undefined, description: preset?.description ?? '', price_piece: preset?.price_piece ?? 0 }])
     touch()
   }
   function removeOption(row: OptionRow) {
@@ -688,7 +693,7 @@ export default function PriceListSetupPage() {
       for (const [i, o] of options.entries()) {
         if (!o.name.trim()) continue
         const isDefault = o.group_key === 'installation' ? o.key === firstInstall : o.is_default
-        const payload = { group_key: o.group_key, name: o.name.trim(), pricing: o.pricing, price: o.price ?? 0, is_default: isDefault, is_active: true, sort_order: i, updated_at: now, description: o.group_key === 'color' ? o.swatch ?? null : o.description?.trim() || null }
+        const payload = { group_key: o.group_key, name: o.name.trim(), pricing: o.pricing, price: o.price ?? 0, is_default: isDefault, is_active: true, sort_order: i, updated_at: now, description: o.group_key === 'color' ? o.swatch ?? null : o.description?.trim() || null, ...(o.group_key === 'installation' || o.group_key === 'removal' ? { price_piece: o.price_piece ?? 0 } : {}) }
         const { error } = o.id
           ? await supabase.from('window_options' as any).update(payload).eq('id', o.id)
           : await supabase.from('window_options' as any).insert({ ...payload, company_id: company.id })
@@ -724,15 +729,9 @@ export default function PriceListSetupPage() {
                       {canEdit && <button type="button" onClick={() => askRemove(r.name, () => removeOption(r))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-                      <NumberInput label={T.installPrice} unit={r.pricing === 'perimeter' ? `${cur}/m` : cur} value={r.price} onValue={v => setOption(r.key, { price: v })} decimals={2} />
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium text-[#7f7f7f]">{T.installUnit}</label>
-                        <select value={r.pricing} disabled={!canEdit} onChange={e => setOption(r.key, { pricing: e.target.value as OptionPricing })}
-                          className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          {(['perimeter', 'piece'] as const).map(u => <option key={u} value={u}>{T.installUnits[u]}</option>)}
-                        </select>
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                      <NumberInput label={T.servicePerWindow} unit={cur} value={r.price_piece ?? 0} onValue={v => setOption(r.key, { price_piece: v ?? 0 })} decimals={2} />
+                      <NumberInput label={T.servicePerMetre} unit={`${cur}/m`} value={r.price ?? 0} onValue={v => setOption(r.key, { price: v ?? 0, pricing: 'perimeter' })} decimals={2} />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[#7f7f7f] mb-1">{T.glassDescLabel}</label>

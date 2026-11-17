@@ -795,7 +795,7 @@ export default function ConfiguratorPage() {
                     <div className="text-xs font-medium text-gray-500 mb-1.5">{L.groups[g]}</div>
                     <div className="flex flex-wrap gap-2">
                       {data.options.filter(o => o.group_key === g).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
-                        {o.name}{show && o.price != null && Number(o.price) > 0 && <span className="ml-1.5 opacity-70">{money(Number(o.price), cur)} {L.pricing[o.pricing]}</span>}
+                        {o.name}{show && <span className="ml-1.5 opacity-70">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
                       </Chip>)}
                     </div>
                   </div>)}
