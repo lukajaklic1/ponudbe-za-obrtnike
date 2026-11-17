@@ -414,8 +414,10 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const m = (mm: number) => (mm / 1000) * waste
 
   const lines: CutLine[] = []
+  // lines are shown rounded to cents, but the cost adds up the exact amounts (same as the server)
+  let exact = 0
   const add = (key: string, label: string, qty: number, unit: CutLine['unit'], price: number) => {
-    if (qty > 0) lines.push({ key, label, qty: r2(qty), unit, price: r2(price), total: r2(qty * price) })
+    if (qty > 0) { lines.push({ key, label, qty: r2(qty), unit, price: r2(price), total: r2(qty * price) }); exact += qty * price }
   }
   add('frame', L('frame', 'Okvir'), m(frameLen), 'm', p.frame_m * colorF)
   add('mullion', L('mullion', 'Steber / prečka'), m(mullionLen), 'm', p.mullion_m * colorF)
@@ -458,7 +460,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const labour = s.labour_window + (s.labour_frame_m ?? 0) * (frameLen + mullionLen) / 1000 + sashes * s.labour_sash + (s.labour_sash_m ?? 0) * sashLen / 1000
   add('labour', L('labour', 'Delo'), 1, 'kos', labour)
 
-  const cost = lines.reduce((a, l) => a + l.total, 0)
+  const cost = exact
   // the material margin on the material, the labour margin on the labour
   const material = cost - labour
   const price = material * (1 + s.margin_pct / 100) + labour * (1 + (s.labour_margin_pct ?? s.margin_pct) / 100)

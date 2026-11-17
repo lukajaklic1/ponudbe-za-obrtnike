@@ -3,6 +3,7 @@
 -- Two margins: one on the window material (margin_pct), one on the labour (labour_margin_pct).
 -- Labour can also be counted per metre of frame and mullions (labour_frame_m) and per metre of sash profile
 -- (labour_sash_m), 0 when not set. Every pane of glass is billed at least glass_min_m2 (0 = real area).
+-- The configurator gets the prices with margin unrounded, so its live price matches the quote to the cent.
 -- Safe to run again.
 -- Price lists without labour_margin_pct keep using the material margin for labour, so no price changes.
 -- ============================================================
@@ -162,10 +163,10 @@ BEGIN
     'systems', COALESCE((SELECT json_agg(json_build_object('id', s.id, 'name', s.name, 'material', s.material, 'description', s.description, 'image_url', s.image_url,
         'applies_to', s.applies_to,
         'frame_w', s.frame_w, 'sash_w', s.sash_w, 'mullion_w', s.mullion_w,
-        'frame_m', CASE WHEN c.configurator_show_prices THEN round(s.frame_m * mf, 2) END,
-        'sash_m', CASE WHEN c.configurator_show_prices THEN round(s.sash_m * mf, 2) END,
-        'mullion_m', CASE WHEN c.configurator_show_prices THEN round(s.mullion_m * mf, 2) END,
-        'bead_m', CASE WHEN c.configurator_show_prices THEN round(s.bead_m * mf, 2) END,
+        'frame_m', CASE WHEN c.configurator_show_prices THEN (s.frame_m * mf) END,
+        'sash_m', CASE WHEN c.configurator_show_prices THEN (s.sash_m * mf) END,
+        'mullion_m', CASE WHEN c.configurator_show_prices THEN (s.mullion_m * mf) END,
+        'bead_m', CASE WHEN c.configurator_show_prices THEN (s.bead_m * mf) END,
         'min_price', CASE WHEN c.configurator_show_prices THEN s.min_price END) ORDER BY s.sort_order, s.name)
       FROM window_systems s WHERE s.company_id = c.id AND s.is_active), '[]'::json),
     'types', COALESCE((SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'template', t.template,
@@ -194,31 +195,31 @@ BEGIN
                 FROM jsonb_each(COALESCE(c.window_pricing->'colors', '{}'::jsonb)) AS e(k, v)),
       -- glass packages and handles: purchase prices with the margin folded in (0 when prices are hidden)
       'glass', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', g->>'id', 'name', g->>'name', 'description', g->>'description', 'ug', (g->>'ug')::numeric, 'layers', (g->>'layers')::integer,
-                  'cost_m2', CASE WHEN c.configurator_show_prices THEN round(COALESCE((g->>'cost_m2')::numeric, 0) * mf, 2) ELSE 0 END) ORDER BY i), '[]'::jsonb)
+                  'cost_m2', CASE WHEN c.configurator_show_prices THEN (COALESCE((g->>'cost_m2')::numeric, 0) * mf) ELSE 0 END) ORDER BY i), '[]'::jsonb)
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'glass', '[]'::jsonb)) WITH ORDINALITY AS t(g, i)),
       'handles', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', x->>'id', 'name', x->>'name', 'look', x->>'look', 'code', x->>'code', 'image_url', x->>'image_url', 'lockable', COALESCE((x->>'lockable')::boolean, false),
-                  'cost', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'cost')::numeric, 0) * mf, 2) ELSE 0 END) ORDER BY i), '[]'::jsonb)
+                  'cost', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->>'cost')::numeric, 0) * mf) ELSE 0 END) ORDER BY i), '[]'::jsonb)
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'handles', '[]'::jsonb)) WITH ORDINALITY AS t(x, i)),
       -- window sills (inside / outside): purchase price per metre with the margin folded in
       'sills', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', x->>'id', 'side', x->>'side', 'name', x->>'name', 'description', x->>'description',
                   'material', x->>'material', 'image_url', x->>'image_url',
-                  'cost_m', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'cost_m')::numeric, 0) * mf, 2) ELSE 0 END) ORDER BY i), '[]'::jsonb)
+                  'cost_m', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->>'cost_m')::numeric, 0) * mf) ELSE 0 END) ORDER BY i), '[]'::jsonb)
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'sills', '[]'::jsonb)) WITH ORDINALITY AS t(x, i)),
       -- shading and insect screens: purchase price with the margin folded in
       'shading', (SELECT COALESCE(jsonb_agg(jsonb_build_object('id', x->>'id', 'kind', x->>'kind', 'name', x->>'name', 'description', x->>'description',
                   'unit', x->>'unit', 'icon', x->>'icon', 'image_url', x->>'image_url',
-                  'cost', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'cost')::numeric, 0) * mf, 2) ELSE 0 END,
-                  'fixed', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'fixed')::numeric, 0) * mf, 2) ELSE 0 END,
-                  'per_w', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'per_w')::numeric, 0) * mf, 2) ELSE 0 END,
-                  'per_h', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'per_h')::numeric, 0) * mf, 2) ELSE 0 END,
+                  'cost', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->>'cost')::numeric, 0) * mf) ELSE 0 END,
+                  'fixed', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->>'fixed')::numeric, 0) * mf) ELSE 0 END,
+                  'per_w', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->>'per_w')::numeric, 0) * mf) ELSE 0 END,
+                  'per_h', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->>'per_h')::numeric, 0) * mf) ELSE 0 END,
                   'min', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->>'min')::numeric, 0), 2) ELSE 0 END,
                   'allows_screen', COALESCE((x->>'allows_screen')::boolean, false),
                   'can_integrate', COALESCE((x->>'can_integrate')::boolean, false),
                   'integrated', CASE WHEN x ? 'integrated' THEN jsonb_build_object(
-                      'fixed', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->'integrated'->>'fixed')::numeric, 0) * mf, 2) ELSE 0 END,
-                      'per_w', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->'integrated'->>'per_w')::numeric, 0) * mf, 2) ELSE 0 END,
-                      'per_h', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->'integrated'->>'per_h')::numeric, 0) * mf, 2) ELSE 0 END,
-                      'cost', CASE WHEN c.configurator_show_prices THEN round(COALESCE((x->'integrated'->>'cost')::numeric, 0) * mf, 2) ELSE 0 END) END) ORDER BY i), '[]'::jsonb)
+                      'fixed', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->'integrated'->>'fixed')::numeric, 0) * mf) ELSE 0 END,
+                      'per_w', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->'integrated'->>'per_w')::numeric, 0) * mf) ELSE 0 END,
+                      'per_h', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->'integrated'->>'per_h')::numeric, 0) * mf) ELSE 0 END,
+                      'cost', CASE WHEN c.configurator_show_prices THEN (COALESCE((x->'integrated'->>'cost')::numeric, 0) * mf) ELSE 0 END) END) ORDER BY i), '[]'::jsonb)
                 FROM jsonb_array_elements(COALESCE(c.window_pricing->'shading', '[]'::jsonb)) WITH ORDINALITY AS t(x, i)),
       -- roof windows: catalogue of models in standard sizes; sale prices (no margin)
       'roof', CASE WHEN COALESCE((c.window_pricing->'offer'->>'roof')::boolean, true) AND c.window_pricing ? 'roof' THEN json_build_object(
@@ -235,14 +236,14 @@ BEGIN
             'price', CASE WHEN c.configurator_show_prices THEN round((f->>'price')::numeric, 2) END)), '[]'::json)
           FROM jsonb_array_elements(COALESCE(c.window_pricing->'roof'->'flashings', '[]'::jsonb)) f)) END,
       'pricing', CASE WHEN c.configurator_show_prices THEN json_build_object(
-        'hw', (SELECT jsonb_object_agg(k, round(v::numeric * mf, 2)) FROM jsonb_each_text(hw) AS t(k, v)),
-        'hw_m', (SELECT jsonb_object_agg(k, round(v::numeric * mf, 2)) FROM jsonb_each_text(hwm) AS t(k, v)),
-        'glass_m2', round(COALESCE((c.window_pricing->>'glass_m2')::numeric, 32) * mf, 2),
+        'hw', (SELECT jsonb_object_agg(k, (v::numeric * mf)) FROM jsonb_each_text(hw) AS t(k, v)),
+        'hw_m', (SELECT jsonb_object_agg(k, (v::numeric * mf)) FROM jsonb_each_text(hwm) AS t(k, v)),
+        'glass_m2', (COALESCE((c.window_pricing->>'glass_m2')::numeric, 32) * mf),
         'glass_min_m2', COALESCE((c.window_pricing->>'glass_min_m2')::numeric, 0),
-        'labour_window', round(COALESCE((c.window_pricing->>'labour_window')::numeric, 30) * lmf, 2),
-        'labour_sash', round(COALESCE((c.window_pricing->>'labour_sash')::numeric, 22) * lmf, 2),
-        'labour_frame_m', round(COALESCE((c.window_pricing->>'labour_frame_m')::numeric, 0) * lmf, 2),
-        'labour_sash_m', round(COALESCE((c.window_pricing->>'labour_sash_m')::numeric, 0) * lmf, 2),
+        'labour_window', (COALESCE((c.window_pricing->>'labour_window')::numeric, 30) * lmf),
+        'labour_sash', (COALESCE((c.window_pricing->>'labour_sash')::numeric, 22) * lmf),
+        'labour_frame_m', (COALESCE((c.window_pricing->>'labour_frame_m')::numeric, 0) * lmf),
+        'labour_sash_m', (COALESCE((c.window_pricing->>'labour_sash_m')::numeric, 0) * lmf),
         'waste_pct', COALESCE((c.window_pricing->>'waste_pct')::numeric, 6),
         'margin_pct', 0, 'labour_margin_pct', 0,
         'both_sides_pct', COALESCE((c.window_pricing->>'both_sides_pct')::numeric, 10)) END) END

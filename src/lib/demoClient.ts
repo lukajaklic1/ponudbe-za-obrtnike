@@ -355,23 +355,23 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
       const active = (t: string) => (db[t] ?? []).filter((x: Row) => x.company_id === c.id && x.is_active !== false)
       return { data: {
         company: { name: c.name, logo_url: c.logo_url, email: c.email, phone: c.phone, currency: c.currency || 'EUR', accent: c.configurator_accent || '#101112', intro: c.configurator_intro ?? null, show_prices: true, vat_rate: c.vat_payer === false ? 0 : 22 },
-        systems: active('window_systems').map((s: Row) => ({ ...s, frame_m: r2(Number(s.frame_m ?? 0) * mf), sash_m: r2(Number(s.sash_m ?? 0) * mf), mullion_m: r2(Number(s.mullion_m ?? 0) * mf), bead_m: r2(Number(s.bead_m ?? 0) * mf) })),
+        systems: active('window_systems').map((s: Row) => ({ ...s, frame_m: Number(s.frame_m ?? 0) * mf, sash_m: Number(s.sash_m ?? 0) * mf, mullion_m: Number(s.mullion_m ?? 0) * mf, bead_m: Number(s.bead_m ?? 0) * mf })),
         types: active('window_types'),
         prices: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id),
         combos: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id).map((p: Row) => ({ system_id: p.system_id, type_id: p.type_id })),
         options: active('window_options'),
         builder: wp.offer?.windows || wp.offer?.slidingWindows || wp.offer?.doors || wp.offer?.sliding || (wp.offer?.roof !== false && wp.roof) ? { offer: wp.offer, colors: wp.colors ?? null,
-          glass: (wp.glass ?? []).map((g: Row) => ({ ...g, cost_m2: r2(Number(g.cost_m2 ?? 0) * mf) })),
-          handles: (wp.handles ?? []).map((h: Row) => ({ ...h, cost: r2(Number(h.cost ?? 0) * mf) })),
-          sills: (wp.sills ?? []).map((x: Row) => ({ ...x, cost_m: r2(Number(x.cost_m ?? 0) * mf) })),
-          shading: (wp.shading ?? []).map((x: Row) => ({ ...x, cost: r2(Number(x.cost ?? 0) * mf), fixed: r2(Number(x.fixed ?? 0) * mf), per_w: r2(Number(x.per_w ?? 0) * mf), per_h: r2(Number(x.per_h ?? 0) * mf), min: r2(Number(x.min ?? 0)),
-            integrated: x.integrated ? Object.fromEntries(Object.entries(x.integrated).map(([k, v]) => [k, r2(Number(v ?? 0) * mf)])) : undefined })),
+          glass: (wp.glass ?? []).map((g: Row) => ({ ...g, cost_m2: Number(g.cost_m2 ?? 0) * mf })),
+          handles: (wp.handles ?? []).map((h: Row) => ({ ...h, cost: Number(h.cost ?? 0) * mf })),
+          sills: (wp.sills ?? []).map((x: Row) => ({ ...x, cost_m: Number(x.cost_m ?? 0) * mf })),
+          shading: (wp.shading ?? []).map((x: Row) => ({ ...x, cost: Number(x.cost ?? 0) * mf, fixed: Number(x.fixed ?? 0) * mf, per_w: Number(x.per_w ?? 0) * mf, per_h: Number(x.per_h ?? 0) * mf, min: r2(Number(x.min ?? 0)),
+            integrated: x.integrated ? Object.fromEntries(Object.entries(x.integrated).map(([k, v]) => [k, Number(v ?? 0) * mf])) : undefined })),
           roof: wp.offer?.roof !== false && wp.roof ? {
           models: wp.roof.models ?? [], flashings: wp.roof.flashings ?? [],
         } : null, pricing: {
-          hw: Object.fromEntries(Object.entries(hw).map(([k, v]) => [k, r2(Number(v) * mf)])),
-          hw_m: Object.fromEntries(Object.entries(hwM).map(([k, v]) => [k, r2(Number(v) * mf)])),
-          glass_m2: r2(Number(wp.glass_m2 ?? 32) * mf), glass_min_m2: Number(wp.glass_min_m2 ?? 0), labour_window: r2(Number(wp.labour_window ?? 30) * lmf), labour_sash: r2(Number(wp.labour_sash ?? 22) * lmf), labour_frame_m: r2(Number(wp.labour_frame_m ?? 0) * lmf), labour_sash_m: r2(Number(wp.labour_sash_m ?? 0) * lmf),
+          hw: Object.fromEntries(Object.entries(hw).map(([k, v]) => [k, Number(v) * mf])),
+          hw_m: Object.fromEntries(Object.entries(hwM).map(([k, v]) => [k, Number(v) * mf])),
+          glass_m2: Number(wp.glass_m2 ?? 32) * mf, glass_min_m2: Number(wp.glass_min_m2 ?? 0), labour_window: Number(wp.labour_window ?? 30) * lmf, labour_sash: Number(wp.labour_sash ?? 22) * lmf, labour_frame_m: Number(wp.labour_frame_m ?? 0) * lmf, labour_sash_m: Number(wp.labour_sash_m ?? 0) * lmf,
           waste_pct: Number(wp.waste_pct ?? 6), margin_pct: 0, labour_margin_pct: 0, both_sides_pct: Number(wp.both_sides_pct ?? 10),
         } } : null,
       }, error: null }
