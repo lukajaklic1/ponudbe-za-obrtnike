@@ -12,11 +12,12 @@ interface AppLogoProps {
 export function FenestrioMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size * 19 / 20.8} height={size} viewBox="2.5 1.7 19 20.8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      {/* one solid arch (fenestra) cut by a slanted slit, like a sash tilting open; the slit is transparent */}
+      {/* one solid arch (fenestra) cut by two parallel slanted slits, like a sash tilting open; the slits are transparent */}
       <defs>
         <mask id="fenestrio-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
           <rect width="24" height="24" fill="#ffffff" />
           <path d="M0 18.6 L24 13.4" stroke="#000000" strokeWidth="2.1" />
+          <path d="M0 12.3 L24 7.1" stroke="#000000" strokeWidth="2.1" />
         </mask>
       </defs>
       <path mask="url(#fenestrio-cut)" d="M3 19.4 V11.2 A9 9 0 0 1 21 11.2 V19.4 A2.6 2.6 0 0 1 18.4 22 H5.6 A2.6 2.6 0 0 1 3 19.4 Z" fill="#1f2123" />
