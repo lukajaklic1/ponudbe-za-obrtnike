@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
+import Select from './Select'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { useLanguage } from '../../hooks/useLanguage'
 
@@ -56,11 +57,7 @@ export default function Pagination({ total, page, pageSize, onChange, onPageSize
           <label className="flex items-center gap-2 text-xs font-medium text-gray-500">
             {lang === 'sl' ? 'Vrstic na stran' : 'Rows per page'}
             <span className="relative">
-              <select value={pageSize} onChange={e => { onPageSizeChange(Number(e.target.value)); onChange(1) }}
-                className="appearance-none h-7 pl-2 pr-6 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer">
-                {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-              <ChevronDown className="w-3 h-3 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <span className="block w-16"><Select size="xs" value={pageSize} options={PAGE_SIZE_OPTIONS.map(n => ({ value: n, label: String(n) }))} onChange={n => { onPageSizeChange(n); onChange(1) }} /></span>
             </span>
           </label>
         )}

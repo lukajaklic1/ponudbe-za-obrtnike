@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import AppSelect from '../components/ui/Select'
 import { Navigate } from 'react-router-dom'
 import { AppWindow, Plus, Pencil, Trash2, Sparkles, ExternalLink, Copy, ClipboardPaste } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -199,13 +200,7 @@ function RowActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => 
   </div>
 }
 function Select<V extends string>({ label, value, onChange, options }: { label: string; value: V; onChange: (v: V) => void; options: { value: V; label: string }[] }) {
-  return <div className="flex flex-col gap-1">
-    <label className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{label}</label>
-    <select value={value} onChange={e => onChange(e.target.value as V)}
-      className="block w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-  </div>
+  return <AppSelect label={label} value={value} onChange={onChange} options={options} />
 }
 async function removeRow(table: string, id: string, onDone: () => void) {
   const { error } = await supabase.from(table as any).delete().eq('id', id)

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Select from '../components/ui/Select'
 import { Link, Navigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { Calculator, Plus, Trash2, Check, Settings2, Upload, ChevronDown, Pipette, ImagePlus, AlertTriangle } from 'lucide-react'
@@ -762,10 +763,8 @@ export default function PriceListSetupPage() {
                     </div>
                     {perItem && <div className="flex flex-col gap-1 sm:max-w-[calc(50%-6px)]">
                       <label className="text-xs font-medium text-[#7f7f7f]">{T.perItemLabel}</label>
-                      <select value={r.per_item ?? 'window'} disabled={!canEdit} onChange={e => { const per = e.target.value as PerItem; setOption(r.key, per === 'window' ? { per_item: per } : { per_item: per, price: 0 }) }}
-                        className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        {(['window', 'sill', 'shade', 'screen'] as const).map(k => <option key={k} value={k}>{T.perItems[k]}</option>)}
-                      </select>
+                      <Select value={r.per_item ?? 'window'} disabled={!canEdit} onChange={per => setOption(r.key, per === 'window' ? { per_item: per } : { per_item: per, price: 0 })}
+                        options={(['window', 'sill', 'shade', 'screen'] as const).map(k => ({ value: k, label: T.perItems[k] }))} />
                     </div>}
                     {perItem && (r.per_item ?? 'window') !== 'window'
                       ? <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
@@ -954,10 +953,8 @@ export default function PriceListSetupPage() {
                         </div>
                         <div className="w-56 flex flex-col gap-1">
                           <label className="text-xs font-medium text-[#7f7f7f]">{T.roofOpening}</label>
-                          <select value={m.opening} onChange={e => setModel(m.id, { opening: e.target.value as RoofOpening })} disabled={!canEdit} className={cn(inputCls, 'bg-white')}>
-                            <option value="center">{T.roofCenter}</option>
-                            <option value="top">{T.roofTop}</option>
-                          </select>
+                          <Select value={m.opening} onChange={v => setModel(m.id, { opening: v as RoofOpening })} disabled={!canEdit}
+                            options={[{ value: 'center', label: T.roofCenter }, { value: 'top', label: T.roofTop }]} />
                         </div>
                         {canEdit && <button type="button" onClick={() => askRemove(m.name, () => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) }))} title={T.remove}
                           className="h-[38px] px-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
@@ -1251,15 +1248,10 @@ export default function PriceListSetupPage() {
                         })}
                       </div>
                       {canEdit && <div className="flex flex-wrap items-center gap-3">
-                        <select value="" onChange={e => {
-                          const v = e.target.value
+                        <span className="block w-64"><Select value="" placeholder={T.addColor} onChange={v => {
                           if (v === '__own') setList([...list, { id: newRoofId(), name: '', look: '#ffffff', one: 0, both: 0 }])
                           else { const p = WINDOW_COLORS.find(x => x.sl === v); if (p) setList([...list, { id: newRoofId(), name: p.sl, code: p.code, look: encodeColor(p.spec), one: p.pct * 2, both: p.pct * 3 }]) }
-                        }} className="rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          <option value="">{T.addColor}</option>
-                          {unused.map(p => <option key={p.sl} value={p.sl}>{p.sl}{p.code ? ` (${p.code})` : ''}</option>)}
-                          <option value="__own">{T.ownColor}</option>
-                        </select>
+                        }} options={[...unused.map(p => ({ value: p.sl, label: p.sl, hint: p.code ?? undefined })), { value: '__own', label: T.ownColor }]} /></span>
                       </div>}
                     </div>
                   </div>}
@@ -1310,10 +1302,8 @@ export default function PriceListSetupPage() {
                       <NumberInput label={T.ugLabel} unit="W/m²K" value={g.ug ?? null} onValue={v => set(g.id, { ug: v })} decimals={1} />
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-[#7f7f7f]">{T.glassLayers}</label>
-                        <select value={g.layers ?? 2} disabled={!canEdit} onChange={e => set(g.id, { layers: Number(e.target.value) })}
-                          className="rounded-lg border border-gray-200 hover:border-gray-400 px-2 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          <option value={2}>{T.layers2}</option><option value={3}>{T.layers3}</option>
-                        </select>
+                        <Select value={g.layers ?? 2} disabled={!canEdit} onChange={v => set(g.id, { layers: Number(v) })}
+                          options={[{ value: 2, label: T.layers2 }, { value: 3, label: T.layers3 }]} />
                       </div>
                       <NumberInput label={T.glassCost} unit={`${cur}/m²`} value={g.cost_m2} onValue={v => set(g.id, { cost_m2: v ?? 0 })} decimals={2} />
                     </div>
@@ -1436,10 +1426,8 @@ export default function PriceListSetupPage() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                             <div className="flex flex-col gap-1">
                               <label className="text-xs font-medium text-[#7f7f7f]">{T.sillMaterial}</label>
-                              <select value={sillMaterialOf(x.material)} disabled={!canEdit} onChange={e => set(x.id, { material: e.target.value })}
-                                className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                {SILL_MATERIALS.map(mt => <option key={mt} value={mt}>{T.sillMaterials[mt]}</option>)}
-                              </select>
+                              <Select value={sillMaterialOf(x.material)} disabled={!canEdit} onChange={v => set(x.id, { material: v })}
+                                options={SILL_MATERIALS.map(mt => ({ value: mt, label: T.sillMaterials[mt] }))} />
                             </div>
                             <NumberInput label={T.sillCost} unit={`${cur}/m`} value={x.cost_m} onValue={v => set(x.id, { cost_m: v ?? 0 })} decimals={2} />
                           </div>
@@ -1516,17 +1504,13 @@ export default function PriceListSetupPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                               <div className="flex flex-col gap-1">
                                 <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeDrawing}</label>
-                                <select value={x.icon ?? 'none'} disabled={!canEdit} onChange={e => { const icon = e.target.value as ShadingType['icon']; set(x.id, { icon, ...(icon === 'roller' || icon === 'blinds' ? {} : { allows_screen: false }) }) }}
-                                  className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                  {SHADING_ICONS.filter(k => kind === 'shade' ? ['blinds', 'roller', 'pleated', 'none'].includes(k) : ['screen', 'screen_roll', 'screen_pleated', 'none'].includes(k)).map(k => <option key={k} value={k}>{T.shadeIcons[k]}</option>)}
-                                </select>
+                                <Select value={x.icon ?? 'none'} disabled={!canEdit} onChange={v => { const icon = v as ShadingType['icon']; set(x.id, { icon, ...(icon === 'roller' || icon === 'blinds' ? {} : { allows_screen: false }) }) }}
+                                  options={SHADING_ICONS.filter(k => kind === 'shade' ? ['blinds', 'roller', 'pleated', 'none'].includes(k) : ['screen', 'screen_roll', 'screen_pleated', 'none'].includes(k)).map(k => ({ value: k as string, label: T.shadeIcons[k] }))} />
                               </div>
                               <div className="flex flex-col gap-1">
                                 <label className="text-xs font-medium text-[#7f7f7f]">{T.shadeUnit}</label>
-                                <select value={x.unit} disabled={!canEdit} onChange={e => set(x.id, { unit: e.target.value as ShadingType['unit'] })}
-                                  className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 px-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                  {(['m2', 'sash'] as const).map(u => <option key={u} value={u}>{T.shadeUnits[u]}</option>)}
-                                </select>
+                                <Select value={x.unit} disabled={!canEdit} onChange={v => set(x.id, { unit: v as ShadingType['unit'] })}
+                                  options={(['m2', 'sash'] as const).map(u => ({ value: u as string, label: T.shadeUnits[u] }))} />
                               </div>
                               <NumberInput label={T.shadeMin} unit={cur} value={x.min ?? 0} onValue={v => set(x.id, { min: v ?? 0 })} decimals={2} />
                             </div>
@@ -1634,10 +1618,8 @@ export default function PriceListSetupPage() {
                         className="flex-1 min-w-[200px] rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <div className="w-32"><NumberInput value={r.price} onValue={v => setOption(r.key, { price: v })} unit={r.pricing === 'percent' ? '%' : cur} decimals={2} /></div>
                       {sec.units.length > 1
-                        ? <select value={r.pricing} disabled={!canEdit} onChange={e => setOption(r.key, { pricing: e.target.value as OptionPricing })}
-                            className="rounded-lg border border-gray-200 hover:border-gray-400 px-2 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            {sec.units.map(u => <option key={u} value={u}>{L.pricing[u]}</option>)}
-                          </select>
+                        ? <span className="block w-48"><Select value={r.pricing} disabled={!canEdit} onChange={v => setOption(r.key, { pricing: v as OptionPricing })}
+                            options={sec.units.map(u => ({ value: u as string, label: L.pricing[u] }))} /></span>
                         : <span className="text-sm text-gray-500 px-1">{L.pricing[r.pricing]}</span>}
                       <button type="button" disabled={!canEdit} onClick={() => setDefault(sec, r)} title={T.dflt}
                         className={cn('inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border text-xs font-medium', r.is_default ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-400 hover:text-gray-700')}>

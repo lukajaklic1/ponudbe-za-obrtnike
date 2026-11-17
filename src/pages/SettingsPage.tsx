@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Select from '../components/ui/Select'
 import { Building2, Receipt, CreditCard, Settings, Plus, X, Wallet, Check, Upload, AlertCircle, Image as ImageIcon } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
@@ -38,7 +39,6 @@ const LBL = {
 
 // Same look as the Input component, so every field on the page matches the rest of the app
 const LABEL = 'block text-xs font-medium text-[#7f7f7f] mb-1'
-const SELECT = 'block w-full h-[37.6px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 transition-colors hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed'
 const TEXTAREA = 'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y disabled:bg-gray-50 disabled:cursor-not-allowed'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HRK']
@@ -161,14 +161,8 @@ export default function SettingsPage() {
             <div className="col-span-2"><Input id="name" label={s.companyName} {...field('name')} /></div>
             <div>
               <label className={LABEL}>{o.legalForm}</label>
-              <select value={form.legal_form ?? ''} onChange={e => setForm(f => ({ ...f, legal_form: (e.target.value || null) as Company['legal_form'] }))}
-                className={SELECT}>
-                <option value="">{t.common.select}</option>
-                <option value="sp">s.p.</option>
-                <option value="doo">d.o.o.</option>
-                <option value="dd">d.d.</option>
-                <option value="other">{o.legalFormOther}</option>
-              </select>
+              <Select className="h-[37.6px]" value={form.legal_form ?? ''} placeholder={t.common.select} onChange={v => setForm(f => ({ ...f, legal_form: (v || null) as Company['legal_form'] }))}
+                options={[{ value: 'sp', label: 's.p.' }, { value: 'doo', label: 'd.o.o.' }, { value: 'dd', label: 'd.d.' }, { value: 'other', label: o.legalFormOther }]} />
             </div>
             <Input id="registration_number" label={o.registrationNumber} {...field('registration_number')} />
             <Input id="tax_id" label={x.taxId} placeholder="SI12345678" {...field('tax_id')} />
@@ -221,10 +215,8 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className={LABEL}>{t.settings.currency}</label>
-              <select value={form.currency ?? 'EUR'} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
-                className={SELECT}>
-                {CURRENCIES.map(c => <option key={c} value={c}>{currencySymbol(c)} · {c}</option>)}
-              </select>
+              <Select className="h-[37.6px]" value={form.currency ?? 'EUR'} onChange={v => setForm(f => ({ ...f, currency: v }))}
+                options={CURRENCIES.map(c => ({ value: c, label: `${currencySymbol(c)} · ${c}` }))} />
             </div>
             <Input id="quote_prefix" label={s.quotePrefix} {...field('quote_prefix')} />
             <Input id="next_num" label={s.nextQuoteNumber} type="number" value={String(nextNum)}
@@ -237,11 +229,8 @@ export default function SettingsPage() {
               onChange={e => setForm(f => ({ ...f, default_valid_days: Math.max(1, parseInt(e.target.value) || 30) }))} />
             <div className="sm:col-span-2">
               <label className={LABEL}>{o.defaultParity}</label>
-              <select value={form.default_parity ?? ''} onChange={e => setForm(f => ({ ...f, default_parity: e.target.value || null }))}
-                className={SELECT}>
-                <option value="">{o.none}</option>
-                {INCOTERMS.map(i => <option key={i.code} value={i.code}>{i.code} · {i.name}</option>)}
-              </select>
+              <Select className="h-[37.6px]" value={form.default_parity ?? ''} onChange={v => setForm(f => ({ ...f, default_parity: v || null }))}
+                options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
             </div>
           </div>
 

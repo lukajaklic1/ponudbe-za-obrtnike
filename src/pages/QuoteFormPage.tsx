@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Select from '../components/ui/Select'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ChevronLeft, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud } from 'lucide-react'
@@ -553,19 +554,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#eeeff1', color: '#52525b' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
                     ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-blue-600 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
-                    : <select value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)}
-                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">{o.none}</option>
-                        {termOptions.map(term => <option key={term} value={term}>{term}</option>)}
-                      </select>}
+                    : <Select className="h-[37.6px]" value={paymentTerms} onChange={setPaymentTerms}
+                        options={[{ value: '', label: o.none }, ...termOptions.map(term => ({ value: term, label: term }))]} />}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#7f7f7f]">{o.parity}</label>
-                <select value={parity} onChange={e => setParity(e.target.value)}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-[#52525b] disabled:border-[#eeeff1]">
-                  <option value="">{o.none}</option>
-                  {INCOTERMS.map(i => <option key={i.code} value={i.code}>{i.code} · {i.name}</option>)}
-                </select>
+                <Select className="h-[37.6px]" value={parity} onChange={setParity}
+                  options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
               </div>
             </div>
             <div className="flex flex-col gap-1 mt-4">
@@ -663,16 +658,14 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                         </td>
                         <td className="px-2 py-2.5"><NumCell value={l.quantity} disabled={ro} onValue={v => patchLine(l.key, { quantity: v })} /></td>
                         <td className="px-2 py-2.5">
-                          <select value={l.unit} disabled={ro} onChange={e => patchLine(l.key, { unit: e.target.value as PriceUnit })} className={boxCls}>
-                            {PRICE_UNITS.map(u => <option key={u} value={u}>{o.units[u]}</option>)}
-                          </select>
+                          <Select size="sm" value={l.unit} disabled={ro} onChange={v => patchLine(l.key, { unit: v as PriceUnit })} className={ro ? 'border-transparent bg-transparent disabled:bg-transparent' : ''}
+                            options={PRICE_UNITS.map(u => ({ value: u, label: o.units[u] }))} />
                         </td>
                         <td className="px-2 py-2.5"><NumCell value={l.unit_price} disabled={ro} onValue={v => patchLine(l.key, { unit_price: v })} /></td>
                         <td className="px-2 py-2.5"><NumCell value={l.discount_pct} decimals={0} disabled={ro} onValue={v => patchLine(l.key, { discount_pct: v })} /></td>
                         <td className="px-2 py-2.5">
-                          <select value={l.vat_rate} disabled={ro} onChange={e => patchLine(l.key, { vat_rate: Number(e.target.value) })} className={`${boxCls} text-right`}>
-                            {VAT_RATES.map(v => <option key={v} value={v}>{v.toLocaleString('de-DE')} %</option>)}
-                          </select>
+                          <Select size="sm" align="right" value={l.vat_rate} disabled={ro} onChange={v => patchLine(l.key, { vat_rate: Number(v) })} className={ro ? 'border-transparent bg-transparent disabled:bg-transparent' : ''}
+                            options={VAT_RATES.map(v => ({ value: v, label: `${v.toLocaleString('de-DE')} %` }))} />
                         </td>
                         <td className="px-4 py-2.5 pt-4 text-right font-medium text-gray-800 whitespace-nowrap">{money(lineTotal(num(l)))}</td>
                         {!ro && <td className="px-2 py-2.5 pt-3.5">
@@ -763,11 +756,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           {([['wallItem', o.wallsWork], ['ceilingItem', o.ceilingWork]] as const).map(([k, lbl]) => (
             <div key={k} className="flex flex-col gap-1">
               <label className="text-xs font-medium text-[#7f7f7f]">{lbl}</label>
-              <select value={room[k]} onChange={e => setRoom(r => ({ ...r, [k]: e.target.value }))}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">{o.none}</option>
-                {m2Items.map(p => <option key={p.id} value={p.id}>{p.name} · {money(Number(p.price))}</option>)}
-              </select>
+              <Select className="h-[37.6px]" value={room[k]} onChange={v => setRoom(r => ({ ...r, [k]: v }))}
+                options={[{ value: '', label: o.none }, ...m2Items.map(p => ({ value: p.id, label: p.name, hint: money(Number(p.price)) }))]} />
             </div>
           ))}
         </div>
