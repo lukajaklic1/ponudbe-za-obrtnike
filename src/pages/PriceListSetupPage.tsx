@@ -1810,9 +1810,9 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
   return (
     <section className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-start gap-3 mb-4">
-        <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
+        <span className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-semibold flex items-center justify-center shrink-0 shadow-[0_1px_2px_rgba(16,24,40,0.15)]">{n}</span>
         <div>
-          <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+          <h2 className="text-[15px] font-semibold text-gray-900 leading-7">{title}</h2>
           <p className="text-xs font-medium text-[#7f7f7f] mt-1 max-w-3xl">{hint}</p>
         </div>
       </div>

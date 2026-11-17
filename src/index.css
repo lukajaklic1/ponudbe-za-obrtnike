@@ -141,3 +141,20 @@ fieldset:disabled textarea:focus {
   outline: none !important;
   box-shadow: none !important;
 }
+
+
+/* ── Robust look (Levelpath / Precoro style): grey canvas, raised white cards, firmer fields ── */
+.robust main { background: #f4f5f7; }
+/* top-level white cards get depth (cards inside cards stay flat) */
+.robust main :is(.rounded-xl, .rounded-2xl).border.bg-white:not(.bg-white .bg-white) {
+  border-color: #e3e6ea;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 12px -2px rgba(16, 24, 40, .06);
+}
+/* fields, dropdowns and secondary buttons: firmer border and a hairline shadow */
+.robust main .rounded-lg.border:not(.border-dashed):not(.border-transparent):not([class*="bg-gray"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-amber"]) {
+  border-color: #d5d9e0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .06);
+}
+.robust main .rounded-lg.border:not(.border-dashed):not(.border-transparent):not([class*="bg-gray"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-amber"]):hover { border-color: #9ca3af; }
+/* tables: a clearer header row */
+.robust main thead tr { background: #f8f9fb; }
