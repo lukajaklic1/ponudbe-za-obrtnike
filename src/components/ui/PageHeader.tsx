@@ -4,12 +4,13 @@ import { useSidebarCollapse } from '../layout/AppLayout'
 
 interface PageHeaderProps {
   title: string
+  /** no longer shown (Levelpath-style headers have no icon); kept so pages can still pass it */
   icon?: LucideIcon
   count?: number
   action?: React.ReactNode
 }
 
-export function PageHeader({ title, icon: Icon, count, action }: PageHeaderProps) {
+export function PageHeader({ title, count, action }: PageHeaderProps) {
   const { collapsed, toggle } = useSidebarCollapse()
 
   return (
@@ -24,7 +25,6 @@ export function PageHeader({ title, icon: Icon, count, action }: PageHeaderProps
             <PanelLeft className="w-[18px] h-[18px]" />
           </button>
         )}
-        {Icon && <Icon className="w-5 h-5 text-gray-500 shrink-0" />}
         <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.01em] text-gray-900">{title}</h1>
         {count !== undefined && (
           <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#e8e8e8] text-[#4a4a4a]">{count}</span>
