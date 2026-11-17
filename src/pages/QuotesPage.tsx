@@ -181,11 +181,11 @@ export default function QuotesPage() {
           ]}
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
         <DateRangeFilter label={sl ? 'Ustvarjeno' : 'Created'} from={dateFrom} to={dateTo} onChange={(f, t2) => { setDateFrom(f); setDateTo(t2); setPage(1) }} />
-        <div className="ml-auto inline-flex h-8 items-stretch gap-0.5 p-[3px] rounded-[10px] bg-[#f1f1f1]">
+        <div className="ml-auto inline-flex h-8 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`w-8 flex items-center justify-center rounded-[7px] transition-colors ${view === v ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]' : 'text-gray-500 hover:text-gray-900'}`}>
-              <Icon className="w-4 h-4" />
+              className={`w-8 flex items-center justify-center rounded-[8px] transition-colors ${view === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.06)]' : 'text-[#4f4f4f] hover:text-gray-900'}`}>
+              <Icon className="w-[15px] h-[15px]" strokeWidth={1.75} />
             </button>
           ))}
         </div>
@@ -199,6 +199,8 @@ export default function QuotesPage() {
             empty: sl ? 'Ni ponudb' : 'No quotes', total: sl ? 'Skupaj brez DDV' : 'Total excl. VAT',
             created: t.common.created, validUntil: sl ? 'Velja do' : 'Valid until', value: t.od.totalNet,
             assignee: s.assignee, noAssignee: s.noAssignee, customer: s.customer, site: t.od.siteAddress, phone: t.common.phone, inStatus: sl ? 'Dni v trenutnem statusu' : 'Days in current status',
+            showRecent: sl ? 'Samo zadnjih 30 dni' : 'Last 30 days only',
+            olderHidden: (n: number) => sl ? `Pokaži vse (${n} starejših)` : `Show all (${n} older)`,
           }}
           onOpen={openQuote} onMove={requestMove} />
       ) : (<>
