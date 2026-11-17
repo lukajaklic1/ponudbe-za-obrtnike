@@ -38,6 +38,8 @@ export interface PricingSettings {
   glass_m2: number
   /** the glazier bills every pane at least this area (m²); 0 = the real area */
   glass_min_m2?: number
+  /** the glass reaches this far into the profile's rebate on every side (mm); the glazier bills the whole pane */
+  glass_rebate_mm?: number
   labour_window: number
   labour_sash: number
   /** labour per metre of frame and mullions (cutting, welding …); 0 when not used */
@@ -294,7 +296,7 @@ export const DEFAULT_OFFER: Offer = {
 export const DEFAULT_PRICING: PricingSettings = {
   hw: { tilt_turn: 20, turn: 15, tilt: 18, passive: 10, slide_window: 40, slide: 120, lift_slide: 450 },
   hw_m: { tilt_turn: 1, turn: 1, tilt: 1, passive: 0.5, slide_window: 2, slide: 5, lift_slide: 20 },
-  glass_m2: 32, labour_window: 30, labour_sash: 22, waste_pct: 6, margin_pct: 45, both_sides_pct: 10,
+  glass_m2: 32, glass_rebate_mm: 13, labour_window: 30, labour_sash: 22, waste_pct: 6, margin_pct: 45, both_sides_pct: 10,
   offer: DEFAULT_OFFER,
 }
 
@@ -363,7 +365,13 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
 
   let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, glassBill = 0, sashes = 0, handles = 0
   // every pane is billed at least the glazier's smallest area
-  const pane = (a: number) => { glassArea += a; glassBill += Math.max(a, s.glass_min_m2 ?? 0) }
+  // the pane is larger than what you see: it reaches into the rebate on every side
+  const reb = s.glass_rebate_mm ?? 13
+  const pane = (gw: number, gh: number) => {
+    if (gw <= 0 || gh <= 0) return
+    const a = (gw + 2 * reb) * (gh + 2 * reb) / 1e6
+    glassArea += a; glassBill += Math.max(a, s.glass_min_m2 ?? 0)
+  }
   // sizes of the opening sashes added up (for shading / screens priced per sash)
   let sashWSum = 0, sashHSum = 0, sashArea = 0
   const hw: Record<string, { n: number; total: number }> = {}
@@ -373,7 +381,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     if (cw <= 0 || ch <= 0) return
     if (f.opening === 'fixed') {
       beadLen += 2 * (cw + ch)
-      pane((cw * ch) / 1e6)
+      pane(cw, ch)
       return
     }
     sashes++
@@ -383,7 +391,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     sashLen += 2 * (sashW + sashH)
     const gw = Math.max(0, sashW - 2 * sw), gh = Math.max(0, sashH - 2 * sw)
     beadLen += 2 * (gw + gh)
-    pane((gw * gh) / 1e6)
+    pane(gw, gh)
     const k = f.opening as keyof PricingSettings['hw']
     const cur = hw[k] ?? { n: 0, total: 0 }
     hw[k] = { n: cur.n + 1, total: cur.total + (s.hw[k] ?? 0) + (s.hw_m?.[k] ?? 0) * 2 * (sashW + sashH) / 1000 }

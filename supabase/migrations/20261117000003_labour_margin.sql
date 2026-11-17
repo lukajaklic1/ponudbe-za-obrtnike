@@ -2,7 +2,7 @@
 -- 20261117000003_labour_margin.sql
 -- Two margins: one on the window material (margin_pct), one on the labour (labour_margin_pct).
 -- Labour can also be counted per metre of frame and mullions (labour_frame_m) and per metre of sash profile
--- (labour_sash_m), 0 when not set. Every pane of glass is billed at least glass_min_m2 (0 = real area).
+-- (labour_sash_m), 0 when not set. Every pane of glass is billed at least glass_min_m2 (0 = real area). Panes include the part in the rebate (glass_rebate_mm each side, 13 mm when not set).
 -- The configurator gets the prices with margin unrounded, so its live price matches the quote to the cent.
 -- Safe to run again.
 -- Price lists without labour_margin_pct keep using the material margin for labour, so no price changes.
@@ -32,6 +32,8 @@ DECLARE
   glass   numeric := 0;
   -- the glazier bills every pane at least this area
   gmin    numeric := COALESCE((p->>'glass_min_m2')::numeric, 0);
+  -- the pane reaches this far into the rebate on every side (mm)
+  reb     numeric := COALESCE((p->>'glass_rebate_mm')::numeric, 13);
   sashes  integer := 0;
   handles integer := 0;
   hw      numeric := 0;
@@ -81,7 +83,7 @@ BEGIN
     op := COALESCE(r.f->>'opening', 'fixed');
     IF op = 'fixed' THEN
       bead  := bead + 2 * (r.cw + r.ch);
-      glass := glass + GREATEST(r.cw * r.ch / 1000000.0, gmin);
+      glass := glass + GREATEST((r.cw + 2 * reb) * (r.ch + 2 * reb) / 1000000.0, gmin);
     ELSE
       sashes := sashes + 1;
       -- a passive sash is opened from the other one: no handle
@@ -91,7 +93,7 @@ BEGIN
       sash := sash + 2 * (sw2 + sh2);
       gw := GREATEST(0, sw2 - 2 * sw); gh := GREATEST(0, sh2 - 2 * sw);
       bead  := bead + 2 * (gw + gh);
-      glass := glass + GREATEST(gw * gh / 1000000.0, gmin);
+      IF gw > 0 AND gh > 0 THEN glass := glass + GREATEST((gw + 2 * reb) * (gh + 2 * reb) / 1000000.0, gmin); END IF;
       -- hardware per sash = fixed + price per metre of the sash perimeter
       hw := hw + COALESCE((p->'hw'->>op)::numeric,
               CASE op WHEN 'tilt_turn' THEN 20 WHEN 'turn' THEN 15 WHEN 'tilt' THEN 18 WHEN 'passive' THEN 10 WHEN 'slide_window' THEN 40 WHEN 'slide' THEN 120 WHEN 'lift_slide' THEN 450 ELSE 0 END)
@@ -240,6 +242,7 @@ BEGIN
         'hw_m', (SELECT jsonb_object_agg(k, (v::numeric * mf)) FROM jsonb_each_text(hwm) AS t(k, v)),
         'glass_m2', (COALESCE((c.window_pricing->>'glass_m2')::numeric, 32) * mf),
         'glass_min_m2', COALESCE((c.window_pricing->>'glass_min_m2')::numeric, 0),
+        'glass_rebate_mm', COALESCE((c.window_pricing->>'glass_rebate_mm')::numeric, 13),
         'labour_window', (COALESCE((c.window_pricing->>'labour_window')::numeric, 30) * lmf),
         'labour_sash', (COALESCE((c.window_pricing->>'labour_sash')::numeric, 22) * lmf),
         'labour_frame_m', (COALESCE((c.window_pricing->>'labour_frame_m')::numeric, 0) * lmf),
