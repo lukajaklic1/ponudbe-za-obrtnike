@@ -127,7 +127,7 @@ export default function SuperAdminCompaniesPage() {
                       <td className="px-4 py-3">
                         <span className="px-2 py-0.5 rounded-md text-xs font-medium"
                           style={c.is_active
-                            ? { backgroundColor: '#e0fce8', color: '#3a6a4f' }
+                            ? { backgroundColor: '#dbfce7', color: '#3d6d51' }
                             : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
                           {c.is_active ? 'Aktivno' : 'Deaktivirano'}
                         </span>

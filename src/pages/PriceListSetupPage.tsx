@@ -563,7 +563,7 @@ export default function PriceListSetupPage() {
     const list = profilesFor(g)
     return list.length
       ? <p className="text-xs font-medium text-[#5f5f5f] mb-3">{T.profilesLine(list.map(p => p.name || L.materials[p.material]).join(', '))}</p>
-      : <p className="text-xs font-medium mb-3 rounded-md px-2.5 py-1.5 inline-block" style={{ color: '#874d00', backgroundColor: '#fff3cc', border: '1px solid #ffe5a0' }}>{T.noProfile}</p>
+      : <p className="text-xs font-medium mb-3 rounded-md px-2.5 py-1.5 inline-block" style={{ color: '#907c49', backgroundColor: '#fef3cd' }}>{T.noProfile}</p>
   }
   // short line on a closed fold: how many window types and opening layouts are offered
   const windowsSummary = (() => {
@@ -803,7 +803,7 @@ export default function PriceListSetupPage() {
       <PageHeader title={T.title} icon={Calculator} action={canEdit && <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>} />
       <div className="px-6 py-6 pb-28">
         <div className="min-w-0">
-        {isSample && !loading && <div className="mb-5 flex items-start gap-3 rounded-xl px-4 py-3 text-sm" style={{ color: '#874d00', backgroundColor: '#fff3cc', border: '1px solid #ffe5a0' }}>
+        {isSample && !loading && <div className="mb-5 flex items-start gap-3 rounded-xl px-4 py-3 text-sm" style={{ color: '#907c49', backgroundColor: '#fef3cd' }}>
           <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
           <div><div className="font-medium">{T.sampleTitle}</div><div className="mt-0.5">{T.sampleText}</div></div>
         </div>}
@@ -1069,7 +1069,7 @@ export default function PriceListSetupPage() {
                           <div className="hidden lg:flex flex-nowrap justify-end gap-1" title={usedText}>
                             {/* every offered group: blue where the profile is used, grey where not */}
                             {groups.map(g => <span key={g} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap"
-                              style={serves(g) ? { color: '#3b6fd8', backgroundColor: '#e5edfc' } : { color: '#9a9a9a', backgroundColor: '#f4f4f4' }}>{groupLabel(g)}</span>)}
+                              style={serves(g) ? { color: '#3d6d51', backgroundColor: '#dbfce7' } : { color: '#9a9a9a', backgroundColor: '#f4f4f4' }}>{groupLabel(g)}</span>)}
                           </div>
                           <button type="button" onClick={() => setOpenProf(o => ({ ...o, [p.key]: !pOpen }))}
                             className="justify-self-end inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -1243,7 +1243,7 @@ export default function PriceListSetupPage() {
                             <div className="hidden md:block"><NumberInput unit="%" value={c.both} onValue={v => setColor(c.id, { both: v ?? 0 })} decimals={0} /></div>
                             {canEdit ? <button type="button" onClick={() => askRemove(c.name, () => setList(list.filter(x => x.id !== c.id)))} title={T.remove}
                               className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button> : <span />}
-                            {badRal && <p className="col-span-full -mt-1 md:pl-[48px] text-xs font-medium" style={{ color: '#874d00' }}>{T.badRal(code)}</p>}
+                            {badRal && <p className="col-span-full -mt-1 md:pl-[48px] text-xs font-medium" style={{ color: '#907c49' }}>{T.badRal(code)}</p>}
                           </div>
                         })}
                       </div>
@@ -1297,7 +1297,7 @@ export default function PriceListSetupPage() {
                     <div className="flex items-center gap-3">
                       <input value={g.name} onChange={e => set(g.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.glassName}
                         className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#3a6a4f', backgroundColor: '#e0fce8' }}>{T.baseIncluded}</span>}
+                      {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#3d6d51', backgroundColor: '#dbfce7' }}>{T.baseIncluded}</span>}
                       {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(g.name, () => setList(list.filter(x => x.id !== g.id)))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
@@ -1368,7 +1368,7 @@ export default function PriceListSetupPage() {
                         <div className="flex items-center gap-3">
                           <input value={h.name} onChange={e => set(h.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.handleName}
                             className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                          {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#3a6a4f', backgroundColor: '#e0fce8' }}>{T.baseIncluded}</span>}
+                          {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#3d6d51', backgroundColor: '#dbfce7' }}>{T.baseIncluded}</span>}
                           {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(h.name, () => setList(list.filter(x => x.id !== h.id)))} title={T.remove}
                             className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                         </div>

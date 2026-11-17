@@ -129,7 +129,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
                         <td className="px-3 py-2 w-40 text-right">
                           <span className="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={
                             r.error ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
-                              : { backgroundColor: '#e0fce8', color: '#3a6a4f' }}>
+                              : { backgroundColor: '#dbfce7', color: '#3d6d51' }}>
                             {r.error ? T.errors[r.error] : T.newRow}
                           </span>
                         </td>
