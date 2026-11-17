@@ -467,7 +467,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       </div>
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-          <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.015em] text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
+          <h1 className="text-2xl leading-8 font-bold tracking-[-0.02em] text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
           {quoteNumber && <span className="text-sm" style={{ color: '#5f5f5f' }}>{quoteNumber}</span>}
           {isSaved && <QuoteStatusBadge status={status} label={s.status[status]} />}
         </div>

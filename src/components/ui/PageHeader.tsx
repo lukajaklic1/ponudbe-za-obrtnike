@@ -25,7 +25,7 @@ export function PageHeader({ title, count, action }: PageHeaderProps) {
             <PanelLeft className="w-[18px] h-[18px]" />
           </button>
         )}
-        <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.015em] text-gray-900">{title}</h1>
+        <h1 className="text-2xl leading-8 font-bold tracking-[-0.02em] text-gray-900">{title}</h1>
         {count !== undefined && (
           <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#e8e8e8] text-[#4a4a4a]">{count}</span>
         )}
