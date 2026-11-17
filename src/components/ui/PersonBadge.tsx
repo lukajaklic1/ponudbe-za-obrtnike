@@ -1,4 +1,4 @@
-// Avatars: quiet grey circle with one letter everywhere in lists (Levelpath style),
+// Avatars: quiet grey circle with the initials everywhere in lists (Levelpath style),
 // the deep teal one only for the signed-in person at the bottom of the sidebar.
 const BRAND_COLOR = '#0d5c6e'
 
@@ -26,8 +26,8 @@ export function Avatar({ name, size = 24, tone = 'neutral' }: { name: string; si
   }
   return (
     <span className="inline-flex items-center justify-center rounded-full font-medium shrink-0 select-none"
-      style={{ backgroundColor: '#f4f4f4', border: '1px solid #e2e2e2', color: '#4a4a4a', width: size, height: size, fontSize: Math.max(10, Math.round(size * 0.46)) }}>
-      {(name.trim()[0] ?? '?').toUpperCase()}
+      style={{ backgroundColor: '#f4f4f4', border: '1px solid #e2e2e2', color: '#4a4a4a', width: size, height: size, fontSize: Math.max(9, Math.round(size * 0.4)), letterSpacing: '0.01em' }}>
+      {initialsOf(name)}
     </span>
   )
 }
