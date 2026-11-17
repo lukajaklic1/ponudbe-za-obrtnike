@@ -6,29 +6,32 @@ interface AppLogoProps {
 }
 
 /**
- * Fenestrio mark: a solid round-topped window (fenestra) with the frame bar next to it, on a transparent background.
+ * Fenestrio mark: one solid arch (a window, fenestra) cut by a slanted slit, in the spirit of a bold single-shape mark.
  * Heavy, rounded and simple, so it reads at 16 px as well.
  */
 export function FenestrioMark({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="9.6 10.6 22.3 21.8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      {/* an arched window (fenestra): slim arch, a fine mullion, the frame bar beside it */}
-      <path d="M11 31 L11 18.5 A6.5 6.5 0 0 1 24 18.5 L24 31 Z" fill="#1f2123" stroke="#1f2123" strokeWidth="2" strokeLinejoin="round" />
-      <line x1="17.5" y1="15" x2="17.5" y2="30.2" stroke="#ffffff" strokeWidth="1.3" strokeLinecap="round" />
-      <rect x="28" y="15" width="3.5" height="17" rx="1.75" fill="#1f2123" />
+    <svg width={size * 19 / 20.8} height={size} viewBox="2.5 1.7 19 20.8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      {/* one solid arch (fenestra) cut by a slanted slit, like a sash tilting open; the slit is transparent */}
+      <defs>
+        <mask id="fenestrio-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+          <rect width="24" height="24" fill="#ffffff" />
+          <path d="M0 18.6 L24 13.4" stroke="#000000" strokeWidth="2.1" />
+        </mask>
+      </defs>
+      <path mask="url(#fenestrio-cut)" d="M3 19.4 V11.2 A9 9 0 0 1 21 11.2 V19.4 A2.6 2.6 0 0 1 18.4 22 H5.6 A2.6 2.6 0 0 1 3 19.4 Z" fill="#1f2123" />
     </svg>
   )
 }
 
 export default function AppLogo({ size = 'md', showName = true, dark = false }: AppLogoProps) {
-  // the mark is as tall as the letters (baseline to the top of the f)
-  const dim = size === 'sm' ? 15 : size === 'md' ? 19 : 25
+  const dim = size === 'sm' ? 22 : size === 'md' ? 28 : 36
   const fontSize = size === 'sm' ? 'text-[19px]' : size === 'md' ? 'text-2xl' : 'text-[32px]'
   const textColor = dark ? 'text-white' : 'text-[#1f2123]'
 
   return (
-    <div className="flex items-baseline gap-1.5">
-      <FenestrioMark size={dim} />
+    <div className="flex items-center gap-2">
+      <span className="-translate-y-[2px]"><FenestrioMark size={dim} /></span>
       {showName && (
         <span className={`font-bold tracking-[-0.035em] leading-none ${fontSize} ${textColor}`}>
           fenestrio
