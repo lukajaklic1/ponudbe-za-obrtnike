@@ -218,21 +218,21 @@ export default function QuotesPage() {
                   <td className="px-4 py-3">
                     <span className="!font-normal text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
-                  <td className="px-4 py-3 max-w-[210px]">
+                  <td className="px-4 py-3 max-w-[260px]">
                     <div className="text-gray-900 font-medium truncate">{q.customers?.name ?? '—'}</div>
                     {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
                   </td>
-                  <td className="px-4 py-3 max-w-[200px]">
+                  <td className="px-4 py-3 max-w-[240px]">
                     <div className="text-gray-900 truncate">{q.contact_email || q.customers?.email || '—'}</div>
                     {(q.contact_phone || q.customers?.phone) && <div className="text-[13px] text-gray-600 whitespace-nowrap mt-0.5">{q.contact_phone || q.customers?.phone}</div>}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-start gap-0.5">
                       <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                       {q.status === 'sent' && (() => {
                         const n = waitingDays(q) ?? 0
                         return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
-                          className="text-[13px] whitespace-nowrap" style={{ color: '#5f5f5f' }}>{sentAgo(n)}</span>
+                          className="text-[13px] whitespace-nowrap pl-0.5" style={{ color: '#5f5f5f' }}>{sentAgo(n)}</span>
                       })()}
                     </div>
                   </td>
@@ -251,7 +251,7 @@ export default function QuotesPage() {
                   </td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <div className="flex justify-end">
-                      <button onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">
+                      <button onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
