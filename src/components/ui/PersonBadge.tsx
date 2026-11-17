@@ -1,15 +1,13 @@
-// Muted avatar colours (Levelpath style); every person always gets the same one, picked from the name
-const AVATAR_COLORS = ['#2f7d6d', '#b8457a', '#5a5fc4', '#b7782a', '#3a78b5', '#7c56a8', '#5f7a32', '#c0533f']
+// One avatar colour for everybody (user choice): deep teal, matches the teal focus of the fields
+const AVATAR_COLOR = '#0d5c6e'
 
 export function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return '?'
   return ((parts[0][0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase()
 }
-export function avatarColor(name: string) {
-  let h = 0
-  for (const ch of name.trim().toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  return AVATAR_COLORS[h % AVATAR_COLORS.length]
+export function avatarColor(_name?: string) {
+  return AVATAR_COLOR
 }
 
 /** Round avatar with the person's initials. */
