@@ -20,7 +20,7 @@ export function FenestrioMark({ size = 28 }: { size?: number }) {
           <path d="M0 12.3 L24 7.1" stroke="#000000" strokeWidth="2.1" />
         </mask>
       </defs>
-      <path mask="url(#fenestrio-cut)" d="M3 19.4 V11.2 A9 9 0 0 1 21 11.2 V19.4 A2.6 2.6 0 0 1 18.4 22 H5.6 A2.6 2.6 0 0 1 3 19.4 Z" fill="#1f2123" />
+      <path mask="url(#fenestrio-cut)" d="M3 19.4 V11.2 A9 9 0 0 1 21 11.2 V19.4 A2.6 2.6 0 0 1 18.4 22 H5.6 A2.6 2.6 0 0 1 3 19.4 Z" fill="#1a1a1a" />
     </svg>
   )
 }
@@ -28,7 +28,7 @@ export function FenestrioMark({ size = 28 }: { size?: number }) {
 export default function AppLogo({ size = 'md', showName = true, dark = false }: AppLogoProps) {
   const dim = size === 'sm' ? 22 : size === 'md' ? 28 : 36
   const fontSize = size === 'sm' ? 'text-[19px]' : size === 'md' ? 'text-2xl' : 'text-[32px]'
-  const textColor = dark ? 'text-white' : 'text-[#1f2123]'
+  const textColor = dark ? 'text-white' : 'text-[#1a1a1a]'
 
   return (
     <div className="flex items-center gap-2">

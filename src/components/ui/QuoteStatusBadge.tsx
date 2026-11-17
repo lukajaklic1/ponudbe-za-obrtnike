@@ -4,7 +4,7 @@ import type { QuoteStatus } from '../../types/database'
 // Levelpath-style tints: soft background, darker text of the same colour, no border
 export const GREY: React.CSSProperties   = { color: '#4a4a4a', backgroundColor: '#ececec' }
 export const YELLOW: React.CSSProperties = { color: '#8a5c00', backgroundColor: '#fff3c4' }
-export const GREEN: React.CSSProperties  = { color: '#267a47', backgroundColor: '#d6fae5' }
+export const GREEN: React.CSSProperties  = { color: '#3a6a4f', backgroundColor: '#e0fce8' }
 export const BLUE: React.CSSProperties   = { color: '#3b6fd8', backgroundColor: '#e5edfc' }
 export const PURPLE: React.CSSProperties = { color: '#6a4fb6', backgroundColor: '#efeafc' }
 // overdue (e.g. a quote sent long ago): same softness as the others

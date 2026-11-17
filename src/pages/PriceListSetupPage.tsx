@@ -452,7 +452,7 @@ export default function PriceListSetupPage() {
               <div className="space-y-5">
               {/* every window type is a row; its openings open right underneath it */}
               <div>
-                <div className="text-xs font-medium text-[#5b5b5b] mb-2">{T.sashCount}</div>
+                <div className="text-xs font-medium text-[#484848] mb-2">{T.sashCount}</div>
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                   {[1, 2, 3].map(n => {
                     const ok = offerKey(n, kind)
@@ -469,13 +469,13 @@ export default function PriceListSetupPage() {
                     return <div key={n} className={cn(on ? 'bg-white' : 'bg-gray-50/60')}>
                       <div className="flex items-center gap-4 px-4 py-3">
                         <button type="button" disabled={!canEdit} onClick={() => setSashList(on ? sashList.filter(x => x !== n) : [...sashList, n].sort())}
-                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1f2123] border-[#1f2123]' : 'border-gray-300 bg-white')}>
+                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
                           {on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                         </button>
                         <RowPic spec={makeSpec(n, 'none', 'none', 'fixed')} width={door ? drawW : n === 1 ? 1200 : 500 * n + 200} height={rowH} />
                         <div className="flex-1 min-w-0">
                           <div className={cn('text-sm font-medium', on ? 'text-gray-900' : 'text-gray-500')}>{door ? T.nDoor(n) : T.nSash(n)}</div>
-                          {on && <div className="text-xs font-medium text-[#5b5b5b] mt-0.5">{T.rowSummary(bandsPicked.length, onCount, variants.length, bandKeys.length)}</div>}
+                          {on && <div className="text-xs font-medium text-[#484848] mt-0.5">{T.rowSummary(bandsPicked.length, onCount, variants.length, bandKeys.length)}</div>}
                         </div>
                         {on && <button type="button" onClick={() => { setOpenSash(open ? null : ok); setVariantTab({}) }}
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -499,13 +499,13 @@ export default function PriceListSetupPage() {
                                 return <div key={k} className={cn(sel ? 'bg-white' : 'bg-gray-50/60')}>
                                   <div className="flex items-center gap-4 px-4 py-3">
                                     <button type="button" disabled={!canEdit} onClick={() => setBands(sel ? bandsPicked.filter(x => x !== k) : [...bandsPicked, k])}
-                                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#1f2123] border-[#1f2123]' : 'border-gray-300 bg-white')}>
+                                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
                                       {sel && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                                     </button>
                                     <RowPic spec={makeSpec(n, BAND_SHAPE[k][0], BAND_SHAPE[k][1], 'fixed')} width={drawW} height={rowH} slim={false} />
                                     <div className="flex-1 min-w-0">
                                       <div className={cn('text-sm font-medium', sel ? 'text-gray-900' : 'text-gray-500')}>{T.bandLabel[k]}</div>
-                                      {sel && <div className="text-xs font-medium text-[#5b5b5b] mt-0.5">{T.versionsCount(onN, list.length)}</div>}
+                                      {sel && <div className="text-xs font-medium text-[#484848] mt-0.5">{T.versionsCount(onN, list.length)}</div>}
                                     </div>
                                     {sel && <button type="button" onClick={() => setVariantTab(t => ({ ...t, [ok]: isOpen ? '' : k }))}
                                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -527,7 +527,7 @@ export default function PriceListSetupPage() {
                                               const vs = !off.includes(v.key)
                                               return <button key={v.key} type="button" disabled={!canEdit} onClick={() => setOff(vs ? [...off, v.key] : off.filter(x => x !== v.key))}
                                                 className={cn('relative rounded-lg border p-3 flex items-center justify-center h-[190px] transition-colors', vs ? SEL_ON : SEL_OFF)}>
-                                                {vs && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1f2123] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                                                {vs && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
                                                 <span className={cn(!vs && 'opacity-40')}><SpecDrawing spec={applyVariant(makeSpec(n), v)} width={drawW} height={door ? 2300 : 1400} size={door ? 160 : n > 2 ? 170 : 150} className="max-w-full h-auto" /></span>
                                               </button>
                                             })}
@@ -562,7 +562,7 @@ export default function PriceListSetupPage() {
   const groupProfiles = (g: string) => {
     const list = profilesFor(g)
     return list.length
-      ? <p className="text-xs font-medium text-[#5b5b5b] mb-3">{T.profilesLine(list.map(p => p.name || L.materials[p.material]).join(', '))}</p>
+      ? <p className="text-xs font-medium text-[#484848] mb-3">{T.profilesLine(list.map(p => p.name || L.materials[p.material]).join(', '))}</p>
       : <p className="text-xs font-medium mb-3 rounded-md px-2.5 py-1.5 inline-block" style={{ color: '#874d00', backgroundColor: '#fff3cc', border: '1px solid #ffe5a0' }}>{T.noProfile}</p>
   }
   // short line on a closed fold: how many window types and opening layouts are offered
@@ -757,12 +757,12 @@ export default function PriceListSetupPage() {
                     <div className="flex items-center gap-3">
                       <input value={r.name} onChange={e => setOption(r.key, { name: e.target.value })} disabled={!canEdit} placeholder={t.namePh}
                         className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      {firstPicked && i === 0 && <span className="shrink-0 text-xs font-medium text-[#5b5b5b]">{T.installFirst}</span>}
+                      {firstPicked && i === 0 && <span className="shrink-0 text-xs font-medium text-[#484848]">{T.installFirst}</span>}
                       {canEdit && <button type="button" onClick={() => askRemove(r.name, () => removeOption(r))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
                     {perItem && <div className="flex flex-col gap-1 sm:max-w-[calc(50%-6px)]">
-                      <label className="text-xs font-medium text-[#5b5b5b]">{T.perItemLabel}</label>
+                      <label className="text-xs font-medium text-[#484848]">{T.perItemLabel}</label>
                       <Select value={r.per_item ?? 'window'} disabled={!canEdit} onChange={per => setOption(r.key, per === 'window' ? { per_item: per } : { per_item: per, price: 0 })}
                         options={(['window', 'sill', 'shade', 'screen'] as const).map(k => ({ value: k, label: T.perItems[k] }))} />
                     </div>}
@@ -777,7 +777,7 @@ export default function PriceListSetupPage() {
                         : <NumberInput label={T.servicePerMetre} unit={`${cur}/m`} value={r.price ?? 0} onValue={v => setOption(r.key, { price: v ?? 0, pricing: 'perimeter' })} decimals={2} />}
                     </div>}
                     <div>
-                      <label className="block text-xs font-medium text-[#5b5b5b] mb-1">{T.glassDescLabel}</label>
+                      <label className="block text-xs font-medium text-[#484848] mb-1">{T.glassDescLabel}</label>
                       <textarea value={r.description ?? ''} onChange={e => setOption(r.key, { description: e.target.value })} disabled={!canEdit} placeholder={t.descPh} rows={2}
                         className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
@@ -785,7 +785,7 @@ export default function PriceListSetupPage() {
                 </div>}
                 {canEdit && <div className="flex flex-wrap items-center gap-2">
                   <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{t.add}</button>
-                  {unused.length > 0 && <span className="text-xs font-medium text-[#5b5b5b]">{T.quickAdd}</span>}
+                  {unused.length > 0 && <span className="text-xs font-medium text-[#484848]">{T.quickAdd}</span>}
                   {unused.map(pr => <button key={pr.name} type="button" onClick={() => addOption(sec, pr)}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">+ {pr.name}</button>)}
                 </div>}
@@ -849,13 +849,13 @@ export default function PriceListSetupPage() {
                 pic={<SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={85} plain slim />}>
                 <div>
                 {groupProfiles('slidingWindows')}
-                <div className="text-xs font-medium text-[#5b5b5b] mb-3">{T.combosFor}</div>
+                <div className="text-xs font-medium text-[#484848] mb-3">{T.combosFor}</div>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                   {all.map(c => {
                     const k = comboKey(c), sel = picked.includes(k)
                     return <button key={k} type="button" disabled={!canEdit} onClick={() => setPicked(sel ? picked.filter(x => x !== k) : [...picked, k])}
                       className={cn('relative rounded-lg border p-2 flex items-center justify-center h-[170px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
-                      {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1f2123] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                      {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
                       <SpecDrawing spec={{ ...makeSlidingSpec(), main: c }} width={1600} height={1200} size={150} className="max-w-full h-auto" />
                     </button>
                   })}
@@ -878,7 +878,7 @@ export default function PriceListSetupPage() {
               return <Fold open={!!folds.walls} onToggle={() => { toggleFold('walls'); setOpenSash(null) }} title={T.catSliding} summary={T.wallsSummary(list.length, sum.on, sum.all)}
                 pic={<SpecDrawing spec={makeWallSpec(2)} width={2000} height={2200} size={64} plain slim />}>
                 {groupProfiles('walls')}
-                <div className="text-xs font-medium text-[#5b5b5b] mb-2">{T.panelCount}</div>
+                <div className="text-xs font-medium text-[#484848] mb-2">{T.panelCount}</div>
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                   {[2, 3, 4].map(n => {
                     const key = 'w' + n
@@ -890,13 +890,13 @@ export default function PriceListSetupPage() {
                     return <div key={n} className={cn(on ? 'bg-white' : 'bg-gray-50/60')}>
                       <div className="flex items-center gap-4 px-4 py-3">
                         <button type="button" disabled={!canEdit} onClick={() => setOffer({ wallSashes: on ? list.filter(x => x !== n) : [...list, n].sort() })}
-                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1f2123] border-[#1f2123]' : 'border-gray-300 bg-white')}>
+                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
                           {on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                         </button>
                         <RowPic spec={makeSpec(n, 'none', 'none', 'fixed')} width={wW(n)} height={2200} />
                         <div className="flex-1 min-w-0">
                           <div className={cn('text-sm font-medium', on ? 'text-gray-900' : 'text-gray-500')}>{T.nWall(n)}</div>
-                          {on && <div className="text-xs font-medium text-[#5b5b5b] mt-0.5">{T.versionsCount(picked.length, all.length)}</div>}
+                          {on && <div className="text-xs font-medium text-[#484848] mt-0.5">{T.versionsCount(picked.length, all.length)}</div>}
                         </div>
                         {on && <button type="button" onClick={() => setOpenSash(open ? null : key)}
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -910,7 +910,7 @@ export default function PriceListSetupPage() {
                               const k = comboKey(c), sel = picked.includes(k)
                               return <button key={k} type="button" disabled={!canEdit} onClick={() => setPicked(sel ? picked.filter(x => x !== k) : [...picked, k])}
                                 className={cn('relative rounded-lg border p-3 flex items-center justify-center h-[190px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
-                                {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1f2123] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                                {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
                                 <span className={cn(!sel && 'opacity-40')}><SpecDrawing spec={{ ...makeWallSpec(n), main: c }} width={wW(n)} height={2200} size={170} className="max-w-full h-auto" /></span>
                               </button>
                             })}
@@ -944,15 +944,15 @@ export default function PriceListSetupPage() {
                           {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(m.id, f, url => setModel(m.id, { image_url: url })) }} />}
                         </label>
                         <div className="w-40 flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#5b5b5b]">{T.roofBrand}</label>
+                          <label className="text-xs font-medium text-[#484848]">{T.roofBrand}</label>
                           <input value={m.brand ?? ''} onChange={e => setModel(m.id, { brand: e.target.value })} disabled={!canEdit} placeholder="Velux, Fakro …" className={inputCls} />
                         </div>
                         <div className="flex-1 min-w-[200px] flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#5b5b5b]">{T.roofModel}</label>
+                          <label className="text-xs font-medium text-[#484848]">{T.roofModel}</label>
                           <input value={m.name} onChange={e => setModel(m.id, { name: e.target.value })} disabled={!canEdit} className={inputCls} />
                         </div>
                         <div className="w-56 flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#5b5b5b]">{T.roofOpening}</label>
+                          <label className="text-xs font-medium text-[#484848]">{T.roofOpening}</label>
                           <Select value={m.opening} onChange={v => setModel(m.id, { opening: v as RoofOpening })} disabled={!canEdit}
                             options={[{ value: 'center', label: T.roofCenter }, { value: 'top', label: T.roofTop }]} />
                         </div>
@@ -961,17 +961,17 @@ export default function PriceListSetupPage() {
                       </div>
                       <div className="grid md:grid-cols-[1fr_280px] gap-3">
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#5b5b5b]">{T.roofDescription}</label>
+                          <label className="text-xs font-medium text-[#484848]">{T.roofDescription}</label>
                           <textarea value={m.description ?? ''} onChange={e => setModel(m.id, { description: e.target.value })} disabled={!canEdit} rows={3}
                             placeholder={T.roofDescriptionHint} className={cn(inputCls, 'resize-y')} />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#5b5b5b]">{T.roofDatasheet}</label>
+                          <label className="text-xs font-medium text-[#484848]">{T.roofDatasheet}</label>
                           <input value={m.datasheet_url ?? ''} onChange={e => setModel(m.id, { datasheet_url: e.target.value })} disabled={!canEdit} placeholder="https://…" className={inputCls} />
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs font-medium text-[#5b5b5b] mb-1">{T.roofSizes}</div>
+                        <div className="text-xs font-medium text-[#484848] mb-1">{T.roofSizes}</div>
                         <div className="space-y-2">
                           {m.sizes.map(sz => (
                             <div key={sz.id} className="flex flex-wrap items-center gap-2">
@@ -991,7 +991,7 @@ export default function PriceListSetupPage() {
                   {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: [...roof.models, { id: newRoofId(), name: '', opening: 'center', sizes: [] }] })}
                     className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900"><Plus className="w-4 h-4" />{T.roofAddModel}</button>}
                   <div className="pt-3 border-t border-gray-100">
-                    <div className="text-xs font-medium text-[#5b5b5b] mb-1">{T.roofFlashings}</div>
+                    <div className="text-xs font-medium text-[#484848] mb-1">{T.roofFlashings}</div>
                     <div className="space-y-2">
                       {roof.flashings.map(f => (
                         <div key={f.id} className="flex flex-wrap items-center gap-2">
@@ -1004,7 +1004,7 @@ export default function PriceListSetupPage() {
                     {canEdit && <button type="button" onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: '', price: 0 }] })}
                       className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900"><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>}
                   </div>
-                  <p className="text-xs font-medium text-[#5b5b5b]">{T.roofHint}</p>
+                  <p className="text-xs font-medium text-[#484848]">{T.roofHint}</p>
                 </div>
               </Fold>
             })()}
@@ -1022,13 +1022,13 @@ export default function PriceListSetupPage() {
                 <div key={m} className={cn('rounded-xl border bg-white overflow-hidden transition-colors', on ? 'border-gray-300' : 'border-gray-200')}>
                   <div className={cn('flex items-center gap-4 px-4 py-3', !on && 'bg-gray-50/60')}>
                     <button type="button" disabled={!canEdit} onClick={() => { toggleMaterial(m); setOpenMat(o => ({ ...o, [m]: true })) }}
-                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1f2123] border-[#1f2123]' : 'border-gray-300 bg-white')}>
+                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
                       {on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                     </button>
                     <ProfileSection material={m} size={44} />
                     <div className="flex-1 min-w-0">
                       <div className={cn('text-sm font-medium', on ? 'text-gray-900' : 'text-gray-500')}>{L.materials[m]}</div>
-                      {on && <div className="text-xs font-medium text-[#5b5b5b] mt-0.5">{T.profileCount(list.length)}</div>}
+                      {on && <div className="text-xs font-medium text-[#484848] mt-0.5">{T.profileCount(list.length)}</div>}
                     </div>
                     {on && <button type="button" onClick={() => setOpenMat(o => ({ ...o, [m]: !open }))}
                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -1039,7 +1039,7 @@ export default function PriceListSetupPage() {
                     <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200 space-y-3">
                     {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                     {/* a small table: name, the three main per-metre prices, where it is used */}
-                    <div className="hidden lg:grid grid-cols-[48px_minmax(0,1fr)_88px_88px_88px_88px_360px_76px] items-center gap-4 px-4 py-2 bg-gray-50 text-xs font-medium text-[#5b5b5b]">
+                    <div className="hidden lg:grid grid-cols-[48px_minmax(0,1fr)_88px_88px_88px_88px_360px_76px] items-center gap-4 px-4 py-2 bg-gray-50 text-xs font-medium text-[#484848]">
                       <span /><span>{T.colProfile}</span><span className="text-right whitespace-nowrap">{T.colFrame}</span><span className="text-right whitespace-nowrap">{T.colSash}</span><span className="text-right whitespace-nowrap" title={T.mullionM}>{T.colMullion}</span><span className="text-right whitespace-nowrap">{T.colBead}</span><span className="text-right">{T.colUsedFor}</span><span />
                     </div>
                     {list.map(p => {
@@ -1060,7 +1060,7 @@ export default function PriceListSetupPage() {
                           </div>
                           <div className="min-w-0">
                             <div className="text-sm font-medium text-gray-900 truncate">{p.name || L.materials[m]}</div>
-                            {p.description && <div className="text-xs font-medium text-[#5b5b5b] mt-0.5 truncate">{p.description}</div>}
+                            {p.description && <div className="text-xs font-medium text-[#484848] mt-0.5 truncate">{p.description}</div>}
                           </div>
                           <div className="hidden lg:block text-sm text-gray-700 text-right tabular-nums">{money(p.frame_m)}</div>
                           <div className="hidden lg:block text-sm text-gray-700 text-right tabular-nums">{money(p.sash_m)}</div>
@@ -1084,7 +1084,7 @@ export default function PriceListSetupPage() {
                               {p.image_url ? <img src={p.image_url} alt="" className="max-w-full max-h-full object-contain p-1" /> : <ProfileSection material={m} className="w-full h-full p-3" />}
                               {canEdit && <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(p, f); e.target.value = '' }} />}
                             </label>
-                            {canEdit && <div className="flex items-center justify-between mt-2 text-xs font-medium text-[#5b5b5b]">
+                            {canEdit && <div className="flex items-center justify-between mt-2 text-xs font-medium text-[#484848]">
                               <span className="inline-flex items-center gap-1"><Upload className="w-3 h-3" />{uploadingKey === p.key ? '…' : p.image_url ? T.photoChange : T.photo}</span>
                               {p.image_url && <button type="button" onClick={() => askRemove('', () => removePhoto(p), T.photoRemoveMsg(p.name || L.materials[p.material]))} className="hover:text-red-600" title={T.photoRemove}><Trash2 className="w-3.5 h-3.5" /></button>}
                             </div>}
@@ -1093,18 +1093,18 @@ export default function PriceListSetupPage() {
                             {/* name and description */}
                             <div className="pb-5 grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-3">
                               <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-[#5b5b5b]">{T.matName}</label>
+                                <label className="text-xs font-medium text-[#484848]">{T.matName}</label>
                                 <input value={p.name} placeholder={T.matNamePh} onChange={e => setProfile(p.key, { name: e.target.value })} disabled={!canEdit} className="w-full rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                               </div>
                               <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-[#5b5b5b]">{T.description}</label>
+                                <label className="text-xs font-medium text-[#484848]">{T.description}</label>
                                 <input value={p.description} placeholder={T.descriptionPh} onChange={e => setProfile(p.key, { description: e.target.value })} disabled={!canEdit} className="w-full rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                               </div>
                             </div>
                             {/* purchase prices per metre */}
                             <div className="py-5">
                               <div className="text-sm font-medium text-gray-900">{T.metrePrices}</div>
-                              <p className="text-xs font-medium text-[#5b5b5b] mt-0.5 mb-3">{T.metrePricesHint}</p>
+                              <p className="text-xs font-medium text-[#484848] mt-0.5 mb-3">{T.metrePricesHint}</p>
                               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                 <NumberInput label={T.frameM} unit={`${cur}/m`} value={p.frame_m} onValue={v => setProfile(p.key, { frame_m: v })} decimals={2} />
                                 <NumberInput label={T.sashM} unit={`${cur}/m`} value={p.sash_m} onValue={v => setProfile(p.key, { sash_m: v })} decimals={2} />
@@ -1116,7 +1116,7 @@ export default function PriceListSetupPage() {
                             <div className="py-5 grid lg:grid-cols-[minmax(0,3fr)_minmax(0,1fr)] gap-6">
                               <div>
                                 <div className="text-sm font-medium text-gray-900">{T.widths}</div>
-                                <p className="text-xs font-medium text-[#5b5b5b] mt-0.5 mb-3">{T.widthsHint}</p>
+                                <p className="text-xs font-medium text-[#484848] mt-0.5 mb-3">{T.widthsHint}</p>
                                 <div className="grid grid-cols-3 gap-3">
                                   <NumberInput label={T.frameW} unit="mm" value={p.frame_w} onValue={v => setProfile(p.key, { frame_w: v ?? 70 })} decimals={0} />
                                   <NumberInput label={T.sashW} unit="mm" value={p.sash_w} onValue={v => setProfile(p.key, { sash_w: v ?? 78 })} decimals={0} />
@@ -1125,19 +1125,19 @@ export default function PriceListSetupPage() {
                               </div>
                               <div>
                                 <div className="text-sm font-medium text-gray-900">{T.minTitle}</div>
-                                <p className="text-xs font-medium text-[#5b5b5b] mt-0.5 mb-3">{T.minHint}</p>
+                                <p className="text-xs font-medium text-[#484848] mt-0.5 mb-3">{T.minHint}</p>
                                 <NumberInput unit={cur} value={p.min} onValue={v => setProfile(p.key, { min: v })} decimals={2} />
                               </div>
                             </div>
                             {/* where the profile is used: the product groups offered in step 1 */}
                             {groups.length > 0 && <div className="py-5">
                               <div className="text-sm font-medium text-gray-900">{T.usedForTitle}</div>
-                              <p className="text-xs font-medium text-[#5b5b5b] mt-0.5 mb-3">{T.usedForHint}</p>
+                              <p className="text-xs font-medium text-[#484848] mt-0.5 mb-3">{T.usedForHint}</p>
                               <div className="flex flex-wrap gap-x-6 gap-y-2">
                                 {groups.map(g => {
                                   const sel = serves(g)
                                   return <button key={g} type="button" disabled={!canEdit} onClick={() => toggleGroup(g)} className="inline-flex items-center gap-2 text-sm text-gray-900">
-                                    <span className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#1f2123] border-[#1f2123]' : 'border-gray-300 bg-white')}>
+                                    <span className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
                                       {sel && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                                     </span>{groupLabel(g)}
                                   </button>
@@ -1170,7 +1170,7 @@ export default function PriceListSetupPage() {
                     </div>}
                     {canEdit && <button type="button" onClick={() => addProfile(m)}
                       className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900"><Plus className="w-4 h-4" />{T.addProfile}</button>}
-                    <p className="text-xs font-medium text-[#5b5b5b]">{T.photoHint}</p>
+                    <p className="text-xs font-medium text-[#484848]">{T.photoHint}</p>
                     </div>
                   </div>}
                 </div>
@@ -1195,12 +1195,12 @@ export default function PriceListSetupPage() {
                     <ProfileSection material={m} size={44} />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-gray-900">{L.materials[m]}</div>
-                      <div className="text-xs font-medium text-[#5b5b5b] mt-0.5">{T.colorCount(list.length)}</div>
+                      <div className="text-xs font-medium text-[#484848] mt-0.5">{T.colorCount(list.length)}</div>
                     </div>
                     {/* the first colours as a preview */}
                     <div className="hidden sm:flex items-center gap-1">
                       {list.slice(0, 10).map(c => { const spec = parseColor(c.look); return spec ? <ColorSwatch key={c.id} spec={spec} size={22} rounded={6} /> : null })}
-                      {list.length > 10 && <span className="text-xs font-medium text-[#5b5b5b] ml-1">+{list.length - 10}</span>}
+                      {list.length > 10 && <span className="text-xs font-medium text-[#484848] ml-1">+{list.length - 10}</span>}
                     </div>
                     <button type="button" onClick={() => setOpenColors(o => ({ ...o, [m]: !open }))}
                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -1210,7 +1210,7 @@ export default function PriceListSetupPage() {
                   {open && <div className="px-4 pb-4">
                     <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200 space-y-3">
                       <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-                        <div className="hidden md:grid grid-cols-[36px_minmax(0,1fr)_120px_180px_180px_36px] items-center gap-3 px-4 py-2 bg-gray-50 text-xs font-medium text-[#5b5b5b]">
+                        <div className="hidden md:grid grid-cols-[36px_minmax(0,1fr)_120px_180px_180px_36px] items-center gap-3 px-4 py-2 bg-gray-50 text-xs font-medium text-[#484848]">
                           <span /><span>{T.colorName}</span><span>{T.colorCode}</span><span className="text-right">{T.colorOne}</span><span className="text-right">{T.colorBoth}</span><span />
                         </div>
                         {list.map(c => {
@@ -1257,7 +1257,7 @@ export default function PriceListSetupPage() {
                   </div>}
                 </div>
               )})}
-              {!MATERIALS.some(m => matOn[m]) && <p className="text-sm text-[#5b5b5b]">{T.colorsNoMaterial}</p>}
+              {!MATERIALS.some(m => matOn[m]) && <p className="text-sm text-[#484848]">{T.colorsNoMaterial}</p>}
             </div>
           </Step>
 
@@ -1297,7 +1297,7 @@ export default function PriceListSetupPage() {
                     <div className="flex items-center gap-3">
                       <input value={g.name} onChange={e => set(g.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.glassName}
                         className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#267a47', backgroundColor: '#d6fae5' }}>{T.baseIncluded}</span>}
+                      {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#3a6a4f', backgroundColor: '#e0fce8' }}>{T.baseIncluded}</span>}
                       {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(g.name, () => setList(list.filter(x => x.id !== g.id)))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
@@ -1305,7 +1305,7 @@ export default function PriceListSetupPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <NumberInput label={T.ugLabel} unit="W/m²K" value={g.ug ?? null} onValue={v => set(g.id, { ug: v })} decimals={1} />
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-medium text-[#5b5b5b]">{T.glassLayers}</label>
+                        <label className="text-xs font-medium text-[#484848]">{T.glassLayers}</label>
                         <Select value={g.layers ?? 2} disabled={!canEdit} onChange={v => set(g.id, { layers: Number(v) })}
                           options={[{ value: 2, label: T.layers2 }, { value: 3, label: T.layers3 }]} />
                       </div>
@@ -1313,7 +1313,7 @@ export default function PriceListSetupPage() {
                     </div>
                     {/* line 3: description on the customer's card */}
                     <div>
-                      <label className="block text-xs font-medium text-[#5b5b5b] mb-1">{T.glassDescLabel}</label>
+                      <label className="block text-xs font-medium text-[#484848] mb-1">{T.glassDescLabel}</label>
                       <textarea value={g.description ?? ''} onChange={e => set(g.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.glassDescPh} rows={2}
                         className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
@@ -1326,11 +1326,11 @@ export default function PriceListSetupPage() {
                 <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-4">
                   <div>
                     <NumberInput label={T.glassRebate} unit="mm" value={pricing.glass_rebate_mm ?? 13} onValue={v => setPrice({ glass_rebate_mm: v ?? 0 })} decimals={0} />
-                    <p className="text-xs font-medium text-[#5b5b5b] mt-1.5">{T.glassRebateHint}</p>
+                    <p className="text-xs font-medium text-[#484848] mt-1.5">{T.glassRebateHint}</p>
                   </div>
                   <div>
                     <NumberInput label={T.glassMin} unit="m²" value={pricing.glass_min_m2 ?? 0} onValue={v => setPrice({ glass_min_m2: v ?? 0 })} decimals={2} />
-                    <p className="text-xs font-medium text-[#5b5b5b] mt-1.5">{T.glassMinHint}</p>
+                    <p className="text-xs font-medium text-[#484848] mt-1.5">{T.glassMinHint}</p>
                   </div>
                 </div>
               </div>
@@ -1350,7 +1350,7 @@ export default function PriceListSetupPage() {
                       {/* the handle picture on the left: the supplier's photo, or the drawn handle in its colour */}
                       <div className="shrink-0 hidden sm:flex flex-col items-center gap-1.5 w-[104px] self-start">
                         <div className="w-full h-[92px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
-                          {uploadingKey === h.id ? <span className="text-xs text-[#5b5b5b]">…</span>
+                          {uploadingKey === h.id ? <span className="text-xs text-[#484848]">…</span>
                             : h.image_url ? <img src={h.image_url} alt={h.name} className="max-w-full max-h-full object-contain p-1" />
                             : <HandleIcon look={h.look} lockable={h.lockable} size={64} />}
                         </div>
@@ -1368,7 +1368,7 @@ export default function PriceListSetupPage() {
                         <div className="flex items-center gap-3">
                           <input value={h.name} onChange={e => set(h.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.handleName}
                             className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                          {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#267a47', backgroundColor: '#d6fae5' }}>{T.baseIncluded}</span>}
+                          {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#3a6a4f', backgroundColor: '#e0fce8' }}>{T.baseIncluded}</span>}
                           {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(h.name, () => setList(list.filter(x => x.id !== h.id)))} title={T.remove}
                             className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                         </div>
@@ -1411,7 +1411,7 @@ export default function PriceListSetupPage() {
                                 {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(x.id, f, url => set(x.id, { image_url: url }), 'sills') }} />}
                               </label>
                             : <div className="w-full h-[80px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
-                                {uploadingKey === x.id ? <span className="text-xs text-[#5b5b5b]">…</span>
+                                {uploadingKey === x.id ? <span className="text-xs text-[#484848]">…</span>
                                   : x.image_url ? <img src={x.image_url} alt={x.name} className="max-w-full max-h-full object-contain p-1" />
                                   : <SillIcon material={x.material} size={64} />}
                               </div>}
@@ -1433,14 +1433,14 @@ export default function PriceListSetupPage() {
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                             <div className="flex flex-col gap-1">
-                              <label className="text-xs font-medium text-[#5b5b5b]">{T.sillMaterial}</label>
+                              <label className="text-xs font-medium text-[#484848]">{T.sillMaterial}</label>
                               <Select value={sillMaterialOf(x.material)} disabled={!canEdit} onChange={v => set(x.id, { material: v })}
                                 options={SILL_MATERIALS.map(mt => ({ value: mt, label: T.sillMaterials[mt] }))} />
                             </div>
                             <NumberInput label={T.sillCost} unit={`${cur}/m`} value={x.cost_m} onValue={v => set(x.id, { cost_m: v ?? 0 })} decimals={2} />
                           </div>
                           <div>
-                              <label className="block text-xs font-medium text-[#5b5b5b] mb-1">{T.glassDescLabel}</label>
+                              <label className="block text-xs font-medium text-[#484848] mb-1">{T.glassDescLabel}</label>
                               <textarea value={x.description ?? ''} onChange={e => set(x.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.sillDescPh} rows={2}
                                 className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
                           </div>
@@ -1453,7 +1453,7 @@ export default function PriceListSetupPage() {
                       return <div className="flex flex-wrap items-center gap-2">
                         <button type="button" onClick={() => setAll([...all, { id: newSillId(), side, name: '', material: 'none', cost_m: 0 }])}
                           className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{side === 'inner' ? T.addSillInner : T.addSillOuter}</button>
-                        {unused.length > 0 && <span className="text-xs font-medium text-[#5b5b5b]">{T.quickAdd}</span>}
+                        {unused.length > 0 && <span className="text-xs font-medium text-[#484848]">{T.quickAdd}</span>}
                         {unused.map(st => <button key={st.name} type="button" onClick={() => setAll([...all, { ...st, id: newSillId() }])}
                           className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">
                           <SillIcon material={st.material} size={16} />+ {st.name}</button>)}
@@ -1489,7 +1489,7 @@ export default function PriceListSetupPage() {
                                   {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) upload(x.id, f) }} />}
                                 </label>
                               : <div className="w-full h-[80px] flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
-                                  {uploadingKey === x.id ? <span className="text-xs text-[#5b5b5b]">…</span>
+                                  {uploadingKey === x.id ? <span className="text-xs text-[#484848]">…</span>
                                     : x.image_url ? <img src={x.image_url} alt={x.name} className="max-w-full max-h-full object-contain p-1" />
                                     : <ShadingIcon kind={x.icon} size={64} />}
                                 </div>}
@@ -1511,12 +1511,12 @@ export default function PriceListSetupPage() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                               <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-[#5b5b5b]">{T.shadeDrawing}</label>
+                                <label className="text-xs font-medium text-[#484848]">{T.shadeDrawing}</label>
                                 <Select value={x.icon ?? 'none'} disabled={!canEdit} onChange={v => { const icon = v as ShadingType['icon']; set(x.id, { icon, ...(icon === 'roller' || icon === 'blinds' ? {} : { allows_screen: false }) }) }}
                                   options={SHADING_ICONS.filter(k => kind === 'shade' ? ['blinds', 'roller', 'pleated', 'none'].includes(k) : ['screen', 'screen_roll', 'screen_pleated', 'none'].includes(k)).map(k => ({ value: k as string, label: T.shadeIcons[k] }))} />
                               </div>
                               <div className="flex flex-col gap-1">
-                                <label className="text-xs font-medium text-[#5b5b5b]">{T.shadeUnit}</label>
+                                <label className="text-xs font-medium text-[#484848]">{T.shadeUnit}</label>
                                 <Select value={x.unit} disabled={!canEdit} onChange={v => set(x.id, { unit: v as ShadingType['unit'] })}
                                   options={(['m2', 'sash'] as const).map(u => ({ value: u as string, label: T.shadeUnits[u] }))} />
                               </div>
@@ -1535,7 +1535,7 @@ export default function PriceListSetupPage() {
                               : <div className="space-y-2">
                                   <Checkbox checked={!!x.can_integrate} onChange={v => { if (canEdit) set(x.id, { can_integrate: v, integrated: x.integrated ?? {} }) }} label={T.canIntegrate} />
                                   {x.can_integrate && <div className="rounded-lg bg-[#f6f6f6] border border-gray-200 p-3">
-                                    <div className="text-xs font-medium text-[#5b5b5b] mb-4">{T.integratedTitle}</div>
+                                    <div className="text-xs font-medium text-[#484848] mb-4">{T.integratedTitle}</div>
                                     <div className="grid grid-cols-2 2xl:grid-cols-4 gap-3 items-start">
                                       {(['fixed', 'per_w', 'per_h', 'cost'] as const).map(f => (
                                         <NumberInput key={f} label={f === 'fixed' ? T.shadeFixed : f === 'per_w' ? T.shadePerW : f === 'per_h' ? T.shadePerH : T.shadeCostM2}
@@ -1546,7 +1546,7 @@ export default function PriceListSetupPage() {
                                   </div>}
                                 </div>}
                             <div>
-                              <label className="block text-xs font-medium text-[#5b5b5b] mb-1">{T.glassDescLabel}</label>
+                              <label className="block text-xs font-medium text-[#484848] mb-1">{T.glassDescLabel}</label>
                               <textarea value={x.description ?? ''} onChange={e => set(x.id, { description: e.target.value })} disabled={!canEdit} placeholder={T.shadeDescPh} rows={2}
                                 className="w-full resize-y rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
@@ -1559,7 +1559,7 @@ export default function PriceListSetupPage() {
                       return <div className="flex flex-wrap items-center gap-2">
                         <button type="button" onClick={() => setAll([...all, { id: newSillId(), kind, name: '', unit: kind === 'shade' ? 'm2' : 'sash', icon: 'none', cost: 0 }])}
                           className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{kind === 'shade' ? T.addShade : T.addScreen}</button>
-                        {unused.length > 0 && <span className="text-xs font-medium text-[#5b5b5b]">{T.quickAdd}</span>}
+                        {unused.length > 0 && <span className="text-xs font-medium text-[#484848]">{T.quickAdd}</span>}
                         {unused.map(st => <button key={st.name} type="button" onClick={() => setAll([...all, { ...st, id: newSillId() }])}
                           className="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">
                           <ShadingIcon kind={st.icon} size={16} />+ {st.name}</button>)}
@@ -1640,7 +1640,7 @@ export default function PriceListSetupPage() {
                 {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
                   <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.add}</button>
                   {unused.length > 0 && <>
-                    <span className="text-xs font-medium text-[#5b5b5b] ml-2">{T.quick}</span>
+                    <span className="text-xs font-medium text-[#484848] ml-2">{T.quick}</span>
                     {unused.map(p => <button key={p.name} type="button" onClick={() => addOption(sec, p)}
                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:border-gray-400">{p.swatch && <span className="w-3 h-3 rounded-full border border-gray-300" style={{ backgroundColor: p.swatch }} />}+ {p.name}</button>)}
                   </>}
@@ -1669,7 +1669,7 @@ export default function PriceListSetupPage() {
             const marginAmt = Math.round(calc.material * pricing.margin_pct) / 100, labourAmt = Math.round(calc.labour * lm) / 100
             const n = (v: number, d = 2) => v.toLocaleString(lang === 'en' ? 'en-GB' : 'sl-SI', { minimumFractionDigits: d, maximumFractionDigits: d })
             const line = (label: string, value: React.ReactNode) => <div key={label} className="grid grid-cols-1 sm:grid-cols-[240px_1fr] gap-x-4 gap-y-0.5 py-1">
-              <span className="text-[#5b5b5b]">{label}</span><span className="text-gray-900 tabular-nums">{value}</span>
+              <span className="text-[#484848]">{label}</span><span className="text-gray-900 tabular-nums">{value}</span>
             </div>
             const step = (no: number, title: string, children: React.ReactNode) => <div className="rounded-lg bg-white border border-gray-200 px-4 py-3">
               <div className="flex items-center gap-2 mb-1.5">
@@ -1705,7 +1705,7 @@ export default function PriceListSetupPage() {
                     <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] gap-x-4 gap-y-0.5 px-4 py-2">
                       <span className="text-gray-700">{k}</span>
                       <span className="text-gray-900 font-medium tabular-nums">{v}</span>
-                      <span className="text-xs font-medium text-[#5b5b5b] sm:self-center">{src}</span>
+                      <span className="text-xs font-medium text-[#484848] sm:self-center">{src}</span>
                     </div>
                   ))}
                 </div>
@@ -1731,7 +1731,7 @@ export default function PriceListSetupPage() {
                       {line(T.exWindow, <>{n(tilt)} € + {n(tt)} € = <b className="font-medium">{n(tilt + tt)} €</b></>)}
                     </>)}
                     {step(3, T.exStepCost, <>
-                      <p className="text-xs font-medium text-[#5b5b5b] mb-1">{T.exWasteNote(n(pricing.waste_pct, 0))}</p>
+                      <p className="text-xs font-medium text-[#484848] mb-1">{T.exWasteNote(n(pricing.waste_pct, 0))}</p>
                       {calc.lines.map(l => line(l.label, <>{n(l.qty, l.unit === 'kos' ? 0 : 2)} {l.unit} × {n(l.price)} € = {n(l.total)} €</>))}
                       <div className="border-t border-gray-100 mt-1 pt-1">{line(T.cost, <b className="font-medium">{n(calc.cost)} €</b>)}</div>
                     </>)}
@@ -1739,7 +1739,7 @@ export default function PriceListSetupPage() {
                       {line(T.cost, <>{n(calc.cost)} €</>)}
                       {line(`${T.marginLine} ${n(pricing.margin_pct, 0)} %`, <>{n(calc.material)} € × {n(pricing.margin_pct, 0)} % = {n(marginAmt)} €</>)}
                       {line(`${T.labourMarginLine} ${n(lm, 0)} %`, <>{n(calc.labour)} € × {n(lm, 0)} % = {n(labourAmt)} €</>)}
-                      {line(T.windowPrice, <>{n(calc.cost)} € + {n(marginAmt)} € + {n(labourAmt)} € = <b className="font-semibold text-base">{n(calc.price)} €</b> <span className="text-xs text-[#5b5b5b]">{T.exNoVat}</span></>)}
+                      {line(T.windowPrice, <>{n(calc.cost)} € + {n(marginAmt)} € + {n(labourAmt)} € = <b className="font-semibold text-base">{n(calc.price)} €</b> <span className="text-xs text-[#484848]">{T.exNoVat}</span></>)}
                     </>)}
                   </div>
                 </div>
@@ -1755,7 +1755,7 @@ export default function PriceListSetupPage() {
 
       {/* sticky save bar */}
       {canEdit && dirty && <div className="fixed bottom-0 right-0 left-0 lg:left-72 z-30 bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-end gap-3">
-        <span className="text-sm font-medium text-[#5b5b5b]">{T.unsaved}</span>
+        <span className="text-sm font-medium text-[#484848]">{T.unsaved}</span>
         <Button onClick={save} loading={saving} className="gap-2"><Check className="w-4 h-4" />{T.save}</Button>
       </div>}
     </div>
@@ -1776,11 +1776,11 @@ function AllRow({ all, some, onToggle, label, count, disabled, plain }: { all: b
   return (
     <div className={cn('flex items-center gap-4', plain ? 'pb-1' : 'px-4 py-2.5 bg-gray-50')}>
       <button type="button" disabled={disabled} onClick={onToggle} title={all ? 'Počisti vse' : 'Izberi vse'}
-        className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', some ? 'bg-[#1f2123] border-[#1f2123]' : 'border-gray-300 bg-white')}>
+        className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', some ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
         {all ? <Check className="w-3 h-3 text-white" strokeWidth={3} /> : some ? <span className="w-2 h-0.5 rounded bg-white" /> : null}
       </button>
       <span className="text-xs font-medium text-gray-700">{label}</span>
-      <span className="text-xs font-medium text-[#5b5b5b]">{count}</span>
+      <span className="text-xs font-medium text-[#484848]">{count}</span>
     </div>
   )
 }
@@ -1794,7 +1794,7 @@ function Fold({ open, onToggle, title, summary, pic, children }: { open: boolean
         <div className="w-[120px] h-[64px] flex items-center justify-center shrink-0">{pic}</div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-gray-900">{title}</div>
-          <div className="text-xs font-medium text-[#5b5b5b] mt-0.5">{summary}</div>
+          <div className="text-xs font-medium text-[#484848] mt-0.5">{summary}</div>
         </div>
         <ChevronDown className={cn('w-4 h-4 text-gray-500 transition-transform', open && 'rotate-180')} />
       </button>
@@ -1804,20 +1804,20 @@ function Fold({ open, onToggle, title, summary, pic, children }: { open: boolean
 }
 
 // Selected card: blue outline, light blue tint and a check badge in the corner (same everywhere)
-const SEL_ON = 'border-[#2e3133] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+const SEL_ON = 'border-[#1a1a1a] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
 const SEL_OFF = 'border-gray-200 bg-white hover:border-gray-300'
 function SelBadge() {
-  return <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1f2123] text-white flex items-center justify-center shadow-sm"><Check className="w-3 h-3" strokeWidth={3} /></span>
+  return <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-sm"><Check className="w-3 h-3" strokeWidth={3} /></span>
 }
 
 function Step({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
     <section className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-start gap-3 mb-4">
-        <span className="w-7 h-7 rounded-full bg-[#1f2123] text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
+        <span className="w-7 h-7 rounded-full bg-[#1a1a1a] text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
         <div>
           <h2 className="text-base font-semibold text-gray-900 leading-7">{title}</h2>
-          <p className="text-[13px] leading-5 text-[#5b5b5b] mt-0.5 max-w-3xl">{hint}</p>
+          <p className="text-[13px] leading-5 text-[#484848] mt-0.5 max-w-3xl">{hint}</p>
         </div>
       </div>
       {children}
@@ -1868,14 +1868,14 @@ function HandleColorPicker({ label, look, code, disabled, onChange, customLabel,
   const customCode = code || (spec ? `RAL ${ralNearest(spec.hex).code}` : '')
   const circle = (lk: string, size = 20) => { const sp = parseColor(lk); return sp ? <ColorSwatch spec={sp} size={size} rounded={size / 2} /> : null }
   return <div className="flex flex-col gap-1" ref={ref}>
-    <span className="text-xs font-medium text-[#5b5b5b]">{label}</span>
+    <span className="text-xs font-medium text-[#484848]">{label}</span>
     <div className="relative">
       <button ref={btnRef} type="button" disabled={disabled} onClick={toggle}
         className="w-full flex items-center gap-2 h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white pl-2.5 pr-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:hover:border-gray-200">
         {circle(look ?? '#ffffff')}
         <span className="flex-1 min-w-0 truncate">
           <span className="text-gray-900">{preset ? nameOf(preset) : customShort}</span>
-          <span className="text-[#5b5b5b]"> {preset ? preset.code ?? '' : customCode}</span>
+          <span className="text-[#484848]"> {preset ? preset.code ?? '' : customCode}</span>
         </span>
         <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />
       </button>
@@ -1887,7 +1887,7 @@ function HandleColorPicker({ label, look, code, disabled, onChange, customLabel,
             className={cn('flex w-full items-center gap-2.5 px-3 py-1.5 text-sm whitespace-nowrap hover:bg-[#f6f6f6] transition-colors', on ? 'text-gray-900 font-medium' : 'text-gray-700')}>
             {circle(c.look)}
             <span className="flex-1 text-left">{nameOf(c)}</span>
-            {c.code && <span className="text-xs text-[#5b5b5b]">{c.code}</span>}
+            {c.code && <span className="text-xs text-[#484848]">{c.code}</span>}
             <Check className={cn('w-3.5 h-3.5', on ? 'text-gray-900' : 'invisible')} />
           </button>
         })}
@@ -1897,7 +1897,7 @@ function HandleColorPicker({ label, look, code, disabled, onChange, customLabel,
           className="flex w-full items-center gap-2.5 px-3 py-1.5 text-sm whitespace-nowrap text-gray-700 hover:bg-[#f6f6f6] transition-colors">
           <span className="w-5 h-5 rounded-full shrink-0 border border-dashed border-gray-300 bg-white flex items-center justify-center"><Pipette className="w-3 h-3 text-gray-500" /></span>
           <span className="flex-1 text-left">{customLabel}</span>
-          {!preset && <span className="text-xs text-[#5b5b5b]">{customCode}</span>}
+          {!preset && <span className="text-xs text-[#484848]">{customCode}</span>}
           <Check className={cn('w-3.5 h-3.5', !preset ? 'text-gray-900' : 'invisible')} />
         </button>
       </div>, document.body)}

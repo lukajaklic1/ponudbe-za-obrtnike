@@ -468,7 +468,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
           <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.01em] text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
-          {quoteNumber && <span className="text-sm" style={{ color: '#5b5b5b' }}>{quoteNumber}</span>}
+          {quoteNumber && <span className="text-sm" style={{ color: '#484848' }}>{quoteNumber}</span>}
           {isSaved && <QuoteStatusBadge status={status} label={s.status[status]} />}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -518,7 +518,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           <fieldset disabled={ro} className="contents">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#5b5b5b]">{s.customer}</label>
+                <label className="text-xs font-medium text-[#484848]">{s.customer}</label>
                 {ro
                   ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#52525b' }}>{selectedCustomer?.name ?? '—'}</div>
                   : <CustomerSearch customers={customers} value={customerId} placeholder={o.searchCustomer} emptyText={o.noCustomerMatch}
@@ -549,7 +549,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 onChange={e => setValidUntil(e.target.value)} />
               <Input id="q-lead" label={o.executionTime} placeholder={ro ? '' : o.executionTimeHint} value={leadTime} onChange={e => setLeadTime(e.target.value)} />
               <div className="lg:col-span-2 flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#5b5b5b]">{s.paymentTerms}</label>
+                <label className="text-xs font-medium text-[#484848]">{s.paymentTerms}</label>
                 {ro
                   ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#52525b' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
@@ -558,13 +558,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                         options={[{ value: '', label: o.none }, ...termOptions.map(term => ({ value: term, label: term }))]} />}
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#5b5b5b]">{o.parity}</label>
+                <label className="text-xs font-medium text-[#484848]">{o.parity}</label>
                 <Select className="h-[37.6px]" value={parity} onChange={setParity}
                   options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
               </div>
             </div>
             <div className="flex flex-col gap-1 mt-4">
-              <label className="text-xs font-medium text-[#5b5b5b]">{s.notes}</label>
+              <label className="text-xs font-medium text-[#484848]">{s.notes}</label>
               <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder={ro ? '' : o.notesHint}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#52525b] disabled:border-[#dfdfdf]" />
             </div>
@@ -572,7 +572,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
           {/* Attachments — plain list: open / download / delete (delete only while draft) */}
           <div className="mt-5">
-            <p className="text-xs font-medium text-[#5b5b5b] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
+            <p className="text-xs font-medium text-[#484848] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
             {attachments.map(att => (
               <div key={att.id} className="flex items-center gap-2 px-3 py-2 bg-[#eff5fe] border border-[#deeafd] rounded-lg mb-2">
                 <FileText className="w-4 h-4 text-gray-900 shrink-0" />
@@ -755,7 +755,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           {([['wallItem', o.wallsWork], ['ceilingItem', o.ceilingWork]] as const).map(([k, lbl]) => (
             <div key={k} className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-[#5b5b5b]">{lbl}</label>
+              <label className="text-xs font-medium text-[#484848]">{lbl}</label>
               <Select className="h-[37.6px]" value={room[k]} onChange={v => setRoom(r => ({ ...r, [k]: v }))}
                 options={[{ value: '', label: o.none }, ...m2Items.map(p => ({ value: p.id, label: p.name, hint: money(Number(p.price)) }))]} />
             </div>

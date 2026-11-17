@@ -227,7 +227,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3">
                       {u.is_active
-                        ? <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#d6fae5', color: '#267a47' }}>{t.common.active}</span>
+                        ? <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e0fce8', color: '#3a6a4f' }}>{t.common.active}</span>
                         : <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#ececec', color: '#4a4a4a' }}>{s.inactive}</span>}
                     </td>
                     <td className="px-4 py-3">

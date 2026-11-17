@@ -112,7 +112,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
 
         {rows && (rows.length === 0 ? <p className="text-sm text-gray-400">{T.empty}</p> : (
           <div>
-            <p className="text-xs font-medium text-[#5b5b5b] mb-2">{T.preview}</p>
+            <p className="text-xs font-medium text-[#484848] mb-2">{T.preview}</p>
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-sm">
@@ -129,7 +129,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
                         <td className="px-3 py-2 w-40 text-right">
                           <span className="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={
                             r.error ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
-                              : { backgroundColor: '#d6fae5', color: '#267a47' }}>
+                              : { backgroundColor: '#e0fce8', color: '#3a6a4f' }}>
                             {r.error ? T.errors[r.error] : T.newRow}
                           </span>
                         </td>

@@ -38,7 +38,7 @@ const LBL = {
 }
 
 // Same look as the Input component, so every field on the page matches the rest of the app
-const LABEL = 'block text-xs font-medium text-[#5b5b5b] mb-1.5'
+const LABEL = 'block text-xs font-medium text-[#484848] mb-1.5'
 const TEXTAREA = 'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y disabled:bg-gray-50 disabled:cursor-not-allowed'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HRK']
@@ -180,7 +180,7 @@ export default function SettingsPage() {
               <NumberInput label={o.unpaidCapital} unit="€" value={form.unpaid_capital ?? null} decimals={2} onValue={v => setForm(f => ({ ...f, unpaid_capital: v }))} />
             </>}
           </div>
-          <p className="text-xs font-medium text-[#5b5b5b] mt-3">{o.legalHint}</p>
+          <p className="text-xs font-medium text-[#484848] mt-3">{o.legalHint}</p>
           <div className="mt-5">
             <span className={LABEL}>{x.logo}</span>
             <div role="button" tabIndex={0}
@@ -199,7 +199,7 @@ export default function SettingsPage() {
                   <Upload className="w-3.5 h-3.5 text-gray-500" />
                   {uploading ? x.uploading : form.logo_url ? x.replaceLogo : x.uploadLogo}
                 </div>
-                <p className="text-xs font-medium text-[#5b5b5b] mt-0.5">{x.logoHint}</p>
+                <p className="text-xs font-medium text-[#484848] mt-0.5">{x.logoHint}</p>
               </div>
               {form.logo_url && <button type="button" onClick={e => { e.stopPropagation(); removeLogo() }}
                 className="shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium text-gray-500 hover:text-red-600 hover:bg-red-50">{x.removeLogo}</button>}
@@ -222,7 +222,7 @@ export default function SettingsPage() {
             <Input id="next_num" label={s.nextQuoteNumber} type="number" value={String(nextNum)}
               onChange={e => setForm(f => ({ ...f, quote_counter: Math.max(0, (parseInt(e.target.value) || 1) - 1) }))} />
           </div>
-          <p className="text-xs font-medium text-[#5b5b5b] mt-2">{s.nextQuoteWillBe}: <span className="text-gray-600">{preview}</span></p>
+          <p className="text-xs font-medium text-[#484848] mt-2">{s.nextQuoteWillBe}: <span className="text-gray-600">{preview}</span></p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
             <Input id="valid_days" label={o.validDays} type="number" min={1} value={String(form.default_valid_days ?? 30)}
@@ -239,7 +239,7 @@ export default function SettingsPage() {
               label={lang === 'sl' ? 'Nisem zavezanec za DDV (cene v ponudbah in konfiguratorju so brez DDV)' : 'Not VAT registered (quote and configurator prices without VAT)'} />
             {form.vat_payer === false && <div className="mt-3">
               <Input id="vat_exempt_note" label={x.vatNote} {...field('vat_exempt_note')} />
-              <p className="text-xs font-medium text-[#5b5b5b] mt-1">{x.vatNoteHint}</p>
+              <p className="text-xs font-medium text-[#484848] mt-1">{x.vatNoteHint}</p>
             </div>}
           </div>
 
@@ -250,7 +250,7 @@ export default function SettingsPage() {
         <Section icon={Wallet} title={s.paymentTerms}
           aside={termsSaved && <span className="inline-flex items-center gap-1 text-xs text-gray-400"><Check className="w-3.5 h-3.5" />{t.common.saved}</span>}>
           <div>
-            <p className="text-xs font-medium text-[#5b5b5b] mb-4">{o.paymentTermsHint}</p>
+            <p className="text-xs font-medium text-[#484848] mb-4">{o.paymentTermsHint}</p>
             <div className="flex flex-col gap-2">
               {terms.map((term, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -283,7 +283,7 @@ export default function SettingsPage() {
 
         {/* Bank details */}
         <Section icon={CreditCard} title={s.bankDetails}>
-          <p className="text-xs font-medium text-[#5b5b5b] mb-4">{s.bankHint}</p>
+          <p className="text-xs font-medium text-[#484848] mb-4">{s.bankHint}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="bank_name" label={s.bankName} {...field('bank_name')} />
             <Input id="bank_iban" label="IBAN" {...field('bank_iban')} />
@@ -294,7 +294,7 @@ export default function SettingsPage() {
 
         {/* General terms */}
         <Section icon={Receipt} title={s.quoteTerms}>
-          <p className="text-xs font-medium text-[#5b5b5b] mb-4">{s.quoteTermsHint}</p>
+          <p className="text-xs font-medium text-[#484848] mb-4">{s.quoteTermsHint}</p>
           <div className="flex flex-col gap-4">
             <div>
               <label className={LABEL}>{s.quoteTermsSl}</label>
@@ -327,7 +327,7 @@ function Section({ icon: Icon, title, aside, children }: { icon: React.ElementTy
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200">
-        <Icon className="w-[18px] h-[18px] text-[#5b5b5b] shrink-0" strokeWidth={1.75} />
+        <Icon className="w-[18px] h-[18px] text-[#484848] shrink-0" strokeWidth={1.75} />
         <h2 className="text-base font-semibold text-gray-900">{title}</h2>
         {aside && <div className="ml-auto">{aside}</div>}
       </div>
