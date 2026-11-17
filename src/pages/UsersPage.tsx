@@ -13,6 +13,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
+import { Avatar } from '../components/ui/PersonBadge'
 import type { User as AppUser, UserPermission, UserInvitation } from '../types/database'
 
 const MODULES: UserPermission['module'][] = ['quotes', 'customers', 'price_list']
@@ -167,7 +168,7 @@ export default function UsersPage() {
   const allRows = [...sortedUsers, ...invites]
   const paginated = allRows.slice((page - 1) * pageSize, page * pageSize)
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
   if (!loading && !isAdmin) return <Navigate to="/dashboard" replace />
 
   return (
@@ -189,7 +190,7 @@ export default function UsersPage() {
       </div>
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {dataLoading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
         ) : users.length === 0 && invites.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <Users className="w-10 h-10 text-gray-200 mb-3" />
@@ -215,19 +216,19 @@ export default function UsersPage() {
                   <tr key={u.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => openEdit(u)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{u.first_name} {u.last_name}</span>
+                        <span className="inline-flex items-center gap-2.5 font-medium text-gray-900"><Avatar name={`${u.first_name} ${u.last_name}`} />{u.first_name} {u.last_name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={u.is_admin ? { backgroundColor: '#e5edfc', color: '#3b6fd8' } : { backgroundColor: '#f5f5f5', border: '1px solid #dfdfdf', color: '#5e5e5e' }}>
+                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={u.is_admin ? { backgroundColor: '#e5edfc', color: '#3b6fd8' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
                         {u.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {u.is_active
-                        ? <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' }}>{t.common.active}</span>
-                        : <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }}>{s.inactive}</span>}
+                        ? <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#d6fae5', color: '#267a47' }}>{t.common.active}</span>
+                        : <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#ececec', color: '#4a4a4a' }}>{s.inactive}</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
@@ -248,7 +249,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{invite.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${invite.is_admin ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${invite.is_admin ? 'bg-[#e5edfc] text-[#3b6fd8]' : 'bg-gray-100 text-gray-600'}`}>
                         {invite.is_admin ? s.admin : s.member}
                       </span>
                     </td>

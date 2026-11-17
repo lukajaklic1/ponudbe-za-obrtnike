@@ -38,7 +38,7 @@ const LBL = {
 }
 
 // Same look as the Input component, so every field on the page matches the rest of the app
-const LABEL = 'block text-xs font-medium text-[#5b5b5b] mb-1'
+const LABEL = 'block text-xs font-medium text-[#5b5b5b] mb-1.5'
 const TEXTAREA = 'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y disabled:bg-gray-50 disabled:cursor-not-allowed'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HRK']
@@ -327,8 +327,8 @@ function Section({ icon: Icon, title, aside, children }: { icon: React.ElementTy
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200">
-        <div className="w-8 h-8 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center shrink-0"><Icon className="w-4 h-4 text-gray-600" /></div>
-        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        <Icon className="w-[18px] h-[18px] text-[#5b5b5b] shrink-0" strokeWidth={1.75} />
+        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
         {aside && <div className="ml-auto">{aside}</div>}
       </div>
       <div className="p-5">{children}</div>

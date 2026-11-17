@@ -105,7 +105,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
         </div>
 
         <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition-colors">
-          {fileName ? <FileText className="w-4 h-4 text-blue-600 shrink-0" /> : <UploadCloud className="w-4 h-4 text-gray-400 shrink-0" />}
+          {fileName ? <FileText className="w-4 h-4 text-gray-900 shrink-0" /> : <UploadCloud className="w-4 h-4 text-gray-400 shrink-0" />}
           <span className={`text-sm ${fileName ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>{fileName || T.pick}</span>
           <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f); e.target.value = '' }} />
         </label>
@@ -129,7 +129,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
                         <td className="px-3 py-2 w-40 text-right">
                           <span className="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" style={
                             r.error ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
-                              : { backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' }}>
+                              : { backgroundColor: '#d6fae5', color: '#267a47' }}>
                             {r.error ? T.errors[r.error] : T.newRow}
                           </span>
                         </td>

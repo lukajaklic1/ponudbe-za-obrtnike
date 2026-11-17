@@ -27,7 +27,7 @@ export function PageHeader({ title, icon: Icon, count, action }: PageHeaderProps
         {Icon && <Icon className="w-5 h-5 text-gray-500 shrink-0" />}
         <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.01em] text-gray-900">{title}</h1>
         {count !== undefined && (
-          <span className="text-xs font-medium text-gray-600 px-1.5 py-0.5 rounded bg-gray-100">{count}</span>
+          <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#e8e8e8] text-[#4a4a4a]">{count}</span>
         )}
       </div>
       {action}

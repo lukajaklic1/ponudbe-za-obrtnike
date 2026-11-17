@@ -35,8 +35,8 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-sm">
           {sent ? (
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
-                <Mail className="w-5 h-5 text-blue-600" />
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <Mail className="w-5 h-5 text-gray-900" />
               </div>
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">{a.resetEmailSent}</h1>
               <p className="text-sm text-gray-400 mb-8">{a.resetEmailSentDesc}</p>
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-label">{a.email}</label>
+                  <label className="text-sm font-semibold text-gray-900">{a.email}</label>
                   <input type="email" required autoComplete="email"
                     value={email} onChange={e => setEmail(e.target.value)}
                     placeholder="you@company.com"

@@ -53,7 +53,7 @@ export default function AcceptInvitePage() {
           {!session ? (
             <div className="text-center">
               <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-3 mb-4">{a.invalidLink}</p>
-              <button onClick={() => navigate('/login')} className="text-sm text-blue-600 hover:underline font-medium">
+              <button onClick={() => navigate('/login')} className="text-sm text-gray-900 hover:underline font-medium">
                 {t.auth.signIn}
               </button>
             </div>
@@ -61,12 +61,12 @@ export default function AcceptInvitePage() {
             <>
               <h1 className="text-2xl font-semibold text-gray-900 text-center mb-2">{a.title}</h1>
               <p className="text-sm text-gray-400 text-center mb-8">
-                {lang === 'sl' ? 'Povabljeni ste bili v Obrtdesk. Nastavite geslo za vaš račun.' : "You've been invited to Obrtdesk. Set a password for your account."}
+                {lang === 'sl' ? 'Povabljeni ste bili v Fenestrio. Nastavite geslo za vaš račun.' : "You've been invited to Fenestrio. Set a password for your account."}
               </p>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-label">{lang === 'sl' ? 'Geslo' : 'Password'}</label>
+                  <label className="text-sm font-semibold text-gray-900">{lang === 'sl' ? 'Geslo' : 'Password'}</label>
                   <input type="password" required autoComplete="new-password"
                     value={password} onChange={e => setPassword(e.target.value)}
                     placeholder={lang === 'sl' ? 'Vsaj 8 znakov' : 'Min. 8 characters'}
@@ -74,7 +74,7 @@ export default function AcceptInvitePage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-label">{a.confirmPassword}</label>
+                  <label className="text-sm font-semibold text-gray-900">{a.confirmPassword}</label>
                   <input type="password" required autoComplete="new-password"
                     value={confirm} onChange={e => setConfirm(e.target.value)}
                     placeholder="••••••••"

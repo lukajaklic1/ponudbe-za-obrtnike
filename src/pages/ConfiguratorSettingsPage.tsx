@@ -76,7 +76,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
   }
   function copy(text: string) { navigator.clipboard.writeText(text).then(() => toast.success(T.copied)) }
 
-  return <div className="max-w-2xl space-y-4">
+  return <div className="px-6 py-6 max-w-3xl space-y-4">
     <Card className="p-5 space-y-4">
       <Checkbox checked={form.enabled} onChange={v => setForm({ ...form, enabled: v })} label={T.cfgEnabled} />
       <Input label={T.cfgSlug} value={form.slug} onChange={e => setForm({ ...form, slug: slugify(e.target.value) })} error={slugOk ? undefined : T.slugInvalid} disabled={!canEdit} />
@@ -97,7 +97,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     </Card>
 
     <Card className="p-5 space-y-3">
-      <div className="text-sm font-medium text-gray-900">{T.cfgLink}</div>
+      <h2 className="text-base font-semibold text-gray-900">{T.cfgLink}</h2>
       <div className="flex gap-2">
         <input readOnly value={url} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 bg-gray-50" />
         <Button variant="secondary" className="gap-1.5" onClick={() => copy(url)}><Copy className="w-4 h-4" />{T.copy}</Button>

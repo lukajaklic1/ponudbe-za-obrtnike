@@ -5,9 +5,9 @@ import AppLogo from '../components/ui/AppLogo'
 const sl = {
   title: 'Izjava o zasebnosti',
   updated: 'Posodobljeno: julij 2026',
-  intro: `Vaše osebne podatke varujemo v skladu z Uredbo (EU) 2016/679 (GDPR), Zakonom o varstvu osebnih podatkov (ZVOP-2) in drugo veljavno zakonodajo o varstvu podatkov. Ta izjava se nanaša na fizične osebe, ki pri Obrtdesk nastopajo kot poslovni uporabniki — lastnike, direktorje, kalkulatorje, prodajnike in ostale zaposlene v proizvodnih podjetjih, ki uporabljajo platformo za pripravo ponudb in upravljanje stroškovnih kalkulacij.
+  intro: `Vaše osebne podatke varujemo v skladu z Uredbo (EU) 2016/679 (GDPR), Zakonom o varstvu osebnih podatkov (ZVOP-2) in drugo veljavno zakonodajo o varstvu podatkov. Ta izjava se nanaša na fizične osebe, ki pri Fenestrio nastopajo kot poslovni uporabniki — lastnike, direktorje, kalkulatorje, prodajnike in ostale zaposlene v proizvodnih podjetjih, ki uporabljajo platformo za pripravo ponudb in upravljanje stroškovnih kalkulacij.
 
-Obrtdesk v razmerju do vas nastopa v dveh jasno ločenih vlogah. Kot upravljavec obdeluje vaše osebne podatke za namen zagotavljanja in upravljanja storitev — to razmerje ureja ta izjava. Kot obdelovalec pa obdeluje kontaktne in komercialne podatke vaših strank in poslovnih partnerjev, ki jih vnesete v platformo, po vaših navodilih in v vašem imenu — za to razmerje ste vi odgovorni kot upravljavec.`,
+Fenestrio v razmerju do vas nastopa v dveh jasno ločenih vlogah. Kot upravljavec obdeluje vaše osebne podatke za namen zagotavljanja in upravljanja storitev — to razmerje ureja ta izjava. Kot obdelovalec pa obdeluje kontaktne in komercialne podatke vaših strank in poslovnih partnerjev, ki jih vnesete v platformo, po vaših navodilih in v vašem imenu — za to razmerje ste vi odgovorni kot upravljavec.`,
 
   s1title: '1. Podatki o upravljavcu',
   s1: `Upravljavec osebnih podatkov je TCE, d.o.o. Za vsa vprašanja v zvezi z obdelavo vaših osebnih podatkov nas kontaktirajte na info@tce.si. Na zahteve odgovorimo v roku 30 dni.`,
@@ -99,7 +99,7 @@ Obrtdesk v razmerju do vas nastopa v dveh jasno ločenih vlogah. Kot upravljavec
   ],
 
   s4title: '4. Kdo obdeluje vaše podatke',
-  s4: `Vaši podatki so dostopni le omejenemu krogu oseb pri Obrtdesk — izključno tistim, ki podatke potrebujejo za opravljanje svojih nalog. Vsi so zavezani k zaupnosti.
+  s4: `Vaši podatki so dostopni le omejenemu krogu oseb pri Fenestrio — izključno tistim, ki podatke potrebujejo za opravljanje svojih nalog. Vsi so zavezani k zaupnosti.
 
 Za določene storitve uporabljamo zunanje obdelovalce, s katerimi imamo sklenjene pogodbe o obdelavi podatkov po čl. 28 GDPR:`,
   s4processors: [
@@ -109,7 +109,7 @@ Za določene storitve uporabljamo zunanje obdelovalce, s katerimi imamo sklenjen
   s4end: `Vaše podatke razkrijemo državnim organom le, kadar je to zahtevano na podlagi zakona. V primeru pravnih sporov jih lahko razkrijemo odvetnikom in sodiščem v obsegu, ki je nujen za zaščito pravnih interesov.`,
 
   s5title: '5. Prenos podatkov v tretje države',
-  s5: `Obrtdesk hrani in obdeluje podatke primarno v Evropski uniji (Supabase Frankfurt, Vercel EU). V kolikor bi pri prihodnji nadgradnji infrastrukture prišlo do prenosa osebnih podatkov izven EGP, bo Obrtdesk to zagotovil izključno z ustreznimi zaščitnimi mehanizmi (Standardne pogodbene klavzule Evropske komisije po Izvedbeni odločbi 2021/914 ali odločba o ustreznosti).
+  s5: `Fenestrio hrani in obdeluje podatke primarno v Evropski uniji (Supabase Frankfurt, Vercel EU). V kolikor bi pri prihodnji nadgradnji infrastrukture prišlo do prenosa osebnih podatkov izven EGP, bo Fenestrio to zagotovil izključno z ustreznimi zaščitnimi mehanizmi (Standardne pogodbene klavzule Evropske komisije po Izvedbeni odločbi 2021/914 ali odločba o ustreznosti).
 
 Imate pravico zahtevati informacije o državah, v katere se vaši podatki prenašajo. Zahtevo naslovite na info@tce.si.`,
 
@@ -139,7 +139,7 @@ Imate pravico zahtevati informacije o državah, v katere se vaši podatki prena�
   s7end: 'Zahteve naslovite na info@tce.si. Imate tudi pravico do pritožbe pri Informacijskemu pooblaščencu RS, Dunajska cesta 22, 1000 Ljubljana, gp.ip@ip-rs.si, ip-rs.si.',
 
   s8title: '8. Piškotki',
-  s8: 'Obrtdesk uporablja izključno tehnično nujne piškotke za upravljanje seje in avtentikacijo. Ne nastavljamo analitičnih, sledilnih ali oglaševalskih piškotkov, zato privolitev za piškotke ni potrebna.',
+  s8: 'Fenestrio uporablja izključno tehnično nujne piškotke za upravljanje seje in avtentikacijo. Ne nastavljamo analitičnih, sledilnih ali oglaševalskih piškotkov, zato privolitev za piškotke ni potrebna.',
 
   s9title: '9. Spremembe te izjave',
   s9: 'To izjavo redno pregledujemo in posodabljamo. O bistvenih spremembah vas obvestimo vsaj 30 dni pred njihovo uveljavitvijo prek e-pošte ali obvestila v aplikaciji. Arhiv prejšnjih verzij je dostopen na zahtevo pri info@tce.si.',
@@ -152,9 +152,9 @@ Imate pravico zahtevati informacije o državah, v katere se vaši podatki prena�
 const en = {
   title: 'Privacy Policy',
   updated: 'Last updated: July 2026',
-  intro: `We protect your personal data in accordance with Regulation (EU) 2016/679 (GDPR), the Personal Data Protection Act (ZVOP-2) and other applicable data protection legislation. This policy applies to natural persons acting as business users of Obrtdesk — owners, directors, estimators, sales staff and other employees of manufacturing companies using the platform to prepare quotations and manage cost calculations.
+  intro: `We protect your personal data in accordance with Regulation (EU) 2016/679 (GDPR), the Personal Data Protection Act (ZVOP-2) and other applicable data protection legislation. This policy applies to natural persons acting as business users of Fenestrio — owners, directors, estimators, sales staff and other employees of manufacturing companies using the platform to prepare quotations and manage cost calculations.
 
-Obrtdesk acts in two clearly distinct roles. As a controller, it processes your personal data for the purpose of providing and managing the services — this relationship is governed by this policy. As a processor, it processes contact and commercial data of your customers and business partners that you enter into the platform, on your instructions and on your behalf — you are responsible for that relationship as the data controller.`,
+Fenestrio acts in two clearly distinct roles. As a controller, it processes your personal data for the purpose of providing and managing the services — this relationship is governed by this policy. As a processor, it processes contact and commercial data of your customers and business partners that you enter into the platform, on your instructions and on your behalf — you are responsible for that relationship as the data controller.`,
 
   s1title: '1. Data Controller',
   s1: `The data controller is TCE, d.o.o. For all questions regarding the processing of your personal data, contact us at info@tce.si. We respond to requests within 30 days.`,
@@ -246,7 +246,7 @@ Obrtdesk acts in two clearly distinct roles. As a controller, it processes your 
   ],
 
   s4title: '4. Who Processes Your Data',
-  s4: `Your data is accessible only to a limited circle of persons at Obrtdesk — exclusively those who need the data to perform their duties. All are bound by confidentiality.
+  s4: `Your data is accessible only to a limited circle of persons at Fenestrio — exclusively those who need the data to perform their duties. All are bound by confidentiality.
 
 For certain services we use external processors with whom we have data processing agreements under Art. 28 GDPR:`,
   s4processors: [
@@ -256,7 +256,7 @@ For certain services we use external processors with whom we have data processin
   s4end: `We disclose your data to public authorities only when required by law. In legal disputes, we may disclose it to lawyers and courts to the extent necessary to protect legal interests.`,
 
   s5title: '5. International Data Transfers',
-  s5: `Obrtdesk stores and processes data primarily within the European Union (Supabase Frankfurt, Vercel EU). Should any future infrastructure upgrade involve transfers of personal data outside the EEA, Obrtdesk will ensure this is done exclusively with appropriate safeguards (European Commission Standard Contractual Clauses under Implementing Decision 2021/914 or an adequacy decision).
+  s5: `Fenestrio stores and processes data primarily within the European Union (Supabase Frankfurt, Vercel EU). Should any future infrastructure upgrade involve transfers of personal data outside the EEA, Fenestrio will ensure this is done exclusively with appropriate safeguards (European Commission Standard Contractual Clauses under Implementing Decision 2021/914 or an adequacy decision).
 
 You have the right to request information about the countries to which your data is transferred. Send your request to info@tce.si.`,
 
@@ -286,7 +286,7 @@ You have the right to request information about the countries to which your data
   s7end: 'Submit requests to info@tce.si. You also have the right to lodge a complaint with the Information Commissioner of the Republic of Slovenia, Dunajska cesta 22, 1000 Ljubljana, gp.ip@ip-rs.si, ip-rs.si.',
 
   s8title: '8. Cookies',
-  s8: 'Obrtdesk uses only technically necessary cookies for session management and authentication. We do not set analytics, tracking or advertising cookies, so cookie consent is not required.',
+  s8: 'Fenestrio uses only technically necessary cookies for session management and authentication. We do not set analytics, tracking or advertising cookies, so cookie consent is not required.',
 
   s9title: '9. Changes to This Policy',
   s9: 'We regularly review and update this policy. We will notify you of significant changes at least 30 days before they take effect via email or an in-app notice. An archive of previous versions is available on request at info@tce.si.',

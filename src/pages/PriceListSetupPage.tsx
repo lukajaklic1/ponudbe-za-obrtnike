@@ -152,7 +152,7 @@ const TXT = {
     exSrcProfile: (p: string) => `korak 3, profil ${p}`, exSrcFixed: 'stalna vrednost v izračunu', exSrcTable: (row: string) => `tabela zgoraj, vrstica »${row}«`,
     exWindow: 'Okovje okna', exTiltSash: 'Okovje pasivnega krila', exTtSash: 'Okovje krila odpiranje in kip',
     exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `Okno nima stebra, zato se od širine odšteje le okvir na obeh straneh (${fw} mm), preostanek si delita krili; od višine se odšteje okvir zgoraj in spodaj. Krilo je na vsaki strani za ${ov} mm večje od odprtine, ker prekriva okvir, zato ima vsako krilo obseg ${per} m. Levo krilo je pasivno: nima kljuke, zaklene se z zapahi in se odpre šele za desnim. Okovje se izračuna za vsako krilo posebej po cenah njegovega načina odpiranja: pasivno krilo ${tilt} €, krilo odpiranje in kip ${tt} €. Okovje celega okna je vsota obeh, ${tot} €. To je strošek, marža se doda na celotno okno.`, exFormulaL: 'Okovje krila', exPerM: 'doplačilo na meter', exPerimeter: 'obseg krila', exSash: 'Krilo', exHw: 'Okovje krila',
-    exWords: (fx: string, pm: string, per: string, tot: string) => `Vsako krilo dobi fiksno doplačilo ${fx} €, nato se za vsak meter obsega krila prišteje še ${pm} €. Krilo z obsegom ${per} m ima tako okovje v vrednosti ${tot} €. Dvokrilno okno ima dve krili, zato se okovje izračuna za vsako krilo posebej in sešteje. Znesek je strošek; marža se doda na celotno okno.`, hwIntro: 'Vnesite dodatne stroške, povezane z okovjem. Nastavite lahko fiksno doplačilo na krilo ter dodatno plačilo na tekoči meter obsega krila. Vnašajte samo stroškovne cene, ki bodo dodane k nabavnim cenam profilov. Marža se doda na koncu na celotno okno.', perSash: 'krilo', hwFixed: 'Fiksno doplačilo na krilo', hwPerM: 'Doplačilo na tekoči meter obsega krila', hwHint: 'Okovje krila = fiksni znesek + cena × obseg krila. Primer: krilo 130 × 150 cm ima obseg 5,6 m, pri 20 € + 1 €/tm je okovje 25,60 €. Pasivno krilo je drugo krilo dvokrilnega okna brez stebrička (brez kljuke).', hw: { tilt_turn: 'Odpiranje in kip', turn: 'Samo odpiranje', tilt: 'Samo kip', passive: 'Pasivno krilo brez kljuke', slide_window: 'Drsno okno', slide: 'Nagibno-drsna stena', lift_slide: 'Dvižno-drsna stena' },
+    exWords: (fx: string, pm: string, per: string, tot: string) => `Vsako krilo dobi fiksno doplačilo ${fx} €, nato se za vsak meter obsega krila prišteje še ${pm} €. Krilo z obsegom ${per} m ima tako okovje v vrednosti ${tot} €. Dvokrilno okno ima dve krili, zato se okovje izračuna za vsako krilo posebej in sešteje. Znesek je strošek; marža se doda na celotno okno.`, hwIntro: 'Vnesite dodatne stroške, povezane z okovjem. Nastavite lahko fiksno doplačilo na krilo ter dodatno plačilo na tekoči meter obsega krila. Vnašajte samo stroškovne cene, ki bodo dodane k nabavnim cenam profilov. Marža se doda na koncu na celotno okno.', perSash: 'krilo', hwOpening: 'Način odpiranja', hwFixed: 'Fiksno doplačilo na krilo', hwPerM: 'Doplačilo na tekoči meter obsega krila', hwHint: 'Okovje krila = fiksni znesek + cena × obseg krila. Primer: krilo 130 × 150 cm ima obseg 5,6 m, pri 20 € + 1 €/tm je okovje 25,60 €. Pasivno krilo je drugo krilo dvokrilnega okna brez stebrička (brez kljuke).', hw: { tilt_turn: 'Odpiranje in kip', turn: 'Samo odpiranje', tilt: 'Samo kip', passive: 'Pasivno krilo brez kljuke', slide_window: 'Drsno okno', slide: 'Nagibno-drsna stena', lift_slide: 'Dvižno-drsna stena' },
     glassM2: 'Osnovno steklo', labourWindow: 'Fiksno na okvir', labourFrameM: 'Na tekoči meter okvirja', labourSash: 'Fiksno na krilo', labourSashM: 'Na tekoči meter krila', labourGroup: 'Stroški dela brez marže', labourFrame: 'Okvir', labourSashes: 'Krila', marginGroup: 'Izmet in marža', waste: 'Delež izmeta pri odrezu profilov', margin: 'Marža na material okna', labourMargin: 'Marža na delo', bothSides: 'Barva obojestransko',
     calc: 'Kalkulacija', cost: 'Strošek', marginLine: 'Marža na material', labourMarginLine: 'Marža na delo', windowPrice: 'Cena okna',
     s4: 'V katerih barvah so profili?', s4hint: 'Za vsak material izberite barve, ki jih ponujate. Doplačilo v % se prišteje k ceni profilov.',
@@ -249,7 +249,7 @@ const TXT = {
     exSrcProfile: (p: string) => `step 3, profile ${p}`, exSrcFixed: 'fixed value of the calculation', exSrcTable: (row: string) => `table above, row "${row}"`,
     exWindow: 'Hardware of the window', exTiltSash: 'Passive sash hardware', exTtSash: 'Tilt & turn sash hardware',
     exWords2: (fw: string, ov: string, per: string, tilt: string, tt: string, tot: string) => `The window has no mullion, so only the frame on both sides (${fw} mm) is taken off the width and the sashes share the rest; the frame top and bottom is taken off the height. A sash is ${ov} mm larger than its opening on every side because it overlaps the frame, so each sash has a ${per} m perimeter. The left sash is passive: no handle, locked with bolts, it opens only after the right one. The hardware is worked out per sash with the prices of its opening: passive sash ${tilt} €, tilt & turn sash ${tt} €. The window's hardware is the sum, ${tot} €. This is a cost; the margin is added to the whole window.`, exFormulaL: 'Sash hardware', exPerM: 'amount per metre', exPerimeter: 'sash perimeter', exSash: 'Sash', exHw: 'Sash hardware',
-    exWords: (fx: string, pm: string, per: string, tot: string) => `Every sash gets the fixed amount of ${fx} €, then ${pm} € for every metre of its perimeter. A sash with a ${per} m perimeter therefore has hardware worth ${tot} €. A double window has two sashes, so the hardware is worked out per sash and added up. The amount is a cost; the margin is added to the whole window.`, hwIntro: 'Enter the additional costs of the hardware. You can set a fixed amount per sash and an extra amount per metre of the sash perimeter. Enter cost prices only; they are added to the purchase prices of the profiles. The margin is added to the whole window at the end.', perSash: 'sash', hwFixed: 'Fixed', hwPerM: 'Per metre of sash perimeter', hwHint: 'Sash hardware = fixed amount + price × sash perimeter. Example: a 130 × 150 cm sash has a 5.6 m perimeter; at 20 € + 1 €/m the hardware is 25.60 €. A passive sash is the second sash of a double window without a mullion (no handle).', hw: { tilt_turn: 'Tilt & turn', turn: 'Turn only', tilt: 'Tilt only', passive: 'Passive sash (no handle)', slide_window: 'Sliding window', slide: 'Tilt and slide wall', lift_slide: 'Lift & slide wall' },
+    exWords: (fx: string, pm: string, per: string, tot: string) => `Every sash gets the fixed amount of ${fx} €, then ${pm} € for every metre of its perimeter. A sash with a ${per} m perimeter therefore has hardware worth ${tot} €. A double window has two sashes, so the hardware is worked out per sash and added up. The amount is a cost; the margin is added to the whole window.`, hwIntro: 'Enter the additional costs of the hardware. You can set a fixed amount per sash and an extra amount per metre of the sash perimeter. Enter cost prices only; they are added to the purchase prices of the profiles. The margin is added to the whole window at the end.', perSash: 'sash', hwOpening: 'Opening', hwFixed: 'Fixed', hwPerM: 'Per metre of sash perimeter', hwHint: 'Sash hardware = fixed amount + price × sash perimeter. Example: a 130 × 150 cm sash has a 5.6 m perimeter; at 20 € + 1 €/m the hardware is 25.60 €. A passive sash is the second sash of a double window without a mullion (no handle).', hw: { tilt_turn: 'Tilt & turn', turn: 'Turn only', tilt: 'Tilt only', passive: 'Passive sash (no handle)', slide_window: 'Sliding window', slide: 'Tilt and slide wall', lift_slide: 'Lift & slide wall' },
     glassM2: 'Base glass', labourWindow: 'Fixed per frame', labourFrameM: 'Per metre of frame', labourSash: 'Fixed per sash', labourSashM: 'Per metre of sash', labourGroup: 'Labour costs without margin', labourFrame: 'Frame', labourSashes: 'Sashes', marginGroup: 'Waste and margin', waste: 'Share of profile wasted when cutting', margin: 'Margin on the window material', labourMargin: 'Margin on labour', bothSides: 'Colour both sides',
     calc: 'Costing', cost: 'Cost', marginLine: 'Material margin', labourMarginLine: 'Labour margin', windowPrice: 'Window price',
     s4: 'Which colours are the profiles in?', s4hint: 'Choose the colours you offer for every material. The % surcharge is added to the profile price.',
@@ -483,7 +483,7 @@ export default function PriceListSetupPage() {
                         </button>}
                       </div>
                       {open && <div className="px-4 pb-4">
-                        <div className="ml-[9px] pl-[25px] border-l-2 border-blue-100 space-y-6">
+                        <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200 space-y-6">
                           {/* top light / bottom panel: one row each with a tick; its arrow opens the variants of that shape */}
                           <div>
                             <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
@@ -513,7 +513,7 @@ export default function PriceListSetupPage() {
                                     </button>}
                                   </div>
                                   {isOpen && <div className="px-4 pb-4">
-                                    <div className="ml-[9px] pl-[25px] border-l-2 border-blue-100 space-y-4">
+                                    <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200 space-y-4">
                                       <AllRow plain all={onN === list.length} some={onN > 0} disabled={!canEdit}
                                         onToggle={() => setOff(onN === list.length ? [...off.filter(x => !keys.includes(x)), ...keys] : off.filter(x => !keys.includes(x)))}
                                         label={T.allOpenings} count={T.ofCount(onN, list.length)} />
@@ -825,7 +825,7 @@ export default function PriceListSetupPage() {
                   className={cn('relative rounded-xl border p-3 text-left transition-colors', on ? SEL_ON : SEL_OFF)}>
                   {on && <SelBadge />}
                   <div className="h-[128px] flex items-center justify-center rounded-lg bg-gray-50">{pic}</div>
-                  <div className={cn('mt-3 text-sm font-medium', on ? 'text-blue-700' : 'text-gray-900')}>{label}</div>
+                  <div className={cn('mt-3 text-sm font-medium', on ? 'text-gray-900' : 'text-gray-900')}>{label}</div>
                 </button>
               })}
             </div>
@@ -904,7 +904,7 @@ export default function PriceListSetupPage() {
                         </button>}
                       </div>
                       {open && <div className="px-4 pb-4">
-                        <div className="ml-[9px] pl-[25px] border-l-2 border-blue-100">
+                        <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200">
                           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                             {all.map(c => {
                               const k = comboKey(c), sel = picked.includes(k)
@@ -1036,7 +1036,7 @@ export default function PriceListSetupPage() {
                     </button>}
                   </div>
                   {open && <div className="px-4 pb-4">
-                    <div className="ml-[9px] pl-[25px] border-l-2 border-blue-100 space-y-3">
+                    <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200 space-y-3">
                     {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                     {/* a small table: name, the three main per-metre prices, where it is used */}
                     <div className="hidden lg:grid grid-cols-[48px_minmax(0,1fr)_88px_88px_88px_88px_360px_76px] items-center gap-4 px-4 py-2 bg-gray-50 text-xs font-medium text-[#5b5b5b]">
@@ -1069,7 +1069,7 @@ export default function PriceListSetupPage() {
                           <div className="hidden lg:flex flex-nowrap justify-end gap-1" title={usedText}>
                             {/* every offered group: blue where the profile is used, grey where not */}
                             {groups.map(g => <span key={g} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap"
-                              style={serves(g) ? { color: '#1d4ed8', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' } : { color: '#a1a1aa', backgroundColor: '#fafafa', border: '1px solid #e4e4e7' }}>{groupLabel(g)}</span>)}
+                              style={serves(g) ? { color: '#3b6fd8', backgroundColor: '#e5edfc' } : { color: '#9a9a9a', backgroundColor: '#f4f4f4' }}>{groupLabel(g)}</span>)}
                           </div>
                           <button type="button" onClick={() => setOpenProf(o => ({ ...o, [p.key]: !pOpen }))}
                             className="justify-self-end inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
@@ -1208,7 +1208,7 @@ export default function PriceListSetupPage() {
                     </button>
                   </div>
                   {open && <div className="px-4 pb-4">
-                    <div className="ml-[9px] pl-[25px] border-l-2 border-blue-100 space-y-3">
+                    <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200 space-y-3">
                       <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                         <div className="hidden md:grid grid-cols-[36px_minmax(0,1fr)_120px_180px_180px_36px] items-center gap-3 px-4 py-2 bg-gray-50 text-xs font-medium text-[#5b5b5b]">
                           <span /><span>{T.colorName}</span><span>{T.colorCode}</span><span className="text-right">{T.colorOne}</span><span className="text-right">{T.colorBoth}</span><span />
@@ -1264,10 +1264,14 @@ export default function PriceListSetupPage() {
           <Step n={5} title={T.hwTitle} hint={T.hwIntro}>
             <div className="space-y-5">
               <div>
-                <div className="rounded-lg border border-gray-200 divide-y divide-gray-100">
+                <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                  {/* column names once, like a table head (on phones every field keeps its own label) */}
+                  <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_240px_240px] gap-3 px-3 py-2.5 bg-[#fafafa] text-sm font-medium text-gray-900">
+                    <div>{T.hwOpening}</div><div>{T.hwFixed}</div><div>{T.hwPerM}</div>
+                  </div>
                   {(['tilt_turn', 'turn', 'tilt', 'passive', 'slide_window', 'slide', 'lift_slide'] as const).map(k => (
-                    <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_240px_240px] gap-3 items-end px-3 py-2.5">
-                      <div className="text-sm text-gray-900 pb-2">{T.hw[k]}</div>
+                    <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_240px_240px] gap-3 items-center px-3 py-2.5 sm:[&_label]:hidden">
+                      <div className="text-sm text-gray-900">{T.hw[k]}</div>
                       <NumberInput label={T.hwFixed} unit={`${cur}/${T.perSash}`} value={pricing.hw[k]} onValue={v => setHw(k, v)} decimals={2} />
                       <NumberInput label={T.hwPerM} unit={`${cur}/m`} value={pricing.hw_m[k]} onValue={v => setHwM(k, v)} decimals={2} />
                     </div>
@@ -1293,7 +1297,7 @@ export default function PriceListSetupPage() {
                     <div className="flex items-center gap-3">
                       <input value={g.name} onChange={e => set(g.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.glassName}
                         className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>}
+                      {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#267a47', backgroundColor: '#d6fae5' }}>{T.baseIncluded}</span>}
                       {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(g.name, () => setList(list.filter(x => x.id !== g.id)))} title={T.remove}
                         className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                     </div>
@@ -1364,7 +1368,7 @@ export default function PriceListSetupPage() {
                         <div className="flex items-center gap-3">
                           <input value={h.name} onChange={e => set(h.id, { name: e.target.value })} disabled={!canEdit} placeholder={T.handleName}
                             className="flex-1 min-w-0 rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                          {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#007d53', backgroundColor: '#e0fced' }}>{T.baseIncluded}</span>}
+                          {i === 0 && <span className="shrink-0 text-xs font-medium rounded-md px-2 py-1" style={{ color: '#267a47', backgroundColor: '#d6fae5' }}>{T.baseIncluded}</span>}
                           {canEdit && list.length > 1 && <button type="button" onClick={() => askRemove(h.name, () => setList(list.filter(x => x.id !== h.id)))} title={T.remove}
                             className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
                         </div>
@@ -1800,7 +1804,7 @@ function Fold({ open, onToggle, title, summary, pic, children }: { open: boolean
 }
 
 // Selected card: blue outline, light blue tint and a check badge in the corner (same everywhere)
-const SEL_ON = 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50'
+const SEL_ON = 'border-[#2e3133] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
 const SEL_OFF = 'border-gray-200 bg-white hover:border-gray-300'
 function SelBadge() {
   return <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1f2123] text-white flex items-center justify-center shadow-sm"><Check className="w-3 h-3" strokeWidth={3} /></span>
@@ -1813,7 +1817,7 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
         <span className="w-7 h-7 rounded-full bg-[#1f2123] text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
         <div>
           <h2 className="text-base font-semibold text-gray-900 leading-7">{title}</h2>
-          <p className="text-xs font-medium text-[#5b5b5b] mt-1 max-w-3xl">{hint}</p>
+          <p className="text-[13px] leading-5 text-[#5b5b5b] mt-0.5 max-w-3xl">{hint}</p>
         </div>
       </div>
       {children}

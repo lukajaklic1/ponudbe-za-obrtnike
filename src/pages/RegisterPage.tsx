@@ -40,7 +40,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-label">{a.email}</label>
+              <label className="text-sm font-semibold text-gray-900">{a.email}</label>
               <input
                 type="email" required autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)}
@@ -49,7 +49,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-label">{a.password}</label>
+              <label className="text-sm font-semibold text-gray-900">{a.password}</label>
               <input
                 type="password" required autoComplete="new-password"
                 value={password} onChange={e => setPassword(e.target.value)}
@@ -58,7 +58,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-label">{a.confirmPassword}</label>
+              <label className="text-sm font-semibold text-gray-900">{a.confirmPassword}</label>
               <input
                 type="password" required autoComplete="new-password"
                 value={confirm} onChange={e => setConfirm(e.target.value)}
@@ -77,7 +77,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             {a.alreadyHaveAccount}{' '}
-            <Link to="/login" className="text-blue-600 hover:underline font-medium">{a.signIn}</Link>
+            <Link to="/login" className="text-gray-900 hover:underline font-medium">{a.signIn}</Link>
           </p>
         </div>
       </div>
@@ -90,7 +90,7 @@ export default function RegisterPage() {
             : <>By creating an account you agree to our <Link to="/terms" className="underline hover:text-gray-600">Terms of Service</Link> and <Link to="/privacy" className="underline hover:text-gray-600">Privacy Policy</Link>.</>}
         </p>
         <div className="flex items-center gap-4">
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Obrtdesk</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Fenestrio</p>
           <div className="flex gap-1">
             {(['en', 'sl'] as const).map(l => (
               <button key={l} onClick={() => setLang(l)}

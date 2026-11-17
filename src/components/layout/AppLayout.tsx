@@ -4,6 +4,7 @@ import { Menu } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import Sidebar from './Sidebar'
+import AppLogo from '../ui/AppLogo'
 
 interface SidebarContextValue {
   collapsed: boolean
@@ -29,7 +30,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (loading || (session && isSuperAdmin === null)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
       </div>
     )
   }
@@ -65,7 +66,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <span className="font-semibold text-gray-900">Obrtdesk</span>
+            <AppLogo size="sm" />
           </header>
 
           <main className="flex-1 overflow-y-auto">

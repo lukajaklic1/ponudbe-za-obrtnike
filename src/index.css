@@ -144,7 +144,7 @@ fieldset:disabled textarea:focus {
 
 
 /* ── Levelpath look: neutral greys, white cards with hairline borders, black actions ── */
-.robust main { background: #ffffff; color: #2e3133; }
+.robust main { background: #f6f6f6; color: #2e3133; }
 .robust h1, .robust h2, .robust h3 { letter-spacing: -0.01em; }
 /* top-level cards: hairline border and the faintest shadow (cards inside cards stay flat) */
 .robust main :is(.rounded-xl, .rounded-2xl).border:not(:is(.rounded-xl, .rounded-2xl).border .rounded-xl) {
@@ -152,24 +152,26 @@ fieldset:disabled textarea:focus {
   box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
 }
 /* field labels: dark and a touch bigger (hints under them stay grey) */
-.robust main label.text-xs, .robust main .field-label { font-size: 13px; color: #2e3133 !important; font-weight: 500; }
+.robust main label.text-xs, .robust main .field-label { font-size: 14px; color: #2e3133 !important; font-weight: 600; }
 /* fields: soft border, teal focus like Levelpath */
 .robust main :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { color: #2e3133; }
 .robust main :is(input, textarea, button)::placeholder { color: #9a9a9a; }
-.robust main :is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within, .peer-focus-visible\:ring-blue-500) {
+/* everywhere (also sign-in pages and popups): teal focus instead of blue */
+:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within, .peer-focus-visible\:ring-blue-500) {
   --tw-ring-color: rgba(47, 138, 132, .22);
   border-color: #3f8f8a !important;
 }
-.robust main :is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 3px rgba(47, 138, 132, .18) !important; }
+:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 3px rgba(47, 138, 132, .18) !important; }
 /* tables: light grey header with dividers between columns, rows split by hairlines */
 .robust main table { border-collapse: separate; border-spacing: 0; }
 .robust main thead tr, .robust main thead { background: #fafafa; }
-.robust main thead th { font-size: 13px; font-weight: 500; color: #5b5b5b; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #dfdfdf; }
+.robust main thead th { font-size: 14px; font-weight: 500; color: #2c2f31; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #dfdfdf; }
 /* sort arrows in front of the column name, like Levelpath */
 .robust main th > span.inline-flex { flex-direction: row-reverse; justify-content: flex-end; }
 .robust main th > span.inline-flex > span.ml-1 { margin-left: 0; margin-right: 6px; }
 .robust main th.text-right > span.inline-flex { justify-content: flex-start; }
-.robust main tbody td { padding-top: 14px; padding-bottom: 14px; border-bottom: 1px solid #ececec; color: #2e3133; }
+.robust main tbody td { border-bottom: 1px solid #efefef; color: #2e3133; }
+.robust main tbody tr:not(:has(input, textarea)) > td { padding-top: 14px; padding-bottom: 14px; }
 .robust main tbody tr:last-child td { border-bottom: 0; }
 .robust main tbody tr:hover td { background: #fafafa; }
 /* popups: the button row at the bottom sits on a light grey strip (like Levelpath) */
@@ -177,9 +179,13 @@ fieldset:disabled textarea:focus {
 /* fields: 40 px high, 14 px text (Levelpath) */
 .robust :is(input:not([type]), input[type=text], input[type=email], input[type=tel], input[type=number], input[type=password], input[type=search], input[type=date]).py-2 { padding-top: 9px; padding-bottom: 9px; font-size: 14px; }
 /* popups: labels like Levelpath's form (14 px, dark), required star dark red */
-.robust .modal-body label { font-size: 14px !important; font-weight: 500; color: #2e3133 !important; }
+.robust .modal-body label { font-size: 14px !important; font-weight: 600; color: #2e3133 !important; }
 .robust .modal-body label :is(.text-red-500, .text-red-600) { color: #9b1c3c; }
 /* a table directly followed by its footer: one frame with square bottom corners */
 .robust main .rounded-xl:has(+ .table-footer) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .robust main .table-footer { border-color: #dfdfdf; }
 .robust main .rounded-xl:has(+ .table-footer) { box-shadow: none; }
+/* first column (the record's name) a little stronger; header labels on one line */
+.robust main tbody tr:not(:has(input, textarea)) > td:first-child { font-weight: 500; }
+.robust main thead th { vertical-align: middle; line-height: 20px; }
+.robust main thead th > span.inline-flex { vertical-align: middle; }

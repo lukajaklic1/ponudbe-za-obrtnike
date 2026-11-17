@@ -89,7 +89,7 @@ export function ServiceSearch({ items, onSelect, placeholder, money, units }: {
           {filtered.map(p => (
             <button key={p.id} type="button" onMouseDown={e => e.preventDefault()}
               onClick={() => { onSelect(p); setQuery(''); setOpen(false) }}
-              className="w-full flex items-center gap-2 text-left px-3 py-2 hover:bg-blue-50 transition-colors">
+              className="w-full flex items-center gap-2 text-left px-3 py-2 hover:bg-gray-50 transition-colors">
               {p.code && <span className="text-xs text-gray-400 shrink-0">{p.code}</span>}
               <span className="text-sm text-gray-800 flex-1 min-w-0 truncate">{p.name}</span>
               <span className="text-xs text-gray-500 whitespace-nowrap">{money(Number(p.price))} / {units[p.unit]}</span>
@@ -130,7 +130,7 @@ export function CustomerSearch({ customers, value, onChange, placeholder, emptyT
           {filtered.map(c => (
             <button key={c.id} type="button" onMouseDown={e => e.preventDefault()}
               onClick={() => { onChange(c.id); setQuery(''); setOpen(false) }}
-              className={`w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors ${c.id === value ? 'bg-blue-50/60' : ''}`}>
+              className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors ${c.id === value ? 'bg-gray-50' : ''}`}>
               <div className="text-sm text-gray-900">{c.name}</div>
               <div className="text-xs text-gray-400">{[c.customer_type === 'company' ? labels.company : labels.person, c.address_city, c.email].filter(Boolean).join(' · ')}</div>
             </button>
@@ -450,7 +450,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     toast.success(t.common.deleted); navigate('/quotes')
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
   if (!readOnly && company && !hasPerm('quotes', 'create')) return <Navigate to="/quotes" replace />
 
   const ro = readOnly
@@ -467,7 +467,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       </div>
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
+          <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.01em] text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
           {quoteNumber && <span className="text-sm" style={{ color: '#5b5b5b' }}>{quoteNumber}</span>}
           {isSaved && <QuoteStatusBadge status={status} label={s.status[status]} />}
         </div>
@@ -504,7 +504,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className="flex items-center gap-1 border-b border-gray-200 mb-5">
           {([['overview', s.tabOverview], ['pdf', s.tabPdf]] as const).map(([k, label]) => (
             <button key={k} onClick={() => setTab(k)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === k ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>{label}</button>
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === k ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>{label}</button>
           ))}
         </div>
       )}
@@ -512,7 +512,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       {tab === 'overview' ? (<>
         {/* ── Quote details ─────────────────────────────── */}
         <div className={`bg-white rounded-xl border p-6 mb-5 ${border}`}>
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">{o.quoteDetails}</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">{o.quoteDetails}</h2>
           <fieldset disabled={ro} className="contents">
           </fieldset>
           <fieldset disabled={ro} className="contents">
@@ -530,7 +530,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                         setContactEmail(c?.email ?? ''); setContactPhone(c?.phone ?? '')
                         if (c && !siteAddress) setSiteAddress([c.address_street, [c.address_postal_code, c.address_city].filter(Boolean).join(' ')].filter(Boolean).join(', '))
                       }} />}
-                {!ro && customers.length === 0 && <button type="button" onClick={() => navigate('/customers')} className="text-xs text-blue-600 text-left hover:underline">{o.addCustomerFirst}</button>}
+                {!ro && customers.length === 0 && <button type="button" onClick={() => navigate('/customers')} className="text-xs text-gray-900 text-left hover:underline">{o.addCustomerFirst}</button>}
               </div>
               {/* Customer details — contact fields editable per quote, VAT / address belong to the customer */}
               <Input id="q-contact" label={s.contactPerson} value={contactPerson} onChange={e => setContactPerson(e.target.value)} />
@@ -553,7 +553,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 {ro
                   ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#52525b' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
-                    ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-blue-600 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
+                    ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-900 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
                     : <Select className="h-[37.6px]" value={paymentTerms} onChange={setPaymentTerms}
                         options={[{ value: '', label: o.none }, ...termOptions.map(term => ({ value: term, label: term }))]} />}
               </div>
@@ -575,8 +575,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             <p className="text-xs font-medium text-[#5b5b5b] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
             {attachments.map(att => (
               <div key={att.id} className="flex items-center gap-2 px-3 py-2 bg-[#eff5fe] border border-[#deeafd] rounded-lg mb-2">
-                <FileText className="w-4 h-4 text-blue-600 shrink-0" />
-                <button type="button" onClick={() => openFile(att)} className="text-sm text-blue-600 hover:underline font-medium flex-1 text-left truncate">{att.file_name}</button>
+                <FileText className="w-4 h-4 text-gray-900 shrink-0" />
+                <button type="button" onClick={() => openFile(att)} className="text-sm text-gray-900 hover:underline font-medium flex-1 text-left truncate">{att.file_name}</button>
                 {att.file_size != null && <span className="text-xs text-gray-400 shrink-0">{Math.max(1, Math.round(att.file_size / 1024))} KB</span>}
                 <button type="button" onClick={() => openFile(att, true)} title={o.download} className="p-1 text-gray-400 hover:text-gray-700 shrink-0"><Download className="w-4 h-4" /></button>
                 {canDeleteFiles && <button type="button" onClick={() => deleteFile(att)} title={t.common.delete} className="p-1 text-gray-400 hover:text-red-500 shrink-0"><X className="w-4 h-4" /></button>}
@@ -605,7 +605,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         {/* ── Lines ─────────────────────────────────────── */}
         <div className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
           <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
-            <h2 className="text-sm font-semibold text-gray-700">{o.lines}</h2>
+            <h2 className="text-base font-semibold text-gray-900">{o.lines}</h2>
             {!ro && <Button variant="secondary" size="sm" onClick={addEmptyRoom} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addRoom}</Button>}
           </div>
           <div className="overflow-x-auto">
@@ -675,7 +675,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                     ) })}
                     {!ro && grouped && (
                       <tr><td colSpan={colCount} className="px-4 py-1.5 text-right">
-                        <button type="button" onClick={() => addLine(rn)} className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"><Plus className="w-3.5 h-3.5" />{o.addLine}</button>
+                        <button type="button" onClick={() => addLine(rn)} className="inline-flex items-center gap-1 text-xs text-gray-900 hover:text-black font-medium"><Plus className="w-3.5 h-3.5" />{o.addLine}</button>
                       </td></tr>
                     )}
                   </tbody>
@@ -684,7 +684,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               {!ro && !grouped && (
                 <tbody><tr>
                   <td colSpan={colCount} className="px-4 py-2 border-t border-gray-100 text-right">
-                    <button type="button" onClick={() => addLine()} className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"><Plus className="w-4 h-4" />{o.addLine}</button>
+                    <button type="button" onClick={() => addLine()} className="inline-flex items-center gap-1.5 text-sm text-gray-900 hover:text-black font-medium"><Plus className="w-4 h-4" />{o.addLine}</button>
                   </td>
                 </tr></tbody>
               )}
@@ -722,7 +722,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 ))}
                 <tr className={`border-t-2 ${border}`}>
                   <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-3 text-right text-sm font-bold text-gray-900">{o.totalGross}</td>
-                  <td className="px-4 py-3 text-right text-base font-bold text-blue-600 whitespace-nowrap">{money(totals.total_gross)}</td>
+                  <td className="px-4 py-3 text-right text-base font-bold text-gray-900 whitespace-nowrap">{money(totals.total_gross)}</td>
                   {!ro && <td />}
                 </tr>
               </tfoot>

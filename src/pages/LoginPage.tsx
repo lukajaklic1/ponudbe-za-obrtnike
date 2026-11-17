@@ -46,7 +46,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-label">{a.email}</label>
+              <label className="text-sm font-semibold text-gray-900">{a.email}</label>
               <input
                 type="email" required autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)}
@@ -55,7 +55,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-label">{a.password}</label>
+              <label className="text-sm font-semibold text-gray-900">{a.password}</label>
               <input
                 type="password" required autoComplete="current-password"
                 value={password} onChange={e => setPassword(e.target.value)}
@@ -78,7 +78,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             {a.noAccount}{' '}
-            <Link to="/register" className="text-blue-600 hover:underline font-medium">{a.createOne}</Link>
+            <Link to="/register" className="text-gray-900 hover:underline font-medium">{a.createOne}</Link>
           </p>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
             : <>By proceeding you acknowledge that you have read and agree to our <Link to="/terms" className="underline hover:text-gray-600">Terms of Service</Link> and <Link to="/privacy" className="underline hover:text-gray-600">Privacy Policy</Link>.</>}
         </p>
         <div className="flex items-center gap-4">
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Obrtdesk</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Fenestrio</p>
           <div className="flex gap-1">
             {(['en', 'sl'] as const).map(l => (
               <button key={l} onClick={() => setLang(l)}

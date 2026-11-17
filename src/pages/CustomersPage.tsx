@@ -181,7 +181,7 @@ export default function CustomersPage() {
 
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <Users className="w-10 h-10 text-gray-200 mb-3" />
@@ -215,7 +215,7 @@ export default function CustomersPage() {
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.address_city ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{counts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#e0fced', border: '1px solid #d4f8e6', color: '#098259' } : { backgroundColor: '#f5f5f5', border: '1px solid #e5e7eb', color: '#6b7280' }}>
+                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#d6fae5', color: '#267a47' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
                         {(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}
                       </span>
                     </td>

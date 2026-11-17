@@ -9,6 +9,7 @@ import { useCompany } from '../../hooks/useCompany'
 import { useLanguage } from '../../hooks/useLanguage'
 import { cn } from '../../lib/cn'
 import AppLogo from '../ui/AppLogo'
+import { Avatar } from '../ui/PersonBadge'
 
 type NavKey = 'dashboard' | 'windows' | 'configurator' | 'quotes' | 'customers'
 type PermModule = 'quotes' | 'customers' | 'price_list'
@@ -59,11 +60,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
       to={to}
       onClick={handleNavClick}
       className={({ isActive }) => cn(
-        'group flex items-center gap-3 px-3 py-2 rounded-lg mb-0.5 text-sm font-medium transition-colors',
-        isActive ? 'nav-active bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+        'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
+        isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1f2123] hover:bg-[#f5f6f7]',
       )}
     >
-      <Icon className="w-[18px] h-[18px] shrink-0 text-gray-500 group-[.nav-active]:text-gray-900" />
+      <Icon className="w-[18px] h-[18px] shrink-0 text-[#1f2123]" strokeWidth={1.75} />
       {t.nav[key]}
     </NavLink>
   )
@@ -80,8 +81,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
   return (
     <aside className="w-72 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
       {/* App logo — same height as PageHeader (h-[57px]) */}
-      <div className="h-[57px] px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
-        <AppLogo size="sm" />
+      <div className="h-[68px] px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+        <AppLogo size="md" />
         <div className="flex items-center gap-1">
           <button onClick={toggle} className="hidden lg:flex p-1.5 text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] rounded-md transition-colors" title="Hide sidebar">
             <PanelLeft className="w-[18px] h-[18px]" />
@@ -97,15 +98,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {/* Company pill */}
       {company && (
         <div className="px-3 pt-3 pb-1">
-          <div className="flex items-center gap-2 px-2.5 py-1 bg-white rounded-md border border-gray-200">
-            <Building2 className="w-4 h-4 text-gray-400 shrink-0" />
-            <p className="text-sm font-medium text-gray-900 truncate">{company.name}</p>
+          <div className="flex items-center gap-2.5 px-3 py-2.5 bg-white rounded-lg border border-gray-200">
+            <Building2 className="w-4 h-4 text-[#5b5b5b] shrink-0" strokeWidth={1.75} />
+            <p className="text-[15px] font-semibold text-gray-900 truncate">{company.name}</p>
           </div>
         </div>
       )}
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2">
+      <nav className="flex-1 overflow-y-auto py-3 px-3">
         {TOP.filter(visible).map(navLink)}
 
         {SECTIONS.map(sec => {
@@ -115,8 +116,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
           return (
             <div key={sec.id} className="mt-4">
               <button type="button" onClick={() => toggleSection(sec.id)}
-                className="flex items-center gap-1 w-full px-2 py-1 mb-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 rounded-md">
-                <ChevronDown className={cn('w-3 h-3 transition-transform', !open && '-rotate-90')} />
+                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-medium text-[#5b5b5b] hover:text-gray-900 rounded-md">
+                <ChevronDown className={cn('w-3 h-3 transition-transform order-last opacity-0 group-hover/sec:opacity-100', !open && '-rotate-90')} />
                 {t.nav.sections[sec.id]}
               </button>
               {open && items.map(navLink)}
@@ -126,27 +127,27 @@ export default function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-gray-200 p-2">
+      <div className="border-t border-gray-200 p-3">
         {profile?.is_admin && <NavLink
           to="/users"
           onClick={handleNavClick}
           className={({ isActive }) => cn(
-            'flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors mb-0.5',
-            isActive ? 'bg-[#f1f1f1] text-gray-900' : 'text-gray-900 hover:bg-[#f6f6f6]',
+'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
+            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1f2123] hover:bg-[#f5f6f7]',
           )}
         >
-          <UserCog className="w-4 h-4 shrink-0 text-gray-500" />
+          <UserCog className="w-[18px] h-[18px] shrink-0 text-[#1f2123]" strokeWidth={1.75} />
           {t.nav.users}
         </NavLink>}
         {profile?.is_admin && <NavLink
           to="/settings"
           onClick={handleNavClick}
           className={({ isActive }) => cn(
-            'flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors mb-0.5',
-            isActive ? 'bg-[#f1f1f1] text-gray-900' : 'text-gray-900 hover:bg-[#f6f6f6]',
+'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
+            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1f2123] hover:bg-[#f5f6f7]',
           )}
         >
-          <Settings className="w-4 h-4 shrink-0 text-gray-500" />
+          <Settings className="w-[18px] h-[18px] shrink-0 text-[#1f2123]" strokeWidth={1.75} />
           {t.nav.settings}
         </NavLink>}
 
@@ -170,11 +171,9 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </div>
 
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-7 h-7 rounded-full bg-[#1f2123] flex items-center justify-center text-white text-xs font-semibold shrink-0">
-            {profile ? `${profile.first_name[0]}${profile.last_name[0]}` : '?'}
-          </div>
+          <Avatar name={profile ? `${profile.first_name} ${profile.last_name}` : '?'} size={28} />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-900 truncate">
+            <p className="text-[14px] font-medium text-gray-900 truncate">
               {profile ? `${profile.first_name} ${profile.last_name}` : '—'}
             </p>
           </div>

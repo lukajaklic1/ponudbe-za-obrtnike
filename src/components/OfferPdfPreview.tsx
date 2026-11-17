@@ -71,7 +71,7 @@ export default function OfferPdfPreview({ snap, lang, errorLabel }: { snap: Offe
 
   return (
     <div className="bg-gray-100 rounded-xl border border-gray-200 p-4 sm:p-6 min-h-[400px]">
-      {state === 'loading' && <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>}
+      {state === 'loading' && <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>}
       {state === 'error' && <div className="text-center text-sm text-red-600 py-16">{errorLabel}<div className="text-xs text-gray-400 mt-1">{error}</div></div>}
       <div ref={host} />
     </div>

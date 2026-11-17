@@ -73,7 +73,7 @@ export default function OnboardingPage() {
 
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-label">{lang === 'sl' ? 'Ime podjetja' : 'Company name'}</label>
+                    <label className="text-sm font-semibold text-gray-900">{lang === 'sl' ? 'Ime podjetja' : 'Company name'}</label>
                     <input type="text" required
                       value={companyName} onChange={e => setCompanyName(e.target.value)}
                       placeholder="Acme d.o.o."
@@ -96,7 +96,7 @@ export default function OnboardingPage() {
 
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-label">{o.firstName}</label>
+                    <label className="text-sm font-semibold text-gray-900">{o.firstName}</label>
                     <input type="text" required
                       value={firstName} onChange={e => setFirstName(e.target.value)}
                       placeholder={lang === 'sl' ? 'Janez' : 'John'}
@@ -104,7 +104,7 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-label">{o.lastName}</label>
+                    <label className="text-sm font-semibold text-gray-900">{o.lastName}</label>
                     <input type="text" required
                       value={lastName} onChange={e => setLastName(e.target.value)}
                       placeholder={lang === 'sl' ? 'Novak' : 'Smith'}
@@ -132,7 +132,7 @@ export default function OnboardingPage() {
       </div>
 
       <div className="flex justify-center pb-5">
-        <p className="text-xs text-gray-400">© {new Date().getFullYear()} Obrtdesk</p>
+        <p className="text-xs text-gray-400">© {new Date().getFullYear()} Fenestrio</p>
       </div>
     </div>
   )

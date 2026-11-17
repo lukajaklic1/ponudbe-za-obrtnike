@@ -538,9 +538,9 @@ export const translations = {
     // Auth
     auth: {
       welcomeBack: 'Welcome back',
-      signInTo: 'Sign in to Obrtdesk',
+      signInTo: 'Sign in to Fenestrio',
       createAccount: 'Create account',
-      getStarted: 'Get started with Obrtdesk',
+      getStarted: 'Get started with Fenestrio',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm password',
@@ -1128,9 +1128,9 @@ export const translations = {
     // Auth
     auth: {
       welcomeBack: 'Dobrodošli nazaj',
-      signInTo: 'Prijavite se v Obrtdesk',
+      signInTo: 'Prijavite se v Fenestrio',
       createAccount: 'Ustvarite račun',
-      getStarted: 'Začnite uporabljati Obrtdesk',
+      getStarted: 'Začnite uporabljati Fenestrio',
       email: 'E-pošta',
       password: 'Geslo',
       confirmPassword: 'Potrdite geslo',

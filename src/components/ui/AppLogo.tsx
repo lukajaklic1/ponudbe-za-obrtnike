@@ -5,22 +5,32 @@ interface AppLogoProps {
   mono?: boolean
 }
 
-export default function AppLogo({ size = 'md', showName = true, dark = false, mono: _mono = false }: AppLogoProps) {
-  const dim = size === 'sm' ? 26 : size === 'md' ? 28 : 40
-  const fontSize = size === 'sm' ? 'text-lg' : size === 'md' ? 'text-2xl' : 'text-3xl'
-  const textColor = dark ? 'text-white' : 'text-gray-900'
-  const iconColor = dark ? '#ffffff' : '#111111'
+/**
+ * Fenestrio mark: a solid round-topped window (fenestra) with the frame bar next to it, on a transparent background.
+ * Heavy, rounded and simple, so it reads at 16 px as well.
+ */
+export function FenestrioMark({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="6 6 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      {/* an arched window (fenestra), solid and round */}
+      <path d="M9.5 31 L9.5 19 A8.5 8.5 0 0 1 26.5 19 L26.5 31 Z" fill="#1f2123" stroke="#1f2123" strokeWidth="3" strokeLinejoin="round" />
+      {/* the frame bar next to it */}
+      <rect x="29.5" y="14" width="4.5" height="18.5" rx="2.25" fill="#1f2123" />
+    </svg>
+  )
+}
+
+export default function AppLogo({ size = 'md', showName = true, dark = false }: AppLogoProps) {
+  const dim = size === 'sm' ? 26 : size === 'md' ? 30 : 40
+  const fontSize = size === 'sm' ? 'text-[19px]' : size === 'md' ? 'text-2xl' : 'text-[32px]'
+  const textColor = dark ? 'text-white' : 'text-[#1f2123]'
 
   return (
-    <div className="flex items-center gap-1.5">
-      <svg width={dim} height={dim} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <polyline points="26,6 10,20 26,34" stroke={iconColor} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <polyline points="33,6 17,20 33,34" stroke={iconColor} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
-      </svg>
-
+    <div className="flex items-center gap-2">
+      <FenestrioMark size={dim} />
       {showName && (
-        <span className={`font-semibold tracking-tight ${fontSize} ${textColor}`}>
-          Obrtdesk
+        <span className={`font-bold tracking-[-0.035em] leading-none ${fontSize} ${textColor}`}>
+          fenestrio
         </span>
       )}
     </div>

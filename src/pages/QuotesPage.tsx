@@ -177,7 +177,7 @@ export default function QuotesPage() {
         <div className="ml-auto inline-flex h-9 items-stretch rounded-lg border border-gray-200 bg-white overflow-hidden">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`px-3 flex items-center transition-colors [&+&]:border-l [&+&]:border-gray-200 ${view === v ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
+              className={`px-3 flex items-center transition-colors [&+&]:border-l [&+&]:border-gray-200 ${view === v ? 'bg-[#e7e7e7] text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
               <Icon className="w-4 h-4" />
             </button>
           ))}
@@ -197,7 +197,7 @@ export default function QuotesPage() {
       ) : (<>
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <FileText className="w-10 h-10 text-gray-200 mb-3" />

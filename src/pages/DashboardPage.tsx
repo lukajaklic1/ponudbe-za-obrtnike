@@ -208,7 +208,7 @@ export default function DashboardPage() {
 
   if (loading || !stats) return (
     <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
     </div>
   )
 
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                 </div>
                 {customers.filter(c => c.customer_name.toLowerCase().includes(searchText.toLowerCase())).map(c => (
                   <div key={c.customer_id}
-                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fafafa] ${filterCustomerId === c.customer_id ? 'text-blue-600 font-medium' : 'text-gray-700'}`}
+                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fafafa] ${filterCustomerId === c.customer_id ? 'text-gray-900 font-medium' : 'text-gray-700'}`}
                     onClick={() => { setFilterCustomerId(c.customer_id); setSearchText(c.customer_name); setShowDropdown(false); setCurrentPage(1) }}>
                     {c.customer_name}
                   </div>
@@ -288,7 +288,7 @@ export default function DashboardPage() {
               <p className="text-[13px] font-medium text-gray-600">{k.label}</p>
               <div className="flex items-center gap-2.5 mt-1.5">
                 <p className="text-[26px] leading-8 font-semibold text-gray-900 tracking-[-0.02em]">{money(st?.[k.key].value ?? 0)}</p>
-                <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600" title={countQuotes(lang, st?.[k.key].count ?? 0)}>{countQuotes(lang, st?.[k.key].count ?? 0)}</span>
+                <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#ececec] text-[#4a4a4a]" title={countQuotes(lang, st?.[k.key].count ?? 0)}>{countQuotes(lang, st?.[k.key].count ?? 0)}</span>
               </div>
             </div>
           ))}
@@ -309,7 +309,7 @@ export default function DashboardPage() {
                   <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
                   <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill="#00d17e" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill="#5cb88a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                   <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
                   <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill="#00d17e" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill="#5cb88a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -336,7 +336,7 @@ export default function DashboardPage() {
         {(() => {
           const slices = [
             { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#f5b100' },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#00d17e' },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#5cb88a' },
             { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#d4d4d8' },
           ].map(x => ({ ...x, count: st?.[x.key as StatusKey].count ?? 0, value: st?.[x.key as StatusKey].value ?? 0 }))
           const total = st?.all.count ?? 0

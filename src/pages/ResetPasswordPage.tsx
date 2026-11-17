@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
           {!ready && error ? (
             <div className="text-center">
               <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-4">{error}</p>
-              <button onClick={() => navigate('/forgot-password')} className="text-sm text-blue-600 hover:underline font-medium">
+              <button onClick={() => navigate('/forgot-password')} className="text-sm text-gray-900 hover:underline font-medium">
                 {a.sendResetLink}
               </button>
             </div>
@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-label">{lang === 'sl' ? 'Novo geslo' : 'New password'}</label>
+                <label className="text-sm font-semibold text-gray-900">{lang === 'sl' ? 'Novo geslo' : 'New password'}</label>
                 <input type="password" required autoComplete="new-password"
                   value={password} onChange={e => setPassword(e.target.value)}
                   placeholder={lang === 'sl' ? 'Vsaj 8 znakov' : 'Min. 8 characters'}
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-label">{a.confirmPassword}</label>
+                <label className="text-sm font-semibold text-gray-900">{a.confirmPassword}</label>
                 <input type="password" required autoComplete="new-password"
                   value={confirm} onChange={e => setConfirm(e.target.value)}
                   placeholder="••••••••"
