@@ -171,7 +171,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </div>
 
         <div className="flex items-center gap-3 px-3 py-2">
-          <Avatar name={profile ? `${profile.first_name} ${profile.last_name}` : '?'} size={28} />
+          <Avatar tone="brand" name={profile ? `${profile.first_name} ${profile.last_name}` : '?'} size={28} />
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-medium text-gray-900 truncate">
               {profile ? `${profile.first_name} ${profile.last_name}` : '—'}
