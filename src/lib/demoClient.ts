@@ -348,6 +348,7 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
       const c = db.companies[0]
       const wp = (c.window_pricing ?? {}) as Record<string, any>
       const mf = 1 + Number(wp.margin_pct ?? 45) / 100
+      const lmf = 1 + Number(wp.labour_margin_pct ?? wp.margin_pct ?? 45) / 100
       const hw = { tilt_turn: 20, turn: 15, tilt: 18, passive: 10, slide_window: 40, slide: 120, lift_slide: 450, ...(wp.hw ?? {}) } as Record<string, number>
       const hwM = { tilt_turn: 1, turn: 1, tilt: 1, passive: 0.5, slide_window: 2, slide: 5, lift_slide: 20, ...(wp.hw_m ?? {}) } as Record<string, number>
       const r2 = (n: number) => Math.round(n * 100) / 100
@@ -370,8 +371,8 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
         } : null, pricing: {
           hw: Object.fromEntries(Object.entries(hw).map(([k, v]) => [k, r2(Number(v) * mf)])),
           hw_m: Object.fromEntries(Object.entries(hwM).map(([k, v]) => [k, r2(Number(v) * mf)])),
-          glass_m2: r2(Number(wp.glass_m2 ?? 32) * mf), labour_window: r2(Number(wp.labour_window ?? 30) * mf), labour_sash: r2(Number(wp.labour_sash ?? 22) * mf),
-          waste_pct: Number(wp.waste_pct ?? 6), margin_pct: 0, both_sides_pct: Number(wp.both_sides_pct ?? 10),
+          glass_m2: r2(Number(wp.glass_m2 ?? 32) * mf), labour_window: r2(Number(wp.labour_window ?? 30) * lmf), labour_sash: r2(Number(wp.labour_sash ?? 22) * lmf), labour_m: r2(Number(wp.labour_m ?? 0) * lmf),
+          waste_pct: Number(wp.waste_pct ?? 6), margin_pct: 0, labour_margin_pct: 0, both_sides_pct: Number(wp.both_sides_pct ?? 10),
         } } : null,
       }, error: null }
     }

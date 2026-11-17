@@ -38,8 +38,12 @@ export interface PricingSettings {
   glass_m2: number
   labour_window: number
   labour_sash: number
+  /** labour per metre of profile (cutting, welding, cleaning …); 0 when not used */
+  labour_m?: number
   waste_pct: number
   margin_pct: number
+  /** margin on the labour; the material margin when not set */
+  labour_margin_pct?: number
   both_sides_pct: number
   /** what the supplier offers in the configurator */
   offer: Offer
@@ -330,6 +334,9 @@ export interface Costing {
   profileCost: number
   cost: number
   price: number
+  /** cost split: material (profiles, glass, hardware, handles, sills, shading) and labour */
+  material: number
+  labour: number
   /** helpful numbers for the summary */
   frameLen: number; sashLen: number; mullionLen: number; beadLen: number; glassArea: number; sashes: number
 }
@@ -441,11 +448,16 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
       : x.unit === 'width' ? [W / 1000, 'm'] : x.unit === 'perimeter' ? [2 * (W + H) / 1000, 'm'] : [1, 'kos']
     add('x_' + x.id, x.name, qty, unit, x.cost)
   }
-  add('labour', L('labour', 'Delo'), 1, 'kos', s.labour_window + sashes * s.labour_sash)
+  // labour: fixed per window + per sash + per metre of profile (frame, sashes, mullions, beads)
+  const labour = s.labour_window + sashes * s.labour_sash + (s.labour_m ?? 0) * (frameLen + sashLen + mullionLen + beadLen) / 1000
+  add('labour', L('labour', 'Delo'), 1, 'kos', labour)
 
   const cost = lines.reduce((a, l) => a + l.total, 0)
+  // the material margin on the material, the labour margin on the labour
+  const material = cost - labour
+  const price = material * (1 + s.margin_pct / 100) + labour * (1 + (s.labour_margin_pct ?? s.margin_pct) / 100)
   return {
-    lines, profileCost: r2(profileCost), cost: r2(cost), price: r2(cost * (1 + s.margin_pct / 100)),
+    lines, profileCost: r2(profileCost), cost: r2(cost), price: r2(price), material: r2(material), labour: r2(labour),
     frameLen, sashLen, mullionLen, beadLen, glassArea: r2(glassArea), sashes,
   }
 }
