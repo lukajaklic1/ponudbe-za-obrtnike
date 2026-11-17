@@ -13,7 +13,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateFilter } from '../components/ui/DateFilter'
-import { PersonBadge } from '../components/ui/PersonBadge'
+import { PersonBadge, Avatar } from '../components/ui/PersonBadge'
 import { QuoteStatusBadge, ORANGE, YELLOW } from '../components/ui/QuoteStatusBadge'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
@@ -155,13 +155,13 @@ export default function QuotesPage() {
   return (
     <div>
       <PageHeader title={s.quotes} icon={FileText} count={rows.length} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
-      <div className="p-4">
+      <div className="px-6 py-5">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <div className="relative">
-          <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={sl ? 'Išči po številki, stranki, e-pošti, telefonu …' : 'Search number, customer, email, phone …'}
-            className="h-9 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
+            className="h-9 pl-9 pr-3 rounded-lg border border-gray-200 bg-white text-sm placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
         </div>
         <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
@@ -174,10 +174,10 @@ export default function QuotesPage() {
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno od' : 'Created from'} value={dateFrom} allLabel={sl ? 'Vse' : 'Any'} max={dateTo || undefined} onChange={v => { setDateFrom(v); setPage(1) }} />
         <DateFilter label={sl ? 'Ustvarjeno do' : 'Created to'} value={dateTo} allLabel={sl ? 'Vse' : 'Any'} min={dateFrom || undefined} onChange={v => { setDateTo(v); setPage(1) }} />
-        <div className="ml-auto inline-flex h-9 items-stretch rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+        <div className="ml-auto inline-flex h-9 items-stretch rounded-lg border border-gray-200 bg-white overflow-hidden">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`px-2.5 flex items-center rounded-md transition-colors ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}>
+              className={`px-3 flex items-center transition-colors [&+&]:border-l [&+&]:border-gray-200 ${view === v ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
               <Icon className="w-4 h-4" />
             </button>
           ))}
@@ -312,29 +312,31 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
       <button
         onClick={() => setOpen(o => !o)}
         disabled={saving}
-        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors whitespace-nowrap" style={{ backgroundColor: '#fbfbfb' }}>
+        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-sm font-medium text-gray-900 hover:bg-gray-100 transition-colors whitespace-nowrap">
         {saving
           ? <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           : label
             ? <>
-                <span className="flex items-center justify-center rounded-full text-white font-bold shrink-0" style={{ backgroundColor: '#00d17e', width: 16, height: 16, fontSize: 9 }}>{label[0].toUpperCase()}</span>
+                <Avatar name={label} />
                 <span>{label}</span>
               </>
-            : <span className="text-gray-400">{noAssigneeLabel}</span>
+            : <span className="text-gray-500 font-normal">{noAssigneeLabel}</span>
         }
         <ChevronDown className="w-3 h-3 shrink-0 text-gray-400 ml-0.5" />
       </button>
       {open && (
-        <div className="absolute z-30 mt-1 right-0 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-30 mt-1 left-0 w-60 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
           <div className="max-h-52 overflow-y-auto py-1">
-            <button onClick={() => pick(null)} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-gray-50 gap-2">
-              <span className="flex-1 text-gray-400 italic">{noAssigneeLabel}</span>
-              {!assigneeId && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+            <button onClick={() => pick(null)} className="flex items-center w-full px-3 py-1.5 text-sm text-left hover:bg-gray-50 gap-2.5">
+              <span className="w-[22px] h-[22px] rounded-full border border-dashed border-gray-300 shrink-0" />
+              <span className="flex-1 text-gray-600">{noAssigneeLabel}</span>
+              <Check className={`w-3.5 h-3.5 text-gray-900 shrink-0 ${!assigneeId ? '' : 'invisible'}`} />
             </button>
             {users.map(u => (
-              <button key={u.id} onClick={() => pick(u.id)} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-gray-50 gap-2">
-                <span className="flex-1 text-gray-800 truncate">{u.first_name} {u.last_name}</span>
-                {assigneeId === u.id && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+              <button key={u.id} onClick={() => pick(u.id)} className={`flex items-center w-full px-3 py-1.5 text-sm text-left hover:bg-gray-50 gap-2.5 ${assigneeId === u.id ? 'font-medium text-gray-900' : 'text-gray-800'}`}>
+                <Avatar name={`${u.first_name} ${u.last_name}`} />
+                <span className="flex-1 truncate">{u.first_name} {u.last_name}</span>
+                <Check className={`w-3.5 h-3.5 text-gray-900 shrink-0 ${assigneeId === u.id ? '' : 'invisible'}`} />
               </button>
             ))}
           </div>

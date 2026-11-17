@@ -141,7 +141,7 @@ export default function SuperAdminUsersPage() {
                       </td>
                       <td className="px-4 py-3">
                         {u.is_super_admin ? (
-                          <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff', color: '#215bcf' }}>Super admin</span>
+                          <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e5edfc', color: '#3b6fd8' }}>Super admin</span>
                         ) : u.is_admin ? (
                           <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#f3e8ff', border: '1px solid #ead5ff', color: '#7e22ce' }}>Admin</span>
                         ) : (

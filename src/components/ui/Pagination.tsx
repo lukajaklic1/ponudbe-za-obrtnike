@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import Select from './Select'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { cn } from '../../lib/cn'
 import { useLanguage } from '../../hooks/useLanguage'
 
 export const PAGE_SIZE_OPTIONS = [20, 50, 100]
@@ -28,77 +27,43 @@ interface PaginationProps {
   onPageSizeChange?: (size: number) => void
 }
 
-export default function Pagination({ total, page, pageSize, onChange, onPageSizeChange }: PaginationProps) {
-  const { t, lang } = useLanguage()
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  // nothing to page through: hide (with the picker, only when even the smallest size fits everything)
-  if (onPageSizeChange ? total <= PAGE_SIZE_OPTIONS[0] : totalPages <= 1) return null
+/** "14 rezultatov" in Slovene: 1 rezultat, 2 rezultata, 3–4 rezultati, 5+ rezultatov (… 101 rezultat …) */
+function results(n: number, sl: boolean) {
+  if (!sl) return `${n} ${n === 1 ? 'result' : 'results'}`
+  const m = n % 100
+  return `${n} ${m === 1 ? 'rezultat' : m === 2 ? 'rezultata' : m === 3 || m === 4 ? 'rezultati' : 'rezultatov'}`
+}
 
+/**
+ * Footer of a table (Levelpath style): number of results on the left, rows per page and the arrows on the right.
+ * It sits right under the table and joins its frame (see .table-footer in index.css).
+ */
+export default function Pagination({ total, page, pageSize, onChange, onPageSizeChange }: PaginationProps) {
+  const { lang } = useLanguage()
+  const sl = lang === 'sl'
+  if (total === 0) return null
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const from = (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
-
-  // Build page numbers to show: always first, last, current ±1, with ellipsis
-  function getPages(): (number | '...')[] {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1)
-    const pages: (number | '...')[] = [1]
-    if (page > 3) pages.push('...')
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-      pages.push(i)
-    }
-    if (page < totalPages - 2) pages.push('...')
-    pages.push(totalPages)
-    return pages
-  }
+  const go = (p: number) => { onChange(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const arrow = 'w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors'
 
   return (
-    <div className="flex items-center justify-between pt-3">
-      <div className="flex items-center gap-4">
-        {onPageSizeChange && (
-          <label className="flex items-center gap-2 text-xs font-medium text-gray-500">
-            {lang === 'sl' ? 'Vrstic na stran' : 'Rows per page'}
-            <span className="relative">
-              <span className="block w-16"><Select size="xs" value={pageSize} options={PAGE_SIZE_OPTIONS.map(n => ({ value: n, label: String(n) }))} onChange={n => { onPageSizeChange(n); onChange(1) }} /></span>
-            </span>
-          </label>
+    <div className="table-footer flex items-center justify-between gap-4 px-4 py-2.5 bg-white border border-gray-200 border-t-0 rounded-b-xl">
+      <p className="text-[13px] font-medium text-gray-900">{results(total, sl)}</p>
+      <div className="flex items-center gap-3">
+        {onPageSizeChange && total > PAGE_SIZE_OPTIONS[0] && (
+          <span className="block w-[104px]">
+            <Select size="xs" align="right" value={pageSize} className="border-transparent shadow-none hover:bg-gray-100 hover:border-transparent justify-end"
+              options={PAGE_SIZE_OPTIONS.map(n => ({ value: n, label: sl ? `${n} vrstic` : `${n} rows` }))}
+              onChange={n => { onPageSizeChange(n); onChange(1) }} />
+          </span>
         )}
-        <p className="text-xs font-medium text-gray-500">
-          {t.common.showing} <span className="text-gray-900">{from}–{to}</span> {t.common.of} <span className="text-gray-900">{total}</span>
-        </p>
-      </div>
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => { onChange(page - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-          disabled={page === 1}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-
-        {getPages().map((p, i) => p === '...'
-          ? <span key={`ellipsis-${i}`} className="w-8 text-center text-xs text-gray-400">…</span>
-          : (
-            <button
-              key={p}
-              onClick={() => { onChange(p as number); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-              className={cn(
-                'w-8 h-8 rounded-lg text-xs font-medium transition-colors',
-                p === page
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-600 hover:bg-[#f6f6f6]',
-              )}
-            >
-              {p}
-            </button>
-          )
-        )}
-
-        <button
-          onClick={() => { onChange(page + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-          disabled={page === totalPages}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        {totalPages > 1 && <span className="text-[13px] text-gray-600 whitespace-nowrap">{from}–{to} {sl ? 'od' : 'of'} {total}</span>}
+        <div className="flex items-center gap-0.5">
+          <button type="button" onClick={() => go(page - 1)} disabled={page <= 1} className={arrow} aria-label={sl ? 'Prejšnja stran' : 'Previous page'}><ChevronLeft className="w-4 h-4" /></button>
+          <button type="button" onClick={() => go(page + 1)} disabled={page >= totalPages} className={arrow} aria-label={sl ? 'Naslednja stran' : 'Next page'}><ChevronRight className="w-4 h-4" /></button>
+        </div>
       </div>
     </div>
   )

@@ -13,7 +13,7 @@ export function PageHeader({ title, icon: Icon, count, action }: PageHeaderProps
   const { collapsed, toggle } = useSidebarCollapse()
 
   return (
-    <div className="h-[61px] flex items-center justify-between px-6 border-b border-[#e3e6ea] bg-white shrink-0 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+    <div className="h-[68px] flex items-center justify-between px-6 border-b border-gray-200 bg-white shrink-0">
       <div className="flex items-center gap-2">
         {collapsed && (
           <button
@@ -24,8 +24,8 @@ export function PageHeader({ title, icon: Icon, count, action }: PageHeaderProps
             <PanelLeft className="w-[18px] h-[18px]" />
           </button>
         )}
-        {Icon && <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Icon className="w-4 h-4" /></span>}
-        <h1 className="text-base font-semibold text-gray-900">{title}</h1>
+        {Icon && <Icon className="w-5 h-5 text-gray-500 shrink-0" />}
+        <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.01em] text-gray-900">{title}</h1>
         {count !== undefined && (
           <span className="text-xs font-medium text-gray-600 px-1.5 py-0.5 rounded bg-gray-100">{count}</span>
         )}

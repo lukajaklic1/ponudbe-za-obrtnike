@@ -24,19 +24,19 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div className={cn(
-        'relative bg-white rounded-2xl shadow-xl w-full flex flex-col',
+        'relative bg-white rounded-[14px] border border-gray-200 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] w-full flex flex-col overflow-hidden',
         'max-h-[calc(100vh-3rem)]',
         size === 'sm' && 'max-w-sm',
         size === 'md' && 'max-w-lg',
         size === 'lg' && 'max-w-2xl',
       )}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
-          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-200 shrink-0">
+          <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900">{title}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="px-6 py-5 overflow-y-auto">{children}</div>
+        <div className="modal-body px-6 py-5 overflow-y-auto">{children}</div>
       </div>
     </div>
   )

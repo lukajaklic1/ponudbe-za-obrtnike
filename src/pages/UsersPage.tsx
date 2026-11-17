@@ -173,7 +173,7 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader title={t.nav.users} icon={UserCog} count={users.length + invites.length} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
-      <div className="p-4">
+      <div className="px-6 py-5">
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative">
           <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -220,7 +220,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={u.is_admin ? { backgroundColor: '#e5eeff', border: '1px solid #d6e5ff', color: '#215bcf' } : { backgroundColor: '#f5f5f5', border: '1px solid #eeeff1', color: '#5e5e5e' }}>
+                      <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={u.is_admin ? { backgroundColor: '#e5edfc', color: '#3b6fd8' } : { backgroundColor: '#f5f5f5', border: '1px solid #dfdfdf', color: '#5e5e5e' }}>
                         {u.is_admin ? s.admin : s.member}
                       </span>
                     </td>

@@ -32,7 +32,7 @@ export default function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/25 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm">
+      <div className="relative bg-white rounded-[14px] border border-gray-200 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] w-full max-w-md overflow-hidden">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -43,16 +43,16 @@ export default function ConfirmDialog({
 
         {/* Content */}
         <div className="px-6 pt-6 pb-5">
-          <h2 className="text-xl font-bold text-gray-900 pr-6">{title}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-gray-500">{message}</p>
+          <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 pr-6">{title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-gray-600">{message}</p>
         </div>
 
         {/* Divider + buttons */}
-        <div className="border-t border-gray-100 px-6 py-4 flex justify-end gap-3">
+        <div className="border-t border-gray-200 bg-[#f7f7f7] px-6 py-3.5 flex justify-end gap-2.5">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-[#7f7f7f] bg-white border border-gray-200 rounded-lg hover:bg-[#f6f6f6] transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             {cancelLabel ?? t.common.cancel}
           </button>
@@ -61,11 +61,11 @@ export default function ConfirmDialog({
             disabled={loading}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
             style={{
-              backgroundColor: danger ? '#ff5454' : '#2563eb',
+              backgroundColor: danger ? '#ff5454' : '#1f2123',
               border: danger ? '1px solid #f04f4f' : 'none',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#1d4ed8' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#2563eb' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#000000' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#1f2123' }}
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

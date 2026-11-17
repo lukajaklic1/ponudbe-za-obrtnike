@@ -217,11 +217,7 @@ export default function DashboardPage() {
       <PageHeader title={t.nav.dashboard} icon={LayoutDashboard} />
 
       {/* Subtitle + filter bar */}
-      <div className="px-4 py-3 border-b border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-baseline gap-3">
-          <p className="text-lg font-semibold text-gray-900">{sl ? 'Analitika' : 'Analytics'}</p>
-          <span className="text-sm text-gray-500">{sl ? 'Pregled in analiza vaših ponudb' : 'Overview and analysis of your quotes'}</span>
-        </div>
+      <div className="px-6 pt-5 flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap items-center gap-2">
 
           {/* Period dropdown */}
@@ -265,13 +261,13 @@ export default function DashboardPage() {
             )}
             {showDropdown && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-56 overflow-y-auto min-w-[200px]">
-                <div className="px-3 py-2 text-sm text-gray-600 hover:bg-[#fbfbfb] cursor-pointer"
+                <div className="px-3 py-2 text-sm text-gray-600 hover:bg-[#fafafa] cursor-pointer"
                   onClick={() => { setFilterCustomerId(null); setSearchText(''); setShowDropdown(false); setCurrentPage(1) }}>
                   {sl ? 'Vse stranke' : 'All customers'}
                 </div>
                 {customers.filter(c => c.customer_name.toLowerCase().includes(searchText.toLowerCase())).map(c => (
                   <div key={c.customer_id}
-                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fbfbfb] ${filterCustomerId === c.customer_id ? 'text-blue-600 font-medium' : 'text-gray-700'}`}
+                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fafafa] ${filterCustomerId === c.customer_id ? 'text-blue-600 font-medium' : 'text-gray-700'}`}
                     onClick={() => { setFilterCustomerId(c.customer_id); setSearchText(c.customer_name); setShowDropdown(false); setCurrentPage(1) }}>
                     {c.customer_name}
                   </div>
@@ -283,21 +279,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="px-6 py-5 space-y-6">
 
-        {/* KPI cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        {/* KPI cards: label, big number, quiet count (Levelpath style, no coloured icons) */}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {kpis.map(k => (
-            <div key={k.key} className="bg-white rounded-xl border border-gray-200 p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${k.bg}`}>
-                  <k.icon className={`w-4 h-4 ${k.iconColor}`} />
-                </div>
-                {/* count as a quiet chip, same style as the page-header counters */}
-                <span className="text-[13px] font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }} title={countQuotes(lang, st?.[k.key].count ?? 0)}>{st?.[k.key].count ?? 0}</span>
+            <div key={k.key} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
+              <p className="text-[13px] font-medium text-gray-600">{k.label}</p>
+              <div className="flex items-center gap-2.5 mt-1.5">
+                <p className="text-[26px] leading-8 font-semibold text-gray-900 tracking-[-0.02em]">{money(st?.[k.key].value ?? 0)}</p>
+                <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600" title={countQuotes(lang, st?.[k.key].count ?? 0)}>{countQuotes(lang, st?.[k.key].count ?? 0)}</span>
               </div>
-              <p className="text-xs font-medium text-label">{k.label}</p>
-              <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight">{money(st?.[k.key].value ?? 0)}</p>
             </div>
           ))}
         </div>
@@ -311,10 +303,10 @@ export default function DashboardPage() {
               <h2 className="text-sm font-medium text-gray-900 mb-5">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} width={60} />
-                  <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5b5b5b' }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5b5b5b' }} axisLine={false} tickLine={false} width={60} />
+                  <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
                   <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill="#00d17e" radius={[4, 4, 0, 0]} />
@@ -327,10 +319,10 @@ export default function DashboardPage() {
               <h2 className="text-sm font-medium text-gray-900 mb-5">{sl ? 'Število ponudb' : 'Quote count'}</h2>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} width={32} />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5b5b5b' }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#5b5b5b' }} axisLine={false} tickLine={false} width={32} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
                   <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill="#00d17e" radius={[4, 4, 0, 0]} />
@@ -366,7 +358,7 @@ export default function DashboardPage() {
                         <Pie data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none">
                           {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                         </Pie>
-                        <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                        <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -409,13 +401,13 @@ export default function DashboardPage() {
                   /* Same look as the other charts: dashed grid, grey axis labels, blue rounded bars, shared tooltip */
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }} barCategoryGap={8}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
-                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false}
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} />
+                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5b5b5b' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#5b5b5b' }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0} %)`, sl ? 'Vrednost' : 'Value']}
-                        cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
-                      <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} maxBarSize={22} />
+                        cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
+                      <Bar dataKey="value" fill="#5bb8ad" radius={[0, 4, 4, 0]} maxBarSize={22} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}

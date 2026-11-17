@@ -163,7 +163,7 @@ export default function CustomersPage() {
         <Button variant="secondary" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />{o.importServices}</Button>
         <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{s.newCustomer}</Button>
       </div>} />
-      <div className="p-4">
+      <div className="px-6 py-5">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <div className="relative max-w-xs w-full">
@@ -265,7 +265,7 @@ export default function CustomersPage() {
             <Input id="c-postal" label={t.common.postalCode} {...field('address_postal_code')} />
             <Input id="c-city" label={o.city} {...field('address_city')} />
             <div className="sm:col-span-2 flex flex-col gap-1">
-              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{o.customerNotes}</label>
+              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#5b5b5b' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>

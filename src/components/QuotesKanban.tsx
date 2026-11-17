@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Avatar } from './ui/PersonBadge'
 import { Euro, MapPin, UserRound, FileText, Clock, Phone } from 'lucide-react'
 import type { Quote, QuoteStatus } from '../types/database'
 
@@ -53,13 +54,13 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol(c => (c === st ? null : c)) }}
             onDrop={e => { e.preventDefault(); drop(st) }}
             className={`flex flex-col flex-1 min-w-[250px] max-h-[calc(100vh-210px)] rounded-xl transition-all duration-150
-              ${overCol === st ? 'bg-[#e6eefc] ring-2 ring-inset ring-blue-300' : droppable ? 'bg-[#eef3fc]' : 'bg-gray-50'}
+              ${overCol === st ? 'bg-[#eef6f5] ring-2 ring-inset ring-[#9fcfca]' : droppable ? 'bg-[#f3f8f7]' : 'bg-gray-50'}
               ${dimmed ? 'opacity-50' : ''}`}>
             {/* Column header */}
             <div className="flex items-center gap-2 px-3.5 pt-3.5 pb-2.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STATUS_DOT[st] }} />
               <span className="text-sm font-medium text-gray-900">{statusLabels[st]}</span>
-              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }}>{cards.length}</span>
+              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#ececec', color: '#5b5b5b' }}>{cards.length}</span>
             </div>
 
             {/* Cards */}
@@ -77,21 +78,21 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       ${movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragging?.id === q.id ? 'opacity-40' : ''}`}>
                     {/* Title */}
                     <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#e5eeff', border: '1px solid #d6e5ff' }}>
-                        <FileText className="w-3 h-3" style={{ color: '#215bcf' }} />
+                      <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#f1f1f1' }}>
+                        <FileText className="w-3 h-3" style={{ color: '#5b5b5b' }} />
                       </div>
                       <span className="text-sm font-medium text-gray-900 line-clamp-2">{q.customers?.name ?? '—'}</span>
                     </div>
 
                     {/* Details */}
                     <div className="flex flex-col gap-2.5 mt-3 text-sm text-gray-900">
-                      {phone && <CardRow icon={Phone} title={labels.phone}><a href={`tel:${phone.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-900 hover:text-blue-600 hover:underline">{phone}</a></CardRow>}
+                      {phone && <CardRow icon={Phone} title={labels.phone}><a href={`tel:${phone.replace(/\s+/g, '')}`} onClick={e => e.stopPropagation()} draggable={false} className="text-gray-900 hover:text-gray-900 hover:underline">{phone}</a></CardRow>}
                       {q.site_address && <CardRow icon={MapPin} title={labels.site}>{q.site_address}</CardRow>}
                       <CardRow icon={Euro} title={labels.value}><span className="font-medium">{money(Number(q.total_net))}</span></CardRow>
                       <CardRow icon={UserRound} title={labels.assignee}>
                         {assignee
                           ? <span className="inline-flex items-center gap-1.5 min-w-0">
-                              <span className="flex items-center justify-center rounded-full text-white font-bold shrink-0" style={{ backgroundColor: '#00d17e', width: 18, height: 18, fontSize: 10 }}>{assignee[0].toUpperCase()}</span>
+                              <Avatar name={assignee} size={20} />
                               <span className="truncate">{assignee}</span>
                             </span>
                           : <span className="text-gray-400">{labels.noAssignee}</span>}

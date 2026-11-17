@@ -454,21 +454,21 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   if (!readOnly && company && !hasPerm('quotes', 'create')) return <Navigate to="/quotes" replace />
 
   const ro = readOnly
-  const border = ro ? 'border-[#eeeff1]' : 'border-gray-200'
+  const border = ro ? 'border-[#dfdfdf]' : 'border-gray-200'
   const selectedCustomer = customers.find(c => c.id === customerId)
   const companyTerms = (company?.payment_terms_list ?? []) as string[]
   const termOptions = paymentTerms && !companyTerms.includes(paymentTerms) ? [...companyTerms, paymentTerms] : companyTerms
   const colCount = ro ? 8 : 10
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="px-6 py-6">
       <div className="flex items-center gap-2 mb-4">
         <button onClick={() => navigate('/quotes')} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800"><ChevronLeft className="w-4 h-4" />{s.quotes}</button>
       </div>
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
           <h1 className="text-xl font-semibold tracking-tight text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
-          {quoteNumber && <span className="text-sm" style={{ color: '#7f7f7f' }}>{quoteNumber}</span>}
+          {quoteNumber && <span className="text-sm" style={{ color: '#5b5b5b' }}>{quoteNumber}</span>}
           {isSaved && <QuoteStatusBadge status={status} label={s.status[status]} />}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -518,9 +518,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           <fieldset disabled={ro} className="contents">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#7f7f7f]">{s.customer}</label>
+                <label className="text-xs font-medium text-[#5b5b5b]">{s.customer}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#eeeff1', color: '#52525b' }}>{selectedCustomer?.name ?? '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#52525b' }}>{selectedCustomer?.name ?? '—'}</div>
                   : <CustomerSearch customers={customers} value={customerId} placeholder={o.searchCustomer} emptyText={o.noCustomerMatch}
                       labels={{ person: o.typePerson, company: o.typeCompany }}
                       onChange={cid => {
@@ -549,30 +549,30 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 onChange={e => setValidUntil(e.target.value)} />
               <Input id="q-lead" label={o.executionTime} placeholder={ro ? '' : o.executionTimeHint} value={leadTime} onChange={e => setLeadTime(e.target.value)} />
               <div className="lg:col-span-2 flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#7f7f7f]">{s.paymentTerms}</label>
+                <label className="text-xs font-medium text-[#5b5b5b]">{s.paymentTerms}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#eeeff1', color: '#52525b' }}>{paymentTerms || '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#52525b' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
                     ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-blue-600 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
                     : <Select className="h-[37.6px]" value={paymentTerms} onChange={setPaymentTerms}
                         options={[{ value: '', label: o.none }, ...termOptions.map(term => ({ value: term, label: term }))]} />}
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#7f7f7f]">{o.parity}</label>
+                <label className="text-xs font-medium text-[#5b5b5b]">{o.parity}</label>
                 <Select className="h-[37.6px]" value={parity} onChange={setParity}
                   options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
               </div>
             </div>
             <div className="flex flex-col gap-1 mt-4">
-              <label className="text-xs font-medium text-[#7f7f7f]">{s.notes}</label>
+              <label className="text-xs font-medium text-[#5b5b5b]">{s.notes}</label>
               <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder={ro ? '' : o.notesHint}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#52525b] disabled:border-[#eeeff1]" />
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#52525b] disabled:border-[#dfdfdf]" />
             </div>
           </fieldset>
 
           {/* Attachments — plain list: open / download / delete (delete only while draft) */}
           <div className="mt-5">
-            <p className="text-xs font-medium text-[#7f7f7f] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
+            <p className="text-xs font-medium text-[#5b5b5b] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
             {attachments.map(att => (
               <div key={att.id} className="flex items-center gap-2 px-3 py-2 bg-[#eff5fe] border border-[#deeafd] rounded-lg mb-2">
                 <FileText className="w-4 h-4 text-blue-600 shrink-0" />
@@ -604,7 +604,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
         {/* ── Lines ─────────────────────────────────────── */}
         <div className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
-          <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#eeeff1]' : 'border-gray-100'}`}>
+          <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
             <h2 className="text-sm font-semibold text-gray-700">{o.lines}</h2>
             {!ro && <Button variant="secondary" size="sm" onClick={addEmptyRoom} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addRoom}</Button>}
           </div>
@@ -626,7 +626,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 const rl = lines.filter(l => l.room === rn)
                 const sub = rl.reduce((a, l) => a + lineTotal(num(l)), 0)
                 return (
-                  <tbody key={rn || '__general'} className={`divide-y ${ro ? 'divide-[#eeeff1]' : 'divide-gray-100'}`}>
+                  <tbody key={rn || '__general'} className={`divide-y ${ro ? 'divide-[#dfdfdf]' : 'divide-gray-100'}`}>
                     {grouped && (
                       <tr className="bg-[#fbfbfb]">
                         <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-2">
@@ -755,7 +755,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           {([['wallItem', o.wallsWork], ['ceilingItem', o.ceilingWork]] as const).map(([k, lbl]) => (
             <div key={k} className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-[#7f7f7f]">{lbl}</label>
+              <label className="text-xs font-medium text-[#5b5b5b]">{lbl}</label>
               <Select className="h-[37.6px]" value={room[k]} onChange={v => setRoom(r => ({ ...r, [k]: v }))}
                 options={[{ value: '', label: o.none }, ...m2Items.map(p => ({ value: p.id, label: p.name, hint: money(Number(p.price)) }))]} />
             </div>

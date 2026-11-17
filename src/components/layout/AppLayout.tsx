@@ -40,7 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed(c => !c) }}>
-      <div className="robust flex h-screen bg-[#f4f5f7] overflow-hidden">
+      <div className="robust flex h-screen bg-white overflow-hidden">
         {sidebarOpen && (
           <div
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
