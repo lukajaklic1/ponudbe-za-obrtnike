@@ -238,7 +238,7 @@ export default function QuotesPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
+                  <td className="px-4 py-3 !text-[#5f5f5f] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <AssigneeCell
                       quoteId={q.id}
