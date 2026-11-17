@@ -52,7 +52,7 @@ export default function OnboardingPage() {
                 <div key={s.key} className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors
-                      ${done ? 'bg-[#1a1a1a] text-white' : active ? 'bg-[#1a1a1a] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                      ${done ? 'bg-[#131313] text-white' : active ? 'bg-[#131313] text-white' : 'bg-gray-100 text-gray-400'}`}>
                       {done ? '✓' : i + 1}
                     </div>
                     <span className={`text-sm font-medium ${active ? 'text-gray-900' : done ? 'text-gray-500' : 'text-gray-400'}`}>
@@ -82,7 +82,7 @@ export default function OnboardingPage() {
                   </div>
                   <button type="button" disabled={!companyName.trim()}
                     onClick={() => setStep('profile')}
-                    className="w-full bg-[#1a1a1a] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="w-full bg-[#131313] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     {o.continue}
                   </button>
                 </div>
@@ -120,7 +120,7 @@ export default function OnboardingPage() {
                       {o.back}
                     </button>
                     <button type="submit" disabled={loading || !firstName.trim() || !lastName.trim()}
-                      className="flex-1 bg-[#1a1a1a] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
+                      className="flex-1 bg-[#131313] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
                       {loading ? o.saving : o.finishSetup}
                     </button>
                   </div>

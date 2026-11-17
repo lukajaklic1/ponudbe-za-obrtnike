@@ -61,11 +61,11 @@ export default function ConfirmDialog({
             disabled={loading}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
             style={{
-              backgroundColor: danger ? '#ff5454' : '#1a1a1a',
+              backgroundColor: danger ? '#ff5454' : '#131313',
               border: danger ? '1px solid #f04f4f' : 'none',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#000000' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#1a1a1a' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#131313' }}
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

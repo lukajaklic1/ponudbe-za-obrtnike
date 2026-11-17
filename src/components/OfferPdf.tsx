@@ -12,8 +12,8 @@ Font.register({
 })
 
 const c = {
-  primary: '#111827',
-  text: '#111827',
+  primary: '#131313',
+  text: '#131313',
   muted: '#6b7280',
   border: '#e5e7eb',
   strip: '#f1f1f1',

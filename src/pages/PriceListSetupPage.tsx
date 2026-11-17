@@ -469,7 +469,7 @@ export default function PriceListSetupPage() {
                     return <div key={n} className={cn(on ? 'bg-white' : 'bg-gray-50/60')}>
                       <div className="flex items-center gap-4 px-4 py-3">
                         <button type="button" disabled={!canEdit} onClick={() => setSashList(on ? sashList.filter(x => x !== n) : [...sashList, n].sort())}
-                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
+                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#131313] border-[#131313]' : 'border-gray-300 bg-white')}>
                           {on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                         </button>
                         <RowPic spec={makeSpec(n, 'none', 'none', 'fixed')} width={door ? drawW : n === 1 ? 1200 : 500 * n + 200} height={rowH} />
@@ -499,7 +499,7 @@ export default function PriceListSetupPage() {
                                 return <div key={k} className={cn(sel ? 'bg-white' : 'bg-gray-50/60')}>
                                   <div className="flex items-center gap-4 px-4 py-3">
                                     <button type="button" disabled={!canEdit} onClick={() => setBands(sel ? bandsPicked.filter(x => x !== k) : [...bandsPicked, k])}
-                                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
+                                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#131313] border-[#131313]' : 'border-gray-300 bg-white')}>
                                       {sel && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                                     </button>
                                     <RowPic spec={makeSpec(n, BAND_SHAPE[k][0], BAND_SHAPE[k][1], 'fixed')} width={drawW} height={rowH} slim={false} />
@@ -527,7 +527,7 @@ export default function PriceListSetupPage() {
                                               const vs = !off.includes(v.key)
                                               return <button key={v.key} type="button" disabled={!canEdit} onClick={() => setOff(vs ? [...off, v.key] : off.filter(x => x !== v.key))}
                                                 className={cn('relative rounded-lg border p-3 flex items-center justify-center h-[190px] transition-colors', vs ? SEL_ON : SEL_OFF)}>
-                                                {vs && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                                                {vs && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
                                                 <span className={cn(!vs && 'opacity-40')}><SpecDrawing spec={applyVariant(makeSpec(n), v)} width={drawW} height={door ? 2300 : 1400} size={door ? 160 : n > 2 ? 170 : 150} className="max-w-full h-auto" /></span>
                                               </button>
                                             })}
@@ -855,7 +855,7 @@ export default function PriceListSetupPage() {
                     const k = comboKey(c), sel = picked.includes(k)
                     return <button key={k} type="button" disabled={!canEdit} onClick={() => setPicked(sel ? picked.filter(x => x !== k) : [...picked, k])}
                       className={cn('relative rounded-lg border p-2 flex items-center justify-center h-[170px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
-                      {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                      {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
                       <SpecDrawing spec={{ ...makeSlidingSpec(), main: c }} width={1600} height={1200} size={150} className="max-w-full h-auto" />
                     </button>
                   })}
@@ -890,7 +890,7 @@ export default function PriceListSetupPage() {
                     return <div key={n} className={cn(on ? 'bg-white' : 'bg-gray-50/60')}>
                       <div className="flex items-center gap-4 px-4 py-3">
                         <button type="button" disabled={!canEdit} onClick={() => setOffer({ wallSashes: on ? list.filter(x => x !== n) : [...list, n].sort() })}
-                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
+                          className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#131313] border-[#131313]' : 'border-gray-300 bg-white')}>
                           {on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                         </button>
                         <RowPic spec={makeSpec(n, 'none', 'none', 'fixed')} width={wW(n)} height={2200} />
@@ -910,7 +910,7 @@ export default function PriceListSetupPage() {
                               const k = comboKey(c), sel = picked.includes(k)
                               return <button key={k} type="button" disabled={!canEdit} onClick={() => setPicked(sel ? picked.filter(x => x !== k) : [...picked, k])}
                                 className={cn('relative rounded-lg border p-3 flex items-center justify-center h-[190px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
-                                {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                                {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
                                 <span className={cn(!sel && 'opacity-40')}><SpecDrawing spec={{ ...makeWallSpec(n), main: c }} width={wW(n)} height={2200} size={170} className="max-w-full h-auto" /></span>
                               </button>
                             })}
@@ -1022,7 +1022,7 @@ export default function PriceListSetupPage() {
                 <div key={m} className={cn('rounded-xl border bg-white overflow-hidden transition-colors', on ? 'border-gray-300' : 'border-gray-200')}>
                   <div className={cn('flex items-center gap-4 px-4 py-3', !on && 'bg-gray-50/60')}>
                     <button type="button" disabled={!canEdit} onClick={() => { toggleMaterial(m); setOpenMat(o => ({ ...o, [m]: true })) }}
-                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
+                      className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', on ? 'bg-[#131313] border-[#131313]' : 'border-gray-300 bg-white')}>
                       {on && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                     </button>
                     <ProfileSection material={m} size={44} />
@@ -1137,7 +1137,7 @@ export default function PriceListSetupPage() {
                                 {groups.map(g => {
                                   const sel = serves(g)
                                   return <button key={g} type="button" disabled={!canEdit} onClick={() => toggleGroup(g)} className="inline-flex items-center gap-2 text-sm text-gray-900">
-                                    <span className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
+                                    <span className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', sel ? 'bg-[#131313] border-[#131313]' : 'border-gray-300 bg-white')}>
                                       {sel && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                                     </span>{groupLabel(g)}
                                   </button>
@@ -1776,7 +1776,7 @@ function AllRow({ all, some, onToggle, label, count, disabled, plain }: { all: b
   return (
     <div className={cn('flex items-center gap-4', plain ? 'pb-1' : 'px-4 py-2.5 bg-gray-50')}>
       <button type="button" disabled={disabled} onClick={onToggle} title={all ? 'Počisti vse' : 'Izberi vse'}
-        className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', some ? 'bg-[#1a1a1a] border-[#1a1a1a]' : 'border-gray-300 bg-white')}>
+        className={cn('w-[18px] h-[18px] rounded-[5px] flex items-center justify-center shrink-0 border', some ? 'bg-[#131313] border-[#131313]' : 'border-gray-300 bg-white')}>
         {all ? <Check className="w-3 h-3 text-white" strokeWidth={3} /> : some ? <span className="w-2 h-0.5 rounded bg-white" /> : null}
       </button>
       <span className="text-xs font-medium text-gray-700">{label}</span>
@@ -1804,17 +1804,17 @@ function Fold({ open, onToggle, title, summary, pic, children }: { open: boolean
 }
 
 // Selected card: blue outline, light blue tint and a check badge in the corner (same everywhere)
-const SEL_ON = 'border-[#1a1a1a] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+const SEL_ON = 'border-[#131313] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
 const SEL_OFF = 'border-gray-200 bg-white hover:border-gray-300'
 function SelBadge() {
-  return <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-sm"><Check className="w-3 h-3" strokeWidth={3} /></span>
+  return <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center shadow-sm"><Check className="w-3 h-3" strokeWidth={3} /></span>
 }
 
 function Step({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
     <section className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-start gap-3 mb-4">
-        <span className="w-7 h-7 rounded-full bg-[#1a1a1a] text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
+        <span className="w-7 h-7 rounded-full bg-[#131313] text-white text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
         <div>
           <h2 className="text-base font-semibold text-gray-900 leading-7">{title}</h2>
           <p className="text-[13px] leading-5 text-[#484848] mt-0.5 max-w-3xl">{hint}</p>

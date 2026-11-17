@@ -137,7 +137,7 @@ export default function ConfiguratorPage() {
     })
   }, [slug])
 
-  const accent = data?.company.accent || '#101112'
+  const accent = data?.company.accent || '#131313'
   const cur = data?.company.currency || 'EUR'
   const currency = cur
   const show = !!data?.company.show_prices

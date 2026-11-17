@@ -63,7 +63,7 @@ const gyOf = (y: number, sashFrame: number) => y + 1.5 + sashFrame
 
 function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meetL = false, meetR = false }: { f: Field; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string; onClick?: () => void; plain?: boolean; meetL?: boolean; meetR?: boolean }) {
   const clickable = onClick ? { onClick, style: { cursor: 'pointer' } } : {}
-  const hover = onClick ? <rect x={x} y={y} width={Math.max(0, w)} height={Math.max(0, h)} fill="#1a1a1a" opacity={0} className="hover:opacity-10 transition-opacity" /> : null
+  const hover = onClick ? <rect x={x} y={y} width={Math.max(0, w)} height={Math.max(0, h)} fill="#131313" opacity={0} className="hover:opacity-10 transition-opacity" /> : null
   if (f.opening === 'fixed') {
     // glass in the frame: a small cross marks "fixed", like on the competitors' drawings
     const c = Math.min(w, h) * 0.12

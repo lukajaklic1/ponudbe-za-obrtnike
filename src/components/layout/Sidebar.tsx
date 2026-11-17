@@ -61,10 +61,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
       onClick={handleNavClick}
       className={({ isActive }) => cn(
         'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-        isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1a1a1a] hover:bg-[#f5f6f7]',
+        isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#131313] hover:bg-[#f5f6f7]',
       )}
     >
-      <Icon className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={2} />
+      <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
       {t.nav[key]}
     </NavLink>
   )
@@ -116,7 +116,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           return (
             <div key={sec.id} className="mt-4">
               <button type="button" onClick={() => toggleSection(sec.id)}
-                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-semibold text-[#1a1a1a] rounded-md">
+                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-semibold text-[#131313] rounded-md">
                 <ChevronDown className={cn('w-3 h-3 transition-transform order-last opacity-0 group-hover/sec:opacity-100', !open && '-rotate-90')} />
                 {t.nav.sections[sec.id]}
               </button>
@@ -133,10 +133,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
 'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1a1a1a] hover:bg-[#f5f6f7]',
+            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#131313] hover:bg-[#f5f6f7]',
           )}
         >
-          <UserCog className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={2} />
+          <UserCog className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
           {t.nav.users}
         </NavLink>}
         {profile?.is_admin && <NavLink
@@ -144,10 +144,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
 'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#1a1a1a] hover:bg-[#f5f6f7]',
+            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#131313] hover:bg-[#f5f6f7]',
           )}
         >
-          <Settings className="w-[18px] h-[18px] shrink-0 text-[#1a1a1a]" strokeWidth={2} />
+          <Settings className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
           {t.nav.settings}
         </NavLink>}
 
@@ -161,7 +161,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 onClick={() => setLang(l)}
                 className={cn(
                   'px-2 py-0.5 rounded text-xs font-medium transition-colors',
-                  lang === l ? 'bg-[#1a1a1a] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-[#f6f6f6]',
+                  lang === l ? 'bg-[#131313] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-[#f6f6f6]',
                 )}
               >
                 {l === 'en' ? 'EN' : 'SL'}
