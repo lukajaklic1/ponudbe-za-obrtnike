@@ -112,7 +112,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
 
         {rows && (rows.length === 0 ? <p className="text-sm text-gray-400">{T.empty}</p> : (
           <div>
-            <p className="text-xs font-medium text-[#5f5f5f] mb-2">{T.preview}</p>
+            <p className="text-xs font-medium text-[#4f4f4f] mb-2">{T.preview}</p>
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-sm">

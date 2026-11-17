@@ -59,7 +59,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             <div className="flex items-center gap-2 px-3.5 pt-3.5 pb-2.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STATUS_DOT[st] }} />
               <span className="text-sm font-medium text-gray-900">{statusLabels[st]}</span>
-              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#ececec', color: '#5f5f5f' }}>{cards.length}</span>
+              <span className="px-1.5 rounded-md text-xs font-medium" style={{ backgroundColor: '#ececec', color: '#4f4f4f' }}>{cards.length}</span>
             </div>
 
             {/* Cards */}
@@ -78,7 +78,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                     {/* Title */}
                     <div className="flex items-start gap-2">
                       <div className="w-5 h-5 mt-px rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: '#f1f1f1' }}>
-                        <FileText className="w-3 h-3" style={{ color: '#5f5f5f' }} />
+                        <FileText className="w-3 h-3" style={{ color: '#4f4f4f' }} />
                       </div>
                       <span className="text-sm font-medium text-gray-900 line-clamp-2">{q.customers?.name ?? '—'}</span>
                     </div>
@@ -104,7 +104,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                       {(() => {
                         const d = waitingDays(q)
                         if (d == null) return null
-                        const color = '#5f5f5f'
+                        const color = '#4f4f4f'
                         return <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap" style={{ color }} title={labels.inStatus}><Clock className="w-3.5 h-3.5" />{d} d</span>
                       })()}
                     </div>

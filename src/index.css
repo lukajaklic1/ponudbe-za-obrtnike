@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.text-label { color: #5f5f5f; }
+.text-label { color: #4f4f4f; }
 
 /* ── Landing page animations ── */
 @keyframes fadeUp {
@@ -118,15 +118,15 @@ select:disabled {
 fieldset:disabled input,
 fieldset:disabled textarea {
   background-color: #f9fafb !important;
-  color: #5f5f5f !important;
+  color: #4f4f4f !important;
   border-color: #dfdfdf !important;
   cursor: not-allowed;
 }
 
 fieldset:disabled select {
   background-color: #f9fafb !important;
-  color: #5f5f5f !important;
-  -webkit-text-fill-color: #5f5f5f !important;
+  color: #4f4f4f !important;
+  -webkit-text-fill-color: #4f4f4f !important;
   border-color: #dfdfdf !important;
   cursor: not-allowed;
 }
@@ -165,7 +165,7 @@ fieldset:disabled textarea:focus {
 /* tables: light grey header with dividers between columns, rows split by hairlines */
 .robust main table { border-collapse: separate; border-spacing: 0; }
 .robust main thead tr, .robust main thead { background: #fafafa; }
-.robust main thead th { font-size: 15px; font-weight: 500; color: #5f5f5f; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #dfdfdf; }
+.robust main thead th { font-size: 15px; font-weight: 500; color: #4f4f4f; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #dfdfdf; }
 /* sort arrows in front of the column name, like Levelpath */
 .robust main th > span.inline-flex { flex-direction: row-reverse; justify-content: flex-end; }
 .robust main th > span.inline-flex > span.ml-1 { margin-left: 0; margin-right: 6px; }
