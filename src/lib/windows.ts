@@ -162,7 +162,8 @@ export function serviceLine(o: WindowOption, windows: { width: number; height: n
     else if (o.pricing === 'perimeter') qty += 2 * (w.width + w.height) / 1000 * q
     else if (o.pricing === 'width') qty += w.width / 1000 * q
   }
-  if (o.pricing === 'flat') return { qty: 1, unitPrice: r2(price), total: r2(price) }
+  if (o.pricing === 'flat' && !Number(o.price_piece ?? 0)) return { qty: 1, unitPrice: r2(price), total: r2(price) }
+  if (o.pricing === 'flat') qty = 1
   if (o.pricing === 'percent') {
     const sum = windows.reduce((a, w) => a + (w.base ?? 0) * (w.quantity || 0), 0)
     return { qty: 1, unitPrice: r2(sum * price / 100), total: r2(sum * price / 100) }
