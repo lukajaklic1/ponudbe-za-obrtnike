@@ -61,7 +61,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       onClick={handleNavClick}
       className={({ isActive }) => cn(
         'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-        isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#131313] hover:bg-[#f5f6f7]',
+        isActive ? 'nav-active bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]' : 'text-[#131313] hover:bg-[#eeeeee]',
       )}
     >
       <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
@@ -79,7 +79,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   }
 
   return (
-    <aside className="w-72 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
+    <aside className="w-72 bg-[#f7f7f7] border-r border-gray-200 flex flex-col h-screen shrink-0">
       {/* App logo — same height as PageHeader (h-[57px]) */}
       <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <AppLogo size="md" />
@@ -133,7 +133,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
 'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#131313] hover:bg-[#f5f6f7]',
+            isActive ? 'nav-active bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]' : 'text-[#131313] hover:bg-[#eeeeee]',
           )}
         >
           <UserCog className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
@@ -144,7 +144,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={handleNavClick}
           className={({ isActive }) => cn(
 'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-[#f2f3f5] text-gray-900' : 'text-[#131313] hover:bg-[#f5f6f7]',
+            isActive ? 'nav-active bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04]' : 'text-[#131313] hover:bg-[#eeeeee]',
           )}
         >
           <Settings className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
