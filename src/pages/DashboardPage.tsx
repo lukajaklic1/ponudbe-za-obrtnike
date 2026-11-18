@@ -13,20 +13,17 @@ import { FilterSelect } from '../components/ui/FilterSelect'
 const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e4' }
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null }
 
-/** a KPI card like Levelpath: label, big number, change vs the previous period */
-function KpiCard({ label, value, delta, deltaLabel, hint }: { label: string; value: string; delta: { text: string; up: boolean | null } | null; deltaLabel: string; hint?: string }) {
+/** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
+const TONES = { grey: { color: '#4a4a4a', backgroundColor: '#ececec' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
+function StatCard({ label, value, badge, tone, sub }: { label: string; value: string; badge: string; tone: keyof typeof TONES; sub: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
-      <div className="px-5 py-4">
-        <p className="text-[15px] font-medium text-gray-900">{label}</p>
-        <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
-          <p className="text-[26px] leading-8 font-bold text-gray-900 tracking-[-0.02em]">{value}</p>
-          {delta && <span className="inline-flex items-center gap-1 text-xs font-semibold px-[7px] py-[3px] rounded-lg"
-            style={delta.up === false ? { color: '#4a4a4a', backgroundColor: '#ececec' } : { color: '#267a47', backgroundColor: '#dbfce7' }}>
-            {delta.up === null ? '' : delta.up ? '▲' : '▼'} {delta.text}</span>}
-          <span className="text-[13px] font-medium text-[#4f4f4f]">{delta ? deltaLabel : hint}</span>
-        </div>
+    <div className="bg-white rounded-xl border border-gray-200 px-4 py-4">
+      <p className="text-[15px] font-medium text-gray-900 truncate" title={label}>{label}</p>
+      <div className="flex items-center gap-2 mt-1.5 flex-wrap xl:flex-nowrap">
+        <p className="text-[24px] leading-8 font-bold text-gray-900 tracking-[-0.02em] whitespace-nowrap">{value}</p>
+        <span className="inline-flex text-xs font-semibold px-[7px] py-[3px] rounded-lg whitespace-nowrap" style={TONES[tone]}>{badge}</span>
       </div>
+      <p className="text-[13px] font-medium text-[#4f4f4f] mt-1.5">{sub}</p>
     </div>
   )
 }
@@ -182,50 +179,21 @@ export default function DashboardPage() {
   const sl = lang === 'sl'
 
   const st = statusStats
-  // the chosen period and the one before it, split into buckets for the curves (days, weeks or months)
-  const kpi = (() => {
-    const DAY = 86400000
-    const now = Date.now(), len = period * 30 * DAY
-    const start = now - len, prevStart = start - len
-    const buckets = period === 1 ? 30 : period === 12 ? 12 : period * 13 / 3 | 0
-    const bucketOf = (t: number) => Math.min(buckets - 1, Math.max(0, Math.floor((t - start) / (len / buckets))))
-    const inCur = (d: string | null) => !!d && +new Date(d) >= start && +new Date(d) <= now
-    const inPrev = (d: string | null) => !!d && +new Date(d) >= prevStart && +new Date(d) < start
-    const sentAt = (q: Q) => q.status === 'draft' ? null : q.sent_at ?? q.created_at
-    const closedAt = (q: Q) => (q.status === 'won' || q.status === 'lost' ? q.closed_at ?? q.updated_at : null)
-    const series = (pick: (q: Q) => string | null, val: (q: Q) => number, filter: (q: Q) => boolean = () => true) => {
-      const out = Array(buckets).fill(0)
-      for (const q of quotes) { const d = pick(q); if (filter(q) && inCur(d)) out[bucketOf(+new Date(d!))] += val(q) }
-      // running total through the period: a smooth rising curve instead of single spikes
-      let run = 0
-      return out.map(x => (run += x))
-    }
-    const sum = (inP: (d: string | null) => boolean, pick: (q: Q) => string | null, val: (q: Q) => number, filter: (q: Q) => boolean = () => true) =>
-      quotes.reduce((a, q) => a + (filter(q) && inP(pick(q)) ? val(q) : 0), 0)
-    const v = (q: Q) => Number(q.total_net) || 0, one = () => 1
-    const won = (q: Q) => q.status === 'won', lost = (q: Q) => q.status === 'lost'
-    const change = (cur: number, prev: number, fmt: (n: number) => string, asPct = true) => {
-      if (!cur && !prev) return null
-      if (!prev) return { text: fmt(cur), up: cur > 0 ? true : null }
-      const d = asPct ? Math.round(((cur - prev) / prev) * 100) : cur - prev
-      return { text: asPct ? `${Math.abs(d)} %` : fmt(Math.abs(d)), up: d === 0 ? null : d > 0 }
-    }
-    const sentV = sum(inCur, sentAt, v)
-    const sentN = sum(inCur, sentAt, one)
-    const wonV = sum(inCur, closedAt, v, won), wonVp = sum(inPrev, closedAt, v, won)
-    const wonN = sum(inCur, closedAt, one, won), lostN = sum(inCur, closedAt, one, lost)
-    const wonNp = sum(inPrev, closedAt, one, won), lostNp = sum(inPrev, closedAt, one, lost)
-    const rate = wonN + lostN ? Math.round(wonN / (wonN + lostN) * 100) : 0
-    const rateP = wonNp + lostNp ? Math.round(wonNp / (wonNp + lostNp) * 100) : 0
-    const wonS = series(closedAt, one, won), lostS = series(closedAt, one, lost)
-    let w = 0, l = 0
-    const rateS = wonS.map((x, i) => { w += x; l += lostS[i]; return w + l ? w / (w + l) * 100 : 0 })
+  // quotes made in the chosen period, by their status now: the five values add up to the total
+  const cards = (() => {
+    const since = Date.now() - period * 30 * 86400000
+    const inPeriod = quotes.filter(q => +new Date(q.created_at) >= since)
+    const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((acc, q) => ({ value: acc.value + (Number(q.total_net) || 0), count: acc.count + 1 }), { value: 0, count: 0 })
+    const all = sum(() => true)
+    const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)} % ${sl ? 'vrednosti' : 'of the value'}` : '')
+    const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), tone, sub })
+    const draft = sum(q => q.status === 'draft'), sent = sum(q => q.status === 'sent' || q.status === 'issued'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
     return [
-      // sent quotes: the plain number for the period (a comparison says little here), with the average quote
-      { label: sl ? 'Poslane ponudbe' : 'Quotes sent', value: String(sentN), delta: null, hint: sentN ? (sl ? `povprečno ${money(sentV / sentN)} na ponudbo` : `${money(sentV / sentN)} per quote on average`) : undefined, series: series(sentAt, one) },
-      { label: sl ? 'Vrednost poslanih ponudb' : 'Value of quotes sent', value: money(sentV), delta: null, series: series(sentAt, v) },
-      { label: sl ? 'Dobljeni posli' : 'Deals won', value: money(wonV), delta: change(wonV, wonVp, money), series: series(closedAt, v, won) },
-      { label: sl ? 'Uspešnost' : 'Win rate', value: `${rate} %`, delta: wonN + lostN || wonNp + lostNp ? { text: `${Math.abs(rate - rateP)} ${sl ? 'o. t.' : 'pts'}`, up: rate === rateP ? null : rate > rateP } : null, series: rateS },
+      row(sl ? 'Skupna vrednost' : 'Total value', all, 'grey', all.value ? share(all.value) : ''),
+      row(sl ? 'Osnutki' : 'Drafts', draft, 'grey', share(draft.value)),
+      row(sl ? 'Poslane' : 'Sent', sent, 'yellow', share(sent.value)),
+      row(sl ? 'Dobljene' : 'Won', won, 'green', share(won.value)),
+      row(sl ? 'Izgubljene' : 'Lost', lost, 'grey', share(lost.value)),
     ]
   })()
 
@@ -353,10 +321,9 @@ export default function DashboardPage() {
 
       <div className="px-6 py-5 space-y-6">
 
-        {/* KPI cards: number, change vs the previous period, teal curve (Levelpath style) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {kpi.map(k => <KpiCard key={k.label} label={k.label} value={k.value} delta={k.delta}
-            deltaLabel={sl ? 'glede na prejšnje obdobje' : 'vs previous period'} hint={('hint' in k && k.hint) || (sl ? 'v izbranem obdobju' : 'in this period')} />)}
+        {/* five value cards: total, then drafts / sent / won / lost of the quotes made in the period */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {cards.map(c => <StatCard key={c.label} {...c} />)}
         </div>
 
 
