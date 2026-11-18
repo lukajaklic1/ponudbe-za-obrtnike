@@ -4,6 +4,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import SpecDrawing from '../components/SpecDrawing'
 import WindowDrawing from '../components/WindowDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
+import SillIcon from '../components/SillIcon'
+import ShadingIcon from '../components/ShadingIcon'
 import type { OfferSnapshotLine } from '../types/database'
 
 /** an SVG string → PNG data URL, drawn sharp (scale × its own size) */
@@ -25,11 +27,40 @@ function rasterize(svg: string, scale = 3): Promise<string | null> {
   })
 }
 
-/** line index → picture of the window with its sizes (only lines that come from the configurator) */
+function svgOf(el: React.ReactElement) {
+  const svg = renderToStaticMarkup(el)
+  return /xmlns=/.test(svg) ? svg : svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+}
+/** a photo URL → PNG data URL (so the PDF never fails on a picture it cannot load) */
+function photo(url: string): Promise<string | null> {
+  return new Promise(resolve => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const max = 300, k = Math.min(1, max / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(img.width * k)); canvas.height = Math.max(1, Math.round(img.height * k))
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { resolve(null); return }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      try { resolve(canvas.toDataURL('image/png')) } catch { resolve(null) }
+    }
+    img.onerror = () => resolve(null)
+    img.src = url
+  })
+}
+
+/** line index → picture: the window with its sizes, or the sill / shading of a sub-position */
 export async function windowDrawings(lines: OfferSnapshotLine[]): Promise<Record<number, string>> {
   const out: Record<number, string> = {}
   for (let i = 0; i < lines.length; i++) {
-    const cfg = lines[i].config as { kind?: string; item?: any; template?: string | null } | null | undefined
+    const cfg = lines[i].config as { kind?: string; item?: any; template?: string | null; image_url?: string | null; sill?: string | null; shade?: string | null } | null | undefined
+    // sub-positions: the supplier's photo, or the drawing of the sill / shading
+    if (cfg?.kind === 'sub') {
+      const png = cfg.image_url ? await photo(cfg.image_url) : await rasterize(svgOf(cfg.sill != null || !cfg.shade ? <SillIcon material={cfg.sill} size={64} /> : <ShadingIcon kind={cfg.shade} size={64} />))
+      if (png) out[i] = png
+      continue
+    }
     if (cfg?.kind !== 'window' || !cfg.item) continue
     const it = cfg.item
     const el = it.roof ? <RoofWindowDrawing size={150} />

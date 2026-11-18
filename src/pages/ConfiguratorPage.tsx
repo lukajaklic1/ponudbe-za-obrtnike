@@ -83,6 +83,7 @@ const TXT = {
     errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
+    subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis',
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
@@ -104,6 +105,7 @@ const TXT = {
     errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
+    subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description',
   },
 }
 
@@ -137,7 +139,13 @@ export default function ConfiguratorPage() {
 export const isUsable = (d: ConfigData | null): d is ConfigData => !!d && (!!d.types.length || !!d.builder) && !!d.systems.length
 
 /** a window as it goes onto a quote: the configuration, its price per piece and every choice in words */
-export interface ConfiguredWindow { item: ConfigItem; unitPrice: number | null; title: string; rows: [string, string][] }
+/** a sill, shading or insect screen of a window, priced on its own (like a sub-position on the quote) */
+export interface ConfiguredSub {
+  code: string; title: string; rows: [string, string][]; unitPrice: number
+  /** the supplier's photo of the sill / shading, or what to draw instead (sill material / shading kind) */
+  image_url?: string | null; sill?: string | null; shade?: string | null
+}
+export interface ConfiguredWindow { item: ConfigItem; unitPrice: number | null; title: string; rows: [string, string][]; subs?: ConfiguredSub[] }
 
 /**
  * The configurator. mode="public": the customer's page with header, contact step and services.
@@ -414,18 +422,47 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       add(T.glassTitle, g ? [g.name, g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')} W/m²K` : null].filter(Boolean).join(', ') : null)
       const h = handleList.find(hh => hh.id === x.handle) ?? handleList[0]
       add(T.handleTitle, h ? `${h.name}${h.lockable ? ` · ${T.lockable}` : ''}` : null)
-      add(T.sillIn, sillList.find(ss => ss.id === x.sills?.in)?.name)
-      add(T.sillOut, sillList.find(ss => ss.id === x.sills?.out)?.name)
-      add(T.shadeLabel, shadeList.find(ss => ss.id === x.shading?.shade)?.name)
-      add(T.screenLabel, shadeList.find(ss => ss.id === x.shading?.screen)?.name)
     } else if (t && hasHingeChoice(t.template)) add(T.hinge, L.hinge[x.hinge])
     const extras = data.options.filter(o => x.option_ids.includes(o.id) && !isService(o)).map(o => o.name)
     add(T.step4, extras.join(', '))
     add(T.room, x.label)
     return { title: x.spec ? specName(x.spec) : t?.name ?? '', rows }
   }
+  /** the window without its sills / shading / screens, and each of them as its own priced sub-position:
+   *  added one after another, so window + sub-positions add up to exactly the configurator's price */
+  function split(x: ConfigItem): { unitPrice: number | null; subs: ConfiguredSub[] } {
+    if (!x.spec) return { unitPrice: priceOf(x), subs: [] }
+    const pick = { sIn: null as string | null, sOut: null as string | null, shade: null as string | null, screen: null as string | null }
+    const at = () => priceOf({ ...x, sills: { in: pick.sIn, out: pick.sOut }, shading: { shade: pick.shade, screen: pick.screen } })
+    const base = at()
+    if (base == null) return { unitPrice: priceOf(x), subs: [] }
+    let prev = base
+    const subs: ConfiguredSub[] = []
+    const size = `${x.width} × ${x.height} mm`
+    type Found = { name: string; description?: string; image_url?: string | null; material?: string; icon?: string }
+    const steps: [keyof typeof pick, string | null | undefined, string, string, (id: string) => Found | undefined, [string, string][]][] = [
+      ['sIn', x.sills?.in, 'P1', T.sillIn, id => sillList.find(s => s.id === id), [[T.subLength, `${x.width} mm`]]],
+      ['sOut', x.sills?.out, 'P2', T.sillOut, id => sillList.find(s => s.id === id), [[T.subLength, `${x.width} mm`]]],
+      ['shade', x.shading?.shade, 'S', T.shadeLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size]]],
+      ['screen', x.shading?.screen, 'K', T.screenLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size]]],
+    ]
+    for (const [k, id, code, kind, find, rows] of steps) {
+      if (!id) continue
+      pick[k] = id
+      const p = at() ?? prev
+      const o = find(id)
+      const isSill = k === 'sIn' || k === 'sOut'
+      subs.push({
+        code, title: o?.name ?? kind, rows: [[T.subKind, kind], ...rows, ...(o?.description ? [[T.subDesc, o.description] as [string, string]] : [])],
+        unitPrice: Math.round((p - prev) * 100) / 100,
+        image_url: o?.image_url ?? null, sill: isSill ? o?.material ?? null : null, shade: isSill ? null : o?.icon ?? (k === 'screen' ? 'screen_fixed' : 'roller'),
+      })
+      prev = p
+    }
+    return { unitPrice: base, subs }
+  }
   function handBack() {
-    onAdd?.(items.map(x => ({ item: x, unitPrice: priceOf(x), ...describe(x) })))
+    onAdd?.(items.map(x => ({ item: x, ...split(x), ...describe(x) })))
   }
 
   const p = priceOf(it)

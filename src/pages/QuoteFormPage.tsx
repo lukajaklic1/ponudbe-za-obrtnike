@@ -21,6 +21,8 @@ import { ConfiguratorCore, isUsable, type ConfigData, type ConfigItem, type Conf
 import SpecDrawing from '../components/SpecDrawing'
 import WindowDrawing from '../components/WindowDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
+import SillIcon from '../components/SillIcon'
+import ShadingIcon from '../components/ShadingIcon'
 import type { Customer, Quote, QuoteLine, QuoteAttachment, QuoteStatus, OfferSnapshot, PriceItem, PriceUnit } from '../types/database'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import { INCOTERMS } from '../lib/incoterms'
@@ -41,7 +43,11 @@ interface LineRow {
 }
 
 /** a window from the configurator: the whole configuration + every choice in words (for the quote and its PDF) */
-interface WindowConfig { kind: 'window'; item: ConfigItem; title: string; rows: [string, string][]; template?: string | null }
+interface WindowConfig { kind: 'window'; uid?: string; item: ConfigItem; title: string; rows: [string, string][]; template?: string | null }
+/** a sill / shading / insect screen of a window, its own priced line right after the window */
+interface SubConfig { kind: 'sub'; parent: string; code: string; title: string; rows: [string, string][]; image_url?: string | null; sill?: string | null; shade?: string | null }
+const subCfg = (l: { config: Record<string, unknown> | null }) => (l.config?.kind === 'sub' ? l.config as unknown as SubConfig : null)
+const uid = () => Math.random().toString(36).slice(2, 10)
 /** a service computed from the windows (installation, removal, finishing, transport, roof window work) */
 interface ServiceConfig { kind: 'service'; option_id: string; auto?: boolean }
 const windowCfg = (l: { config: Record<string, unknown> | null }) => (l.config?.kind === 'window' ? l.config as unknown as WindowConfig : null)
@@ -273,33 +279,47 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const currentVat = () => lines.length ? lines[lines.length - 1].vat_rate : 22
   const windowLines = lines.filter(l => windowCfg(l))
   const serviceLines = lines.filter(l => serviceCfg(l))
-  const freeLines = lines.filter(l => !windowCfg(l) && !serviceCfg(l))
+  const subLines = lines.filter(l => subCfg(l))
+  const subsOf = (l: LineRow) => { const u = windowCfg(l)?.uid; return u ? subLines.filter(x => subCfg(x)!.parent === u) : [] }
+  const freeLines = lines.filter(l => !windowCfg(l) && !serviceCfg(l) && !subCfg(l))
   const rooms = useMemo(() => {
     const order: string[] = []
-    for (const l of lines) if (!windowCfg(l) && !serviceCfg(l) && !order.includes(l.room)) order.push(l.room)
+    for (const l of lines) if (!windowCfg(l) && !serviceCfg(l) && !subCfg(l) && !order.includes(l.room)) order.push(l.room)
     return order
   }, [lines])
 
   // ── Windows from the configurator ─────────────────────────
   function addWindows(ws: ConfiguredWindow[], replaceKey?: string) {
     const vat = currentVat()
-    const rows: LineRow[] = ws.map(w => ({
-      key: nk(), room: '', price_item_id: null, name: w.title,
-      description: w.rows.filter(([l]) => l !== '').slice(0, 2).map(([, v]) => v).join(' · '),
-      unit: 'pcs', quantity: w.item.quantity, unit_price: w.unitPrice ?? 0, discount_pct: 0, vat_rate: vat,
-      config: { kind: 'window', item: w.item, title: w.title, rows: w.rows, template: cfg?.types.find(t => t.id === w.item.type_id)?.template ?? null } as unknown as Record<string, unknown>,
-    }))
+    const rows: LineRow[] = ws.flatMap(w => {
+      const u = uid()
+      const win: LineRow = {
+        key: nk(), room: '', price_item_id: null, name: w.title,
+        description: w.rows.filter(([l]) => l !== '').slice(0, 2).map(([, v]) => v).join(' · '),
+        unit: 'pcs', quantity: w.item.quantity, unit_price: w.unitPrice ?? 0, discount_pct: 0, vat_rate: vat,
+        config: { kind: 'window', uid: u, item: w.item, title: w.title, rows: w.rows, template: cfg?.types.find(t => t.id === w.item.type_id)?.template ?? null } as unknown as Record<string, unknown>,
+      }
+      const subs: LineRow[] = (w.subs ?? []).map(sb => ({
+        key: nk(), room: '', price_item_id: null, name: sb.title, description: sb.rows.map(([k, v]) => `${k}: ${v}`).join(' · '),
+        unit: 'pcs', quantity: w.item.quantity, unit_price: sb.unitPrice, discount_pct: 0, vat_rate: vat,
+        config: { kind: 'sub', parent: u, code: sb.code, title: sb.title, rows: sb.rows, image_url: sb.image_url ?? null, sill: sb.sill ?? null, shade: sb.shade ?? null } as unknown as Record<string, unknown>,
+      }))
+      return [win, ...subs]
+    })
     setLines(ls => {
       if (!replaceKey) {
-        // windows go before the services and the free lines
-        const lastWin = ls.reduce((a, l, i) => (windowCfg(l) ? i : a), -1)
+        // windows (with their sub-positions) go before the services and the free lines
+        const lastWin = ls.reduce((a, l, i) => (windowCfg(l) || subCfg(l) ? i : a), -1)
         return [...ls.slice(0, lastWin + 1), ...rows, ...ls.slice(lastWin + 1)]
       }
       const i = ls.findIndex(l => l.key === replaceKey)
       if (i < 0) return [...ls, ...rows]
+      const oldUid = windowCfg(ls[i])?.uid
       // keep a discount the user set on the position
       rows[0] = { ...rows[0], discount_pct: ls[i].discount_pct, vat_rate: ls[i].vat_rate }
-      return [...ls.slice(0, i), ...rows, ...ls.slice(i + 1)]
+      const rest = ls.filter((l, j) => j !== i && !(oldUid && subCfg(l)?.parent === oldUid))
+      // the window and its sub-positions come after everything before it, so they go back at the same place
+      return [...rest.slice(0, i), ...rows, ...rest.slice(i)]
     })
     setCfgOpen(null)
   }
@@ -346,7 +366,12 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const grouped = rooms.length > 1 || !!rooms[0]
 
   function patchLine(key: string, patch: Partial<LineRow>) { setLines(ls => ls.map(l => l.key === key ? { ...l, ...patch } : l)) }
-  function removeLine(key: string) { setLines(ls => ls.filter(l => l.key !== key)) }
+  function removeLine(key: string) {
+    setLines(ls => {
+      const u = windowCfg(ls.find(l => l.key === key) ?? { config: null })?.uid
+      return ls.filter(l => l.key !== key && !(u && subCfg(l)?.parent === u))
+    })
+  }
   function applyService(key: string, p: PriceItem) {
     // price list entries are not price_items rows, so the line keeps no reference
     patchLine(key, { price_item_id: null, name: p.name, description: p.description ?? '', unit: p.unit, unit_price: Number(p.price) })
@@ -717,6 +742,20 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                     <dl className="mt-2 grid grid-cols-[minmax(110px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
                       {w.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
                     </dl>
+                    {subsOf(l).length > 0 && <div className="mt-3 rounded-[10px] border border-gray-200 divide-y divide-gray-100">
+                      {subsOf(l).map(sl => {
+                        const sc = subCfg(sl)!
+                        return <div key={sl.key} className="px-3 py-2.5 grid grid-cols-[44px_52px_minmax(0,1fr)_auto] items-center gap-3 text-sm">
+                          <span className="font-medium text-[#4f4f4f]">{i + 1}-{sc.code}</span>
+                          <div className="w-[52px] h-[52px] rounded-lg bg-[#fafafa] border border-gray-100 flex items-center justify-center overflow-hidden">
+                            {sc.image_url ? <img src={sc.image_url} alt="" className="max-w-full max-h-full object-contain" />
+                              : sc.sill != null || !sc.shade ? <SillIcon material={sc.sill} size={44} /> : <ShadingIcon kind={sc.shade} size={44} />}
+                          </div>
+                          <div className="min-w-0"><div className="font-medium text-gray-900">{sc.title}</div><div className="text-[13px] text-[#4f4f4f]">{sc.rows.map(([k, v]) => `${k}: ${v}`).join(' · ')}</div></div>
+                          <div className="text-right whitespace-nowrap"><span className="font-medium text-[#4f4f4f] mr-3">{(sl.quantity ?? 0).toLocaleString('de-DE')} × {money(sl.unit_price ?? 0)}</span><span className="font-semibold text-gray-900">{money(lineTotal(num(sl)))}</span></div>
+                        </div>
+                      })}
+                    </div>}
                   </div>
                   {/* quantity, price, actions */}
                   <div className="flex md:flex-col md:items-end justify-between gap-2">

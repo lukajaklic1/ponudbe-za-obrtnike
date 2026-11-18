@@ -139,7 +139,8 @@ const L = {
   },
 }
 
-type WinCfg = { kind: 'window'; title?: string; rows?: [string, string][] }
+type WinCfg = { kind: 'window'; uid?: string; title?: string; rows?: [string, string][] }
+type SubCfg = { kind: 'sub'; parent: string; code: string; rows?: [string, string][] }
 const kindOf = (l: OfferSnapshotLine) => ((l.config as { kind?: string } | null | undefined)?.kind ?? null)
 
 export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: OfferSnapshot; lang?: 'sl' | 'en'; drawings?: Record<number, string> }) {
@@ -153,6 +154,7 @@ export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: O
   const winLines = lines.filter(l => kindOf(l) === 'window')
   const svcLines = lines.filter(l => kindOf(l) === 'service')
   const free = lines.filter(l => !kindOf(l))
+  // (sub-positions are drawn inside their window block)
   // free lines grouped by room, keeping first-appearance order
   const groups: { room: string | null; lines: OfferSnapshotLine[] }[] = []
   for (const l of free) {
@@ -253,7 +255,7 @@ export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: O
 
         {/* windows from the configurator: drawing with sizes + every choice */}
         {winLines.length > 0 && <View>
-          {section(T.windows, winLines.reduce((a, l) => a + l.total, 0))}
+          {section(T.windows, [...winLines, ...lines.filter(l => kindOf(l) === 'sub')].reduce((a, l) => a + l.total, 0))}
           {winLines.map((l, i) => {
             const w = l.config as unknown as WinCfg
             const pic = drawings[lines.indexOf(l)]
@@ -274,6 +276,23 @@ export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: O
                     ))}
                   </View>
                 </View>
+                {/* sills, shading and insect screens of this window, each priced on its own */}
+                {lines.filter(x => kindOf(x) === 'sub' && (x.config as unknown as SubCfg).parent === w.uid).map((x, j) => {
+                  const sc = x.config as unknown as SubCfg
+                  return (
+                    <View key={j} style={[s.winHead, { marginTop: 6, paddingTop: 5, borderTopWidth: 1, borderTopColor: c.border }]}>
+                      <Text style={[s.cell, s.colPos, { color: c.muted }]}>{i + 1}-{sc.code}</Text>
+                      <View style={[s.colName, { flexDirection: 'row', alignItems: 'flex-start' }]}>
+                        {drawings[lines.indexOf(x)] ? <Image src={drawings[lines.indexOf(x)]} style={{ width: 40, height: 40, objectFit: 'contain', marginRight: 8 }} /> : null}
+                        <View style={{ flex: 1 }}>
+                        <Text style={s.itemName}>{x.name}</Text>
+                        <Text style={s.itemDesc}>{(sc.rows ?? []).map(([k, v]) => `${k}: ${v}`).join(' · ')}</Text>
+                        </View>
+                      </View>
+                      {amountCells(x)}
+                    </View>
+                  )
+                })}
               </View>
             )
           })}
