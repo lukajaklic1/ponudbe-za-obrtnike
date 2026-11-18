@@ -16,7 +16,11 @@ import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { buildSnapshot } from '../lib/offerSnapshot'
 import { lineTotal, quoteTotals, roomAreas } from '../lib/quoteTotals'
 import { PRICE_UNITS, VAT_RATES } from '../lib/quoteTotals'
-import { isService } from '../lib/windows'
+import { isService, serviceLine, SERVICE_GROUPS, WL, type WindowOption } from '../lib/windows'
+import { ConfiguratorCore, isUsable, type ConfigData, type ConfigItem, type ConfiguredWindow } from './ConfiguratorPage'
+import SpecDrawing from '../components/SpecDrawing'
+import WindowDrawing from '../components/WindowDrawing'
+import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import type { Customer, Quote, QuoteLine, QuoteAttachment, QuoteStatus, OfferSnapshot, PriceItem, PriceUnit } from '../types/database'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import { INCOTERMS } from '../lib/incoterms'
@@ -35,6 +39,13 @@ interface LineRow {
   /** frozen configurator data; kept as-is when the line is saved again */
   config: Record<string, unknown> | null
 }
+
+/** a window from the configurator: the whole configuration + every choice in words (for the quote and its PDF) */
+interface WindowConfig { kind: 'window'; item: ConfigItem; title: string; rows: [string, string][]; template?: string | null }
+/** a service computed from the windows (installation, removal, finishing, transport, roof window work) */
+interface ServiceConfig { kind: 'service'; option_id: string; auto?: boolean }
+const windowCfg = (l: { config: Record<string, unknown> | null }) => (l.config?.kind === 'window' ? l.config as unknown as WindowConfig : null)
+const serviceCfg = (l: { config: Record<string, unknown> | null }) => (l.config?.kind === 'service' ? l.config as unknown as ServiceConfig : null)
 
 let keyc = 0
 const nk = () => `l${++keyc}`
@@ -186,6 +197,12 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
 
+  // Window configurator inside the quote: the same data and prices as the customer's configurator
+  const [cfg, setCfg] = useState<ConfigData | null>(null)
+  const [cfgOpen, setCfgOpen] = useState<null | { key?: string; items?: ConfigItem[] }>(null)
+  // services the user picked (the rest — work on sills, shading … — follows the installation by itself)
+  const [chosenServices, setChosenServices] = useState<string[]>([])
+
   // Room calculator
   const [roomOpen, setRoomOpen] = useState(false)
   const [room, setRoom] = useState({ name: '', length: null as number | null, width: null as number | null, height: 2.6 as number | null, openings: null as number | null, wallItem: '', ceilingItem: '' })
@@ -204,6 +221,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       supabase.from('window_options' as any).select('*').eq('company_id', company.id).eq('is_active', true).neq('pricing', 'percent').order('group_key').order('sort_order'),
     ])
     setCustomers((cust as Customer[]) ?? [])
+    ;(supabase as any).rpc('get_configurator_internal').then(({ data: cd }: { data: ConfigData | null }) => setCfg(isUsable(cd) ? cd : null))
     const unitOf: Record<string, PriceUnit> = { piece: 'pcs', m2: 'm2', perimeter: 'm', width: 'm', flat: 'lump' }
     const opts = ((pis ?? []) as unknown as { id: string; name: string; description: string | null; pricing: string; price: number; group_key: string }[])
     // services first, then window extras
@@ -233,7 +251,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         key: nk(), config: (l.config as Record<string, unknown> | null) ?? null, room: l.room ?? '', price_item_id: l.price_item_id, name: l.name, description: l.description ?? '',
         unit: l.unit, quantity: Number(l.quantity), unit_price: Number(l.unit_price), discount_pct: Number(l.discount_pct), vat_rate: Number(l.vat_rate),
       }))
-      setLines(loaded.length || readOnly ? loaded : [blankLine()])
+      setLines(loaded)
+      setChosenServices(loaded.map(l => serviceCfg(l)).filter((c): c is ServiceConfig => !!c && !c.auto).map(c => c.option_id))
       const { data: att } = await supabase.from('quote_attachments').select('*').eq('quote_id', id).order('created_at')
       setAttachments((att as QuoteAttachment[]) ?? [])
     } else {
@@ -242,21 +261,89 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       setPaymentTerms(company.default_payment_terms ?? '')
       setParity(company.default_parity ?? '')
       setValidUntil(format(d, 'yyyy-MM-dd'))
-      setLines([blankLine()])
+      setLines([])
+      setChosenServices([])
     }
     setLoading(false)
   }
 
   // ── Lines ─────────────────────────────────────────────────
   const totals = useMemo(() => quoteTotals(lines.map(num), discountPct ?? 0), [lines, discountPct])
-  const rooms = useMemo(() => {
-    const order: string[] = []
-    for (const l of lines) if (!order.includes(l.room)) order.push(l.room)
-    return order
-  }, [lines])
-  const grouped = rooms.length > 1 || !!rooms[0]
   // follow the VAT already used on this quote (e.g. 9,5 % for home renovation)
   const currentVat = () => lines.length ? lines[lines.length - 1].vat_rate : 22
+  const windowLines = lines.filter(l => windowCfg(l))
+  const serviceLines = lines.filter(l => serviceCfg(l))
+  const freeLines = lines.filter(l => !windowCfg(l) && !serviceCfg(l))
+  const rooms = useMemo(() => {
+    const order: string[] = []
+    for (const l of lines) if (!windowCfg(l) && !serviceCfg(l) && !order.includes(l.room)) order.push(l.room)
+    return order
+  }, [lines])
+
+  // ── Windows from the configurator ─────────────────────────
+  function addWindows(ws: ConfiguredWindow[], replaceKey?: string) {
+    const vat = currentVat()
+    const rows: LineRow[] = ws.map(w => ({
+      key: nk(), room: '', price_item_id: null, name: w.title,
+      description: w.rows.filter(([l]) => l !== '').slice(0, 2).map(([, v]) => v).join(' · '),
+      unit: 'pcs', quantity: w.item.quantity, unit_price: w.unitPrice ?? 0, discount_pct: 0, vat_rate: vat,
+      config: { kind: 'window', item: w.item, title: w.title, rows: w.rows, template: cfg?.types.find(t => t.id === w.item.type_id)?.template ?? null } as unknown as Record<string, unknown>,
+    }))
+    setLines(ls => {
+      if (!replaceKey) {
+        // windows go before the services and the free lines
+        const lastWin = ls.reduce((a, l, i) => (windowCfg(l) ? i : a), -1)
+        return [...ls.slice(0, lastWin + 1), ...rows, ...ls.slice(lastWin + 1)]
+      }
+      const i = ls.findIndex(l => l.key === replaceKey)
+      if (i < 0) return [...ls, ...rows]
+      // keep a discount the user set on the position
+      rows[0] = { ...rows[0], discount_pct: ls[i].discount_pct, vat_rate: ls[i].vat_rate }
+      return [...ls.slice(0, i), ...rows, ...ls.slice(i + 1)]
+    })
+    setCfgOpen(null)
+  }
+
+  // ── Services: computed from the windows, like in the customer's configurator ──
+  const svcOptions = useMemo(() => (cfg?.options ?? []).filter(o => isService(o)), [cfg])
+  const computedServices = useMemo((): LineRow[] => {
+    if (!cfg) return []
+    const wins = windowLines.map(l => {
+      const it = windowCfg(l)!.item
+      return { width: it.width ?? 0, height: it.height ?? 0, quantity: l.quantity ?? 0, base: l.unit_price ?? 0, roof: !!it.roof,
+        sills: (it.sills?.in ? 1 : 0) + (it.sills?.out ? 1 : 0), shades: it.shading?.shade ? 1 : 0, screens: it.shading?.screen ? 1 : 0 }
+    })
+    const installing = svcOptions.some(o => o.group_key === 'installation' && chosenServices.includes(o.id))
+    const auto = (o: WindowOption) => !!o.per_item && o.per_item !== 'window' && o.per_item !== 'roof'
+    const old = new Map(serviceLines.map(l => [serviceCfg(l)!.option_id, l]))
+    return svcOptions.filter(o => (auto(o) ? installing : chosenServices.includes(o.id)))
+      .map(o => ({ o, r: serviceLine(o, wins) }))
+      .filter(({ o, r }) => r.qty > 0 || o.pricing === 'flat' || o.pricing === 'percent')
+      .map(({ o, r }) => {
+        const unit: PriceUnit = Number(o.price_piece ?? 0) > 0 || (o.per_item && o.per_item !== 'window') ? 'pcs'
+          : o.pricing === 'piece' ? 'pcs' : o.pricing === 'm2' ? 'm2' : o.pricing === 'perimeter' || o.pricing === 'width' ? 'm' : 'lump'
+        const prev = old.get(o.id)
+        return { key: prev?.key ?? nk(), room: '', price_item_id: null, name: o.name, description: o.description ?? '', unit,
+          quantity: r.qty, unit_price: r.unitPrice, discount_pct: prev?.discount_pct ?? 0, vat_rate: prev?.vat_rate ?? currentVat(),
+          config: { kind: 'service', option_id: o.id, auto: auto(o) } as unknown as Record<string, unknown> }
+      })
+  }, [cfg, svcOptions, chosenServices, JSON.stringify(windowLines.map(l => [l.quantity, l.unit_price, l.config]))])
+  // keep the service lines in step with the windows (only when something really changed)
+  useEffect(() => {
+    if (readOnly || !cfg) return
+    const sig = (ls: LineRow[]) => JSON.stringify(ls.map(l => [l.name, l.quantity, l.unit_price, l.unit, l.config]))
+    if (sig(computedServices) === sig(serviceLines)) return
+    setLines(ls => [...ls.filter(l => !serviceCfg(l)), ...computedServices])
+  }, [computedServices])
+  function toggleService(o: WindowOption) {
+    setChosenServices(sv => {
+      if (sv.includes(o.id)) return sv.filter(x => x !== o.id)
+      // one way of installation at a time
+      const same = o.group_key === 'installation' ? svcOptions.filter(x => x.group_key === 'installation').map(x => x.id) : []
+      return [...sv.filter(x => !same.includes(x)), o.id]
+    })
+  }
+  const grouped = rooms.length > 1 || !!rooms[0]
 
   function patchLine(key: string, patch: Partial<LineRow>) { setLines(ls => ls.map(l => l.key === key ? { ...l, ...patch } : l)) }
   function removeLine(key: string) { setLines(ls => ls.filter(l => l.key !== key)) }
@@ -602,6 +689,89 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           </div>
         </div>
 
+        {/* ── Windows (configurator) ───────────────────── */}
+        {(cfg || windowLines.length > 0) && <div className={`bg-white rounded-xl border mb-5 ${border}`}>
+          <div className={`flex items-center justify-between gap-2 px-6 py-3.5 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
+            <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{o.windowsTitle}</h2>
+            {!ro && cfg && <Button size="sm" onClick={() => setCfgOpen({})} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addWindow}</Button>}
+          </div>
+          {windowLines.length === 0
+            ? <p className="px-6 py-8 text-center text-[15px] text-[#4f4f4f]">{o.noWindows}</p>
+            : <div className="divide-y divide-gray-100">
+              {windowLines.map((l, i) => {
+                const w = windowCfg(l)!
+                const it = w.item
+                return <div key={l.key} className="px-6 py-5 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)_220px] gap-6">
+                  {/* drawing with the sizes */}
+                  <div className="flex items-start justify-center">
+                    {it.roof ? <RoofWindowDrawing size={130} />
+                      : it.spec ? <SpecDrawing spec={it.spec} width={it.width ?? 0} height={it.height ?? 0} size={160} showDims />
+                      : w.template ? <WindowDrawing template={w.template as never} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={160} showDims /> : null}
+                  </div>
+                  {/* every choice */}
+                  <div className="min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[13px] font-medium text-[#4f4f4f]">{o.position} {i + 1}</span>
+                      <span className="text-[15px] font-semibold text-gray-900">{w.title}</span>
+                    </div>
+                    <dl className="mt-2 grid grid-cols-[minmax(110px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
+                      {w.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
+                    </dl>
+                  </div>
+                  {/* quantity, price, actions */}
+                  <div className="flex md:flex-col md:items-end justify-between gap-2">
+                    <div className="md:text-right">
+                      <div className="text-sm font-medium text-[#4f4f4f]">{(l.quantity ?? 0).toLocaleString('de-DE')} × {money(l.unit_price ?? 0)}</div>
+                      <div className="text-[17px] font-semibold text-gray-900 mt-0.5">{money(lineTotal(num(l)))}</div>
+                    </div>
+                    {!ro && <div className="flex items-center gap-1">
+                      <Button variant="secondary" size="sm" className="gap-1.5" disabled={!cfg} onClick={() => setCfgOpen({ key: l.key, items: [it] })}><Pencil className="w-3.5 h-3.5" />{o.editWindow}</Button>
+                      <button type="button" onClick={() => removeLine(l.key)} title={t.common.delete} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    </div>}
+                  </div>
+                </div>
+              })}
+            </div>}
+        </div>}
+
+        {/* ── Services, computed from the windows ─────── */}
+        {(cfg && svcOptions.length > 0 && !ro) || serviceLines.length > 0 ? <div className={`bg-white rounded-xl border mb-5 ${border}`}>
+          <div className={`px-6 py-3.5 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
+            <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{o.servicesTitle}</h2>
+            {!ro && <p className="text-[13px] text-[#4f4f4f] mt-0.5">{o.servicesHint}</p>}
+          </div>
+          {!ro && cfg && <div className="px-6 py-4 space-y-4 border-b border-gray-100">
+            {([...SERVICE_GROUPS, 'roof'] as const).map(g => {
+              const opts = g === 'roof' ? svcOptions.filter(x => x.per_item === 'roof') : svcOptions.filter(x => x.group_key === g && (!x.per_item || x.per_item === 'window'))
+              if (!opts.length || (g === 'roof' && !windowLines.some(l => windowCfg(l)!.item.roof))) return null
+              return <div key={g}>
+                <div className="text-sm font-semibold text-gray-900 mb-2">{g === 'roof' ? o.roofWindows : WL[lang === 'en' ? 'en' : 'sl'].groups[g]}</div>
+                <div className="flex flex-wrap gap-2">
+                  {opts.map(x => {
+                    const on = chosenServices.includes(x.id)
+                    return <button key={x.id} type="button" onClick={() => toggleService(x)}
+                      className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors ${on ? 'border-[#131313] bg-white text-gray-900 shadow-[inset_0_0_0_1px_#131313]' : 'border-gray-200 bg-white text-gray-900 hover:border-gray-400'}`}>
+                      {on && <Check className="w-3.5 h-3.5" />}{x.name}
+                    </button>
+                  })}
+                </div>
+              </div>
+            })}
+          </div>}
+          {serviceLines.length > 0 && <div className="divide-y divide-gray-100">
+            {serviceLines.map((l, i) => (
+              <div key={l.key} className="px-6 py-3 grid grid-cols-[48px_minmax(0,1fr)_auto] items-baseline gap-4 text-sm">
+                <span className="font-medium text-[#4f4f4f]">M{i + 1}</span>
+                <div className="min-w-0"><div className="font-medium text-gray-900">{l.name}</div>{l.description && <div className="text-[13px] text-[#4f4f4f]">{l.description}</div>}</div>
+                <div className="text-right whitespace-nowrap">
+                  <span className="font-medium text-[#4f4f4f] mr-4">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]} × {money(l.unit_price ?? 0)}</span>
+                  <span className="font-semibold text-gray-900">{money(lineTotal(num(l)))}</span>
+                </div>
+              </div>
+            ))}
+          </div>}
+        </div> : null}
+
         {/* ── Lines ─────────────────────────────────────── */}
         <div className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
           <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
@@ -623,7 +793,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 {!ro && <th className="w-10" />}
               </tr></thead>
               {(() => { let pos = 0; return rooms.map(rn => {
-                const rl = lines.filter(l => l.room === rn)
+                const rl = freeLines.filter(l => l.room === rn)
                 const sub = rl.reduce((a, l) => a + lineTotal(num(l)), 0)
                 return (
                   <tbody key={rn || '__general'} className={`divide-y ${ro ? 'divide-[#dfdfdf]' : 'divide-gray-100'}`}>
@@ -688,7 +858,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   </td>
                 </tr></tbody>
               )}
-              {ro && lines.length === 0 && (
+              {ro && freeLines.length === 0 && (
                 <tbody><tr><td colSpan={colCount} className="px-4 py-8 text-center text-sm text-gray-400">{o.noLines}</td></tr></tbody>
               )}
 
@@ -733,6 +903,20 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         snapshot?.lines ? (
           <OfferPdfPreview snap={pdfSnap ?? snapshot} lang={lang} errorLabel={o.pdfError} />
         ) : <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400">{s.saveQuoteFirst}</div>
+      )}
+
+      {/* Window configurator over the whole page */}
+      {cfgOpen && cfg && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
+            <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+              <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900">{cfgOpen.key ? o.editWindow : o.addWindow}</h2>
+              <button type="button" onClick={() => setCfgOpen(null)} className="p-1.5 rounded-lg text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100"><X className="w-5 h-5" /></button>
+            </div>
+          </div>
+          <ConfiguratorCore data={cfg} mode="internal" initialItems={cfgOpen.items} onCancel={() => setCfgOpen(null)}
+            addLabel={cfgOpen.key ? o.saveWindow : undefined} onAdd={ws => addWindows(ws, cfgOpen.key)} />
+        </div>
       )}
 
       {/* Room calculator */}

@@ -344,7 +344,8 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
     case 'set_user_active': { const u = db.users.find(x => x.id === a.p_user_id); if (u) u.is_active = a.p_active; persist(); return { data: null, error: null } }
     case 'set_user_admin': { const u = db.users.find(x => x.id === a.p_user_id); if (u) u.is_admin = a.p_is_admin; persist(); return { data: null, error: null } }
     // public configurator in demo mode: same shape as the SQL function (margin folded into prices)
-    case 'get_configurator': {
+    case 'get_configurator':
+    case 'get_configurator_internal': {
       const c = db.companies[0]
       const wp = (c.window_pricing ?? {}) as Record<string, any>
       const mf = 1 + Number(wp.margin_pct ?? 45) / 100

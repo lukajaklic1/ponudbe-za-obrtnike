@@ -26,7 +26,7 @@ import {
 
 // Public window configurator: /k/:slug — no login. Prices are recomputed on the server on submit.
 
-interface ConfigData {
+export interface ConfigData {
   company: { name: string; logo_url: string | null; email: string | null; phone: string | null; currency: string; accent: string; intro: string | null; show_prices: boolean; vat_rate: number }
   systems: WindowSystem[]
   types: WindowType[]
@@ -37,7 +37,7 @@ interface ConfigData {
   builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null; glass?: GlassType[] | null; handles?: HandleType[] | null; sills?: SillType[] | null; shading?: ShadingType[] | null } | null
 }
 
-interface Item {
+export interface ConfigItem {
   key: string
   type_id: string
   system_id: string
@@ -72,7 +72,7 @@ const TXT = {
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
-    none: 'Brez', yourOrder: 'Vaše povpraševanje', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
+    none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
     basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
@@ -82,6 +82,7 @@ const TXT = {
     newOne: 'Novo povpraševanje', invalidSize: 'Mere so izven dovoljenega razpona', pcs: 'kos',
     errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
+    addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
@@ -92,7 +93,7 @@ const TXT = {
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
-    none: 'None', yourOrder: 'Your enquiry', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
+    none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
     basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
@@ -102,20 +103,56 @@ const TXT = {
     newOne: 'New enquiry', invalidSize: 'Size is outside the allowed range', pcs: 'pc',
     errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
+    addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
   },
 }
 
 let seq = 0
 const newKey = () => `i${++seq}`
 
+/** Public configurator /k/:slug: loads the supplier's data, then shows the same configurator the app uses inside quotes. */
 export default function ConfiguratorPage() {
   const { slug } = useParams()
+  const { lang } = useLanguage()
+  const T = TXT[lang]
+  const [data, setData] = useState<ConfigData | null>(null)
+  const [state, setState] = useState<'loading' | 'missing' | 'ready'>('loading')
+  useEffect(() => {
+    (supabase as any).rpc('get_configurator', { p_slug: slug }).then(({ data, error }: { data: ConfigData | null; error: unknown }) => {
+      if (error || !isUsable(data)) { setState('missing'); return }
+      setData(data); setState('ready')
+      document.title = `${T.title} · ${data!.company.name}`
+    })
+  }, [slug])
+  if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+  if (state === 'missing' || !data) return (
+    <div className="min-h-screen flex items-center justify-center bg-white p-6 text-center">
+      <div><p className="text-lg font-semibold text-gray-900">{T.notFound}</p><p className="text-sm text-gray-500 mt-1">{T.notFoundHint}</p></div>
+    </div>
+  )
+  return <ConfiguratorCore data={data} slug={slug ?? ''} />
+}
+
+/** the supplier set up enough for a configurator (types or a builder, and at least one profile) */
+export const isUsable = (d: ConfigData | null): d is ConfigData => !!d && (!!d.types.length || !!d.builder) && !!d.systems.length
+
+/** a window as it goes onto a quote: the configuration, its price per piece and every choice in words */
+export interface ConfiguredWindow { item: ConfigItem; unitPrice: number | null; title: string; rows: [string, string][] }
+
+/**
+ * The configurator. mode="public": the customer's page with header, contact step and services.
+ * mode="internal": inside a quote in the app — no header, no contact step, no services (the quote has its own);
+ * "Dodaj v ponudbo" hands the configured windows back with their prices and choices.
+ */
+export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItems, onAdd, onCancel, addLabel }: {
+  data: ConfigData; slug?: string; mode?: 'public' | 'internal'; initialItems?: ConfigItem[]
+  onAdd?: (windows: ConfiguredWindow[]) => void; onCancel?: () => void; addLabel?: string
+}) {
   const { lang, setLang } = useLanguage()
   const T = TXT[lang]
   const L = WL[lang]
-  const [data, setData] = useState<ConfigData | null>(null)
-  const [state, setState] = useState<'loading' | 'missing' | 'ready'>('loading')
-  const [items, setItems] = useState<Item[]>([])
+  const internal = mode === 'internal'
+  const [items, setItems] = useState<ConfigItem[]>(initialItems ?? [])
   const [active, setActive] = useState(0)
   const [stage, setStage] = useState<'config' | 'contact' | 'done'>('config')
   const [contact, setContact] = useState({ first_name: '', last_name: '', email: '', phone: '', address: '', note: '' })
@@ -124,18 +161,9 @@ export default function ConfiguratorPage() {
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ quote_number: string } | null>(null)
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
-  const [services, setServices] = useState<string[]>([])
-
-  useEffect(() => {
-    (supabase as any).rpc('get_configurator', { p_slug: slug }).then(({ data, error }: { data: ConfigData | null; error: unknown }) => {
-      if (error || !data || (!data.types.length && !data.builder) || !data.systems.length) { setState('missing'); return }
-      setData(data)
-      setItems([defaultItem(data)])
-      setServices(data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
-      setState('ready')
-      document.title = `${T.title} · ${data.company.name}`
-    })
-  }, [slug])
+  const [services, setServices] = useState<string[]>(() => data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
+  // start with one window (or the windows handed in when a quote position is edited)
+  useEffect(() => { if (!items.length) setItems([defaultItem(data)]) }, [])
 
   const accent = data?.company.accent || '#131313'
   const cur = data?.company.currency || 'EUR'
@@ -152,14 +180,14 @@ export default function ConfiguratorPage() {
   const wallWidth = (n: number) => n * 1000
   /** sliding windows and sliding walls: panel layouts instead of top lights and variants */
   const slidingKind = (sp: WindowSpec) => (sp.kind === 'sliding' || sp.kind === 'wall' ? sp.kind : undefined)
-  function defaultSpecItem(d: ConfigData, n: number): Item {
+  function defaultSpecItem(d: ConfigData, n: number): ConfigItem {
     return {
       key: newKey(), type_id: '', system_id: d.systems[0].id, width: sashWidth(n), height: 1400, hinge: 'left', quantity: 1, label: '',
       option_ids: d.options.filter(o => o.is_default && SINGLE_CHOICE_GROUPS.includes(o.group_key)).map(o => o.id), spec: makeSpec(n),
     }
   }
   /** base price of a window built from sashes, in this profile */
-  function specBase(it: Item, systemId = it.system_id): number | null {
+  function specBase(it: ConfigItem, systemId = it.system_id): number | null {
     if (!data || !bPricing || !it.spec || !it.width || !it.height) return null
     const sy = data.systems.find(x => x.id === systemId)
     if (!sy) return null
@@ -170,7 +198,7 @@ export default function ConfiguratorPage() {
     return Math.round(Math.max(Number(sy.min_price ?? 0), c.price) * 100) / 100
   }
 
-  function defaultItem(d: ConfigData, typeId?: string): Item {
+  function defaultItem(d: ConfigData, typeId?: string): ConfigItem {
     const b = d.builder
     const sashes = (b?.offer?.sashes ?? []).filter(n => n <= 3)
     if (!typeId && b?.offer?.windows && sashes.length) return defaultSpecItem(d, sashes.includes(2) ? 2 : sashes[0])
@@ -188,7 +216,7 @@ export default function ConfiguratorPage() {
   }
 
   /** roof window: sale price of the size with the material / colour surcharge (+ flashing) */
-  function roofPrice(it: Item): number | null {
+  function roofPrice(it: ConfigItem): number | null {
     const cat = data?.builder?.roof
     if (!cat || !it.roof) return null
     const m = cat.models.find(x => x.id === it.roof!.model), sz = m?.sizes.find(x => x.id === it.roof!.size)
@@ -197,13 +225,13 @@ export default function ConfiguratorPage() {
     const v = m?.variants?.find(x => x.id === it.roof!.variant)
     return roofUnitPrice(Number(sz.price), Number(v?.pct ?? 0), Number(fl?.price ?? 0))
   }
-  function priceOf(it: Item): number | null {
+  function priceOf(it: ConfigItem): number | null {
     if (it.roof) return show ? roofPrice(it) : null
     if (!data || !show || !it.width || !it.height) return null
     const base = it.spec ? specBase(it) : basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
     return unitPrice(base, it.width, it.height, data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)))
   }
-  function baseOf(it: Item): number | null {
+  function baseOf(it: ConfigItem): number | null {
     if (it.roof) return roofPrice(it)
     if (!data || !it.width || !it.height) return null
     if (it.spec) return specBase(it)
@@ -226,7 +254,7 @@ export default function ConfiguratorPage() {
       setServices(sv => sv.includes(o.id) ? sv.filter(id => id !== o.id) : [...sv.filter(id => !same.includes(id)), o.id])
     } else setServices(sv => sv.includes(o.id) ? sv.filter(id => id !== o.id) : [...sv, o.id])
   }
-  function sizeOk(it: Item) {
+  function sizeOk(it: ConfigItem) {
     if (it.roof) return roofPrice(it) != null || !show
     if (it.spec) { const n = it.spec.sashes; return !!it.width && !!it.height && it.width >= 300 * n && it.width <= 1600 * n && it.height >= 300 && it.height <= 2800 }
     const t = data?.types.find(x => x.id === it.type_id)
@@ -240,13 +268,7 @@ export default function ConfiguratorPage() {
     return { net, vat, gross: net + vat, vatRate, complete: items.every(it => priceOf(it) != null) }
   }, [items, data, serviceRows])
 
-  if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
-  if (state === 'missing' || !data) return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-6 text-center">
-      <div><p className="text-lg font-semibold text-gray-900">{T.notFound}</p><p className="text-sm text-gray-500 mt-1">{T.notFoundHint}</p></div>
-    </div>
-  )
-
+  if (!items.length) return null
   const it = items[active] ?? items[0]
   const spec = it.spec ?? null
   const roofSel = it.roof ?? null
@@ -260,7 +282,7 @@ export default function ConfiguratorPage() {
   const offer = builder?.offer ? pricingFrom({ offer: builder.offer }).offer : undefined
   const range = spec ? { min_width: 300 * spec.sashes, max_width: 1600 * spec.sashes, min_height: 300, max_height: 2800 } : type ?? { min_width: 0, max_width: 99999, min_height: 0, max_height: 99999 }
   const roofModel = roofSel && roofCat ? roofCat.models.find(m => m.id === roofSel.model) ?? null : null
-  function pickRoof(patch?: Partial<NonNullable<Item['roof']>>) {
+  function pickRoof(patch?: Partial<NonNullable<ConfigItem['roof']>>) {
     if (!roofCat?.models.length) return
     const cur = roofSel ?? { model: roofCat.models[0].id, size: '', flashing: roofCat.flashings[0]?.id ?? null, variant: null }
     const next = { ...cur, ...patch }
@@ -312,13 +334,13 @@ export default function ConfiguratorPage() {
   }
   function pickBand(top: Band, bottom: Band) { if (spec) setSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom))) }
   const specPrice = (sp: WindowSpec) => specBase({ ...it, spec: sp })
-  const specPriceWith = (colors: Item['colors']) => specBase({ ...it, colors })
+  const specPriceWith = (colors: ConfigItem['colors']) => specBase({ ...it, colors })
   /** extras groups shown for this window: built windows take colour / glass / handle from the builder's own catalogues */
   const extraGroups = data ? OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)
     && !(spec && ((g === 'color' && data.builder?.colors) || (g === 'glass' && glassList.length) || (g === 'handle' && handleList.length) || (g === 'sill' && sillList.length) || (g === 'shading' && shadeList.length)))) : []
   let stepNo = 0
   const nextStep = () => ++stepNo
-  const update = (patch: Partial<Item>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
+  const update = (patch: Partial<ConfigItem>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
 
   function pickType(t: WindowType) {
     const keepSystem = data!.combos.some(c => c.system_id === it.system_id && c.type_id === t.id)
@@ -364,13 +386,55 @@ export default function ConfiguratorPage() {
     setResult(res); setStage('done'); window.scrollTo({ top: 0 })
   }
 
+  /** title + every choice of a window in words, in the order of the configurator */
+  function describe(x: ConfigItem): { title: string; rows: [string, string][] } {
+    const rows: [string, string][] = []
+    const add = (l: string, v: string | null | undefined) => { if (v) rows.push([l, v]) }
+    if (x.roof) {
+      const m = roofCat?.models.find(mm => mm.id === x.roof!.model)
+      const v = m?.variants?.find(vv => vv.id === x.roof!.variant)
+      const fl = roofCat?.flashings.find(ff => ff.id === x.roof!.flashing)
+      add(T.roofModelTitle, [m?.brand, m?.name].filter(Boolean).join(' '))
+      add(T.roofOpeningLabel, m ? (m.opening === 'top' ? T.roofTop : T.roofCenter) : null)
+      add(T.roofVariant, v?.name)
+      add(T.roofSize, `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm`)
+      add(T.roofFlashing, fl?.name ?? T.none)
+      add(T.room, x.label)
+      return { title: `${T.roofWindow}${m ? ` ${[m.brand, m.name].filter(Boolean).join(' ')}` : ''}`, rows }
+    }
+    const t = data.types.find(tt => tt.id === x.type_id)
+    const sy = data.systems.find(ss => ss.id === x.system_id)
+    add(T.step2, sy ? (sy.material && sy.name.trim().toLowerCase() !== L.materials[sy.material].toLowerCase() ? `${sy.name} (${L.materials[sy.material]})` : sy.name) : null)
+    add(T.sizeTitle, `${x.width} × ${x.height} mm`)
+    if (x.spec) {
+      const list = sy ? data.builder?.colors?.[sy.material] ?? [] : []
+      const out = list.find(c => c.id === x.colors?.out) ?? list[0], inn = list.find(c => c.id === x.colors?.in) ?? list[0]
+      if (out || inn) add(T.colorTitle, `${T.colorOut}: ${out?.name ?? '—'} · ${T.colorIn}: ${inn?.name ?? '—'}`)
+      const g = glassList.find(gg => gg.id === x.glass) ?? glassList[0]
+      add(T.glassTitle, g ? [g.name, g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')} W/m²K` : null].filter(Boolean).join(', ') : null)
+      const h = handleList.find(hh => hh.id === x.handle) ?? handleList[0]
+      add(T.handleTitle, h ? `${h.name}${h.lockable ? ` · ${T.lockable}` : ''}` : null)
+      add(T.sillIn, sillList.find(ss => ss.id === x.sills?.in)?.name)
+      add(T.sillOut, sillList.find(ss => ss.id === x.sills?.out)?.name)
+      add(T.shadeLabel, shadeList.find(ss => ss.id === x.shading?.shade)?.name)
+      add(T.screenLabel, shadeList.find(ss => ss.id === x.shading?.screen)?.name)
+    } else if (t && hasHingeChoice(t.template)) add(T.hinge, L.hinge[x.hinge])
+    const extras = data.options.filter(o => x.option_ids.includes(o.id) && !isService(o)).map(o => o.name)
+    add(T.step4, extras.join(', '))
+    add(T.room, x.label)
+    return { title: x.spec ? specName(x.spec) : t?.name ?? '', rows }
+  }
+  function handBack() {
+    onAdd?.(items.map(x => ({ item: x, unitPrice: priceOf(x), ...describe(x) })))
+  }
+
   const p = priceOf(it)
   const btn = { backgroundColor: accent }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className={internal ? 'text-gray-900' : 'min-h-screen bg-white text-gray-900'}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      {!internal && <header className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             {data.company.logo_url
@@ -389,7 +453,7 @@ export default function ConfiguratorPage() {
             </div>
           </div>
         </div>
-      </header>
+      </header>}
 
       {stage === 'done' ? (
         <div className="max-w-lg mx-auto px-4 py-16 text-center">
@@ -404,7 +468,7 @@ export default function ConfiguratorPage() {
         <div className="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-[1fr_360px] gap-6 items-start">
           {/* Main column */}
           <div className="space-y-4 min-w-0">
-            {stage === 'config' && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
+            {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
               {/* Position tabs */}
@@ -793,7 +857,7 @@ export default function ConfiguratorPage() {
                 </div>
               </Section>}
 
-              {data.options.some(isService) && <Section n={nextStep()} title={T.step5} accent={accent}>
+              {!internal && data.options.some(isService) && <Section n={nextStep()} title={T.step5} accent={accent}>
                 <p className="text-sm text-gray-500 -mt-2 mb-4">{T.servicesHint}</p>
                 <div className="space-y-4">
                   {items.some(x => x.roof) && data.options.some(o => o.per_item === 'roof') && <div>
@@ -861,7 +925,7 @@ export default function ConfiguratorPage() {
             </div>}
 
             <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <div className="text-base font-semibold text-gray-900 mb-2">{T.yourOrder}</div>
+              <div className="text-base font-semibold text-gray-900 mb-2">{internal ? T.inQuote : T.yourOrder}</div>
               <ul className="divide-y divide-gray-100">
                 {items.map((x, i) => {
                   const t = data.types.find(tt => tt.id === x.type_id)
@@ -878,7 +942,7 @@ export default function ConfiguratorPage() {
                   </li>
                 })}
               </ul>
-              {serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 space-y-1">
+              {!internal && serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 space-y-1">
                 <li className="text-[13px] font-medium text-gray-500">{T.servicesTitle}</li>
                 {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="text-gray-900 min-w-0 truncate">{r.option.name} <span className="text-[13px] text-gray-500">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
@@ -889,10 +953,16 @@ export default function ConfiguratorPage() {
                 <Row l={T.total} r={money(totals.net, cur)} />
                 {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate} %`} r={money(totals.vat, cur)} muted />}
                 <Row l={T.gross} r={money(totals.gross, cur)} bold />
-                <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>
+                {!internal && <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>}
               </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{T.pricesHidden}</p>}
 
-              {stage === 'config' ? (
+              {internal ? (
+                <div className="mt-4 flex gap-2">
+                  {onCancel && <button type="button" onClick={onCancel} className="h-11 px-4 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors">{T.cancel}</button>}
+                  <button type="button" disabled={!items.every(sizeOk)} onClick={handBack}
+                    className="flex-1 h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{addLabel ?? T.addToQuote}</button>
+                </div>
+              ) : stage === 'config' ? (
                 <button disabled={!items.every(sizeOk)} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
               ) : (
