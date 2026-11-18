@@ -41,7 +41,8 @@ function results(n: number, sl: boolean) {
 export default function Pagination({ total, page, pageSize, onChange, onPageSizeChange }: PaginationProps) {
   const { lang } = useLanguage()
   const sl = lang === 'sl'
-  if (total === 0) return null
+  // only when the list is longer than the smallest page (20 rows) — short lists need no footer
+  if (total <= PAGE_SIZE_OPTIONS[0]) return null
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const from = (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
@@ -50,16 +51,16 @@ export default function Pagination({ total, page, pageSize, onChange, onPageSize
 
   return (
     <div className="table-footer flex items-center justify-between gap-4 px-4 py-2.5 bg-white border border-gray-200 border-t-0 rounded-b-xl">
-      <p className="text-[13px] font-medium text-gray-900">{results(total, sl)}</p>
+      <p className="text-[15px] font-medium text-gray-900">{results(total, sl)}</p>
       <div className="flex items-center gap-3">
         {onPageSizeChange && total > PAGE_SIZE_OPTIONS[0] && (
-          <span className="block w-[104px]">
-            <Select size="xs" align="right" value={pageSize} className="border-transparent shadow-none hover:bg-gray-100 hover:border-transparent justify-end"
+          <span className="block w-[118px]">
+            <Select size="xs" align="right" value={pageSize} className="h-8 text-[15px] font-medium border-transparent shadow-none hover:bg-gray-100 hover:border-transparent justify-end"
               options={PAGE_SIZE_OPTIONS.map(n => ({ value: n, label: sl ? `${n} vrstic` : `${n} rows` }))}
               onChange={n => { onPageSizeChange(n); onChange(1) }} />
           </span>
         )}
-        {totalPages > 1 && <span className="text-[13px] text-gray-600 whitespace-nowrap">{from}–{to} {sl ? 'od' : 'of'} {total}</span>}
+        {totalPages > 1 && <span className="text-[15px] font-medium text-gray-600 whitespace-nowrap">{from}–{to} {sl ? 'od' : 'of'} {total}</span>}
         <div className="flex items-center gap-0.5">
           <button type="button" onClick={() => go(page - 1)} disabled={page <= 1} className={arrow} aria-label={sl ? 'Prejšnja stran' : 'Previous page'}><ChevronLeft className="w-4 h-4" /></button>
           <button type="button" onClick={() => go(page + 1)} disabled={page >= totalPages} className={arrow} aria-label={sl ? 'Naslednja stran' : 'Next page'}><ChevronRight className="w-4 h-4" /></button>
