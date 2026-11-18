@@ -109,7 +109,7 @@ export default function CustomersPage() {
 
   const isPerson = form.customer_type === 'person'
   const displayName = isPerson ? `${form.first_name.trim()} ${form.last_name.trim()}`.trim() : form.name.trim()
-  const canSave = isPerson ? !!(form.first_name.trim() && form.last_name.trim()) : !!form.name.trim()
+  const canSave = (isPerson ? !!(form.first_name.trim() && form.last_name.trim()) : !!form.name.trim()) && !!form.email.trim()
 
   async function save() {
     if (!company || !canSave) return
@@ -267,7 +267,7 @@ export default function CustomersPage() {
               <Input id="c-first" label={o.contactFirstName} placeholder={ph.first} {...field('first_name')} />
               <Input id="c-last" label={o.contactLastName} placeholder={ph.last} {...field('last_name')} />
             </>}
-            <Input id="c-email" label={t.common.email} type="email" placeholder={ph.email} {...field('email')} />
+            <Input id="c-email" label={t.common.email} type="email" requiredMark placeholder={ph.email} {...field('email')} />
             <Input id="c-phone" label={t.common.phone} placeholder={ph.phone} {...field('phone')} />
             <div className="sm:col-span-2"><Input id="c-street" label={o.street} placeholder={ph.street} {...field('address_street')} /></div>
             <Input id="c-postal" label={t.common.postalCode} placeholder={ph.postal} {...field('address_postal_code')} />

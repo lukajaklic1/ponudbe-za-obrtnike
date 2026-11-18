@@ -156,7 +156,7 @@ fieldset:disabled textarea:focus {
 /* fields: soft border, teal focus like Levelpath */
 .robust main :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { color: #131313; }
 /* example text in fields: stronger grey and medium weight like Levelpath (sampled), typed text medium too */
-:is(input, textarea)::placeholder { color: #7c7c7c !important; font-weight: 500; opacity: 1; }
+:is(input, textarea)::placeholder { color: #8a8a8a !important; font-weight: 500; opacity: 1; }
 :is(.modal-body, .form-scope, .robust main) :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { font-weight: 500; }
 /* everywhere (also sign-in pages and popups): the selected field gets a thick dark teal outline like Levelpath
    (sampled #3e706f): 1 px border + 1 px ring = 2 px, plus a faint teal halo; no layout shift */
