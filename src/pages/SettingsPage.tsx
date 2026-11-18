@@ -158,7 +158,7 @@ export default function SettingsPage() {
         {/* Company profile */}
         <Section icon={Building2} title={s.companyProfile}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="col-span-2"><Input id="name" label={s.companyName} {...field('name')} /></div>
+            <div className="col-span-2"><Input id="name" label={s.companyName} requiredMark {...field('name')} /></div>
             <div>
               <label className={LABEL}>{o.legalForm}</label>
               <Select className="h-[37.6px]" value={form.legal_form ?? ''} placeholder={t.common.select} onChange={v => setForm(f => ({ ...f, legal_form: (v || null) as Company['legal_form'] }))}

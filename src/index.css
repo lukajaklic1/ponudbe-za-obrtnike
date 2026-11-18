@@ -156,12 +156,13 @@ fieldset:disabled textarea:focus {
 /* fields: soft border, teal focus like Levelpath */
 .robust main :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { color: #131313; }
 .robust main :is(input, textarea, button)::placeholder { color: #9a9a9a; }
-/* everywhere (also sign-in pages and popups): teal focus instead of blue */
+/* everywhere (also sign-in pages and popups): the selected field gets a thick dark teal outline like Levelpath
+   (sampled #3e706f): 1 px border + 1 px ring = 2 px, plus a faint teal halo; no layout shift */
 :is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within, .peer-focus-visible\:ring-blue-500) {
-  --tw-ring-color: rgba(47, 138, 132, .22);
-  border-color: #3f8f8a !important;
+  --tw-ring-color: rgba(62, 112, 111, .25);
+  border-color: #3e706f !important;
 }
-:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 3px rgba(47, 138, 132, .18) !important; }
+:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 1px #3e706f, 0 0 0 4px rgba(62, 112, 111, .10) !important; }
 /* tables: light grey header with dividers between columns, rows split by hairlines */
 .robust main table { border-collapse: separate; border-spacing: 0; }
 .robust main thead tr, .robust main thead { background: #fafafa; }
@@ -181,9 +182,9 @@ fieldset:disabled textarea:focus {
 /* forms like Levelpath (popups and pages marked .form-scope, e.g. Cenik): big bold field labels,
    grey help text in normal size, fields with 10 px corners and 15 px text */
 :is(.modal-body, .form-scope) label:not(:has(input)):not(.cursor-pointer), :is(.modal-body, .form-scope) .field-label { font-size: 16px !important; line-height: 22px; font-weight: 600 !important; color: #131313 !important; }
-:is(.modal-body, .form-scope) .flex.flex-col:is(.gap-1, .gap-1\.5):has(> label, > .field-label) { gap: 8px; }
-:is(.modal-body, .form-scope) label:not(:has(input)) + :is(input, textarea, div, button) { margin-top: 8px; }
-:is(.modal-body, .form-scope) label.block.mb-1 { margin-bottom: 8px; }
+:is(.modal-body, .form-scope) .flex.flex-col:is(.gap-1, .gap-1\.5):has(> label, > .field-label) { gap: 6px; }
+:is(.modal-body, .form-scope) :not(.flex-col) > label:not(:has(input)) + :is(input, textarea, div, button) { margin-top: 6px; }
+:is(.modal-body, .form-scope) label.block.mb-1 { margin-bottom: 6px; }
 .modal-body .flex.flex-col:is(.gap-3, .gap-4) { row-gap: 20px; }
 :is(.modal-body, .form-scope) p:is(.text-xs, .text-\[13px\]):not(.text-red-600):not(.text-red-500) { font-size: 14px; line-height: 20px; font-weight: 400; color: #4f4f4f; }
 :is(.modal-body, .form-scope) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not(.sr-only), textarea, .field-control) { border-radius: 10px; font-size: 15px; }
@@ -199,6 +200,8 @@ fieldset:disabled textarea:focus {
 .modal-body .grid:has(input:not([type=checkbox]):not([type=radio]), textarea, .field-control):not(:has(.grid)) { grid-template-columns: minmax(0, 1fr); }
 .modal-body .grid:has(input:not([type=checkbox]):not([type=radio]), textarea, .field-control):not(:has(.grid)) > * { grid-column: auto; }
 :is(.modal-body, .form-scope) label :is(.text-red-500, .text-red-600) { color: #9b1c3c; }
+/* required field: dark red star after the label (sampled from Levelpath) */
+.req-star { color: #8a0f29; font-weight: 600; }
 /* a table directly followed by its footer: one frame with square bottom corners */
 .robust main .rounded-xl:has(+ .table-footer) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .robust main .table-footer { border-color: #dfdfdf; }

@@ -5,15 +5,17 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
   unit?: string
+  /** shows a dark red star after the label (the field must be filled in) */
+  requiredMark?: boolean
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, id, unit, ...props }, ref) => {
+  ({ className, label, error, id, unit, requiredMark, ...props }, ref) => {
     return (
       <div className="flex flex-col gap-1">
         {label && (
           <label htmlFor={id} className="field-label text-xs font-medium" style={{ color: '#4f4f4f' }}>
-            {label}
+            {label}{requiredMark && <span className="req-star" aria-hidden> *</span>}
           </label>
         )}
         {unit ? (

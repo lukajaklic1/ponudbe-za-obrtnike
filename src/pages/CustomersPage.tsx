@@ -40,10 +40,16 @@ function typeOf(c: Customer): CustomerType {
 }
 
 
+/** light grey examples inside the fields */
+const PH = {
+  sl: { first: 'npr. Janez', last: 'npr. Novak', company: 'npr. Gradnje Novak d.o.o.', vat: 'npr. SI12345678', email: 'npr. janez.novak@gmail.com', phone: 'npr. 041 123 456', street: 'npr. Slovenska cesta 12', postal: 'npr. 1000', city: 'npr. Ljubljana' },
+  en: { first: 'e.g. John', last: 'e.g. Smith', company: 'e.g. Smith Builders Ltd', vat: 'e.g. SI12345678', email: 'e.g. john.smith@gmail.com', phone: 'e.g. 041 123 456', street: 'e.g. Main Street 12', postal: 'e.g. 1000', city: 'e.g. Ljubljana' },
+}
 export default function CustomersPage() {
   const { company, hasPerm, isAdmin, loading: permLoading } = useCompany()
   const canEdit = hasPerm('customers', 'create')
   const { t, lang } = useLanguage()
+  const ph = PH[lang === 'en' ? 'en' : 'sl']
   const s = t.qp
   const o = t.od
   const [rows, setRows] = useState<Customer[]>([])
@@ -253,19 +259,19 @@ export default function CustomersPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {isPerson ? <>
-              <Input id="c-first" label={t.settings.firstName} {...field('first_name')} />
-              <Input id="c-last" label={t.settings.lastName} {...field('last_name')} />
+              <Input id="c-first" label={t.settings.firstName} requiredMark placeholder={ph.first} {...field('first_name')} />
+              <Input id="c-last" label={t.settings.lastName} requiredMark placeholder={ph.last} {...field('last_name')} />
             </> : <>
-              <Input id="c-name" label={o.companyName} {...field('name')} />
-              <Input id="c-vat" label={s.vatNumber} {...field('vat_number')} />
-              <Input id="c-first" label={o.contactFirstName} {...field('first_name')} />
-              <Input id="c-last" label={o.contactLastName} {...field('last_name')} />
+              <Input id="c-name" label={o.companyName} requiredMark placeholder={ph.company} {...field('name')} />
+              <Input id="c-vat" label={s.vatNumber} placeholder={ph.vat} {...field('vat_number')} />
+              <Input id="c-first" label={o.contactFirstName} placeholder={ph.first} {...field('first_name')} />
+              <Input id="c-last" label={o.contactLastName} placeholder={ph.last} {...field('last_name')} />
             </>}
-            <Input id="c-email" label={t.common.email} type="email" {...field('email')} />
-            <Input id="c-phone" label={t.common.phone} {...field('phone')} />
-            <div className="sm:col-span-2"><Input id="c-street" label={o.street} {...field('address_street')} /></div>
-            <Input id="c-postal" label={t.common.postalCode} {...field('address_postal_code')} />
-            <Input id="c-city" label={o.city} {...field('address_city')} />
+            <Input id="c-email" label={t.common.email} type="email" placeholder={ph.email} {...field('email')} />
+            <Input id="c-phone" label={t.common.phone} placeholder={ph.phone} {...field('phone')} />
+            <div className="sm:col-span-2"><Input id="c-street" label={o.street} placeholder={ph.street} {...field('address_street')} /></div>
+            <Input id="c-postal" label={t.common.postalCode} placeholder={ph.postal} {...field('address_postal_code')} />
+            <Input id="c-city" label={o.city} placeholder={ph.city} {...field('address_city')} />
             <div className="sm:col-span-2 flex flex-col gap-1">
               <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}

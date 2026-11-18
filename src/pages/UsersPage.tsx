@@ -27,7 +27,8 @@ function fullAccess() {
 
 export default function UsersPage() {
   const { company, isAdmin, loading } = useCompany()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const ph = lang === 'en' ? { first: 'e.g. John', last: 'e.g. Smith', email: 'e.g. john.smith@company.com' } : { first: 'npr. Janez', last: 'npr. Novak', email: 'npr. janez.novak@podjetje.si' }
   const s = t.settings
   const [users, setUsers] = useState<AppUser[]>([])
   const [invites, setInvites] = useState<UserInvitation[]>([])
@@ -286,10 +287,10 @@ export default function UsersPage() {
         ) : (
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input id="inv-first" label={s.firstName} value={inv.first_name} onChange={e => setInv(v => ({ ...v, first_name: e.target.value }))} />
-              <Input id="inv-last" label={s.lastName} value={inv.last_name} onChange={e => setInv(v => ({ ...v, last_name: e.target.value }))} />
+              <Input id="inv-first" requiredMark placeholder={ph.first} label={s.firstName} value={inv.first_name} onChange={e => setInv(v => ({ ...v, first_name: e.target.value }))} />
+              <Input id="inv-last" requiredMark placeholder={ph.last} label={s.lastName} value={inv.last_name} onChange={e => setInv(v => ({ ...v, last_name: e.target.value }))} />
               <div className="col-span-1 sm:col-span-2">
-                <Input id="inv-email" label={s.inviteEmail} type="email" value={inv.email} onChange={e => setInv(v => ({ ...v, email: e.target.value }))} />
+                <Input id="inv-email" requiredMark placeholder={ph.email} label={s.inviteEmail} type="email" value={inv.email} onChange={e => setInv(v => ({ ...v, email: e.target.value }))} />
               </div>
             </div>
 
@@ -308,8 +309,8 @@ export default function UsersPage() {
       <Modal open={!!editUser} onClose={() => setEditUser(null)} title={`${editUser?.first_name ?? ''} ${editUser?.last_name ?? ''}`} size="lg">
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input id="edit-first" label={s.firstName} value={editForm.first_name} onChange={e => setEditForm(v => ({ ...v, first_name: e.target.value }))} />
-            <Input id="edit-last" label={s.lastName} value={editForm.last_name} onChange={e => setEditForm(v => ({ ...v, last_name: e.target.value }))} />
+            <Input id="edit-first" requiredMark placeholder={ph.first} label={s.firstName} value={editForm.first_name} onChange={e => setEditForm(v => ({ ...v, first_name: e.target.value }))} />
+            <Input id="edit-last" requiredMark placeholder={ph.last} label={s.lastName} value={editForm.last_name} onChange={e => setEditForm(v => ({ ...v, last_name: e.target.value }))} />
             <div className="col-span-1 sm:col-span-2 flex flex-col gap-1">
               <label className="text-xs font-medium text-label">{t.common.email}</label>
               <input value={editUser?.email ?? ''} disabled
