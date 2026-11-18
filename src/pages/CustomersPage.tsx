@@ -242,10 +242,10 @@ export default function CustomersPage() {
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? s.editCustomer : s.newCustomer} size="lg">
         <div className="flex flex-col gap-4">
           {/* Person / company switch */}
-          <div className="inline-flex self-start rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+          <div className="inline-flex self-start h-10 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
             {([['person', o.typePerson], ['company', o.typeCompany]] as [CustomerType, string][]).map(([v, label]) => (
               <button key={v} type="button" onClick={() => setForm(f => ({ ...f, customer_type: v }))}
-                className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${form.customer_type === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
+                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#4f4f4f] hover:text-gray-900'}`}>
                 {label}
               </button>
             ))}

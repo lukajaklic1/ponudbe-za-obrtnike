@@ -70,7 +70,7 @@ export default function Select<V extends string | number>({ value, options, onCh
 
   const button = (
     <button ref={btnRef} type="button" disabled={disabled} onClick={toggle}
-      className={cn('w-full flex items-center gap-2 rounded-lg border border-gray-200 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
+      className={cn('field-control w-full flex items-center gap-2 rounded-lg border border-gray-200 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
         'hover:border-gray-400 disabled:hover:border-gray-200 disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:cursor-default', open && 'border-gray-400', h, className)}>
       <span className="flex-1 min-w-0 truncate">
         {current ? <span className="text-gray-900">{current.label}</span> : <span className="text-[#4f4f4f]">{placeholder ?? ''}</span>}
