@@ -1,14 +1,51 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Trophy, Search, X, CalendarDays, BarChart3, Users, Layers, Send, XCircle, Tags } from 'lucide-react'
+import { LayoutDashboard, Search, X, CalendarDays, BarChart3, Users, Tags } from 'lucide-react'
 import { SortIcon } from '../components/ui/SortIcon'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
 import { FilterSelect } from '../components/ui/FilterSelect'
+
+/** teal family for every chart */
+const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e4' }
+type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string }
+
+/** a KPI card like Levelpath: label, big number, change vs the previous period, a soft teal curve across the bottom */
+function KpiCard({ label, value, delta, deltaLabel, series, hint }: { label: string; value: string; delta: { text: string; up: boolean | null } | null; deltaLabel: string; series: number[]; hint?: string }) {
+  const data = series.map((v, i) => ({ i, v }))
+  const id = 'g' + label.replace(/[^a-z]/gi, '')
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
+      <div className="px-5 pt-4">
+        <p className="text-[15px] font-medium text-gray-900">{label}</p>
+        <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
+          <p className="text-[26px] leading-8 font-bold text-gray-900 tracking-[-0.02em]">{value}</p>
+          {delta && <span className="inline-flex items-center gap-1 text-xs font-semibold px-[7px] py-[3px] rounded-lg"
+            style={delta.up === false ? { color: '#4a4a4a', backgroundColor: '#ececec' } : { color: '#267a47', backgroundColor: '#dbfce7' }}>
+            {delta.up === null ? '' : delta.up ? '▲' : '▼'} {delta.text}</span>}
+          <span className="text-[13px] font-medium text-[#4f4f4f]">{delta ? deltaLabel : hint}</span>
+        </div>
+      </div>
+      <div className="h-[72px] mt-3 -mx-px">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={TEAL.fill} stopOpacity={0.28} />
+                <stop offset="100%" stopColor={TEAL.fill} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <Area type="monotone" dataKey="v" stroke={TEAL.line} strokeWidth={2} fill={`url(#${id})`} isAnimationActive={false} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
 
 interface Stats {
   pipeline_value: number
@@ -65,6 +102,7 @@ export default function DashboardPage() {
   // Current state per status (value + count) — not limited to the period; refreshed live
   type StatusKey = 'all' | 'sent' | 'won' | 'lost'
   const [statusStats, setStatusStats] = useState<Record<StatusKey, { value: number; count: number }> | null>(null)
+  const [quotes, setQuotes] = useState<Q[]>([])
 
   // Top services: lines of non-draft quotes, filtered by the chart's own status picker (default: won)
   const [serviceLines, setServiceLines] = useState<{ name: string; value: number; status: string }[]>([])
@@ -84,14 +122,15 @@ export default function DashboardPage() {
   async function loadStatusStats() {
     if (!company) return
     const [{ data }, { data: lineData }] = await Promise.all([
-      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id').eq('company_id', company.id),
+      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at').eq('company_id', company.id),
       supabase.from('quote_lines').select('quote_id, name, total_net').eq('company_id', company.id),
     ])
     const acc: Record<StatusKey, { value: number; count: number }> = {
       all: { value: 0, count: 0 }, sent: { value: 0, count: 0 }, won: { value: 0, count: 0 }, lost: { value: 0, count: 0 },
     }
     const statusOf = new Map<string, string>()   // included quote id → status
-    for (const q of (data as { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null }[]) ?? []) {
+    setQuotes(((data as Q[]) ?? []).filter(q => (!filterCustomerId || q.customer_id === filterCustomerId) && (!assigneeFilter || q.assignee_id === assigneeFilter)))
+    for (const q of (data as Q[]) ?? []) {
       if (filterCustomerId && q.customer_id !== filterCustomerId) continue
       if (assigneeFilter && q.assignee_id !== assigneeFilter) continue
       if (q.status === 'draft') continue          // drafts are work in progress, not offers
@@ -182,12 +221,51 @@ export default function DashboardPage() {
   const sl = lang === 'sl'
 
   const st = statusStats
-  const kpis = [
-    { key: 'all',    label: sl ? 'Vse ponudbe' : 'All quotes',   icon: Layers,       bg: 'bg-[#dbfce7]',   iconColor: 'text-[#267a47]' },
-    { key: 'sent',   label: sl ? 'Poslane' : 'Sent',             icon: Send,         bg: 'bg-[#fef3cd]',   iconColor: 'text-[#8a6100]' },
-    { key: 'won',    label: sl ? 'Dobljene' : 'Won',             icon: Trophy,       bg: 'bg-[#e0fced]',   iconColor: 'text-[#007d53]' },
-    { key: 'lost',   label: sl ? 'Izgubljene' : 'Lost',          icon: XCircle,      bg: 'bg-[#f4f4f5]',   iconColor: 'text-[#4f4f4f]' },
-  ] as const
+  // the chosen period and the one before it, split into buckets for the curves (days, weeks or months)
+  const kpi = (() => {
+    const DAY = 86400000
+    const now = Date.now(), len = period * 30 * DAY
+    const start = now - len, prevStart = start - len
+    const buckets = period === 1 ? 30 : period === 12 ? 12 : period * 13 / 3 | 0
+    const bucketOf = (t: number) => Math.min(buckets - 1, Math.max(0, Math.floor((t - start) / (len / buckets))))
+    const inCur = (d: string | null) => !!d && +new Date(d) >= start && +new Date(d) <= now
+    const inPrev = (d: string | null) => !!d && +new Date(d) >= prevStart && +new Date(d) < start
+    const sentAt = (q: Q) => q.status === 'draft' ? null : q.sent_at ?? q.created_at
+    const closedAt = (q: Q) => (q.status === 'won' || q.status === 'lost' ? q.updated_at : null)
+    const series = (pick: (q: Q) => string | null, val: (q: Q) => number, filter: (q: Q) => boolean = () => true) => {
+      const out = Array(buckets).fill(0)
+      for (const q of quotes) { const d = pick(q); if (filter(q) && inCur(d)) out[bucketOf(+new Date(d!))] += val(q) }
+      // running total through the period: a smooth rising curve instead of single spikes
+      let run = 0
+      return out.map(x => (run += x))
+    }
+    const sum = (inP: (d: string | null) => boolean, pick: (q: Q) => string | null, val: (q: Q) => number, filter: (q: Q) => boolean = () => true) =>
+      quotes.reduce((a, q) => a + (filter(q) && inP(pick(q)) ? val(q) : 0), 0)
+    const v = (q: Q) => Number(q.total_net) || 0, one = () => 1
+    const won = (q: Q) => q.status === 'won', lost = (q: Q) => q.status === 'lost'
+    const change = (cur: number, prev: number, fmt: (n: number) => string, asPct = true) => {
+      if (!cur && !prev) return null
+      if (!prev) return { text: fmt(cur), up: cur > 0 ? true : null }
+      const d = asPct ? Math.round(((cur - prev) / prev) * 100) : cur - prev
+      return { text: asPct ? `${Math.abs(d)} %` : fmt(Math.abs(d)), up: d === 0 ? null : d > 0 }
+    }
+    const sentV = sum(inCur, sentAt, v), sentVp = sum(inPrev, sentAt, v)
+    const sentN = sum(inCur, sentAt, one), sentNp = sum(inPrev, sentAt, one)
+    const wonV = sum(inCur, closedAt, v, won), wonVp = sum(inPrev, closedAt, v, won)
+    const wonN = sum(inCur, closedAt, one, won), lostN = sum(inCur, closedAt, one, lost)
+    const wonNp = sum(inPrev, closedAt, one, won), lostNp = sum(inPrev, closedAt, one, lost)
+    const rate = wonN + lostN ? Math.round(wonN / (wonN + lostN) * 100) : 0
+    const rateP = wonNp + lostNp ? Math.round(wonNp / (wonNp + lostNp) * 100) : 0
+    const wonS = series(closedAt, one, won), lostS = series(closedAt, one, lost)
+    let w = 0, l = 0
+    const rateS = wonS.map((x, i) => { w += x; l += lostS[i]; return w + l ? w / (w + l) * 100 : 0 })
+    return [
+      { label: sl ? 'Poslane ponudbe' : 'Quotes sent', value: String(sentN), delta: change(sentN, sentNp, n => String(n), false), series: series(sentAt, one) },
+      { label: sl ? 'Vrednost poslanih ponudb' : 'Value of quotes sent', value: money(sentV), delta: change(sentV, sentVp, money), series: series(sentAt, v) },
+      { label: sl ? 'Dobljeni posli' : 'Deals won', value: money(wonV), delta: change(wonV, wonVp, money), series: series(closedAt, v, won) },
+      { label: sl ? 'Uspešnost' : 'Win rate', value: `${rate} %`, delta: wonN + lostN || wonNp + lostNp ? { text: `${Math.abs(rate - rateP)} ${sl ? 'o. t.' : 'pts'}`, up: rate === rateP ? null : rate > rateP } : null, series: rateS },
+    ]
+  })()
 
   const periods = [
     { v: 1 as const, sl: '30 dni', en: '30 days' },
@@ -281,17 +359,10 @@ export default function DashboardPage() {
 
       <div className="px-6 py-5 space-y-6">
 
-        {/* KPI cards: label, big number, quiet count (Levelpath style, no coloured icons) */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          {kpis.map(k => (
-            <div key={k.key} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
-              <p className="text-[13px] font-medium text-gray-600">{k.label}</p>
-              <div className="flex items-center gap-2.5 mt-1.5">
-                <p className="text-[26px] leading-8 font-semibold text-gray-900 tracking-[-0.02em]">{money(st?.[k.key].value ?? 0)}</p>
-                <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#ececec] text-[#4a4a4a]" title={countQuotes(lang, st?.[k.key].count ?? 0)}>{countQuotes(lang, st?.[k.key].count ?? 0)}</span>
-              </div>
-            </div>
-          ))}
+        {/* KPI cards: number, change vs the previous period, teal curve (Levelpath style) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {kpi.map(k => <KpiCard key={k.label} label={k.label} value={k.value} delta={k.delta} series={k.series}
+            deltaLabel={sl ? 'glede na prejšnje obdobje' : 'vs previous period'} hint={sl ? 'v izbranem obdobju' : 'in this period'} />)}
         </div>
 
 
@@ -300,33 +371,41 @@ export default function DashboardPage() {
 
             {/* Values chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-sm font-medium text-gray-900 mb-5">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
+              <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false} width={60} />
-                  <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
-                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill="#5cb88a" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                <AreaChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="won-realized_value" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.fill} stopOpacity={0.3} /><stop offset="100%" stopColor={TEAL.fill} stopOpacity={0.02} /></linearGradient>
+                    <linearGradient id="sent-sent_value" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.light} stopOpacity={0.35} /><stop offset="100%" stopColor={TEAL.light} stopOpacity={0.02} /></linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="#f0f0f0" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
+                  <Area type="monotone" dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} stroke={TEAL.light} strokeWidth={2} fill="url(#sent-sent_value)" />
+                  <Area type="monotone" dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} stroke={TEAL.line} strokeWidth={2} fill="url(#won-realized_value)" />
+                </AreaChart>
               </ResponsiveContainer>}
             </div>
 
             {/* Count chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-sm font-medium text-gray-900 mb-5">{sl ? 'Število ponudb' : 'Quote count'}</h2>
+              <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Število ponudb' : 'Quote count'}</h2>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false} width={32} />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: '#6b7280', paddingTop: 8 }} />
-                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill="#ffe5a0" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill="#5cb88a" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                <AreaChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="won-realized_count" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.fill} stopOpacity={0.3} /><stop offset="100%" stopColor={TEAL.fill} stopOpacity={0.02} /></linearGradient>
+                    <linearGradient id="sent-sent_count" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.light} stopOpacity={0.35} /><stop offset="100%" stopColor={TEAL.light} stopOpacity={0.02} /></linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="#f0f0f0" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
+                  <Area type="monotone" dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} stroke={TEAL.light} strokeWidth={2} fill="url(#sent-sent_count)" />
+                  <Area type="monotone" dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} stroke={TEAL.line} strokeWidth={2} fill="url(#won-realized_count)" />
+                </AreaChart>
               </ResponsiveContainer>}
             </div>
           </div>
@@ -335,16 +414,16 @@ export default function DashboardPage() {
         {/* Status breakdown (donut) + top services */}
         {(() => {
           const slices = [
-            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#f5b100' },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#5cb88a' },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#d4d4d8' },
+            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: TEAL.light },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: TEAL.line },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: TEAL.grey },
           ].map(x => ({ ...x, count: st?.[x.key as StatusKey].count ?? 0, value: st?.[x.key as StatusKey].value ?? 0 }))
           const total = st?.all.count ?? 0
           const servicesTotal = topServices.reduce((a, x) => a + x.value, 0)
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-sm font-medium text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
+                <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
                 {total === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[220px] text-center">
                     <BarChart3 className="w-10 h-10 text-gray-200 mb-3" />
@@ -362,15 +441,15 @@ export default function DashboardPage() {
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-2xl font-semibold text-gray-900">{total}</span>
-                      <span className="text-xs text-gray-500">{countQuotes(lang, total).replace(/^\d+ /, '')}</span>
+                      <span className="text-[26px] font-bold tracking-[-0.02em] text-gray-900">{total}</span>
+                      <span className="text-[13px] font-medium text-[#4f4f4f]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span>
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col gap-2">
                     {slices.map(x => (
-                      <div key={x.key} className="flex items-center gap-2 text-xs">
-                        <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: x.color }} />
-                        <span className="text-gray-600 flex-1">{x.name}</span>
+                      <div key={x.key} className="flex items-center gap-2 text-sm font-medium">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: x.color }} />
+                        <span className="text-[#4f4f4f] flex-1">{x.name}</span>
                         <span className="text-gray-900 font-medium tabular-nums">{x.count}</span>
                       </div>
                     ))}
@@ -381,7 +460,7 @@ export default function DashboardPage() {
 
               <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
                 <div className="flex items-center justify-between gap-3 mb-5 -mt-1">
-                  <h2 className="text-sm font-medium text-gray-900">
+                  <h2 className="text-[15px] font-semibold text-gray-900">
                     {sl ? 'Storitve po vrednosti' : 'Services by value'}
                   </h2>
                   <FilterSelect label={sl ? 'Status ponudb' : 'Quote status'} value={serviceStatus === 'all' ? '' : serviceStatus} allLabel={sl ? 'Vse' : 'All'}
@@ -407,7 +486,7 @@ export default function DashboardPage() {
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0} %)`, sl ? 'Vrednost' : 'Value']}
                         cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
-                      <Bar dataKey="value" fill="#5bb8ad" radius={[0, 4, 4, 0]} maxBarSize={22} />
+                      <Bar dataKey="value" fill={TEAL.fill} radius={[0, 6, 6, 0]} maxBarSize={22} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -419,7 +498,7 @@ export default function DashboardPage() {
         {/* Customer table */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-sm font-medium text-gray-900">{s.topCustomers}</h2>
+              <h2 className="text-[15px] font-semibold text-gray-900">{s.topCustomers}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm font-medium min-w-[600px]">
