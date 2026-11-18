@@ -13,14 +13,14 @@ import { cn } from '../lib/cn'
 
 const TXT = {
   sl: {
-    title: 'Spletni konfigurator', save: 'Shrani',
+    title: 'Objava', save: 'Shrani',
     cfgEnabled: 'Konfigurator je javno dostopen', cfgSlug: 'Naslov strani', cfgShowPrices: 'Stranka vidi cene sproti',
     cfgAccent: 'Barva gumbov', cfgIntro: 'Uvodno besedilo', cfgLink: 'Povezava za tvojo spletno stran', copy: 'Kopiraj', copied: 'Kopirano',
     open: 'Odpri', embed: 'Vstavi v spletno stran (iframe)', slugInvalid: 'Naslov: 3–40 znakov, male črke, številke in vezaji',
     slugTaken: 'Ta naslov je že zaseden',
   },
   en: {
-    title: 'Online configurator', save: 'Save',
+    title: 'Publishing', save: 'Save',
     cfgEnabled: 'Configurator is publicly available', cfgSlug: 'Page address', cfgShowPrices: 'Customer sees prices live',
     cfgAccent: 'Button colour', cfgIntro: 'Intro text', cfgLink: 'Link for your website', copy: 'Copy', copied: 'Copied',
     open: 'Open', embed: 'Embed in your website (iframe)', slugInvalid: 'Address: 3–40 chars, lowercase letters, digits and dashes',

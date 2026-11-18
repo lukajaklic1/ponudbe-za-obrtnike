@@ -8,15 +8,15 @@ export default function RoofWindowDrawing({ size = 100, opening, frameColor = '#
     <svg className={className} width={size} height={size} viewBox="0 0 100 100" role="img" aria-hidden>
       <g transform="translate(50 50) skewX(-20)">
         {/* frame depth (side of the frame visible below) */}
-        <rect x={-24} y={-36} width={48} height={76} rx={1.5} fill="#d4d6d7" stroke="#6d7073" strokeWidth={1} />
+        <rect x={-24} y={-36} width={48} height={76} rx={1.5} fill="#d4d6d7" stroke="#5b6168" strokeWidth={1} />
         {/* frame + sash + glass */}
-        <rect x={-24} y={-40} width={48} height={76} rx={1.5} fill={frameColor} stroke="#6d7073" strokeWidth={1.3} />
-        <rect x={-19} y={-35} width={38} height={66} rx={1} fill={frameColor} stroke="#6d7073" strokeWidth={0.9} />
-        <rect x={-15} y={-30.5} width={30} height={57} fill="#e3ebea" stroke="#6d7073" strokeWidth={0.8} />
+        <rect x={-24} y={-40} width={48} height={76} rx={1.5} fill={frameColor} stroke="#5b6168" strokeWidth={1.3} />
+        <rect x={-19} y={-35} width={38} height={66} rx={1} fill={frameColor} stroke="#5b6168" strokeWidth={0.9} />
+        <rect x={-15} y={-30.5} width={30} height={57} fill="#cfe3f3" stroke="#5b6168" strokeWidth={0.8} />
         <line x1={-10} y1={-18} x2={-2} y2={-24} stroke="#ffffff" strokeWidth={2.6} strokeLinecap="round" opacity={0.85} />
         {opening && <line x1={-19} y1={axisY} x2={19} y2={axisY} stroke="#7c7f82" strokeWidth={1} strokeDasharray="3 2" />}
         {/* handle on the lower edge */}
-        <rect x={-6} y={27.5} width={12} height={2.6} rx={0.8} fill="#6d7073" />
+        <rect x={-6} y={27.5} width={12} height={2.6} rx={0.8} fill="#5b6168" />
       </g>
     </svg>
   )

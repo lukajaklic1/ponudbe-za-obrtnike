@@ -13,7 +13,7 @@ import Checkbox from '../components/ui/Checkbox'
 import { PageHeader } from '../components/ui/PageHeader'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
-import { costWindow, specToLayout, CALC_LABELS, glassOf, handleOf, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
+import { costWindow, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import { sampleRoofCatalog, newRoofId, sampleColors, sampleGlass, sampleHandles, sampleSills, STANDARD_SILLS, newSillId, sampleShading, STANDARD_SHADING, HANDLE_COLORS, type RoofCatalog, type RoofOpening, type ProfileColor, type GlassType, type HandleType, type SillType, type ShadingType } from '../lib/costing'
@@ -74,11 +74,20 @@ const ofOpenings = (n: number) => n === 1 ? 'načina odpiranja' : 'načinov odpi
 
 const TXT = {
   sl: {
-    title: 'Cenik',
+    title: 'Konfigurator',
     groupWindows: 'Okna', groupDoors: 'Balkonska vrata', onRequest: 'Cena na povpraševanje: stranka pošlje mere, ceno vpišete v ponudbo.',
     catWindows: 'Okna', catSlidingWindows: 'Drsna okna', catDoors: 'Balkonska vrata', catSliding: 'Drsne stene', catSpecial: 'Posebne oblike',
     roofSummary: (m: number, s: number) => `${m} ${m === 1 ? 'model' : m === 2 ? 'modela' : 'modeli'} · ${s} mer`, roofModel: 'Model', roofOpening: 'Način odpiranja',
     roofCenter: 'Vrtljivo (os na sredini)', roofTop: 'Zgornje vrtišče', roofSizes: 'Mere (širina × višina) in prodajna cena brez DDV', roofAddSize: 'Dodaj mero', roofAddModel: 'Dodaj model',
+    roofStepTitle: 'Katera strešna okna ponujate?',
+    roofStepHint: 'Strešna okna so izdelki iz kataloga proizvajalca. Za vsak model vpišite mere in prodajne cene brez DDV, kot jih stranka vidi v ponudbi. Marža se jim ne prišteva.',
+    roofSizesTitle: 'Mere in prodajne cene', roofSizesHint: 'Širina × višina okna v centimetrih in prodajna cena brez DDV za to mero.',
+    roofColW: 'Širina', roofColH: 'Višina', roofColPrice: 'Prodajna cena',
+    roofVersionsTitle: 'Izvedbe', roofVersionsHint: (a: string, b: string) => `Če model ponujate v več izvedbah (material ali barva), jih dodajte tukaj. Prva izvedba je osnovna in je že vključena v ceno mere. Pri ostalih vpišite doplačilo v odstotkih. Primer: mera stane ${a} €, izvedba z doplačilom 10 % stane ${b} €.`,
+    roofVersionPh: 'Les, naravni', roofNoVersions: 'Model ima eno samo izvedbo. Dodajte izvedbe, če ga ponujate v več materialih ali barvah.',
+    roofAddVersion: 'Dodaj izvedbo',
+    roofFlashTitle: 'Obrobe za kritino', roofFlashHint: 'Obroba tesni stik med strešnim oknom in kritino. Stranka v konfiguratorju izbere obrobo glede na vrsto kritine. Cena velja za eno okno.',
+    roofFlashPh: 'Obroba za valovito kritino',
     roofFlashings: 'Obrobe za kritino (prodajna cena brez DDV)', roofBrand: 'Proizvajalec', roofDescription: 'Opis za stranko', roofDescriptionHint: 'Npr. troslojno steklo, Uw 1,0 W/m²K, les ali PVC …', roofDatasheet: 'Tehnični list (povezava do PDF)', roofVariants: 'Material in barva (doplačilo na ceno mere)', roofVariantHint: 'Npr. les naravni, PVC bel …', roofAddVariant: 'Dodaj material ali barvo', roofAddFlashing: 'Dodaj obrobo', roofHint: 'Strešna okna so izdelki iz kataloga: vpišite prodajne cene brez DDV, kot jih ima stranka v ponudbi. Marža se jim ne prišteva.',
     catEntry: 'Vhodna vrata', catRoof: 'Strešna okna', catGarage: 'Garažna vrata', catShading: 'Senčila', soon: 'Kmalu',
     sashCount: 'Število kril', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, panelCount: 'Število polj',
@@ -110,7 +119,7 @@ const TXT = {
     sillTitle: 'Katere police ponujate?', sillHint: 'Vnesite nabavno ceno police na tekoči meter. Polica je dolga toliko, kot je okno široko. Stranka v konfiguratorju izbere notranjo in zunanjo polico ali brez police in vidi doplačilo. Marža se doda na koncu na celotno okno.',
     sillInner: 'Notranje police', sillOuter: 'Zunanje police', sillName: 'Polica', sillCost: 'Nabavna cena', sillDescPh: 'npr. Globina do 30 cm, z zaključnimi kapami.', addSillInner: 'Dodaj notranjo polico', addSillOuter: 'Dodaj zunanjo polico', sillMaterial: 'Material',
     sillMaterials: { none: 'Brez materiala', pvc_white: 'PVC, bela', pvc_oak: 'PVC, dekor hrast', pvc_anthracite: 'PVC, antracit', wood_oak: 'Les, hrast', wood_walnut: 'Les, oreh', granite: 'Granit, siv', granite_dark: 'Granit, temen', marble: 'Marmor', alu_white: 'Aluminij, bel', alu_silver: 'Aluminij, srebrn', alu_anthracite: 'Aluminij, antracit', alu_brown: 'Aluminij, rjav' } as Record<string, string>, quickAdd: 'Hitro dodaj:', addPicture: 'Dodaj sliko',
-    sampleTitle: 'Cenik je izpolnjen z vzorčnimi cenami.', sampleText: 'Preverite in popravite jih na svoje nabavne cene, preden objavite konfigurator. To opozorilo bo izginilo, ko boste prvič shranili cenik.',
+    sampleTitle: 'Konfigurator je izpolnjen z vzorčnimi cenami.', sampleText: 'Preverite in popravite jih na svoje nabavne cene, preden objavite konfigurator. To opozorilo bo izginilo, ko boste prvič shranili konfigurator.',
     shadeTitle: 'Katera senčila in komarnike ponujate?', shadeHint: 'Vnesite nabavne cene in izberite, kako se obračuna: na okno ali na vsako krilo, ki se odpira. Seštejejo se fiksni znesek (pogon, končni deli), cena na meter širine (omarica), na meter višine (vodila) in na m² (lamele, mreža); pri obračunu na krilo za vsako krilo, ki se odpira, posebej. Kar ne potrebujete, pustite na 0. Najnižja prodajna cena velja za majhna okna: stranka nikoli ne plača manj od te cene. Če je komarnik vgrajen v omarico senčila, se omarica in vodila ne štejeta dvakrat: velja cena »ko je vgrajen v senčilo«. Stranka v konfiguratorju izbere senčilo in komarnik ali brez in vidi doplačilo. Marža se v kalkulaciji doda na koncu na celotno okno.',
     shadeShades: 'Senčila', shadeScreens: 'Komarniki', shadeNamePh: 'npr. Zunanje žaluzije', screenNamePh: 'npr. Okvirni komarnik', shadeDrawing: 'Slika', shadeUnit: 'Obračun', shadeCostM2: 'Na m²',
     allowsScreen: 'Omogoča vgrajen komarnik (skupna omarica in vodila)', canIntegrate: 'Lahko je vgrajen v senčilo',
@@ -160,23 +169,32 @@ const TXT = {
     colorName: 'Barva', colorCode: 'Oznaka', badRal: (c: string) => `Oznaka »${c}« ne predstavlja RAL barve. Preverite kodo ali barvo izberite s klikom na vzorec.`, ralHint: 'Vpišite RAL kodo (npr. RAL 7016) in vzorec se obarva sam. Lahko pa kliknete vzorec in barvo izberete.', colorOne: 'Doplačilo za eno stran', colorBoth: 'Doplačilo za obe strani', addColor: 'Dodaj barvo …', ownColor: 'Lastna barva', colorsNoMaterial: 'Najprej v koraku 3 izberite material.',
     s2: 'Iz katerih materialov so okna, ki jih ponujate?', s2hint: 'Izberite materiale ter pod vsakim kreirajte profile, ki jih ponujate. Za vsak profil vpišite nabavne cene na tekoči meter ter najnižjo ceno okna v primeru manjših oken.',
     matName: 'Naziv profila', matNamePh: 'npr. PVC 82 mm, 7 komor', perM2: 'Cena na m²', minPrice: 'Najnižja cena okna',
-    description: 'Opis za stranko', descriptionPh: 'npr. Uw do 0,75 W/m²K, primerno za pasivne hiše', addProfile: 'Dodaj profil', removeProfile: 'Odstrani profil', removeTitle: 'Odstranim profil?', removeItemTitle: 'Res želite odstraniti?', removeItemMsg: (n: string) => n.trim() ? `»${n.trim()}« bo odstranjeno iz cenika, ko naslednjič shranite cenik.` : 'Vrstica bo odstranjena iz cenika, ko naslednjič shranite cenik.', photoRemoveMsg: (n: string) => `Slika profila »${n}« bo takoj odstranjena.`,
+    description: 'Opis za stranko', descriptionPh: 'npr. Uw do 0,75 W/m²K, primerno za pasivne hiše', addProfile: 'Dodaj profil', removeProfile: 'Odstrani profil', removeTitle: 'Odstranim profil?', removeItemTitle: 'Res želite odstraniti?', removeItemMsg: (n: string) => n.trim() ? `»${n.trim()}« bo odstranjeno, ko naslednjič shranite konfigurator.` : 'Vrstica bo odstranjena iz cenika, ko naslednjič shranite cenik.', photoRemoveMsg: (n: string) => `Slika profila »${n}« bo takoj odstranjena.`,
     removeMsg: (n: string) => `Profil »${n}« bo dokončno odstranjen iz cenika šele, ko shranite cenik. Poslane ponudbe ostanejo nespremenjene.`, minTitle: 'Najnižja prodajna cena okna brez DDV', minHint: 'Določite najnižjo prodajno ceno okna. Če je izračunana cena manjšega okna nižja, se upošteva ta cena.',
     metrePricesHint: 'Vpišite nabavne cene profilov na tekoči meter brez DDV.', widthsHint: 'Kolikšen del profila se vidi. Iz tega se izračuna velikost stekla.', usedFor: 'Uporablja se za', usedForTitle: 'Pri katerih izdelkih ponujate ta profil?', usedForHint: 'Profil bo stranki na voljo samo pri izbranih skupinah, po navedenih cenah.', colProfile: 'Profil', colFrame: 'Okvir €/m', colSash: 'Krilo €/m', colMullion: 'Steber €/m', colBead: 'Letvica €/m', colUsedFor: 'Uporablja se za', allProducts: 'Vsi izdelki', noProducts: 'Nikjer', editProfile: 'Uredi', showProfiles: 'Profili',
     profileCount: (n: number) => `${n} ${n % 100 === 1 ? 'profil' : n % 100 === 2 ? 'profila' : n % 100 === 3 || n % 100 === 4 ? 'profili' : 'profilov'}`,
     priceLine: (f: string, s2: string, m2: string) => `okvir ${f}/m · krilo ${s2}/m · vmesnik ${m2}/m`,
     profilesLine: (names: string) => `Profili: ${names}`, noProfile: 'Za to skupino ni izbran noben profil. Dodajte ga v koraku 3.', isBase: 'Osnovni profil', moreThan: (pct: number, base: string) => `${pct} % dražji od profila ${base}`, photo: 'Naloži sliko', photoChange: 'Zamenjaj sliko', photoRemove: 'Odstrani sliko', photoHint: 'Prerez ali fotografija profila. Brez slike se prikaže risba.',
     add: 'Dodaj', name: 'Naziv', price: 'Cena', dflt: 'Privzeto', quick: 'Hitro dodaj:', remove: 'Odstrani',
-    save: 'Shrani cenik', saved: 'Cenik je shranjen', unsaved: 'Spremembe niso shranjene',
+    save: 'Shrani', saved: 'Shranjeno', unsaved: 'Spremembe niso shranjene',
     example: 'Primer', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
     preview: 'Predogled cene', live: 'v živo', width: 'Širina', height: 'Višina', totalNet: 'Skupaj brez DDV', previewHint: 'Vključene so privzete izbire. Tako bo stranka videla ceno v konfiguratorju.',
   },
   en: {
-    title: 'Price list',
+    title: 'Configurator',
     groupWindows: 'Windows', groupDoors: 'Balcony doors', onRequest: 'Price on request: the customer sends sizes, you price it in the quote.',
     catWindows: 'Windows', catSlidingWindows: 'Sliding windows', catDoors: 'Balcony doors', catSliding: 'Sliding walls', catSpecial: 'Special shapes',
     roofSummary: (m: number, s: number) => `${m} models · ${s} sizes`, roofModel: 'Model', roofOpening: 'Opening',
     roofCenter: 'Centre pivot', roofTop: 'Top hung', roofSizes: 'Sizes (width × height) and sale price excl. VAT', roofAddSize: 'Add size', roofAddModel: 'Add model',
+    roofStepTitle: 'Which roof windows do you offer?',
+    roofStepHint: 'Roof windows are products from a manufacturer catalogue. For every model enter the sizes and sale prices excl. VAT as the customer sees them in the quote. No margin is added.',
+    roofSizesTitle: 'Sizes and sale prices', roofSizesHint: 'Window width × height in centimetres and the sale price excl. VAT for that size.',
+    roofColW: 'Width', roofColH: 'Height', roofColPrice: 'Sale price',
+    roofVersionsTitle: 'Versions', roofVersionsHint: (a: string, b: string) => `If you offer the model in several versions (material or colour), add them here. The first version is the base one and is already included in the size price. For the others enter the surcharge in percent. Example: the size costs € ${a}, a version with a 10 % surcharge costs € ${b}.`,
+    roofVersionPh: 'Natural wood', roofNoVersions: 'The model has a single version. Add versions if you offer it in several materials or colours.',
+    roofAddVersion: 'Add version',
+    roofFlashTitle: 'Roof flashings', roofFlashHint: 'The flashing seals the joint between the roof window and the roofing. The customer picks the flashing for their roof type in the configurator. The price is per window.',
+    roofFlashPh: 'Flashing for profiled roofing',
     roofFlashings: 'Roof flashings (sale price excl. VAT)', roofBrand: 'Manufacturer', roofDescription: 'Description for the customer', roofDescriptionHint: 'E.g. triple glazing, Uw 1.0 W/m²K, wood or PVC …', roofDatasheet: 'Technical sheet (link to PDF)', roofVariants: 'Material and colour (surcharge on the size price)', roofVariantHint: 'E.g. natural wood, white PVC …', roofAddVariant: 'Add material or colour', roofAddFlashing: 'Add flashing', roofHint: 'Roof windows are catalogue products: enter sale prices excl. VAT as the customer sees them. No margin is added.',
     catEntry: 'Entrance doors', catRoof: 'Roof windows', catGarage: 'Garage doors', catShading: 'Shading', soon: 'Soon',
     sashCount: 'Number of sashes', nWall: (n: number) => `${n}-panel sliding wall`, panelCount: 'Number of panels',
@@ -207,7 +225,7 @@ const TXT = {
     sillTitle: 'Which window sills do you offer?', sillHint: 'Enter the purchase price of the sill per metre. The sill is as long as the window is wide. In the configurator the customer picks an inside and an outside sill or none and sees the surcharge. The margin is added to the whole window at the end.',
     sillInner: 'Inside sills', sillOuter: 'Outside sills', sillName: 'Sill', sillCost: 'Purchase price', sillDescPh: 'e.g. Depth up to 30 cm, with end caps.', addSillInner: 'Add inside sill', addSillOuter: 'Add outside sill', sillMaterial: 'Material',
     sillMaterials: { none: 'No material', pvc_white: 'PVC, white', pvc_oak: 'PVC, oak decor', pvc_anthracite: 'PVC, anthracite', wood_oak: 'Wood, oak', wood_walnut: 'Wood, walnut', granite: 'Granite, grey', granite_dark: 'Granite, dark', marble: 'Marble', alu_white: 'Aluminium, white', alu_silver: 'Aluminium, silver', alu_anthracite: 'Aluminium, anthracite', alu_brown: 'Aluminium, brown' } as Record<string, string>, quickAdd: 'Quick add:', addPicture: 'Add a picture',
-    sampleTitle: 'The price list is filled with sample prices.', sampleText: 'Check them and change them to your own purchase prices before you publish the configurator. This notice will disappear once you save the price list for the first time.',
+    sampleTitle: 'The configurator is filled with sample prices.', sampleText: 'Check them and change them to your own purchase prices before you publish the configurator. This notice will disappear once you save the configurator for the first time.',
     shadeTitle: 'Which shading and insect screens do you offer?', shadeHint: 'Enter the purchase prices and how they are counted: per window or per opening sash. The fixed amount (drive, end parts), the price per metre of width (box), per metre of height (guides) and per m² (slats, mesh) are added up; per sash for every opening sash. Leave at 0 what you do not need. The lowest sale price is for small windows: the customer never pays less than this price. When an insect screen is built into the box of the shading, the box and guides are not counted twice: the "built into a shading" price applies. In the configurator the customer picks a shading and an insect screen or none and sees the surcharge. In the costing the margin is added to the whole window at the end.',
     shadeShades: 'Shading', shadeScreens: 'Insect screens', shadeNamePh: 'e.g. External blinds', screenNamePh: 'e.g. Framed insect screen', shadeDrawing: 'Picture', shadeUnit: 'Counted', shadeCostM2: 'Per m²',
     allowsScreen: 'An insect screen can be built in (shared box and guides)', canIntegrate: 'Can be built into a shading',
@@ -257,14 +275,14 @@ const TXT = {
     colorName: 'Colour', colorCode: 'Code', badRal: (c: string) => `"${c}" is not a RAL colour. Check the code or pick the colour by clicking the swatch.`, ralHint: 'Type a RAL code (e.g. RAL 7016) and the swatch takes its colour. Or click the swatch to pick a colour.', colorOne: 'Surcharge, one side', colorBoth: 'Surcharge, both sides', addColor: 'Add colour …', ownColor: 'Own colour', colorsNoMaterial: 'Choose a material in step 3 first.',
     s2: 'Which materials are your windows made of?', s2hint: 'Select the materials and create the profiles you offer under each. For every profile enter the purchase prices per metre and the minimum price of a window for smaller windows.',
     matName: 'Profile name', matNamePh: 'e.g. PVC 82 mm, 7 chambers', perM2: 'Price per m²', minPrice: 'Minimum window price',
-    description: 'Description for customers', descriptionPh: 'e.g. Uw up to 0.75 W/m²K, passive-house ready', addProfile: 'Add profile', removeProfile: 'Remove profile', removeTitle: 'Remove the profile?', removeItemTitle: 'Remove it?', removeItemMsg: (n: string) => n.trim() ? `"${n.trim()}" is removed from the price list the next time you save the price list.` : 'The row is removed from the price list the next time you save the price list.', photoRemoveMsg: (n: string) => `The picture of profile "${n}" is removed right away.`,
+    description: 'Description for customers', descriptionPh: 'e.g. Uw up to 0.75 W/m²K, passive-house ready', addProfile: 'Add profile', removeProfile: 'Remove profile', removeTitle: 'Remove the profile?', removeItemTitle: 'Remove it?', removeItemMsg: (n: string) => n.trim() ? `"${n.trim()}" is removed the next time you save the configurator.` : 'The row is removed from the price list the next time you save the price list.', photoRemoveMsg: (n: string) => `The picture of profile "${n}" is removed right away.`,
     removeMsg: (n: string) => `Profile "${n}" is permanently removed from the price list only when you save it. Sent quotes stay as they are.`, minTitle: 'Minimum sale price of a window excl. VAT', minHint: 'Set the lowest sale price of a window. If the calculated price of a smaller window is lower, this price is used.',
     metrePricesHint: 'Enter the purchase prices of the profiles per metre, excl. VAT.', widthsHint: 'How much of the profile is visible. The glass size follows from it.', usedFor: 'Used for', usedForTitle: 'For which products do you offer this profile?', usedForHint: 'Customers get the profile only for the selected groups, at these prices.', colProfile: 'Profile', colFrame: 'Frame €/m', colSash: 'Sash €/m', colMullion: 'Mullion €/m', colBead: 'Bead €/m', colUsedFor: 'Used for', allProducts: 'All products', noProducts: 'Nowhere', editProfile: 'Edit', showProfiles: 'Profiles',
     profileCount: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`,
     priceLine: (f: string, s2: string, m2: string) => `frame ${f}/m · sash ${s2}/m · mullion ${m2}/m`,
     profilesLine: (names: string) => `Profiles: ${names}`, noProfile: 'No profile is selected for this group. Add one in step 3.', isBase: 'Base profile', moreThan: (pct: number, base: string) => `${pct} % dearer than profile ${base}`, photo: 'Upload picture', photoChange: 'Replace picture', photoRemove: 'Remove picture', photoHint: 'Cross-section or photo of the profile. Without one a drawing is shown.',
     add: 'Add', name: 'Name', price: 'Price', dflt: 'Default', quick: 'Quick add:', remove: 'Remove',
-    save: 'Save price list', saved: 'Price list saved', unsaved: 'Unsaved changes',
+    save: 'Save', saved: 'Saved', unsaved: 'Unsaved changes',
     example: 'Example', exampleText: (shape: string, mat: string, price: string) => `${shape}, ${mat}, 1200 × 1400 mm: ${price}`,
     preview: 'Price preview', live: 'live', width: 'Width', height: 'Height', totalNet: 'Total excl. VAT', previewHint: 'Default choices are included. This is the price the customer sees in the configurator.',
   },
@@ -833,7 +851,7 @@ export default function PriceListSetupPage() {
           </Step>
 
           {/* 2. settings per product group, each one a fold you open with the arrow */}
-          {(offer.windows || offer.slidingWindows || offer.doors || offer.sliding || offer.roof) && <Step n={2} title={T.s1b} hint={T.s1bhint}>
+          {(offer.windows || offer.slidingWindows || offer.doors || offer.sliding) && <Step n={2} title={T.s1b} hint={T.s1bhint}>
             <div className="space-y-3">
             {/* windows: sashes, top light / bottom panel, openings */}
             {offer.windows && <Fold open={!!folds.windows} onToggle={() => { toggleFold('windows'); setOpenSash(null); setVariantTab({}) }} title={T.catWindows} summary={windowsSummary}
@@ -923,91 +941,6 @@ export default function PriceListSetupPage() {
               </Fold>
             })()}
 
-            {/* roof windows: models in standard sizes + flashings */}
-            {offer.roof && (() => {
-              const roof: RoofCatalog = pricing.roof ?? { models: [], flashings: [] }
-              const setRoof = (r: RoofCatalog) => { setPricing(x => ({ ...x, roof: r })); touch() }
-              const setModel = (id: string, patch: Partial<RoofCatalog['models'][number]>) => setRoof({ ...roof, models: roof.models.map(m => m.id === id ? { ...m, ...patch } : m) })
-              const inputCls = 'w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-              return <Fold open={!!folds.roof} onToggle={() => toggleFold('roof')} title={T.catRoof}
-                summary={T.roofSummary(roof.models.length, roof.models.reduce((a, m) => a + m.sizes.length, 0))} pic={<RoofWindowDrawing size={72} />}>
-                <div className="space-y-4">
-                  {roof.models.map(m => (
-                    <div key={m.id} className="rounded-lg border border-gray-200 p-3 space-y-3">
-                      <div className="flex flex-wrap items-end gap-3">
-                        {/* picture of the model (upload) — the drawing until there is one */}
-                        <label className={cn('relative w-[88px] h-[88px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden', canEdit && 'cursor-pointer hover:border-gray-400')}
-                          title={m.image_url ? T.photoChange : T.photo}>
-                          {m.image_url ? <img src={m.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <RoofWindowDrawing size={60} opening={m.opening} />}
-                          {canEdit && <span className="absolute bottom-1 right-1 w-5 h-5 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-600">
-                            {uploadingKey === m.id ? '…' : <Upload className="w-3 h-3" />}</span>}
-                          {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(m.id, f, url => setModel(m.id, { image_url: url })) }} />}
-                        </label>
-                        <div className="w-40 flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#4f4f4f]">{T.roofBrand}</label>
-                          <input value={m.brand ?? ''} onChange={e => setModel(m.id, { brand: e.target.value })} disabled={!canEdit} placeholder="Velux, Fakro …" className={inputCls} />
-                        </div>
-                        <div className="flex-1 min-w-[200px] flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#4f4f4f]">{T.roofModel}</label>
-                          <input value={m.name} onChange={e => setModel(m.id, { name: e.target.value })} disabled={!canEdit} className={inputCls} />
-                        </div>
-                        <div className="w-56 flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#4f4f4f]">{T.roofOpening}</label>
-                          <Select value={m.opening} onChange={v => setModel(m.id, { opening: v as RoofOpening })} disabled={!canEdit}
-                            options={[{ value: 'center', label: T.roofCenter }, { value: 'top', label: T.roofTop }]} />
-                        </div>
-                        {canEdit && <button type="button" onClick={() => askRemove(m.name, () => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) }))} title={T.remove}
-                          className="h-[38px] px-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
-                      </div>
-                      <div className="grid md:grid-cols-[1fr_280px] gap-3">
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDescription}</label>
-                          <textarea value={m.description ?? ''} onChange={e => setModel(m.id, { description: e.target.value })} disabled={!canEdit} rows={3}
-                            placeholder={T.roofDescriptionHint} className={cn(inputCls, 'resize-y')} />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDatasheet}</label>
-                          <input value={m.datasheet_url ?? ''} onChange={e => setModel(m.id, { datasheet_url: e.target.value })} disabled={!canEdit} placeholder="https://…" className={inputCls} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="field-label text-xs mb-1.5">{T.roofSizes}</div>
-                        <div className="space-y-2">
-                          {m.sizes.map(sz => (
-                            <div key={sz.id} className="flex flex-wrap items-center gap-2">
-                              <div className="w-28"><NumberInput value={sz.w} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, w: v ?? 0 } : x) })} /></div>
-                              <span className="text-sm text-gray-400">×</span>
-                              <div className="w-28"><NumberInput value={sz.h} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, h: v ?? 0 } : x) })} /></div>
-                              <div className="w-36"><NumberInput value={sz.price} unit={cur} decimals={2} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, price: v ?? 0 } : x) })} /></div>
-                              {canEdit && <button type="button" onClick={() => askRemove(`${sz.w} × ${sz.h} cm`, () => setModel(m.id, { sizes: m.sizes.filter(x => x.id !== sz.id) }))} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
-                            </div>
-                          ))}
-                        </div>
-                        {canEdit && <button type="button" onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w: 78, h: 118, price: 0 }] })}
-                          className="mt-2 inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddSize}</button>}
-                      </div>
-                    </div>
-                  ))}
-                  {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: [...roof.models, { id: newRoofId(), name: '', opening: 'center', sizes: [] }] })}
-                    className="inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddModel}</button>}
-                  <div className="pt-3 border-t border-gray-100">
-                    <div className="field-label text-xs mb-1.5">{T.roofFlashings}</div>
-                    <div className="space-y-2">
-                      {roof.flashings.map(f => (
-                        <div key={f.id} className="flex flex-wrap items-center gap-2">
-                          <input value={f.name} onChange={e => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, name: e.target.value } : x) })} disabled={!canEdit} className={cn(inputCls, 'flex-1 min-w-[220px] w-auto')} />
-                          <div className="w-36"><NumberInput value={f.price} unit={cur} decimals={2} onValue={v => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, price: v ?? 0 } : x) })} /></div>
-                          {canEdit && <button type="button" onClick={() => askRemove(f.name, () => setRoof({ ...roof, flashings: roof.flashings.filter(x => x.id !== f.id) }))} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>}
-                        </div>
-                      ))}
-                    </div>
-                    {canEdit && <button type="button" onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: '', price: 0 }] })}
-                      className="mt-2 inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>}
-                  </div>
-                  <p className="text-[13px] leading-5 text-[#4f4f4f]">{T.roofHint}</p>
-                </div>
-              </Fold>
-            })()}
             </div>
           </Step>}
 
@@ -1610,12 +1543,164 @@ export default function PriceListSetupPage() {
             {serviceCards('transport', false, { namePh: T.transportNamePh, descPh: T.transportDescPh, add: T.addTransport }, true)}
           </Step>
 
+          {/* 15. roof windows: a catalogue of models (sizes with sale prices, versions) and roof flashings */}
+          {offer.roof && (() => {
+            const roof: RoofCatalog = pricing.roof ?? { models: [], flashings: [] }
+            const setRoof = (r: RoofCatalog) => { setPricing(x => ({ ...x, roof: r })); touch() }
+            const setModel = (id: string, patch: Partial<RoofCatalog['models'][number]>) => setRoof({ ...roof, models: roof.models.map(m => m.id === id ? { ...m, ...patch } : m) })
+            const inputCls = 'w-full rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+            const chip = 'inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors'
+            const addBtn = 'inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline'
+            const trash = 'shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50'
+            const STD_SIZES: [number, number][] = [[55, 78], [66, 118], [78, 98], [78, 118], [78, 140], [94, 118], [94, 140], [114, 118], [114, 140]]
+            const STD_VERSIONS: [string, string, number][] = [['Les, naravni', 'Natural wood', 0], ['Les, belo lakiran', 'White lacquered wood', 10], ['PVC, bel', 'White PVC', 15], ['Poliuretan, bel', 'White polyurethane', 20]]
+            const STD_FLASHINGS: [string, string, number][] = [['Obroba za valovito kritino (opečna, betonska)', 'Flashing for profiled roofing (clay, concrete tiles)', 95], ['Obroba za ravno kritino (skodle, ploščice)', 'Flashing for flat roofing (shingles, slates)', 80], ['Obroba za pločevinasto kritino', 'Flashing for metal roofing', 90]]
+            const n2 = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            return <Step n={15} title={T.roofStepTitle} hint={T.roofStepHint}>
+              <div className="space-y-4">
+                {roof.models.map(m => {
+                  const versions = m.variants ?? []
+                  const setVersions = (v: NonNullable<typeof m.variants>) => setModel(m.id, { variants: v })
+                  const exPrice = m.sizes[0]?.price ? Number(m.sizes[0].price) : 465
+                  const freeSizes = STD_SIZES.filter(([w, h]) => !m.sizes.some(x => x.w === w && x.h === h))
+                  const freeVersions = STD_VERSIONS.filter(([a, b]) => !versions.some(x => [a, b].includes(x.name.trim())))
+                  return <div key={m.id} className="rounded-xl border border-gray-200 bg-white">
+                    {/* the model: picture, manufacturer, name, opening, description, technical sheet */}
+                    <div className="p-4 flex gap-4">
+                      <label className={cn('relative w-[104px] h-[104px] shrink-0 rounded-lg border border-gray-200 bg-[#fafafa] flex items-center justify-center overflow-hidden', canEdit && 'cursor-pointer hover:border-gray-400')}
+                        title={m.image_url ? T.photoChange : T.photo}>
+                        {m.image_url ? <img src={m.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <RoofWindowDrawing size={72} opening={m.opening} />}
+                        {canEdit && <span className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-600">
+                          {uploadingKey === m.id ? '…' : <Upload className="w-3.5 h-3.5" />}</span>}
+                        {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(m.id, f, url => setModel(m.id, { image_url: url })) }} />}
+                      </label>
+                      <div className="flex-1 min-w-0 space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)_220px] gap-3">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofBrand}</label>
+                              <input value={m.brand ?? ''} onChange={e => setModel(m.id, { brand: e.target.value })} disabled={!canEdit} placeholder="Velux, Fakro, Roto" className={inputCls} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofModel}</label>
+                              <input value={m.name} onChange={e => setModel(m.id, { name: e.target.value })} disabled={!canEdit} placeholder="GGL" className={inputCls} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofOpening}</label>
+                              <Select value={m.opening} onChange={v => setModel(m.id, { opening: v as RoofOpening })} disabled={!canEdit}
+                                options={[{ value: 'center', label: T.roofCenter }, { value: 'top', label: T.roofTop }]} />
+                            </div>
+                          </div>
+                          {canEdit && <button type="button" onClick={() => askRemove(m.name || T.catRoof, () => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) }))} title={T.remove}
+                            className={cn(trash, 'mt-[30px]')}><Trash2 className="w-4 h-4" /></button>}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] gap-3 pr-0 md:pr-[44px]">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDescription}</label>
+                            <textarea value={m.description ?? ''} onChange={e => setModel(m.id, { description: e.target.value })} disabled={!canEdit} rows={2}
+                              placeholder={lang === 'en' ? 'Triple glazing, Uw 1.0 W/m²K, wood or PVC' : 'Troslojno steklo, Uw 1,0 W/m²K, les ali PVC'} className={cn(inputCls, 'resize-y')} />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDatasheet}</label>
+                            <input value={m.datasheet_url ?? ''} onChange={e => setModel(m.id, { datasheet_url: e.target.value })} disabled={!canEdit} placeholder="https://" className={inputCls} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* sizes with sale prices, as a small table */}
+                    <div className="border-t border-gray-100 p-4">
+                      <div className="field-label text-xs">{T.roofSizesTitle}</div>
+                      <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3">{T.roofSizesHint}</p>
+                      {m.sizes.length > 0 && <div className="max-w-[560px] rounded-[10px] border border-gray-200 overflow-hidden">
+                        <div className="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)_minmax(0,1.2fr)_36px] items-center gap-2 px-3 py-2.5 bg-[#fafafa] border-b border-gray-200 text-sm font-medium text-[#4f4f4f]">
+                          <span>{T.roofColW}</span><span /><span>{T.roofColH}</span><span>{T.roofColPrice}</span><span />
+                        </div>
+                        <div className="divide-y divide-gray-100">
+                          {m.sizes.map(sz => (
+                            <div key={sz.id} className="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)_minmax(0,1.2fr)_36px] items-center gap-2 px-3 py-2">
+                              <NumberInput value={sz.w} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, w: v ?? 0 } : x) })} />
+                              <span className="text-center text-sm text-gray-400">×</span>
+                              <NumberInput value={sz.h} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, h: v ?? 0 } : x) })} />
+                              <NumberInput value={sz.price} unit={cur} decimals={2} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, price: v ?? 0 } : x) })} />
+                              {canEdit ? <button type="button" onClick={() => askRemove(`${sz.w} × ${sz.h} cm`, () => setModel(m.id, { sizes: m.sizes.filter(x => x.id !== sz.id) }))} className={trash}><Trash2 className="w-4 h-4" /></button> : <span />}
+                            </div>
+                          ))}
+                        </div>
+                      </div>}
+                      {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <button type="button" onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w: 78, h: 118, price: 0 }] })} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddSize}</button>
+                        {freeSizes.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
+                        {freeSizes.map(([w, h]) => <button key={`${w}x${h}`} type="button" className={chip}
+                          onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w, h, price: 0 }].sort((a, b) => a.w - b.w || a.h - b.h) })}>+ {w} × {h}</button>)}
+                      </div>}
+                    </div>
+
+                    {/* versions: the first is the base one, the others carry a surcharge in % on the size price */}
+                    <div className="border-t border-gray-100 p-4">
+                      <div className="field-label text-xs">{T.roofVersionsTitle}</div>
+                      <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3 max-w-3xl">{T.roofVersionsHint(n2(exPrice), n2(exPrice * 1.1))}</p>
+                      {versions.length > 0 ? <div className="max-w-[560px] space-y-2">
+                        {versions.map((v, i) => (
+                          <div key={v.id} className="flex items-center gap-2">
+                            <input value={v.name} onChange={e => setVersions(versions.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))} disabled={!canEdit}
+                              placeholder={T.roofVersionPh} className={cn(inputCls, 'flex-1')} />
+                            <div className="w-[150px] shrink-0">
+                              {i === 0
+                                ? <span className="inline-flex text-xs font-semibold rounded-lg px-[7px] py-[3px]" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{T.baseIncluded}</span>
+                                : <NumberInput value={v.pct} unit="%" decimals={0} onValue={p => setVersions(versions.map(x => x.id === v.id ? { ...x, pct: p ?? 0 } : x))} />}
+                            </div>
+                            {canEdit ? <button type="button" onClick={() => askRemove(v.name, () => {
+                              const rest = versions.filter(x => x.id !== v.id)
+                              // the new first one becomes the base version
+                              setVersions(rest.map((x, j) => (j === 0 ? { ...x, pct: 0 } : x)))
+                            })} className={trash}><Trash2 className="w-4 h-4" /></button> : <span className="w-8" />}
+                          </div>
+                        ))}
+                      </div> : <p className="text-[13px] text-[#4f4f4f]">{T.roofNoVersions}</p>}
+                      {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <button type="button" onClick={() => setVersions([...versions, { id: newRoofId(), name: '', pct: versions.length ? 10 : 0 }])} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddVersion}</button>
+                        {freeVersions.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
+                        {freeVersions.map(([a, b, pct]) => <button key={a} type="button" className={chip}
+                          onClick={() => setVersions([...versions, { id: newRoofId(), name: lang === 'en' ? b : a, pct: versions.length ? pct || 10 : 0 }])}>+ {lang === 'en' ? b : a}</button>)}
+                      </div>}
+                    </div>
+                  </div>
+                })}
+                {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: [...roof.models, { id: newRoofId(), name: '', opening: 'center', sizes: [] }] })} className={addBtn}>
+                  <Plus className="w-4 h-4" />{T.roofAddModel}</button>}
+
+                {/* roof flashings: one price per window */}
+                <div className="pt-5 mt-1 border-t border-gray-100">
+                  <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.roofFlashTitle}</div>
+                  <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3 max-w-3xl">{T.roofFlashHint}</p>
+                  {roof.flashings.length > 0 && <div className="max-w-[720px] space-y-2">
+                    {roof.flashings.map(f => (
+                      <div key={f.id} className="flex items-center gap-2">
+                        <input value={f.name} onChange={e => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, name: e.target.value } : x) })} disabled={!canEdit}
+                          placeholder={T.roofFlashPh} className={cn(inputCls, 'flex-1')} />
+                        <div className="w-[150px] shrink-0"><NumberInput value={f.price} unit={cur} decimals={2} onValue={v => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, price: v ?? 0 } : x) })} /></div>
+                        {canEdit && <button type="button" onClick={() => askRemove(f.name, () => setRoof({ ...roof, flashings: roof.flashings.filter(x => x.id !== f.id) }))} className={trash}><Trash2 className="w-4 h-4" /></button>}
+                      </div>
+                    ))}
+                  </div>}
+                  {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <button type="button" onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: '', price: 0 }] })} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>
+                    {STD_FLASHINGS.filter(([a, b]) => !roof.flashings.some(x => [a, b].includes(x.name.trim()))).length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
+                    {STD_FLASHINGS.filter(([a, b]) => !roof.flashings.some(x => [a, b].includes(x.name.trim()))).map(([a, b, price]) => <button key={a} type="button" className={chip}
+                      onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: lang === 'en' ? b : a, price }] })}>+ {lang === 'en' ? b : a}</button>)}
+                  </div>}
+                </div>
+              </div>
+            </Step>
+          })()}
+
           {/* 11+. extras and services (colour, glass and handles of built windows have their own steps) */}
           {sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).map((sec, i) => {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + 15} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + (offer.roof ? 16 : 15)} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">
@@ -1650,103 +1735,6 @@ export default function PriceListSetupPage() {
           })}
 
 
-          {/* worked example at the very bottom: the whole price of a double window without a mullion (passive + tilt & turn sash),
-              with the first profile and the supplier's own prices from all steps above: data first, then the calculation step by step */}
-          {(() => {
-            const prof = profiles.find(p => matOn[p.material]) ?? profiles[0]
-            const pp: ProfilePrices = prof ? toPrices(prof) : { frame_m: 0, sash_m: 0, mullion_m: 0, bead_m: 0 }
-            const fw = pp.frame_w ?? 70, OV = 8
-            const W = 1200, H = 1400
-            const spec: WindowSpec = { ...makeSpec(2), main: [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }] }
-            const calc = costWindow(specToLayout(spec), W, H, pp, pricing, { labels: CALC_LABELS[lang === 'en' ? 'en' : 'sl'] })
-            const fxT = pricing.hw.passive ?? 0, pmT = pricing.hw_m.passive ?? 0
-            const fxK = pricing.hw.tilt_turn ?? 0, pmK = pricing.hw_m.tilt_turn ?? 0
-            const openW = (W - 2 * fw) / 2, openH = H - 2 * fw
-            const sashW = openW + 2 * OV, sashH = openH + 2 * OV
-            const per = 2 * (sashW + sashH) / 1000
-            const tilt = fxT + pmT * per, tt = fxK + pmK * per
-            const lm = pricing.labour_margin_pct ?? pricing.margin_pct
-            const marginAmt = Math.round(calc.material * pricing.margin_pct) / 100, labourAmt = Math.round(calc.labour * lm) / 100
-            const n = (v: number, d = 2) => v.toLocaleString(lang === 'en' ? 'en-GB' : 'sl-SI', { minimumFractionDigits: d, maximumFractionDigits: d })
-            const line = (label: string, value: React.ReactNode) => <div key={label} className="grid grid-cols-1 sm:grid-cols-[240px_1fr] gap-x-4 gap-y-0.5 py-1">
-              <span className="text-[#4f4f4f]">{label}</span><span className="text-gray-900 tabular-nums">{value}</span>
-            </div>
-            const step = (no: number, title: string, children: React.ReactNode) => <div className="rounded-lg bg-white border border-gray-200 px-4 py-3">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="w-5 h-5 rounded-full bg-gray-900 text-white text-[11px] font-semibold flex items-center justify-center">{no}</span>
-                <span className="text-sm font-medium text-gray-900">{title}</span>
-              </div>
-              <div className="text-sm">{children}</div>
-            </div>
-            const pname = prof?.name || T.exNoProfile
-            return <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-5 space-y-6">
-              <div>
-                <div className="text-base font-medium text-gray-900">{T.exTitle}</div>
-                <p className="text-sm text-gray-600 mt-1">{T.exIntro(n(W, 0), n(H, 0), pname)}</p>
-              </div>
-              {/* 1. the data, each with where it comes from */}
-              <div>
-                <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{T.exData}</div>
-                <div className="rounded-lg bg-white border border-gray-200 divide-y divide-gray-100 text-sm">
-                  {([
-                    [T.exDataWindow, `${n(W, 0)} × ${n(H, 0)} mm`, T.exSrcExample],
-                    [T.exDataFrame, `${n(fw, 0)} mm`, T.exSrcProfile(pname)],
-                    [T.exDataProfileM, `${T.frameM} ${n(pp.frame_m)} €/m · ${T.sashM} ${n(pp.sash_m)} €/m · ${T.beadM} ${n(pp.bead_m)} €/m`, T.exSrcProfile(pname)],
-                    [T.exDataOverlap, `${OV} mm`, T.exSrcFixed],
-                    [T.exDataPassive, `${n(fxT)} € + ${n(pmT)} €/m`, T.exSrcTable(T.hw.passive)],
-                    [T.exDataTt, `${n(fxK)} € + ${n(pmK)} €/m`, T.exSrcTable(T.hw.tilt_turn)],
-                    [T.exDataGlass, `${glassOf(pricing)?.name ?? ''} ${n(glassOf(pricing)?.cost_m2 ?? pricing.glass_m2)} €/m²`, T.exSrcGlass],
-                    [T.exDataHandle, `${handleOf(pricing)?.name ?? ''} ${n(handleOf(pricing)?.cost ?? 0)} €`, T.exSrcHandle],
-                    [T.exDataLabour, `${n(pricing.labour_window)} € + ${n((calc.frameLen + calc.mullionLen) / 1000)} m × ${n(pricing.labour_frame_m ?? 0)} €/m + 2 × ${n(pricing.labour_sash)} € + ${n(calc.sashLen / 1000)} m × ${n(pricing.labour_sash_m ?? 0)} €/m`, T.exSrcLast],
-                    [T.waste, `${n(pricing.waste_pct, 0)} %`, T.exSrcLast],
-                    [T.margin, `${n(pricing.margin_pct, 0)} %`, T.exSrcLast],
-                    [T.labourMargin, `${n(lm, 0)} %`, T.exSrcLast],
-                  ] as [string, string, string][]).map(([k, v, src]) => (
-                    <div key={k} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)] gap-x-4 gap-y-0.5 px-4 py-2">
-                      <span className="text-gray-700">{k}</span>
-                      <span className="text-gray-900 font-medium tabular-nums">{v}</span>
-                      <span className="text-[13px] font-medium text-[#4f4f4f] sm:self-center">{src}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* 2. the calculation, one step at a time */}
-              <div>
-                <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{T.exCalc}</div>
-                <div className="flex flex-col gap-3">
-                  <div className="self-start rounded-lg bg-white border border-gray-200 p-3">
-                    <SpecDrawing spec={spec} width={W} height={H} size={170} showDims />
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-3">
-                    {step(1, T.exStepSize, <>
-                      {line(T.exOpenW, <>({n(W, 0)} − 2 × {n(fw, 0)}) / 2 = {n(openW, 0)} mm</>)}
-                      {line(T.exOpenH, <>{n(H, 0)} − 2 × {n(fw, 0)} = {n(openH, 0)} mm</>)}
-                      {line(T.exSashW, <>{n(openW, 0)} + 2 × {OV} = {n(sashW, 0)} mm</>)}
-                      {line(T.exSashH, <>{n(openH, 0)} + 2 × {OV} = {n(sashH, 0)} mm</>)}
-                      {line(T.exPerimeterL, <>2 × ({n(sashW / 1000, 3)} m + {n(sashH / 1000, 3)} m) = <b className="font-medium">{n(per)} m</b></>)}
-                    </>)}
-                    {step(2, T.exStepHw, <>
-                      {line(T.hw.passive, <>{n(fxT)} € + {n(pmT)} €/m × {n(per)} m = <b className="font-medium">{n(tilt)} €</b></>)}
-                      {line(T.hw.tilt_turn, <>{n(fxK)} € + {n(pmK)} €/m × {n(per)} m = <b className="font-medium">{n(tt)} €</b></>)}
-                      {line(T.exWindow, <>{n(tilt)} € + {n(tt)} € = <b className="font-medium">{n(tilt + tt)} €</b></>)}
-                    </>)}
-                    {step(3, T.exStepCost, <>
-                      <p className="text-[13px] leading-5 text-[#4f4f4f] mb-1">{T.exWasteNote(n(pricing.waste_pct, 0))}</p>
-                      {calc.lines.map(l => line(l.label, <>{n(l.qty, l.unit === 'kos' ? 0 : 2)} {l.unit} × {n(l.price)} € = {n(l.total)} €</>))}
-                      <div className="border-t border-gray-100 mt-1 pt-1">{line(T.cost, <b className="font-medium">{n(calc.cost)} €</b>)}</div>
-                    </>)}
-                    {step(4, T.exStepPrice, <>
-                      {line(T.cost, <>{n(calc.cost)} €</>)}
-                      {line(`${T.marginLine} ${n(pricing.margin_pct, 0)} %`, <>{n(calc.material)} € × {n(pricing.margin_pct, 0)} % = {n(marginAmt)} €</>)}
-                      {line(`${T.labourMarginLine} ${n(lm, 0)} %`, <>{n(calc.labour)} € × {n(lm, 0)} % = {n(labourAmt)} €</>)}
-                      {line(T.windowPrice, <>{n(calc.cost)} € + {n(marginAmt)} € + {n(labourAmt)} € = <b className="font-semibold text-base">{n(calc.price)} €</b> <span className="text-[13px] text-[#4f4f4f]">{T.exNoVat}</span></>)}
-                    </>)}
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">{T.exWords3(n(per), n(tilt + tt), n(calc.cost), n(pricing.margin_pct, 0), n(calc.price), n(lm, 0))}</p>
-            </div>
-          })()}
 
         </div>}
         </div>
