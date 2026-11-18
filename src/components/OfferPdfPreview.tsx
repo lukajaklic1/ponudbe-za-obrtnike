@@ -3,13 +3,16 @@ import { pdf } from '@react-pdf/renderer'
 import * as pdfjsLib from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import OfferPdf from './OfferPdf'
+import { windowDrawings } from '../lib/pdfDrawings'
 import type { OfferSnapshot } from '../types/database'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
 
 // Build the offer PDF as a Blob (same document for preview and download).
 export async function offerPdfBlob(snap: OfferSnapshot, lang: 'sl' | 'en'): Promise<Blob> {
-  return pdf(<OfferPdf snap={snap} lang={lang} />).toBlob()
+  // pictures of the windows (with sizes) for the positions from the configurator
+  const drawings = await windowDrawings(snap.lines ?? []).catch(() => ({}))
+  return pdf(<OfferPdf snap={snap} lang={lang} drawings={drawings} />).toBlob()
 }
 
 export async function downloadOfferPdf(snap: OfferSnapshot, lang: 'sl' | 'en', fileName: string) {

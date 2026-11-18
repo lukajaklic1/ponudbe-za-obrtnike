@@ -65,6 +65,18 @@ const s = StyleSheet.create({
   cell: { fontSize: 8.5 },
   itemName: { fontSize: 8.5 },
   itemDesc: { fontSize: 7.5, color: c.muted, marginTop: 1 },
+  // a window position: drawing with sizes on the left, every choice next to it
+  winRow: { borderBottomWidth: 1, borderBottomColor: c.border, paddingVertical: 10, paddingHorizontal: 8 },
+  winHead: { flexDirection: 'row', alignItems: 'flex-start' },
+  winBody: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 8, marginLeft: 22 },
+  winPic: { width: 118, height: 118, objectFit: 'contain', marginRight: 16 },
+  winTitle: { fontSize: 9.5, fontWeight: 700 },
+  specs: { flex: 1, flexDirection: 'row', flexWrap: 'wrap' },
+  specRow: { width: '50%', flexDirection: 'row', marginBottom: 3, paddingRight: 10 },
+  specLabel: { width: 70, fontSize: 7.5, color: c.muted },
+  specValue: { flex: 1, fontSize: 8 },
+  sectionRow: { paddingVertical: 6, paddingHorizontal: 8, marginTop: 8, borderBottomWidth: 1, borderBottomColor: c.text },
+  sectionName: { fontSize: 8.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 },
 
   totals: { marginTop: 14, alignSelf: 'flex-end', width: 250 },
   totLine: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5 },
@@ -111,6 +123,7 @@ const L = {
     title: 'PONUDBA', date: 'Datum', customer: 'Naročnik', site: 'Lokacija del', contractor: 'Izvajalec',
     vatId: 'ID za DDV', taxNo: 'Davčna št.', regNo: 'Matična št.', registry: 'Registrsko sodišče', shareCapital: 'Osnovni kapital', unpaid: 'nevplačani', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
     pos: 'Poz.', item: 'Opis del', qty: 'Kol.', unit: 'EM', price: 'Cena/EM', disc: 'Pop.', vat: 'DDV', total: 'Vrednost',
+    windows: 'Okna in vrata', services: 'Storitve', others: 'Ostale postavke',
     general: 'Splošno', subtotal: 'Skupaj postavke', discount: 'Popust', net: 'Skupaj brez DDV', vatLine: (r: string) => `DDV ${r}`,
     gross: 'ZA PLAČILO', notes: 'Opombe', terms: 'Pogoji',
     page: (n: number, t: number) => `Stran ${n} / ${t}`,
@@ -119,13 +132,17 @@ const L = {
     title: 'QUOTATION', date: 'Date', customer: 'Client', site: 'Job site', contractor: 'Contractor',
     vatId: 'VAT ID', taxNo: 'Tax no.', regNo: 'Reg. no.', registry: 'Registry court', shareCapital: 'Share capital', unpaid: 'unpaid', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
     pos: 'Pos.', item: 'Description of work', qty: 'Qty', unit: 'Unit', price: 'Unit price', disc: 'Disc.', vat: 'VAT', total: 'Amount',
+    windows: 'Windows and doors', services: 'Services', others: 'Other items',
     general: 'General', subtotal: 'Items total', discount: 'Discount', net: 'Total excl. VAT', vatLine: (r: string) => `VAT ${r}`,
     gross: 'TOTAL DUE', notes: 'Notes', terms: 'Terms',
     page: (n: number, t: number) => `Page ${n} / ${t}`,
   },
 }
 
-export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; lang?: 'sl' | 'en' }) {
+type WinCfg = { kind: 'window'; title?: string; rows?: [string, string][] }
+const kindOf = (l: OfferSnapshotLine) => ((l.config as { kind?: string } | null | undefined)?.kind ?? null)
+
+export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: OfferSnapshot; lang?: 'sl' | 'en'; drawings?: Record<number, string> }) {
   if (!snap?.lines) return <Document><Page><Text>No data</Text></Page></Document>
 
   const { offer, company, customer, lines } = snap
@@ -133,13 +150,31 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
   const U = UNIT[lang]
   const hasDisc = lines.some(l => l.discount_pct > 0)
 
-  // Group by room, keeping first-appearance order
+  const winLines = lines.filter(l => kindOf(l) === 'window')
+  const svcLines = lines.filter(l => kindOf(l) === 'service')
+  const free = lines.filter(l => !kindOf(l))
+  // free lines grouped by room, keeping first-appearance order
   const groups: { room: string | null; lines: OfferSnapshotLine[] }[] = []
-  for (const l of lines) {
+  for (const l of free) {
     const g = groups.find(x => x.room === l.room)
     if (g) g.lines.push(l); else groups.push({ room: l.room, lines: [l] })
   }
-  const showGroups = groups.length > 1 || !!groups[0]?.room
+  const configured = winLines.length > 0 || svcLines.length > 0
+  const showGroups = groups.length > 1 || !!groups[0]?.room || (configured && groups.length > 0)
+  const amountCells = (l: OfferSnapshotLine) => <>
+    <Text style={[s.cell, s.colQty]}>{fmtNum(l.quantity)}</Text>
+    <Text style={[s.cell, s.colUnit, { color: c.muted }]}>{U[l.unit] ?? l.unit}</Text>
+    <Text style={[s.cell, s.colPrice]}>{eur(l.unit_price)}</Text>
+    {hasDisc && <Text style={[s.cell, s.colDisc]}>{l.discount_pct ? pct(l.discount_pct) : ''}</Text>}
+    <Text style={[s.cell, s.colVat, { color: c.muted }]}>{pct(l.vat_rate)}</Text>
+    <Text style={[s.cell, s.colTotal, { fontWeight: 700 }]}>{eur(l.total)}</Text>
+  </>
+  const section = (name: string, sum: number) => (
+    <View style={[s.roomRow, s.sectionRow]} wrap={false}>
+      <Text style={s.sectionName}>{name}</Text>
+      <Text style={s.roomSum}>{eur(sum)}</Text>
+    </View>
+  )
 
   const taxLabel = company.vat_payer === false ? T.taxNo : T.vatId
   const bankLine = [company.bank_iban && `IBAN: ${company.bank_iban}`, company.bank_bic && `BIC: ${company.bank_bic}`, company.bank_name].filter(Boolean).join(' · ')
@@ -216,11 +251,54 @@ export default function OfferPdf({ snap, lang = 'sl' }: { snap: OfferSnapshot; l
           <Text style={[s.thText, s.colTotal]}>{T.total}</Text>
         </View>
 
+        {/* windows from the configurator: drawing with sizes + every choice */}
+        {winLines.length > 0 && <View>
+          {section(T.windows, winLines.reduce((a, l) => a + l.total, 0))}
+          {winLines.map((l, i) => {
+            const w = l.config as unknown as WinCfg
+            const pic = drawings[lines.indexOf(l)]
+            return (
+              <View key={i} style={s.winRow} wrap={false}>
+                {/* position, name and amounts on one line … */}
+                <View style={s.winHead}>
+                  <Text style={[s.cell, s.colPos, { fontWeight: 700 }]}>{i + 1}</Text>
+                  <Text style={[s.colName, s.winTitle]}>{l.name}</Text>
+                  {amountCells(l)}
+                </View>
+                {/* … the drawing with sizes and every choice under it, across the page */}
+                <View style={s.winBody}>
+                  {pic ? <Image src={pic} style={s.winPic} /> : null}
+                  <View style={s.specs}>
+                    {(w.rows ?? []).map(([k, v], j) => (
+                      <View key={j} style={s.specRow}><Text style={s.specLabel}>{k}</Text><Text style={s.specValue}>{v}</Text></View>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            )
+          })}
+        </View>}
+
+        {/* services computed from the windows: M1, M2 … */}
+        {svcLines.length > 0 && <View>
+          {section(T.services, svcLines.reduce((a, l) => a + l.total, 0))}
+          {svcLines.map((l, i) => (
+            <View key={i} style={[s.row, i % 2 === 1 ? s.rowAlt : {}]} wrap={false}>
+              <Text style={[s.cell, s.colPos, { fontWeight: 700 }]}>M{i + 1}</Text>
+              <View style={s.colName}>
+                <Text style={s.itemName}>{l.name}</Text>
+                {l.description && <Text style={s.itemDesc}>{l.description}</Text>}
+              </View>
+              {amountCells(l)}
+            </View>
+          ))}
+        </View>}
+
         {groups.map((g, gi) => (
           <View key={gi}>
             {showGroups && (
               <View style={s.roomRow} wrap={false}>
-                <Text style={s.roomName}>{g.room || T.general}</Text>
+                <Text style={s.roomName}>{g.room || (configured ? T.others : T.general)}</Text>
                 <Text style={s.roomSum}>{eur(g.lines.reduce((a, l) => a + l.total, 0))}</Text>
               </View>
             )}
