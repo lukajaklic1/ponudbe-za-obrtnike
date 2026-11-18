@@ -149,8 +149,14 @@ fieldset:disabled textarea:focus {
 /* top-level cards: hairline border and the faintest shadow (cards inside cards stay flat) */
 .robust main :is(.rounded-xl, .rounded-2xl).border:not(:is(.rounded-xl, .rounded-2xl).border .rounded-xl) {
   border-color: #dfdfdf;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03);
 }
+/* fields and dropdowns: a soft shadow under the border like Levelpath (the selected field shows its teal ring instead) */
+:is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]), textarea, .field-control).border,
+div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .06);
+}
+:is(input, textarea):disabled.border { box-shadow: none; }
 /* field labels: dark and a touch bigger (hints under them stay grey) */
 .robust main label.text-xs, .robust main .field-label { font-size: 14px; color: #131313 !important; font-weight: 600; }
 /* fields: soft border, teal focus like Levelpath */
@@ -208,7 +214,8 @@ fieldset:disabled textarea:focus {
 /* a table directly followed by its footer: one frame with square bottom corners */
 .robust main .rounded-xl:has(+ .table-footer) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .robust main .table-footer { border-color: #dfdfdf; }
-.robust main .rounded-xl:has(+ .table-footer) { box-shadow: none; }
+.robust main .rounded-xl:has(+ .table-footer) { box-shadow: 0 1px 2px rgba(16, 24, 40, .03); }
+.robust main .table-footer { box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03); }
 /* first column (the record's name) a little stronger; header labels on one line */
 .robust main tbody tr:not(:has(input, textarea)) > td:first-child { font-weight: 500; }
 .robust main thead th { vertical-align: middle; line-height: 20px; }
