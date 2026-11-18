@@ -239,10 +239,10 @@ export default function ConfiguratorPage() {
     return { net, vat, gross: net + vat, vatRate, complete: items.every(it => priceOf(it) != null) }
   }, [items, data, serviceRows])
 
-  if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+  if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
   if (state === 'missing' || !data) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6 text-center">
-      <div><p className="text-base font-medium text-gray-900">{T.notFound}</p><p className="text-sm text-gray-500 mt-1">{T.notFoundHint}</p></div>
+    <div className="min-h-screen flex items-center justify-center bg-white p-6 text-center">
+      <div><p className="text-lg font-semibold text-gray-900">{T.notFound}</p><p className="text-sm text-gray-500 mt-1">{T.notFoundHint}</p></div>
     </div>
   )
 
@@ -367,24 +367,24 @@ export default function ConfiguratorPage() {
   const btn = { backgroundColor: accent }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white text-gray-900">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             {data.company.logo_url
               ? <img src={data.company.logo_url} alt="" className="h-8 w-auto max-w-[140px] object-contain" />
-              : <div className="w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-semibold" style={btn}>{data.company.name.charAt(0)}</div>}
+              : <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[15px] font-semibold" style={btn}>{data.company.name.charAt(0)}</div>}
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-gray-900 truncate">{data.company.name}</div>
-              <div className="text-xs text-gray-500">{T.title}</div>
+              <div className="text-[15px] font-semibold text-gray-900 truncate">{data.company.name}</div>
+              <div className="text-[13px] font-medium text-gray-500">{T.title}</div>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            {data.company.phone && <a href={`tel:${data.company.phone}`} className="hidden sm:flex items-center gap-1 hover:text-gray-900"><Phone className="w-3.5 h-3.5" />{data.company.phone}</a>}
-            {data.company.email && <a href={`mailto:${data.company.email}`} className="hidden md:flex items-center gap-1 hover:text-gray-900"><Mail className="w-3.5 h-3.5" />{data.company.email}</a>}
-            <div className="flex rounded border border-gray-200 overflow-hidden">
-              {(['sl', 'en'] as const).map(l => <button key={l} onClick={() => setLang(l)} className={cn('px-1.5 py-0.5 uppercase', lang === l ? 'bg-gray-900 text-white' : 'bg-white')}>{l}</button>)}
+          <div className="flex items-center gap-4 text-[13px] font-medium text-gray-500">
+            {data.company.phone && <a href={`tel:${data.company.phone}`} className="hidden sm:flex items-center gap-1.5 hover:text-gray-900 transition-colors"><Phone className="w-3.5 h-3.5" />{data.company.phone}</a>}
+            {data.company.email && <a href={`mailto:${data.company.email}`} className="hidden md:flex items-center gap-1.5 hover:text-gray-900 transition-colors"><Mail className="w-3.5 h-3.5" />{data.company.email}</a>}
+            <div className="flex p-0.5 rounded-lg bg-[#f4f4f4]">
+              {(['sl', 'en'] as const).map(l => <button key={l} onClick={() => setLang(l)} className={cn('px-2 h-6 rounded-md text-xs font-semibold uppercase transition-colors', lang === l ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.08)]' : 'text-gray-500 hover:text-gray-900')}>{l}</button>)}
             </div>
           </div>
         </div>
@@ -393,27 +393,27 @@ export default function ConfiguratorPage() {
       {stage === 'done' ? (
         <div className="max-w-lg mx-auto px-4 py-16 text-center">
           <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center text-white mb-4" style={btn}><Check className="w-6 h-6" /></div>
-          <h1 className="text-xl font-semibold text-gray-900">{T.doneTitle}</h1>
-          <p className="text-sm text-gray-600 mt-2">{T.doneText}</p>
+          <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{T.doneTitle}</h1>
+          <p className="text-[15px] text-gray-500 mt-2">{T.doneText}</p>
           <p className="text-lg font-semibold text-gray-900 mt-2">{result?.quote_number}</p>
           <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setContact(c => ({ ...c, note: '' })) }}
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto px-4 py-5 grid lg:grid-cols-[1fr_340px] gap-5 items-start">
+        <div className="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-[1fr_360px] gap-6 items-start">
           {/* Main column */}
           <div className="space-y-4 min-w-0">
-            {stage === 'config' && data.company.intro && <p className="text-sm text-gray-600 whitespace-pre-line">{data.company.intro}</p>}
+            {stage === 'config' && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
               {/* Position tabs */}
               <div className="flex gap-1.5 overflow-x-auto pb-1">
                 {items.map((x, i) => <button key={x.key} onClick={() => setActive(i)}
-                  className={cn('shrink-0 px-3 py-1.5 rounded-full text-sm border', i === active ? 'text-white border-transparent' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400')}
+                  className={cn('shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border transition-colors', i === active ? 'text-white border-transparent' : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400')}
                   style={i === active ? btn : undefined}>
                   {T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}
                 </button>)}
-                <button onClick={() => addItem(false)} className="shrink-0 px-3 py-1.5 rounded-full text-sm border border-dashed border-gray-200 text-gray-600 hover:border-gray-500 flex items-center gap-1"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
+                <button onClick={() => addItem(false)} className="shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border border-dashed border-gray-300 text-gray-900 hover:border-gray-500 flex items-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
               </div>
 
               <Section n={nextStep()} title={T.step1} accent={accent}>
@@ -421,61 +421,61 @@ export default function ConfiguratorPage() {
                   {offer?.windows && [...(offer.sashes ?? [])].sort().map(n => {
                     const on = spec?.sashes === n && !spec.kind
                     return <button key={'w' + n} onClick={() => pickSashes(n)}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={sashWidth(n)} height={1300} size={n > 2 ? 100 : 78} plain /></div>
-                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.nSash(n)}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nSash(n)}</div>
                     </button>
                   })}
                   {offer?.slidingWindows && (() => {
                     const on = spec?.kind === 'sliding'
                     return <button key="sw" onClick={pickSliding}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96} plain /></div>
-                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.slidingWindow}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.slidingWindow}</div>
                     </button>
                   })()}
                   {offer?.doors && [...(offer.doorSashes ?? [1, 2, 3])].sort().map(n => {
                     const on = spec?.sashes === n && spec.kind === 'door'
                     return <button key={'d' + n} onClick={() => pickDoor(n)}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={doorWidth(n)} height={2200} size={84} plain /></div>
-                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.nDoor(n)}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nDoor(n)}</div>
                     </button>
                   })}
                   {offer?.sliding && [...(offer.wallSashes ?? [2, 3, 4])].sort().filter(n => allowedCombos(n, offer, 'wall').length).map(n => {
                     const on = spec?.sashes === n && spec.kind === 'wall'
                     return <button key={'wall' + n} onClick={() => pickWall(n)}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={wallWidth(n)} height={2200} size={n > 3 ? 110 : 96} plain /></div>
-                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.nWall(n)}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nWall(n)}</div>
                     </button>
                   })}
                   {offer?.roof && !!roofCat?.models.length && (() => {
                     const on = !!roofSel
                     return <button key="roof" onClick={() => pickRoof()}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><RoofWindowDrawing size={78} /></div>
-                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.roofWindow}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.roofWindow}</div>
                     </button>
                   })()}
                   {visibleTypes.map(t => {
                     const door = t.template.startsWith('door') || t.template === 'lift_slide'
                     return <button key={t.id} onClick={() => pickType(t)}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', !spec && it.type_id === t.id ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', !spec && it.type_id === t.id ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={!spec && it.type_id === t.id ? selStyle(accent) : undefined}>
                       {!spec && it.type_id === t.id && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} plain /></div>
-                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{t.name}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{t.name}</div>
                     </button>
                   })}
                 </div>
@@ -488,33 +488,33 @@ export default function ConfiguratorPage() {
                       const on = roofSel.model === m.id
                       const from = m.sizes.length ? Math.min(...m.sizes.map(x => Number(x.price))) : null
                       return <button key={m.id} onClick={() => pickRoof({ model: m.id })}
-                        className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
                         <div className="h-[84px] flex items-center justify-center">{m.image_url ? <img src={m.image_url} alt="" className="max-h-full max-w-full object-contain" /> : <RoofWindowDrawing size={80} opening={m.opening} />}</div>
-                        {m.brand && <div className="text-[11px] font-medium text-gray-500 mt-2 leading-snug">{m.brand}</div>}
-                        <div className={cn('text-xs font-medium text-gray-900 leading-snug', !m.brand && 'mt-2')}>{m.name}</div>
-                        <div className="text-xs text-gray-500">{m.opening === 'top' ? T.roofTop : T.roofCenter}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
+                        {m.brand && <div className="text-[13px] font-medium text-gray-500 mt-2.5 leading-snug">{m.brand}</div>}
+                        <div className={cn('text-sm font-medium text-gray-900 leading-snug', !m.brand && 'mt-2.5')}>{m.name}</div>
+                        <div className="text-[13px] font-medium text-gray-500 mt-0.5">{m.opening === 'top' ? T.roofTop : T.roofCenter}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
                       </button>
                     })}
                   </div>
                 </Section>
-                {roofModel && (roofModel.description || roofModel.datasheet_url) && <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 -mt-2">
-                  {roofModel.description && <p className="text-sm text-gray-700 whitespace-pre-line">{roofModel.description}</p>}
+                {roofModel && (roofModel.description || roofModel.datasheet_url) && <div className="rounded-xl border border-gray-200 bg-[#fafafa] px-4 py-3 -mt-2">
+                  {roofModel.description && <p className="text-sm text-gray-900 whitespace-pre-line">{roofModel.description}</p>}
                   {roofModel.datasheet_url && <a href={roofModel.datasheet_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium hover:underline" style={{ color: accent }}>
                     <FileText className="w-4 h-4" />{T.roofDatasheet}</a>}
                 </div>}
                 {roofModel && (roofModel.variants ?? []).length > 0 && <Section n={nextStep()} title={T.roofVariant} accent={accent}>
                   <div className="flex flex-wrap gap-2">
                     {(roofModel.variants ?? []).map(v => <Chip key={v.id} on={roofSel.variant === v.id} onClick={() => pickRoof({ variant: v.id })} accent={accent} single>
-                      {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 opacity-70">+ {Number(v.pct)} %</span>}
+                      {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {Number(v.pct)} %</span>}
                     </Chip>)}
                   </div>
                 </Section>}
                 {roofModel && <Section n={nextStep()} title={T.roofSize} accent={accent}>
                   <div className="flex flex-wrap gap-2">
                     {roofModel.sizes.map(sz => <Chip key={sz.id} on={roofSel.size === sz.id} onClick={() => pickRoof({ size: sz.id })} accent={accent} single>
-                      {sz.w} × {sz.h} cm{show && <span className="ml-1.5 opacity-70">{money(roofUnitPrice(Number(sz.price), Number(roofModel.variants?.find(x => x.id === roofSel.variant)?.pct ?? 0), 0), cur)}</span>}
+                      {sz.w} × {sz.h} cm{show && <span className="ml-1.5 font-medium text-gray-500">{money(roofUnitPrice(Number(sz.price), Number(roofModel.variants?.find(x => x.id === roofSel.variant)?.pct ?? 0), 0), cur)}</span>}
                     </Chip>)}
                   </div>
                 </Section>}
@@ -522,7 +522,7 @@ export default function ConfiguratorPage() {
                   <div className="flex flex-wrap gap-2">
                     <Chip on={!roofSel.flashing} onClick={() => pickRoof({ flashing: null })} accent={accent} single>{T.none}</Chip>
                     {roofCat.flashings.map(f => <Chip key={f.id} on={roofSel.flashing === f.id} onClick={() => pickRoof({ flashing: f.id })} accent={accent} single>
-                      {f.name}{show && Number(f.price) > 0 && <span className="ml-1.5 opacity-70">+ {money(Number(f.price), cur)}</span>}
+                      {f.name}{show && Number(f.price) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {money(Number(f.price), cur)}</span>}
                     </Chip>)}
                   </div>
                 </Section>}
@@ -535,12 +535,12 @@ export default function ConfiguratorPage() {
                     const preview = reshapeSpec(spec, spec.sashes, top, bottom)
                     const pr = show && !on ? specPrice(preview) : null, curP = show ? specPrice(spec) : null
                     return <button key={k} onClick={() => pickBand(top, bottom)}
-                      className={cn('relative rounded-lg border p-3 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={preview} width={it.width ?? 1200} height={it.height ?? 1400} size={80} plain /></div>
-                      <div className="text-xs font-medium text-gray-900 mt-2 leading-snug">{T.band[k]}</div>
-                      {pr != null && curP != null && Math.round(pr - curP) !== 0 && <div className="text-xs text-gray-500 mt-0.5">{pr > curP ? '+' : '−'} {money(Math.abs(Math.round(pr - curP)), cur)}</div>}
+                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.band[k]}</div>
+                      {pr != null && curP != null && Math.round(pr - curP) !== 0 && <div className="text-[13px] font-medium text-gray-500 mt-0.5">{pr > curP ? '+' : '−'} {money(Math.abs(Math.round(pr - curP)), cur)}</div>}
                     </button>
                   })}
                 </div>
@@ -562,11 +562,11 @@ export default function ConfiguratorPage() {
                       const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
                       const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
                       return <button key={i} onClick={() => setSpec(sp)}
-                        className={cn('relative rounded-lg border p-3 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        className={cn('relative rounded-xl border p-3.5 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
                         <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
-                        {d != null && <div className="text-xs text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
+                        {d != null && <div className="text-[13px] font-medium text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
                       </button>
                     })}
                   </div>
@@ -584,18 +584,18 @@ export default function ConfiguratorPage() {
                     const b = bases[s.id]
                     const diff = show && min != null && b != null ? Math.round(b - min) : null
                     return <button key={s.id} onClick={() => update({ system_id: s.id })}
-                    className={cn('relative rounded-lg border p-3 text-left bg-white', it.system_id === s.id ? '' : 'border-gray-200 hover:border-gray-400')}
+                    className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', it.system_id === s.id ? '' : 'border-gray-200 hover:border-gray-400')}
                     style={it.system_id === s.id ? selStyle(accent) : undefined}>
                     {it.system_id === s.id && <SelBadge accent={accent} />}
                     <div className="flex items-start gap-3">
-                      <div className="w-28 h-36 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                      <div className="w-28 h-36 rounded-lg bg-[#fafafa] border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                         {s.image_url ? <img src={s.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <ProfileSection material={s.material} className="w-full h-full p-1.5" />}
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2"><span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{L.materials[s.material]}</span><span className="text-sm font-medium text-gray-900">{s.name}</span></div>
-                        {s.description && <div className="text-xs text-gray-500 mt-1">{s.description}</div>}
-                        {diff != null && <div className="inline-flex items-center mt-2 rounded-md px-2 py-0.5 text-xs font-semibold"
-                          style={diff > 0 ? { color: '#3f3f46', backgroundColor: '#f4f4f5', border: '1px solid #e4e4e7' } : { color: '#007d53', backgroundColor: '#e0fced', border: '1px solid #cbf7e1' }}>
+                        <div className="flex items-center gap-2"><span className="text-xs font-semibold px-[7px] py-[3px] rounded-lg bg-[#ececec] text-[#4a4a4a]">{L.materials[s.material]}</span><span className="text-[15px] font-semibold text-gray-900">{s.name}</span></div>
+                        {s.description && <div className="text-[13px] leading-5 text-gray-500 mt-1.5">{s.description}</div>}
+                        {diff != null && <div className="inline-flex items-center mt-2.5 rounded-lg px-[7px] py-[3px] text-xs font-semibold"
+                          style={diff > 0 ? { color: '#4a4a4a', backgroundColor: '#ececec' } : { color: '#267a47', backgroundColor: '#dbfce7' }}>
                           {diff > 0 ? `+ ${money(diff, cur)}` : T.basePrice}
                         </div>}
                       </div>
@@ -612,18 +612,18 @@ export default function ConfiguratorPage() {
                 const cur2 = { out: list.find(c => c.id === it.colors?.out)?.id ?? list[0].id, in: list.find(c => c.id === it.colors?.in)?.id ?? list[0].id }
                 const now = specPriceWith(cur2)
                 const row = (side: 'out' | 'in') => <div>
-                  <div className="text-xs font-medium text-gray-500 mb-1.5">{side === 'out' ? T.colorOut : T.colorIn}</div>
+                  <div className="text-sm font-semibold text-gray-900 mb-2">{side === 'out' ? T.colorOut : T.colorIn}</div>
                   <div className="flex flex-wrap gap-2">
                     {list.map(c => {
                       const on = cur2[side] === c.id
                       const lookSpec = parseColor(c.look)
                       const p = show && !on ? specPriceWith({ ...cur2, [side]: c.id }) : null
                       return <button key={c.id} onClick={() => update({ colors: { ...cur2, [side]: c.id } })}
-                        className={cn('inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border bg-white text-sm transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        className={cn('inline-flex items-center gap-2 h-10 pl-2 pr-3 rounded-[10px] border bg-white text-sm font-medium transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {lookSpec && <ColorSwatch spec={lookSpec} size={22} rounded={6} />}
                         <span className="text-gray-900">{c.name}</span>
-                        {p != null && now != null && Math.round(p - now) !== 0 && <span className="text-xs text-gray-500">{p > now ? '+' : '−'} {money(Math.abs(Math.round(p - now)), cur)}</span>}
+                        {p != null && now != null && Math.round(p - now) !== 0 && <span className="text-[13px] font-medium text-gray-500">{p > now ? '+' : '−'} {money(Math.abs(Math.round(p - now)), cur)}</span>}
                       </button>
                     })}
                   </div>
@@ -640,26 +640,26 @@ export default function ConfiguratorPage() {
                   {spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {type && hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-gray-500">{T.hinge}</label>
+                    <label className="text-sm font-semibold text-gray-900">{T.hinge}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {(['left', 'right'] as Hinge[]).map(h => <button key={h} onClick={() => update({ hinge: h })}
-                        className={cn('rounded-lg border px-3 py-2 text-sm bg-white', it.hinge === h ? 'text-white border-transparent' : 'border-gray-200 text-gray-700 hover:border-gray-400')}
+                        className={cn('h-10 rounded-lg border px-3 text-sm font-medium bg-white transition-colors', it.hinge === h ? 'text-white border-transparent' : 'border-gray-200 text-gray-900 hover:border-gray-400')}
                         style={it.hinge === h ? btn : undefined}>{L.hinge[h]}</button>)}
                     </div>
                   </div>}
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-gray-500">{T.qty}</label>
+                    <label className="text-sm font-semibold text-gray-900">{T.qty}</label>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => update({ quantity: Math.max(1, it.quantity - 1) })} className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-700">−</button>
+                      <button onClick={() => update({ quantity: Math.max(1, it.quantity - 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">−</button>
                       <input type="number" min={1} max={100} value={it.quantity} onChange={e => update({ quantity: clamp(Number(e.target.value) || 1, 1, 100) })}
-                        className="w-16 h-9 text-center rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2" />
-                      <button onClick={() => update({ quantity: Math.min(100, it.quantity + 1) })} className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-700">+</button>
+                        className="w-16 h-10 text-center rounded-lg border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <button onClick={() => update({ quantity: Math.min(100, it.quantity + 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">+</button>
                     </div>
                   </div>
                   <div className="flex flex-col gap-1 sm:col-span-2">
-                    <label className="text-xs font-medium text-gray-500">{T.label}</label>
+                    <label className="text-sm font-semibold text-gray-900">{T.label}</label>
                     <input value={it.label} onChange={e => update({ label: e.target.value.slice(0, 60) })} placeholder={T.labelPh}
-                      className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2" />
+                      className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
                   </div>
                 </div>
               </Section>
@@ -677,13 +677,13 @@ export default function ConfiguratorPage() {
                       return base == null || p == null ? null : Math.round(p - base)
                     })()
                     return <button key={g.id} onClick={() => update({ glass: g.id })}
-                      className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
-                      {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                      {on && <SelBadge accent={accent} />}
                       <div className="flex justify-center py-2"><GlassIcon layers={g.layers ?? 2} size={104} /></div>
-                      <div className="text-sm font-semibold text-gray-900 mt-1">{g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')}` : g.name}</div>
-                      <div className="text-xs text-gray-600 mt-1 flex-1">{g.ug != null ? g.name : null}{g.description ? <>{g.ug != null ? ' ' : ''}{g.description}</> : null}</div>
-                      <div className="text-sm font-semibold text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
+                      <div className="text-[15px] font-semibold text-gray-900 mt-1">{g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')}` : g.name}</div>
+                      <div className="text-[13px] leading-5 text-gray-500 mt-1 flex-1">{g.ug != null ? g.name : null}{g.description ? <>{g.ug != null ? ' ' : ''}{g.description}</> : null}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
                     </button>
                   })}
                 </div>
@@ -700,15 +700,15 @@ export default function ConfiguratorPage() {
                       return base == null || p == null ? null : Math.round(p - base)
                     })()
                     return <button key={h.id} onClick={() => update({ handle: h.id })}
-                      className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
-                      {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                      {on && <SelBadge accent={accent} />}
                       <div className="flex justify-center items-center h-[72px] py-1">
                         {h.image_url ? <img src={h.image_url} alt={h.name} className="max-h-full max-w-full object-contain" /> : <HandleIcon look={h.look} lockable={h.lockable} size={56} />}
                       </div>
                       <div className="text-sm font-medium text-gray-900 mt-1">{h.name}</div>
-                      <div className="text-xs text-gray-500 mt-0.5 flex-1">{h.lockable ? T.lockable : ''}</div>
-                      <div className="text-sm font-semibold text-gray-900 mt-1">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
+                      <div className="text-[13px] leading-5 text-gray-500 mt-0.5 flex-1">{h.lockable ? T.lockable : ''}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
                     </button>
                   })}
                 </div>
@@ -728,17 +728,17 @@ export default function ConfiguratorPage() {
                       const p = id && show ? specBase({ ...it, sills: { ...(it.sills ?? {}), [key]: id } }) : null
                       const d = p != null && none != null ? Math.round(p - none) : null
                       return <button key={id ?? 'none'} onClick={() => update({ sills: { ...(it.sills ?? {}), [key]: id } })}
-                        className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
-                        {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                        {on && <SelBadge accent={accent} />}
                         <div className="flex justify-center py-1 h-[64px] items-center">{(() => { const x = list.find(y => y.id === id); return !x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : sillMaterialOf(x.material) === 'none' ? null : <SillIcon material={x.material} size={56} /> })()}</div>
                         <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{title}</div>
-                        <div className="text-xs text-gray-500 mt-0.5 flex-1">{desc}</div>
-                        <div className="text-sm font-semibold text-gray-900 mt-2">{id ? (d != null && d !== 0 ? `+ ${money(d, currency)}` : '') : ''}</div>
+                        <div className="text-[13px] leading-5 text-gray-500 mt-0.5 flex-1">{desc}</div>
+                        <div className="text-sm font-medium text-gray-900 mt-2">{id ? (d != null && d !== 0 ? `+ ${money(d, currency)}` : '') : ''}</div>
                       </button>
                     }
                     return <div key={side}>
-                      <div className="text-xs font-medium text-gray-500 mb-1.5">{side === 'inner' ? T.sillIn : T.sillOut}</div>
+                      <div className="text-sm font-semibold text-gray-900 mb-2">{side === 'inner' ? T.sillIn : T.sillOut}</div>
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {card(null, T.noSill)}
                         {list.map(x => card(x.id, x.name, x.description))}
@@ -761,19 +761,19 @@ export default function ConfiguratorPage() {
                       const p = x && show ? specBase({ ...it, shading: { ...(it.shading ?? {}), [kind]: x.id } }) : null
                       const d = p != null && none != null ? Math.round(p - none) : null
                       return <button key={x?.id ?? 'none'} onClick={() => update({ shading: { ...(it.shading ?? {}), [kind]: x?.id ?? null } })}
-                        className={cn('relative rounded-xl border p-3 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
-                        {on && <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>}
+                        {on && <SelBadge accent={accent} />}
                         <div className="flex justify-center py-1 h-[64px] items-center">
                           {!x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : (x.icon ?? 'none') === 'none' ? null : <ShadingIcon kind={x.icon} size={56} />}
                         </div>
                         <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{x ? x.name : kind === 'shade' ? T.noShade : T.noScreen}</div>
-                        <div className="text-xs text-gray-500 mt-0.5 flex-1">{x?.description}</div>
-                        <div className="text-sm font-semibold text-gray-900 mt-2">{x && d != null && d !== 0 ? `+ ${money(d, currency)}` : ''}</div>
+                        <div className="text-[13px] leading-5 text-gray-500 mt-0.5 flex-1">{x?.description}</div>
+                        <div className="text-sm font-medium text-gray-900 mt-2">{x && d != null && d !== 0 ? `+ ${money(d, currency)}` : ''}</div>
                       </button>
                     }
                     return <div key={kind}>
-                      <div className="text-xs font-medium text-gray-500 mb-1.5">{kind === 'shade' ? T.shadeLabel : T.screenLabel}</div>
+                      <div className="text-sm font-semibold text-gray-900 mb-2">{kind === 'shade' ? T.shadeLabel : T.screenLabel}</div>
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {card(null)}
                         {list.map(x => card(x))}
@@ -793,13 +793,13 @@ export default function ConfiguratorPage() {
               </Section>}
 
               {data.options.some(isService) && <Section n={nextStep()} title={T.step5} accent={accent}>
-                <p className="text-xs text-gray-500 -mt-1 mb-3">{T.servicesHint}</p>
+                <p className="text-sm text-gray-500 -mt-2 mb-4">{T.servicesHint}</p>
                 <div className="space-y-4">
                   {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g && (!o.per_item || o.per_item === 'window'))).map(g => <div key={g}>
-                    <div className="text-xs font-medium text-gray-500 mb-1.5">{L.groups[g]}</div>
+                    <div className="text-sm font-semibold text-gray-900 mb-2">{L.groups[g]}</div>
                     <div className="flex flex-wrap gap-2">
                       {data.options.filter(o => o.group_key === g && (!o.per_item || o.per_item === 'window')).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
-                        {o.name}{show && <span className="ml-1.5 opacity-70">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
+                        {o.name}{show && <span className="ml-1.5 font-medium text-gray-500">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
                       </Chip>)}
                     </div>
                   </div>)}
@@ -807,14 +807,14 @@ export default function ConfiguratorPage() {
               </Section>}
 
               <div className="flex gap-2">
-                <button onClick={() => addItem(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-400"><Copy className="w-4 h-4" />{T.duplicate}</button>
-                {items.length > 1 && <button onClick={() => removeItem(active)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 hover:text-red-600 hover:border-red-200"><Trash2 className="w-4 h-4" />{T.remove}</button>}
+                <button onClick={() => addItem(true)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors"><Copy className="w-4 h-4" />{T.duplicate}</button>
+                {items.length > 1 && <button onClick={() => removeItem(active)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:text-red-600 hover:border-red-200 transition-colors"><Trash2 className="w-4 h-4" />{T.remove}</button>}
               </div>
             </> : (
               /* Contact stage */
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <button onClick={() => setStage('config')} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-4"><ArrowLeft className="w-4 h-4" />{T.back}</button>
-                <h2 className="text-base font-semibold text-gray-900 mb-4">{T.contact}</h2>
+              <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <button onClick={() => setStage('config')} className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.back}</button>
+                <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-5">{T.contact}</h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <Field label={T.firstName} value={contact.first_name} onChange={v => setContact({ ...contact, first_name: v })} autoComplete="given-name" />
                   <Field label={T.lastName} value={contact.last_name} onChange={v => setContact({ ...contact, last_name: v })} autoComplete="family-name" />
@@ -822,13 +822,13 @@ export default function ConfiguratorPage() {
                   <Field label={T.phone} type="tel" value={contact.phone} onChange={v => setContact({ ...contact, phone: v })} autoComplete="tel" />
                   <div className="sm:col-span-2"><Field label={T.address} value={contact.address} onChange={v => setContact({ ...contact, address: v })} autoComplete="street-address" /></div>
                   <div className="sm:col-span-2 flex flex-col gap-1">
-                    <label className="text-xs font-medium text-gray-500">{T.note}</label>
+                    <label className="text-sm font-semibold text-gray-900">{T.note}</label>
                     <textarea rows={3} value={contact.note} onChange={e => setContact({ ...contact, note: e.target.value.slice(0, 2000) })}
-                      className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2" />
+                      className="rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
                   </div>
                 </div>
-                <label className="flex items-start gap-2 mt-4 text-sm text-gray-600 cursor-pointer">
-                  <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-0.5" style={{ accentColor: accent }} />
+                <label className="flex items-start gap-2.5 mt-5 text-sm text-gray-900 cursor-pointer">
+                  <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-0.5 w-4 h-4" style={{ accentColor: accent }} />
                   {T.consent}
                 </label>
                 {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
@@ -838,21 +838,21 @@ export default function ConfiguratorPage() {
 
           {/* Summary column */}
           <aside className="lg:sticky lg:top-4 space-y-3">
-            {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-4">
+            {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex justify-center py-2 overflow-hidden">
                 {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} />
                   : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims />
                   : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />}
               </div>
-              {!sizeOk(it) && <p className="text-xs text-red-600 text-center mt-1">{T.invalidSize}</p>}
+              {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}
               <div className="flex items-baseline justify-between mt-3">
-                <span className="text-xs text-gray-500">{T.unit}</span>
-                <span className="text-lg font-semibold text-gray-900">{show ? (p != null ? money(p, cur) : T.noPrice) : '—'}</span>
+                <span className="text-sm font-medium text-gray-500">{T.unit}</span>
+                <span className="text-xl font-bold tracking-[-0.01em] text-gray-900">{show ? (p != null ? money(p, cur) : T.noPrice) : '—'}</span>
               </div>
             </div>}
 
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <div className="text-sm font-semibold text-gray-900 mb-2">{T.yourOrder}</div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <div className="text-base font-semibold text-gray-900 mb-2">{T.yourOrder}</div>
               <ul className="divide-y divide-gray-100">
                 {items.map((x, i) => {
                   const t = data.types.find(tt => tt.id === x.type_id)
@@ -861,34 +861,34 @@ export default function ConfiguratorPage() {
                     <button onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-center gap-3 py-2 text-left">
                       <div className="w-10 flex justify-center shrink-0">{x.roof ? <RoofWindowDrawing size={36} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn('text-sm truncate', i === active && stage === 'config' ? 'font-semibold text-gray-900' : 'text-gray-700')}>{x.quantity} × {x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
-                        <div className="text-xs text-gray-500">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
+                        <div className={cn('text-sm font-medium truncate', i === active && stage === 'config' ? 'text-gray-900' : 'text-gray-500')}>{x.quantity} × {x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
+                        <div className="text-[13px] text-gray-500">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
                       </div>
-                      {show && <div className="text-sm text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}
+                      {show && <div className="text-sm font-medium text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}
                     </button>
                   </li>
                 })}
               </ul>
               {serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 space-y-1">
-                <li className="text-xs font-medium text-gray-500">{T.servicesTitle}</li>
+                <li className="text-[13px] font-medium text-gray-500">{T.servicesTitle}</li>
                 {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-gray-700 min-w-0 truncate">{r.option.name} <span className="text-xs text-gray-400">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
-                  {show && <span className="text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
+                  <span className="text-gray-900 min-w-0 truncate">{r.option.name} <span className="text-[13px] text-gray-500">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
+                  {show && <span className="font-medium text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
                 </li>)}
               </ul>}
-              {show ? <div className="border-t border-gray-200 mt-2 pt-2 space-y-1 text-sm">
+              {show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
                 {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate} %`} r={money(totals.vat, cur)} muted />}
                 <Row l={T.gross} r={money(totals.gross, cur)} bold />
-                <p className="text-xs text-gray-400 pt-1">{T.estimate}</p>
-              </div> : <p className="text-xs text-gray-500 border-t border-gray-200 mt-2 pt-2">{T.pricesHidden}</p>}
+                <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>
+              </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{T.pricesHidden}</p>}
 
               {stage === 'config' ? (
                 <button disabled={!items.every(sizeOk)} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
-                  className="mt-3 w-full rounded-lg py-2.5 text-sm font-medium text-white disabled:opacity-50" style={btn}>{T.next}</button>
+                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
               ) : (
                 <button disabled={sending || !consent || !contact.email || !(contact.first_name || contact.last_name)} onClick={submit}
-                  className="mt-3 w-full rounded-lg py-2.5 text-sm font-medium text-white disabled:opacity-50 flex items-center justify-center gap-2" style={btn}>
+                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" style={btn}>
                   {sending && <Loader2 className="w-4 h-4 animate-spin" />}{sending ? T.sending : T.send}
                 </button>
               )}
@@ -903,9 +903,9 @@ export default function ConfiguratorPage() {
 function clamp(v: number, min: number, max: number) { return Math.min(max, Math.max(min, v)) }
 
 function Section({ n, title, accent, children }: { n: number; title: string; accent: string; children: React.ReactNode }) {
-  return <section className="bg-white border border-gray-200 rounded-xl p-4">
-    <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
-      <span className="w-5 h-5 rounded-full text-[11px] text-white flex items-center justify-center" style={{ backgroundColor: accent }}>{n}</span>{title}
+  return <section className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6">
+    <h2 className="flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-4">
+      <span className="w-7 h-7 rounded-full text-[13px] font-semibold text-white flex items-center justify-center shrink-0" style={{ backgroundColor: accent }}>{n}</span>{title}
     </h2>
     {children}
   </section>
@@ -914,26 +914,26 @@ function Section({ n, title, accent, children }: { n: number; title: string; acc
 function MmInput({ label, value, onChange, min, max, rangeLabel }: { label: string; value: number | null; onChange: (v: number | null) => void; min: number; max: number; rangeLabel: string }) {
   const bad = value != null && (value < min || value > max)
   return <div className="flex flex-col gap-1">
-    <label className="text-xs font-medium text-gray-500">{label}</label>
-    <div className={cn('flex items-center rounded-lg border bg-white', bad ? 'border-red-400' : 'border-gray-200')}>
+    <label className="text-sm font-semibold text-gray-900">{label}</label>
+    <div className={cn('flex items-center h-10 rounded-lg border bg-white transition-colors focus-within:ring-2', bad ? 'border-red-400' : 'border-gray-200 hover:border-gray-400 focus-within:ring-blue-500')}>
       <input type="number" inputMode="numeric" value={value ?? ''} onChange={e => onChange(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
-        className="flex-1 min-w-0 px-3 py-2 text-sm bg-transparent focus:outline-none" />
-      <span className="px-3 text-sm text-gray-400 border-l border-gray-200">mm</span>
+        className="flex-1 min-w-0 h-full px-3 text-sm text-gray-900 bg-transparent focus:outline-none" />
+      <span className="px-3 text-sm text-gray-500">mm</span>
     </div>
-    <span className={cn('text-xs', bad ? 'text-red-600' : 'text-gray-400')}>{rangeLabel} {min}–{max} mm</span>
+    <span className={cn('text-[13px]', bad ? 'text-red-600' : 'text-gray-500')}>{rangeLabel} {min}–{max} mm</span>
   </div>
 }
 
 function Field({ label, value, onChange, type = 'text', autoComplete }: { label: string; value: string; onChange: (v: string) => void; type?: string; autoComplete?: string }) {
   return <div className="flex flex-col gap-1">
-    <label className="text-xs font-medium text-gray-500">{label}</label>
+    <label className="text-sm font-semibold text-gray-900">{label}</label>
     <input type={type} value={value} autoComplete={autoComplete} onChange={e => onChange(e.target.value.slice(0, 200))}
-      className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2" />
+      className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
   </div>
 }
 
 function Row({ l, r, bold, muted }: { l: string; r: string; bold?: boolean; muted?: boolean }) {
-  return <div className={cn('flex justify-between', bold && 'font-semibold text-gray-900', muted && 'text-gray-500')}><span>{l}</span><span>{r}</span></div>
+  return <div className={cn('flex justify-between font-medium', bold ? 'text-[15px] font-semibold text-gray-900' : muted ? 'text-gray-500' : 'text-gray-900')}><span>{l}</span><span>{r}</span></div>
 }
 
 function OptionGroupPicker({ group, title, options, selected, onToggle, onClear, accent, show, currency, noneLabel, pricingLabels }: {
@@ -947,11 +947,11 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
   }
   const anySelected = options.some(o => selected.includes(o.id))
   return <div>
-    <div className="text-xs font-medium text-gray-500 mb-1.5">{title}</div>
+    <div className="text-sm font-semibold text-gray-900 mb-2">{title}</div>
     <div className="flex flex-wrap gap-2">
       {!single && <Chip on={!anySelected} onClick={onClear} accent={accent} single>{noneLabel}</Chip>}
       {options.map(o => <Chip key={o.id} on={selected.includes(o.id)} onClick={() => onToggle(o)} accent={accent} single={single}>
-        {o.name}{price(o) && <span className="ml-1.5 opacity-70">{price(o)}</span>}
+        {o.name}{price(o) && <span className="ml-1.5 font-medium text-gray-500">{price(o)}</span>}
       </Chip>)}
     </div>
     {void pricingLabels}
@@ -960,15 +960,15 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
 
 // Selected state, same as in the app: outline + light tint in the accent colour + check badge
 const tint = (hex: string, a: number) => /^#[0-9a-f]{6}$/i.test(hex) ? hex + Math.round(a * 255).toString(16).padStart(2, '0') : 'transparent'
-const selStyle = (accent: string): React.CSSProperties => ({ borderColor: accent, boxShadow: `inset 0 0 0 1px ${accent}`, backgroundColor: tint(accent, 0.06) })
+const selStyle = (accent: string): React.CSSProperties => ({ borderColor: accent, boxShadow: `inset 0 0 0 1px ${accent}`, backgroundColor: tint(accent, 0.04) })
 function SelBadge({ accent }: { accent: string }) {
   return <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center shadow-sm" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>
 }
 
 function Chip({ on, onClick, accent, single, children }: { on: boolean; onClick: () => void; accent: string; single?: boolean; children: React.ReactNode }) {
   return <button onClick={onClick}
-    className={cn('px-3 py-1.5 rounded-lg border text-sm flex items-center gap-1.5', on ? 'bg-white' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400')}
-    style={on ? { ...selStyle(accent), color: accent } : undefined}>
+    className={cn('h-10 px-3.5 rounded-[10px] border text-sm font-medium flex items-center gap-1.5 transition-colors', on ? 'bg-white' : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400')}
+    style={on ? { ...selStyle(accent), color: '#131313' } : undefined}>
     {on && !single && <Check className="w-3.5 h-3.5" />}{children}
   </button>
 }

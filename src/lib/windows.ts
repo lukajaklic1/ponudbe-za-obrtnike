@@ -271,8 +271,8 @@ export const WL = {
     } as Record<WindowTemplate, string>,
     materials: { pvc: 'PVC', pvc_alu: 'PVC-ALU', alu: 'ALU', wood: 'Les', wood_alu: 'Les-ALU', steel: 'Jeklo' } as Record<WindowMaterial, string>,
     groups: { glass: 'Steklo', color: 'Barva', handle: 'Kljuka', sill: 'Police', shading: 'Senčila', other: 'Dodatno', installation: 'Montaža', removal: 'Demontaža', finishing: 'Zaključna dela', transport: 'Prevoz in odvoz' } as Record<OptionGroup, string>,
-    pricing: { piece: 'na kos', m2: 'na m²', percent: '% cene okna', perimeter: 'na tm obsega okna', width: 'na tm širine okna', flat: 'pavšal na ponudbo' } as Record<OptionPricing, string>,
-    unitShort: { piece: 'kos', m2: 'm²', percent: '%', perimeter: 'tm', width: 'tm', flat: 'pavšal' } as Record<OptionPricing, string>,
+    pricing: { piece: 'na kos', m2: 'na m²', percent: '% cene okna', perimeter: 'na tekoči meter obsega okna', width: 'na tekoči meter širine okna', flat: 'pavšal na ponudbo' } as Record<OptionPricing, string>,
+    unitShort: { piece: 'kos', m2: 'm²', percent: '%', perimeter: 'm', width: 'm', flat: 'pavšal' } as Record<OptionPricing, string>,
     hinge: { left: 'Levo', right: 'Desno' } as Record<Hinge, string>,
   },
   en: {
