@@ -42,8 +42,8 @@ function typeOf(c: Customer): CustomerType {
 
 /** light grey examples inside the fields */
 const PH = {
-  sl: { first: 'npr. Janez', last: 'npr. Novak', company: 'npr. Gradnje Novak d.o.o.', vat: 'npr. SI12345678', email: 'npr. janez.novak@gmail.com', phone: 'npr. 041 123 456', street: 'npr. Slovenska cesta 12', postal: 'npr. 1000', city: 'npr. Ljubljana' },
-  en: { first: 'e.g. John', last: 'e.g. Smith', company: 'e.g. Smith Builders Ltd', vat: 'e.g. SI12345678', email: 'e.g. john.smith@gmail.com', phone: 'e.g. 041 123 456', street: 'e.g. Main Street 12', postal: 'e.g. 1000', city: 'e.g. Ljubljana' },
+  sl: { first: 'Janez', last: 'Novak', company: 'Gradnje Novak d.o.o.', vat: 'SI12345678', email: 'janez.novak@gmail.com', phone: '041 123 456', street: 'Slovenska cesta 12', postal: '1000', city: 'Ljubljana' },
+  en: { first: 'John', last: 'Smith', company: 'Smith Builders Ltd', vat: 'SI12345678', email: 'john.smith@gmail.com', phone: '041 123 456', street: 'Main Street 12', postal: '1000', city: 'Ljubljana' },
 }
 export default function CustomersPage() {
   const { company, hasPerm, isAdmin, loading: permLoading } = useCompany()

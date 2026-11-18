@@ -28,7 +28,7 @@ function fullAccess() {
 export default function UsersPage() {
   const { company, isAdmin, loading } = useCompany()
   const { t, lang } = useLanguage()
-  const ph = lang === 'en' ? { first: 'e.g. John', last: 'e.g. Smith', email: 'e.g. john.smith@company.com' } : { first: 'npr. Janez', last: 'npr. Novak', email: 'npr. janez.novak@podjetje.si' }
+  const ph = lang === 'en' ? { first: 'John', last: 'Smith', email: 'john.smith@company.com' } : { first: 'Janez', last: 'Novak', email: 'janez.novak@podjetje.si' }
   const s = t.settings
   const [users, setUsers] = useState<AppUser[]>([])
   const [invites, setInvites] = useState<UserInvitation[]>([])
