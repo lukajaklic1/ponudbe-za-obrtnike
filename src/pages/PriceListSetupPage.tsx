@@ -784,7 +784,7 @@ export default function PriceListSetupPage() {
                   </div>)}
                 </div>}
                 {canEdit && <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{t.add}</button>
+                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{t.add}</button>
                   {unused.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
                   {unused.map(pr => <button key={pr.name} type="button" onClick={() => addOption(sec, pr)}
                     className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors">+ {pr.name}</button>)}
@@ -793,7 +793,7 @@ export default function PriceListSetupPage() {
   }
 
   return (
-    <div>
+    <div className="form-scope">
       <ConfirmDialog open={!!profileToRemove} onClose={() => setProfileToRemove(null)} danger
         title={T.removeTitle} message={profileToRemove ? T.removeMsg(profileToRemove.name || L.materials[profileToRemove.material]) : ''} confirmLabel={T.removeProfile}
         onConfirm={() => { if (profileToRemove) removeProfile(profileToRemove); setProfileToRemove(null) }} />
@@ -984,12 +984,12 @@ export default function PriceListSetupPage() {
                           ))}
                         </div>
                         {canEdit && <button type="button" onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w: 78, h: 118, price: 0 }] })}
-                          className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddSize}</button>}
+                          className="mt-2 inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddSize}</button>}
                       </div>
                     </div>
                   ))}
                   {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: [...roof.models, { id: newRoofId(), name: '', opening: 'center', sizes: [] }] })}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddModel}</button>}
+                    className="inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddModel}</button>}
                   <div className="pt-3 border-t border-gray-100">
                     <div className="field-label text-xs mb-1.5">{T.roofFlashings}</div>
                     <div className="space-y-2">
@@ -1002,7 +1002,7 @@ export default function PriceListSetupPage() {
                       ))}
                     </div>
                     {canEdit && <button type="button" onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: '', price: 0 }] })}
-                      className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>}
+                      className="mt-2 inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>}
                   </div>
                   <p className="text-[13px] leading-5 text-[#4f4f4f]">{T.roofHint}</p>
                 </div>
@@ -1027,7 +1027,7 @@ export default function PriceListSetupPage() {
                     </button>
                     <ProfileSection material={m} size={44} />
                     <div className="flex-1 min-w-0">
-                      <div className={cn('text-sm font-medium', on ? 'text-gray-900' : 'text-gray-500')}>{L.materials[m]}</div>
+                      <div className={cn('text-[15px] font-semibold', on ? 'text-gray-900' : 'text-gray-500')}>{L.materials[m]}</div>
                       {on && <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{T.profileCount(list.length)}</div>}
                     </div>
                     {on && <button type="button" onClick={() => setOpenMat(o => ({ ...o, [m]: !open }))}
@@ -1039,7 +1039,7 @@ export default function PriceListSetupPage() {
                     <div className="ml-[9px] pl-[25px] border-l-2 border-gray-200 space-y-3">
                     {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                     {/* a small table: name, the three main per-metre prices, where it is used */}
-                    <div className="hidden lg:grid grid-cols-[48px_minmax(0,1fr)_88px_88px_88px_88px_360px_76px] items-center gap-4 px-4 py-2 bg-gray-50 text-xs font-medium text-[#4f4f4f]">
+                    <div className="hidden lg:grid grid-cols-[48px_minmax(0,1fr)_88px_88px_88px_88px_360px_76px] items-center gap-4 px-4 py-2.5 bg-[#fafafa] border-b border-gray-200 text-sm font-medium text-[#4f4f4f]">
                       <span /><span>{T.colProfile}</span><span className="text-right whitespace-nowrap">{T.colFrame}</span><span className="text-right whitespace-nowrap">{T.colSash}</span><span className="text-right whitespace-nowrap" title={T.mullionM}>{T.colMullion}</span><span className="text-right whitespace-nowrap">{T.colBead}</span><span className="text-right">{T.colUsedFor}</span><span />
                     </div>
                     {list.map(p => {
@@ -1103,7 +1103,7 @@ export default function PriceListSetupPage() {
                             </div>
                             {/* purchase prices per metre */}
                             <div className="py-5">
-                              <div className="text-sm font-medium text-gray-900">{T.metrePrices}</div>
+                              <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.metrePrices}</div>
                               <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3">{T.metrePricesHint}</p>
                               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                 <NumberInput label={T.frameM} unit={`${cur}/m`} value={p.frame_m} onValue={v => setProfile(p.key, { frame_m: v })} decimals={2} />
@@ -1115,7 +1115,7 @@ export default function PriceListSetupPage() {
                             {/* visible widths + minimum price */}
                             <div className="py-5 grid lg:grid-cols-[minmax(0,3fr)_minmax(0,1fr)] gap-6">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{T.widths}</div>
+                                <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.widths}</div>
                                 <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3">{T.widthsHint}</p>
                                 <div className="grid grid-cols-3 gap-3">
                                   <NumberInput label={T.frameW} unit="mm" value={p.frame_w} onValue={v => setProfile(p.key, { frame_w: v ?? 70 })} decimals={0} />
@@ -1124,14 +1124,14 @@ export default function PriceListSetupPage() {
                                 </div>
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{T.minTitle}</div>
+                                <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.minTitle}</div>
                                 <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3">{T.minHint}</p>
                                 <NumberInput unit={cur} value={p.min} onValue={v => setProfile(p.key, { min: v })} decimals={2} />
                               </div>
                             </div>
                             {/* where the profile is used: the product groups offered in step 1 */}
                             {groups.length > 0 && <div className="py-5">
-                              <div className="text-sm font-medium text-gray-900">{T.usedForTitle}</div>
+                              <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.usedForTitle}</div>
                               <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3">{T.usedForHint}</p>
                               <div className="flex flex-wrap gap-x-6 gap-y-2">
                                 {groups.map(g => {
@@ -1169,7 +1169,7 @@ export default function PriceListSetupPage() {
                     })}
                     </div>}
                     {canEdit && <button type="button" onClick={() => addProfile(m)}
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addProfile}</button>}
+                      className="inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addProfile}</button>}
                     <p className="text-[13px] leading-5 text-[#4f4f4f]">{T.photoHint}</p>
                     </div>
                   </div>}
@@ -1194,7 +1194,7 @@ export default function PriceListSetupPage() {
                   <div className="flex items-center gap-4 px-4 py-3">
                     <ProfileSection material={m} size={44} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900">{L.materials[m]}</div>
+                      <div className="text-[15px] font-semibold text-gray-900">{L.materials[m]}</div>
                       <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{T.colorCount(list.length)}</div>
                     </div>
                     {/* the first colours as a preview */}
@@ -1266,7 +1266,7 @@ export default function PriceListSetupPage() {
               <div>
                 <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                   {/* column names once, like a table head (on phones every field keeps its own label) */}
-                  <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_240px_240px] gap-3 px-3 py-2.5 bg-[#fafafa] text-sm font-medium text-gray-900">
+                  <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_240px_240px] gap-3 px-3 py-2.5 bg-[#fafafa] border-b border-gray-200 text-[15px] font-medium text-[#4f4f4f]">
                     <div>{T.hwOpening}</div><div>{T.hwFixed}</div><div>{T.hwPerM}</div>
                   </div>
                   {(['tilt_turn', 'turn', 'tilt', 'passive', 'slide_window', 'slide', 'lift_slide'] as const).map(k => (
@@ -1321,7 +1321,7 @@ export default function PriceListSetupPage() {
                   </div>)}
                 </div>
                 {canEdit && <button type="button" onClick={() => setList([...list, { id: newRoofId(), name: '', ug: null, layers: 2, cost_m2: 0 }])}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addGlass}</button>}
+                  className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addGlass}</button>}
                 {/* the glazier's smallest billed area, for all glass */}
                 <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-4">
                   <div>
@@ -1384,7 +1384,7 @@ export default function PriceListSetupPage() {
                   })}
                 </div>
                 {canEdit && <button type="button" onClick={() => setList([...list, { id: newRoofId(), name: '', look: '#ffffff', cost: 0 }])}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addHandle}</button>}
+                  className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.addHandle}</button>}
               </div>
             })()}
           </Step>
@@ -1399,7 +1399,7 @@ export default function PriceListSetupPage() {
                 {(['inner', 'outer'] as const).map(side => {
                   const list = all.filter(x => x.side === side)
                   return <div key={side}>
-                    <div className="text-[15px] font-semibold text-gray-900 mb-2.5">{side === 'inner' ? T.sillInner : T.sillOuter}</div>
+                    <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{side === 'inner' ? T.sillInner : T.sillOuter}</div>
                     {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
                       {list.map(x => <div key={x.id} className="px-4 py-4 flex gap-4">
                         {/* picture: the supplier's photo, or the drawing of the material */}
@@ -1452,7 +1452,7 @@ export default function PriceListSetupPage() {
                       const unused = STANDARD_SILLS.filter(st => st.side === side && !list.some(x => x.name.trim().toLowerCase() === st.name.toLowerCase()))
                       return <div className="flex flex-wrap items-center gap-2">
                         <button type="button" onClick={() => setAll([...all, { id: newSillId(), side, name: '', material: 'none', cost_m: 0 }])}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{side === 'inner' ? T.addSillInner : T.addSillOuter}</button>
+                          className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{side === 'inner' ? T.addSillInner : T.addSillOuter}</button>
                         {unused.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
                         {unused.map(st => <button key={st.name} type="button" onClick={() => setAll([...all, { ...st, id: newSillId() }])}
                           className="inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors">
@@ -1476,7 +1476,7 @@ export default function PriceListSetupPage() {
                 {(['shade', 'screen'] as const).map(kind => {
                   const list = all.filter(x => x.kind === kind)
                   return <div key={kind}>
-                    <div className="text-[15px] font-semibold text-gray-900 mb-2.5">{kind === 'shade' ? T.shadeShades : T.shadeScreens}</div>
+                    <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{kind === 'shade' ? T.shadeShades : T.shadeScreens}</div>
                     {list.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
                       {list.map(x => {
                         const noPic = !x.image_url && (x.icon ?? 'none') === 'none'
@@ -1558,7 +1558,7 @@ export default function PriceListSetupPage() {
                       const unused = STANDARD_SHADING.filter(st => st.kind === kind && !list.some(x => x.name.trim().toLowerCase() === st.name.toLowerCase()))
                       return <div className="flex flex-wrap items-center gap-2">
                         <button type="button" onClick={() => setAll([...all, { id: newSillId(), kind, name: '', unit: kind === 'shade' ? 'm2' : 'sash', icon: 'none', cost: 0 }])}
-                          className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{kind === 'shade' ? T.addShade : T.addScreen}</button>
+                          className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{kind === 'shade' ? T.addShade : T.addScreen}</button>
                         {unused.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
                         {unused.map(st => <button key={st.name} type="button" onClick={() => setAll([...all, { ...st, id: newSillId() }])}
                           className="inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors">
@@ -1573,7 +1573,7 @@ export default function PriceListSetupPage() {
 
           {/* 10. labour, waste and margin: closes the window itself (the margin goes on the whole window, not on the services below) */}
           <Step n={10} title={T.s3} hint={T.s3hint}>
-            <div className="text-[15px] font-semibold text-gray-900 mb-2.5">{T.labourGroup}</div>
+            <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{T.labourGroup}</div>
             <div className="grid grid-cols-1 sm:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)] gap-3 items-end mb-5">
               <div className="text-sm font-medium text-[#4f4f4f] sm:pb-2.5">{T.labourFrame}</div>
               <NumberInput label={T.labourWindow} unit={cur} value={pricing.labour_window} onValue={v => setPrice({ labour_window: v ?? 0 })} decimals={2} />
@@ -1582,7 +1582,7 @@ export default function PriceListSetupPage() {
               <NumberInput label={T.labourSash} unit={cur} value={pricing.labour_sash} onValue={v => setPrice({ labour_sash: v ?? 0 })} decimals={2} />
               <NumberInput label={T.labourSashM} unit={`${cur}/m`} value={pricing.labour_sash_m ?? 0} onValue={v => setPrice({ labour_sash_m: v ?? 0 })} decimals={2} />
             </div>
-            <div className="text-[15px] font-semibold text-gray-900 mb-2.5">{T.marginGroup}</div>
+            <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{T.marginGroup}</div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end">
               <NumberInput label={T.waste} unit="%" value={pricing.waste_pct} onValue={v => setPrice({ waste_pct: v ?? 0 })} decimals={0} />
               <NumberInput label={T.margin} unit="%" value={pricing.margin_pct} onValue={v => setPrice({ margin_pct: v ?? 0 })} decimals={0} />
@@ -1638,7 +1638,7 @@ export default function PriceListSetupPage() {
                   ))}
                 </div>
                 {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
-                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-sm font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.add}</button>
+                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.add}</button>
                   {unused.length > 0 && <>
                     <span className="text-xs font-medium text-[#4f4f4f] ml-2">{T.quick}</span>
                     {unused.map(p => <button key={p.name} type="button" onClick={() => addOption(sec, p)}
@@ -1686,7 +1686,7 @@ export default function PriceListSetupPage() {
               </div>
               {/* 1. the data, each with where it comes from */}
               <div>
-                <div className="text-[15px] font-semibold text-gray-900 mb-2.5">{T.exData}</div>
+                <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{T.exData}</div>
                 <div className="rounded-lg bg-white border border-gray-200 divide-y divide-gray-100 text-sm">
                   {([
                     [T.exDataWindow, `${n(W, 0)} × ${n(H, 0)} mm`, T.exSrcExample],
@@ -1712,7 +1712,7 @@ export default function PriceListSetupPage() {
               </div>
               {/* 2. the calculation, one step at a time */}
               <div>
-                <div className="text-[15px] font-semibold text-gray-900 mb-2.5">{T.exCalc}</div>
+                <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-3">{T.exCalc}</div>
                 <div className="flex flex-col gap-3">
                   <div className="self-start rounded-lg bg-white border border-gray-200 p-3">
                     <SpecDrawing spec={spec} width={W} height={H} size={170} showDims />
