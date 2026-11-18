@@ -31,35 +31,35 @@ export default function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/25 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-[14px] border border-gray-200 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] w-full max-w-md overflow-hidden">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl border border-gray-200 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] w-full max-w-md overflow-hidden">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-300 hover:text-gray-500 transition-colors"
+          className="absolute top-[14px] right-[18px] p-1.5 rounded-lg text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100 transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
 
         {/* Content */}
-        <div className="px-6 pt-6 pb-5">
-          <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 pr-6">{title}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-gray-600">{message}</p>
+        <div className="px-6 pt-[18px] pb-6">
+          <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900 pr-8">{title}</h2>
+          <p className="mt-3 text-[15px] leading-6 text-[#4f4f4f]">{message}</p>
         </div>
 
         {/* Divider + buttons */}
-        <div className="border-t border-gray-200 bg-[#f7f7f7] px-6 py-3.5 flex justify-end gap-2.5">
+        <div className="border-t border-[#ececec] bg-white px-6 py-[18px] flex justify-end gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="h-10 px-4 text-[15px] font-medium text-gray-900 bg-white border border-gray-200 rounded-[10px] hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             {cancelLabel ?? t.common.cancel}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 h-10 px-4 text-[15px] font-medium text-white rounded-[10px] transition-colors disabled:opacity-50"
             style={{
               backgroundColor: danger ? '#ff5454' : '#131313',
               border: danger ? '1px solid #f04f4f' : 'none',

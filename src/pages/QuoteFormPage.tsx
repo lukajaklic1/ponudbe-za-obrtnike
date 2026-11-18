@@ -746,8 +746,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         </div>
         <div className="grid grid-cols-3 gap-3 mt-4">
           {([[o.wallsArea, areas.walls, 'm²'], [o.ceilingArea, areas.ceiling, 'm²'], [o.perimeter, areas.perimeter, 'm']] as [string, number, string][]).map(([lbl, v, u]) => (
-            <div key={lbl} className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
-              <div className="text-xs text-gray-500">{lbl}</div>
+            <div key={lbl} className="rounded-[10px] bg-[#fafafa] border border-gray-200 px-3 py-2.5">
+              <div className="text-[13px] font-medium text-[#4f4f4f]">{lbl}</div>
               <div className="text-base font-semibold text-gray-900">{v.toLocaleString('de-DE', { maximumFractionDigits: 2 })} {u}</div>
             </div>
           ))}
@@ -755,13 +755,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           {([['wallItem', o.wallsWork], ['ceilingItem', o.ceilingWork]] as const).map(([k, lbl]) => (
             <div key={k} className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-[#4f4f4f]">{lbl}</label>
-              <Select className="h-[37.6px]" value={room[k]} onChange={v => setRoom(r => ({ ...r, [k]: v }))}
+              <label className="field-label text-xs font-medium text-[#4f4f4f]">{lbl}</label>
+              <Select value={room[k]} onChange={v => setRoom(r => ({ ...r, [k]: v }))}
                 options={[{ value: '', label: o.none }, ...m2Items.map(p => ({ value: p.id, label: p.name, hint: money(Number(p.price)) }))]} />
             </div>
           ))}
         </div>
-        {m2Items.length === 0 && <p className="text-xs text-gray-400 mt-2">{o.roomNoPriceItems}</p>}
+        {m2Items.length === 0 && <p className="text-xs text-gray-500 mt-2">{o.roomNoPriceItems}</p>}
         <div className="flex justify-end gap-3 mt-5 pt-4 -mx-6 px-6 border-t border-gray-200">
           <Button variant="secondary" onClick={() => setRoomOpen(false)}>{t.common.cancel}</Button>
           <Button onClick={addRoom} disabled={!room.length || !room.width}>{o.addRoomLines}</Button>

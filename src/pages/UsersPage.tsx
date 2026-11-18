@@ -279,8 +279,8 @@ export default function UsersPage() {
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={s.addUser} size="lg">
         {sentTo ? (
           <div>
-            <p className="text-sm text-gray-600">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
-            <div className="flex justify-end mt-5">
+            <p className="text-[15px] leading-6 text-[#4f4f4f]">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
+            <div className="flex justify-end -mx-6 px-6 border-t border-gray-200">
               <Button onClick={() => setInviteOpen(false)}>{t.common.close}</Button>
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function UsersPage() {
 
             <Checkbox checked={inviteAsAdmin} onChange={setInviteAsAdmin} label={s.admin} />
 
-            <div className="flex gap-3 justify-end mt-1">
+            <div className="flex gap-3 justify-end -mx-6 px-6 border-t border-gray-200">
               <Button variant="secondary" onClick={() => setInviteOpen(false)}>{t.common.cancel}</Button>
               <Button loading={inviting} onClick={sendInvite}
                 disabled={!inv.email.trim() || !inv.first_name.trim() || !inv.last_name.trim()}>{s.sendInvite}</Button>
@@ -311,10 +311,8 @@ export default function UsersPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="edit-first" requiredMark placeholder={ph.first} label={s.firstName} value={editForm.first_name} onChange={e => setEditForm(v => ({ ...v, first_name: e.target.value }))} />
             <Input id="edit-last" requiredMark placeholder={ph.last} label={s.lastName} value={editForm.last_name} onChange={e => setEditForm(v => ({ ...v, last_name: e.target.value }))} />
-            <div className="col-span-1 sm:col-span-2 flex flex-col gap-1">
-              <label className="text-xs font-medium text-label">{t.common.email}</label>
-              <input value={editUser?.email ?? ''} disabled
-                className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 cursor-not-allowed" />
+            <div className="col-span-1 sm:col-span-2">
+              <Input id="edit-email" label={t.common.email} value={editUser?.email ?? ''} disabled readOnly />
             </div>
           </div>
 

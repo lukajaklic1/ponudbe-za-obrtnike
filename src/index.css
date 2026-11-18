@@ -161,10 +161,10 @@ fieldset:disabled textarea:focus {
 /* everywhere (also sign-in pages and popups): the selected field gets a thick dark teal outline like Levelpath
    (sampled #3e706f): 1 px border + 1 px ring = 2 px, plus a faint teal halo; no layout shift */
 :is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within, .peer-focus-visible\:ring-blue-500) {
-  --tw-ring-color: rgba(62, 112, 111, .25);
-  border-color: #3e706f !important;
+  --tw-ring-color: rgba(38, 137, 122, .25);
+  border-color: #26897a !important;
 }
-:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 1px #3e706f, 0 0 0 4px rgba(62, 112, 111, .10) !important; }
+:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 1px #26897a, 0 0 0 4px rgba(38, 137, 122, .14) !important; }
 /* tables: light grey header with dividers between columns, rows split by hairlines */
 .robust main table { border-collapse: separate; border-spacing: 0; }
 .robust main thead tr, .robust main thead { background: #fafafa; }
@@ -177,8 +177,9 @@ fieldset:disabled textarea:focus {
 .robust main tbody tr:not(:has(input, textarea)) > td { padding-top: 11px; padding-bottom: 11px; }
 .robust main tbody tr:last-child td { border-bottom: 0; }
 .robust main tbody tr:hover td { background: #fafafa; }
-/* popups: the button row at the bottom sits on a light grey strip (like Levelpath) */
+/* popups: the button row at the bottom, white with a hairline, always visible (sticky) */
 .modal-body .\-mx-6.border-t { position: sticky; bottom: -24px; z-index: 2; background: #ffffff; border-color: #ececec; margin-top: 28px; margin-bottom: -24px; padding-top: 18px; padding-bottom: 18px; }
+.modal-body .flex-col:is(.gap-3, .gap-4) > .\-mx-6.border-t { margin-top: 8px; }
 /* fields: 40 px high, 14 px text (Levelpath) */
 .robust :is(input:not([type]), input[type=text], input[type=email], input[type=tel], input[type=number], input[type=password], input[type=search], input[type=date]).py-2 { padding-top: 9px; padding-bottom: 9px; font-size: 14px; }
 /* forms like Levelpath (popups and pages marked .form-scope, e.g. Cenik): big bold field labels,

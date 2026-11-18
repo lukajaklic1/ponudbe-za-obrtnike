@@ -98,27 +98,27 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
   return (
     <Modal open={open} onClose={close} title={T.title} size="lg">
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-gray-600">{T.intro}</p>
+        <p className="text-[15px] leading-6 text-[#4f4f4f]">{T.intro}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="secondary" size="sm" onClick={downloadTemplate} className="gap-1.5"><Download className="w-3.5 h-3.5" />{T.template}</Button>
-          <span className="text-xs text-gray-400">{T.columns}</span>
+          <span className="text-[13px] text-[#4f4f4f]">{T.columns}</span>
         </div>
 
-        <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition-colors">
+        <label className="flex items-center gap-2.5 px-4 py-4 border border-dashed border-gray-300 rounded-[10px] cursor-pointer hover:border-gray-500 hover:bg-[#fafafa] transition-colors">
           {fileName ? <FileText className="w-4 h-4 text-gray-900 shrink-0" /> : <UploadCloud className="w-4 h-4 text-gray-400 shrink-0" />}
-          <span className={`text-sm ${fileName ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>{fileName || T.pick}</span>
+          <span className={`text-[15px] font-medium ${fileName ? 'text-gray-900' : 'text-[#4f4f4f]'}`}>{fileName || T.pick}</span>
           <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f); e.target.value = '' }} />
         </label>
 
         {rows && (rows.length === 0 ? <p className="text-sm text-gray-400">{T.empty}</p> : (
           <div>
-            <p className="text-xs font-medium text-[#4f4f4f] mb-2">{T.preview}</p>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <p className="field-label text-xs mb-2">{T.preview}</p>
+            <div className="border border-gray-200 rounded-[10px] overflow-hidden">
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-sm">
                   <tbody className="divide-y divide-gray-100">
                     {rows.slice(0, 50).map(r => (
-                      <tr key={r.line} className={r.error ? 'bg-[#fff8f3]' : ''}>
+                      <tr key={r.line} className={r.error ? 'bg-[#fffbf0]' : ''}>
                         <td className="px-3 py-2 text-xs text-gray-400 w-10">{r.line}</td>
                         <td className="px-3 py-2 text-gray-900">
                           {customerDisplayName(r) || <span className="text-gray-300">—</span>}
@@ -127,8 +127,8 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
                         <td className="px-3 py-2 text-gray-500 w-28 whitespace-nowrap">{typeLabels[r.customer_type]}</td>
                         <td className="px-3 py-2 text-gray-500 w-28">{r.address_city ?? ''}</td>
                         <td className="px-3 py-2 w-40 text-right">
-                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold whitespace-nowrap" style={
-                            r.error ? { backgroundColor: '#feeee1', border: '1px solid #fee0c8', color: '#9e3f00' }
+                          <span className="px-[7px] py-[3px] rounded-lg text-xs font-semibold whitespace-nowrap" style={
+                            r.error ? { backgroundColor: '#fef3cd', color: '#8a6100' }
                               : { backgroundColor: '#dbfce7', color: '#267a47' }}>
                             {r.error ? T.errors[r.error] : T.newRow}
                           </span>
@@ -140,7 +140,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
               </div>
               {rows.length > 50 && <p className="px-3 py-2 text-xs text-gray-400 border-t border-gray-100">{T.more(rows.length - 50)}</p>}
             </div>
-            <p className="text-sm text-gray-700 mt-3">{T.summary(valid.length, errors.length)}</p>
+            <p className="text-[15px] text-gray-900 mt-3">{T.summary(valid.length, errors.length)}</p>
           </div>
         ))}
 
