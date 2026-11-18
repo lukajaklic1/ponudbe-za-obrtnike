@@ -191,8 +191,8 @@ export default function DashboardPage() {
     return [
       row(sl ? 'Skupna vrednost' : 'Total value', all, 'grey', all.value ? share(all.value) : ''),
       row(sl ? 'Osnutki' : 'Drafts', draft, 'grey', share(draft.value)),
-      row(sl ? 'Poslane' : 'Sent', sent, 'yellow', share(sent.value)),
-      row(sl ? 'Dobljene' : 'Won', won, 'green', share(won.value)),
+      row(sl ? 'Poslane' : 'Sent', sent, 'grey', share(sent.value)),
+      row(sl ? 'Dobljene' : 'Won', won, 'grey', share(won.value)),
       row(sl ? 'Izgubljene' : 'Lost', lost, 'grey', share(lost.value)),
     ]
   })()
