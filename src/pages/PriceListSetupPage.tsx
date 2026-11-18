@@ -868,7 +868,7 @@ export default function PriceListSetupPage() {
                   className={cn('relative rounded-xl border p-3 text-left transition-colors', on ? SEL_ON : SEL_OFF)}>
                   {on && <SelBadge />}
                   <div className="h-[128px] flex items-center justify-center rounded-lg bg-gray-50">{pic}</div>
-                  <div className={cn('mt-3 text-sm font-medium', on ? 'text-gray-900' : 'text-gray-900')}>{label}</div>
+                  <div className="mt-3 text-[15px] font-medium text-gray-900">{label}</div>
                 </button>
               })}
             </div>
@@ -1190,7 +1190,7 @@ export default function PriceListSetupPage() {
                               style={serves(g) ? { color: '#267a47', backgroundColor: '#dbfce7' } : { color: '#9a9a9a', backgroundColor: '#f4f4f4' }}>{groupLabel(g)}</span>)}
                           </div>
                           <button type="button" onClick={() => setOpenProf(o => ({ ...o, [p.key]: !pOpen }))}
-                            className="justify-self-end inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100">
+                            className="justify-self-end inline-flex items-center gap-1 px-2.5 h-8 rounded-lg text-[13px] font-medium text-gray-900 hover:bg-gray-100">
                             {pOpen ? T.hideOpenings : T.editProfile}<ChevronDown className={cn('w-3.5 h-3.5 transition-transform', pOpen && 'rotate-180')} />
                           </button>
                         </div>
@@ -1318,7 +1318,7 @@ export default function PriceListSetupPage() {
                     {/* the first colours as a preview */}
                     <div className="hidden sm:flex items-center gap-1">
                       {list.slice(0, 10).map(c => { const spec = parseColor(c.look); return spec ? <ColorSwatch key={c.id} spec={spec} size={22} rounded={6} /> : null })}
-                      {list.length > 10 && <span className="text-xs font-medium text-[#4f4f4f] ml-1">+{list.length - 10}</span>}
+                      {list.length > 10 && <span className="text-[13px] font-medium text-[#4f4f4f] ml-1">+{list.length - 10}</span>}
                     </div>
                     <button type="button" onClick={() => setOpenColors(o => ({ ...o, [m]: !open }))}
                       className="inline-flex items-center gap-1 px-2.5 h-8 rounded-lg text-[13px] font-medium text-gray-900 hover:bg-gray-100 transition-colors">
