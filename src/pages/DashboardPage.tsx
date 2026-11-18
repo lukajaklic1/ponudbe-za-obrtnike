@@ -259,6 +259,19 @@ export default function DashboardPage() {
     { v: 12 as const, sl: '12 mesecev', en: '12 months' },
   ]
 
+  // one column per period: all sent quotes, the won part dark at the bottom, the rest light on top
+  const stacked = trends.map(t => ({ ...t, open_value: Math.max(0, (t.sent_value || 0) - (t.realized_value || 0)), open_count: Math.max(0, (t.sent_count || 0) - (t.realized_count || 0)) }))
+  const ratioTip = (k: 'value' | 'count') => ({ active, payload, label }: { active?: boolean; payload?: readonly { payload?: unknown }[]; label?: string | number }) => {
+    if (!active || !payload?.length) return null
+    const t = payload[0].payload as TrendData
+    const sent = k === 'value' ? t.sent_value : t.sent_count, won = k === 'value' ? t.realized_value : t.realized_count
+    const fmt = (n: number) => (k === 'value' ? money(n) : String(n))
+    return <div className="rounded-[10px] border border-gray-200 bg-white px-3 py-2.5 text-[13px] font-medium shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+      <div className="text-gray-900 mb-1">{formatPeriod(String(label ?? ''))}</div>
+      <div className="flex justify-between gap-6 text-[#4f4f4f]"><span>{sl ? 'Poslano' : 'Sent'}</span><span className="text-gray-900">{fmt(sent)}</span></div>
+      <div className="flex justify-between gap-6 text-[#4f4f4f]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm" style={{ backgroundColor: TEAL.line }} />{sl ? 'Dobljeno' : 'Won'}</span><span className="text-gray-900">{fmt(won)}{sent ? ` (${Math.round(won / sent * 100)} %)` : ''}</span></div>
+    </div>
+  }
   const hasValues = trends.some(t => (t.sent_value || 0) > 0 || (t.realized_value || 0) > 0)
   const hasCounts = trends.some(t => (t.sent_count || 0) > 0 || (t.realized_count || 0) > 0)
   // Same look as the other empty states in the app: light icon + short grey sentence
@@ -358,14 +371,14 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
+                <BarChart data={stacked} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                  <Tooltip cursor={{ fill: '#f6f6f6' }} content={ratioTip('value')} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_value" stackId="v" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={56} />
+                  <Bar dataKey="open_value" stackId="v" name={sl ? 'Poslano, ne (še) dobljeno' : 'Sent, not (yet) won'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={56} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -374,14 +387,14 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Število ponudb' : 'Quote count'}</h2>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
+                <BarChart data={stacked} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                  <Tooltip cursor={{ fill: '#f6f6f6' }} content={ratioTip('count')} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_count" stackId="c" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} maxBarSize={56} />
+                  <Bar dataKey="open_count" stackId="c" name={sl ? 'Poslane, ne (še) dobljene' : 'Sent, not (yet) won'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={56} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
