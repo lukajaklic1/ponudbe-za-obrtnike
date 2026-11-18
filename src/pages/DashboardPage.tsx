@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { LayoutDashboard, Search, X, CalendarDays, BarChart3, Users, Tags } from 'lucide-react'
 import { SortIcon } from '../components/ui/SortIcon'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
@@ -14,13 +14,11 @@ import { FilterSelect } from '../components/ui/FilterSelect'
 const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e4' }
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string }
 
-/** a KPI card like Levelpath: label, big number, change vs the previous period, a soft teal curve across the bottom */
-function KpiCard({ label, value, delta, deltaLabel, series, hint }: { label: string; value: string; delta: { text: string; up: boolean | null } | null; deltaLabel: string; series: number[]; hint?: string }) {
-  const data = series.map((v, i) => ({ i, v }))
-  const id = 'g' + label.replace(/[^a-z]/gi, '')
+/** a KPI card like Levelpath: label, big number, change vs the previous period */
+function KpiCard({ label, value, delta, deltaLabel, hint }: { label: string; value: string; delta: { text: string; up: boolean | null } | null; deltaLabel: string; hint?: string }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
-      <div className="px-5 pt-4">
+      <div className="px-5 py-4">
         <p className="text-[15px] font-medium text-gray-900">{label}</p>
         <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
           <p className="text-[26px] leading-8 font-bold text-gray-900 tracking-[-0.02em]">{value}</p>
@@ -29,19 +27,6 @@ function KpiCard({ label, value, delta, deltaLabel, series, hint }: { label: str
             {delta.up === null ? '' : delta.up ? '▲' : '▼'} {delta.text}</span>}
           <span className="text-[13px] font-medium text-[#4f4f4f]">{delta ? deltaLabel : hint}</span>
         </div>
-      </div>
-      <div className="h-[72px] mt-3 -mx-px">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={TEAL.fill} stopOpacity={0.28} />
-                <stop offset="100%" stopColor={TEAL.fill} stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <Area type="monotone" dataKey="v" stroke={TEAL.line} strokeWidth={2} fill={`url(#${id})`} isAnimationActive={false} />
-          </AreaChart>
-        </ResponsiveContainer>
       </div>
     </div>
   )
@@ -361,7 +346,7 @@ export default function DashboardPage() {
 
         {/* KPI cards: number, change vs the previous period, teal curve (Levelpath style) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {kpi.map(k => <KpiCard key={k.label} label={k.label} value={k.value} delta={k.delta} series={k.series}
+          {kpi.map(k => <KpiCard key={k.label} label={k.label} value={k.value} delta={k.delta}
             deltaLabel={sl ? 'glede na prejšnje obdobje' : 'vs previous period'} hint={sl ? 'v izbranem obdobju' : 'in this period'} />)}
         </div>
 
@@ -373,19 +358,15 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="won-realized_value" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.fill} stopOpacity={0.3} /><stop offset="100%" stopColor={TEAL.fill} stopOpacity={0.02} /></linearGradient>
-                    <linearGradient id="sent-sent_value" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.light} stopOpacity={0.35} /><stop offset="100%" stopColor={TEAL.light} stopOpacity={0.02} /></linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="#f0f0f0" vertical={false} />
+                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip formatter={(v) => money(v as number)} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
-                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Area type="monotone" dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} stroke={TEAL.light} strokeWidth={2} fill="url(#sent-sent_value)" />
-                  <Area type="monotone" dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} stroke={TEAL.line} strokeWidth={2} fill="url(#won-realized_value)" />
-                </AreaChart>
+                  <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
+                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>}
             </div>
 
@@ -393,19 +374,15 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Število ponudb' : 'Quote count'}</h2>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="won-realized_count" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.fill} stopOpacity={0.3} /><stop offset="100%" stopColor={TEAL.fill} stopOpacity={0.02} /></linearGradient>
-                    <linearGradient id="sent-sent_count" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={TEAL.light} stopOpacity={0.35} /><stop offset="100%" stopColor={TEAL.light} stopOpacity={0.02} /></linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="#f0f0f0" vertical={false} />
+                <BarChart data={trends} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
-                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Area type="monotone" dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} stroke={TEAL.light} strokeWidth={2} fill="url(#sent-sent_count)" />
-                  <Area type="monotone" dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} stroke={TEAL.line} strokeWidth={2} fill="url(#won-realized_count)" />
-                </AreaChart>
+                  <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
+                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="realized_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>}
             </div>
           </div>
