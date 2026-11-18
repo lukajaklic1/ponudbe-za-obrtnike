@@ -169,6 +169,8 @@ export interface Quote {
   created_by: string
   assignee_id: string | null
   sent_at: string | null
+  /** the day the quote was won or lost (set by the database when the status changes) */
+  closed_at?: string | null
   snapshot: OfferSnapshot | null
   issued_at: string | null
   pdf_path: string | null

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Search, X, CalendarDays, BarChart3, Users, Tags } from 'lucide-react'
-import { SortIcon } from '../components/ui/SortIcon'
+import { LayoutDashboard, Search, X, CalendarDays, BarChart3, Tags } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
@@ -12,7 +11,7 @@ import { FilterSelect } from '../components/ui/FilterSelect'
 
 /** teal family for every chart */
 const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e4' }
-type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string }
+type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null }
 
 /** a KPI card like Levelpath: label, big number, change vs the previous period */
 function KpiCard({ label, value, delta, deltaLabel, hint }: { label: string; value: string; delta: { text: string; up: boolean | null } | null; deltaLabel: string; hint?: string }) {
@@ -59,28 +58,20 @@ interface CustomerStat {
   win_rate: number
 }
 
-type SortKey = 'customer_name' | 'sent_value' | 'realized_value' | 'sent_count' | 'realized_count' | 'win_rate'
-type SortDir = 'asc' | 'desc'
-
 export default function DashboardPage() {
   const { company } = useCompany()
   const { t, lang } = useLanguage()
-  const s = t.qp
   const cur = company?.currency ?? 'EUR'
   const money = (n: number) => (n ?? 0).toLocaleString('de-DE', { style: 'currency', currency: cur, maximumFractionDigits: 0 })
   const moneyK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}k €` : `${n.toFixed(0)} €`
 
   const [stats, setStats] = useState<Stats | null>(null)
-  const [trends, setTrends] = useState<TrendData[]>([])
   const [customers, setCustomers] = useState<CustomerStat[]>([])
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<1 | 3 | 6 | 12>(3)
-  const [sortKey, setSortKey] = useState<SortKey>('sent_value')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [filterCustomerId, setFilterCustomerId] = useState<string | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState<string>('')
   const [companyUsers, setCompanyUsers] = useState<{ id: string; first_name: string; last_name: string }[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
   const [searchText, setSearchText] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
 
@@ -107,7 +98,7 @@ export default function DashboardPage() {
   async function loadStatusStats() {
     if (!company) return
     const [{ data }, { data: lineData }] = await Promise.all([
-      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at').eq('company_id', company.id),
+      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at, closed_at').eq('company_id', company.id),
       supabase.from('quote_lines').select('quote_id, name, total_net').eq('company_id', company.id),
     ])
     const acc: Record<StatusKey, { value: number; count: number }> = {
@@ -165,34 +156,19 @@ export default function DashboardPage() {
   async function load() {
     if (!company) return
     // spinner only on first load (initial state) — reloads keep the current view on screen
-    const [{ data: st, error: e1 }, { data: tr, error: e2 }, { data: cu, error: e3 }] = await Promise.all([
+    // (the monthly charts are computed from the quotes on this page)
+    const [{ data: st, error: e1 }, { data: cu, error: e3 }] = await Promise.all([
       (supabase as any).rpc('get_quote_dashboard_stats', { p_company_id: company.id, p_customer_id: filterCustomerId, p_assignee_id: assigneeFilter || null }),
-      (supabase as any).rpc('get_quote_trends', { p_company_id: company.id, p_months: period, p_customer_id: filterCustomerId, p_assignee_id: assigneeFilter || null }),
       (supabase as any).rpc('get_customer_stats', { p_company_id: company.id, p_assignee_id: assigneeFilter || null }),
     ])
     // Never leave the page spinning: show what loaded, surface the first error
-    const err = e1 ?? e2 ?? e3
+    const err = e1 ?? e3
     if (err) { console.error('dashboard', err); toast.error(err.message) }
     setStats((st as Stats) ?? { pipeline_value: 0, win_rate: 0, won_90d: 0, lost_90d: 0, active_quotes: 0, realized_this_month: 0 })
-    setTrends(((tr as TrendData[]) || []).sort((a, b) => a.period.localeCompare(b.period)))
     setCustomers((cu as CustomerStat[]) || [])
     setLoading(false)
   }
 
-  function handleSort(key: SortKey) {
-    if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
-    else { setSortKey(key); setSortDir('desc') }
-  }
-
-  const sortedCustomers = [...customers].sort((a, b) => {
-    const av = a[sortKey], bv = b[sortKey]
-    const mul = sortDir === 'asc' ? 1 : -1
-    return typeof av === 'string' ? av.localeCompare(bv as string) * mul : ((av as number) - (bv as number)) * mul
-  })
-  const filteredCustomers = filterCustomerId ? sortedCustomers.filter(c => c.customer_id === filterCustomerId) : sortedCustomers
-  const pageSize = 10
-  const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / pageSize))
-  const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
 
 
@@ -216,7 +192,7 @@ export default function DashboardPage() {
     const inCur = (d: string | null) => !!d && +new Date(d) >= start && +new Date(d) <= now
     const inPrev = (d: string | null) => !!d && +new Date(d) >= prevStart && +new Date(d) < start
     const sentAt = (q: Q) => q.status === 'draft' ? null : q.sent_at ?? q.created_at
-    const closedAt = (q: Q) => (q.status === 'won' || q.status === 'lost' ? q.updated_at : null)
+    const closedAt = (q: Q) => (q.status === 'won' || q.status === 'lost' ? q.closed_at ?? q.updated_at : null)
     const series = (pick: (q: Q) => string | null, val: (q: Q) => number, filter: (q: Q) => boolean = () => true) => {
       const out = Array(buckets).fill(0)
       for (const q of quotes) { const d = pick(q); if (filter(q) && inCur(d)) out[bucketOf(+new Date(d!))] += val(q) }
@@ -234,8 +210,8 @@ export default function DashboardPage() {
       const d = asPct ? Math.round(((cur - prev) / prev) * 100) : cur - prev
       return { text: asPct ? `${Math.abs(d)} %` : fmt(Math.abs(d)), up: d === 0 ? null : d > 0 }
     }
-    const sentV = sum(inCur, sentAt, v), sentVp = sum(inPrev, sentAt, v)
-    const sentN = sum(inCur, sentAt, one), sentNp = sum(inPrev, sentAt, one)
+    const sentV = sum(inCur, sentAt, v)
+    const sentN = sum(inCur, sentAt, one)
     const wonV = sum(inCur, closedAt, v, won), wonVp = sum(inPrev, closedAt, v, won)
     const wonN = sum(inCur, closedAt, one, won), lostN = sum(inCur, closedAt, one, lost)
     const wonNp = sum(inPrev, closedAt, one, won), lostNp = sum(inPrev, closedAt, one, lost)
@@ -245,8 +221,9 @@ export default function DashboardPage() {
     let w = 0, l = 0
     const rateS = wonS.map((x, i) => { w += x; l += lostS[i]; return w + l ? w / (w + l) * 100 : 0 })
     return [
-      { label: sl ? 'Poslane ponudbe' : 'Quotes sent', value: String(sentN), delta: change(sentN, sentNp, n => String(n), false), series: series(sentAt, one) },
-      { label: sl ? 'Vrednost poslanih ponudb' : 'Value of quotes sent', value: money(sentV), delta: change(sentV, sentVp, money), series: series(sentAt, v) },
+      // sent quotes: the plain number for the period (a comparison says little here), with the average quote
+      { label: sl ? 'Poslane ponudbe' : 'Quotes sent', value: String(sentN), delta: null, hint: sentN ? (sl ? `povprečno ${money(sentV / sentN)} na ponudbo` : `${money(sentV / sentN)} per quote on average`) : undefined, series: series(sentAt, one) },
+      { label: sl ? 'Vrednost poslanih ponudb' : 'Value of quotes sent', value: money(sentV), delta: null, series: series(sentAt, v) },
       { label: sl ? 'Dobljeni posli' : 'Deals won', value: money(wonV), delta: change(wonV, wonVp, money), series: series(closedAt, v, won) },
       { label: sl ? 'Uspešnost' : 'Win rate', value: `${rate} %`, delta: wonN + lostN || wonNp + lostNp ? { text: `${Math.abs(rate - rateP)} ${sl ? 'o. t.' : 'pts'}`, up: rate === rateP ? null : rate > rateP } : null, series: rateS },
     ]
@@ -259,8 +236,27 @@ export default function DashboardPage() {
     { v: 12 as const, sl: '12 mesecev', en: '12 months' },
   ]
 
-  // one column per period: all sent quotes, the won part dark at the bottom, the rest light on top
-  const stacked = trends.map(t => ({ ...t, open_value: Math.max(0, (t.sent_value || 0) - (t.realized_value || 0)), open_count: Math.max(0, (t.sent_count || 0) - (t.realized_count || 0)) }))
+  // months of the chosen period: business by the day it happened (sent / won), and how each month's quotes ended
+  const months = (() => {
+    const n = period, now = new Date()
+    const keys = Array.from({ length: n }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` })
+    const rows = keys.map(k => ({ period: k, sent_value: 0, won_value: 0, sent_count: 0, realized_count: 0, realized_value: 0, open_count: 0, open_value: 0 }))
+    const at = (d: string | null | undefined) => (d ? rows.find(r => r.period === d.slice(0, 7)) : undefined)
+    for (const q of quotes) {
+      if (q.status === 'draft') continue
+      const v = Number(q.total_net) || 0
+      const sentRow = at(q.sent_at ?? q.created_at)
+      if (sentRow) {
+        sentRow.sent_value += v; sentRow.sent_count++
+        // how this month's quotes ended (cohort)
+        if (q.status === 'won') { sentRow.realized_count++; sentRow.realized_value += v }
+      }
+      // business won in the month it was won
+      if (q.status === 'won') { const w = at(q.closed_at ?? q.updated_at); if (w) w.won_value += v }
+    }
+    for (const r of rows) { r.open_count = Math.max(0, r.sent_count - r.realized_count); r.open_value = Math.max(0, r.sent_value - r.realized_value) }
+    return rows
+  })()
   const ratioTip = (k: 'value' | 'count') => ({ active, payload, label }: { active?: boolean; payload?: readonly { payload?: unknown }[]; label?: string | number }) => {
     if (!active || !payload?.length) return null
     const t = payload[0].payload as TrendData
@@ -272,8 +268,8 @@ export default function DashboardPage() {
       <div className="flex justify-between gap-6 text-[#4f4f4f]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm" style={{ backgroundColor: TEAL.line }} />{sl ? 'Dobljeno' : 'Won'}</span><span className="text-gray-900">{fmt(won)}{sent ? ` (${Math.round(won / sent * 100)} %)` : ''}</span></div>
     </div>
   }
-  const hasValues = trends.some(t => (t.sent_value || 0) > 0 || (t.realized_value || 0) > 0)
-  const hasCounts = trends.some(t => (t.sent_count || 0) > 0 || (t.realized_count || 0) > 0)
+  const hasValues = months.some(t => t.sent_value > 0 || t.won_value > 0)
+  const hasCounts = months.some(t => t.sent_count > 0)
   // Same look as the other empty states in the app: light icon + short grey sentence
   const emptyChart = (
     <div className="flex flex-col items-center justify-center h-[260px] text-center">
@@ -314,7 +310,7 @@ export default function DashboardPage() {
               value={assigneeFilter}
               allLabel={sl ? 'Vse' : 'All'}
               options={companyUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))}
-              onChange={v => { setAssigneeFilter(v); setCurrentPage(1) }}
+              onChange={v => { setAssigneeFilter(v) }}
             />
           )}
 
@@ -330,7 +326,7 @@ export default function DashboardPage() {
               className="h-8 pl-9 pr-8 border border-gray-200 rounded-[10px] text-sm bg-white text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 transition-colors"
             />
             {(searchText || filterCustomerId) && (
-              <button onClick={() => { setSearchText(''); setFilterCustomerId(null); setShowDropdown(false); setCurrentPage(1) }}
+              <button onClick={() => { setSearchText(''); setFilterCustomerId(null); setShowDropdown(false) }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -338,13 +334,13 @@ export default function DashboardPage() {
             {showDropdown && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-56 overflow-y-auto min-w-[200px]">
                 <div className="px-3 py-2 text-sm text-gray-600 hover:bg-[#fafafa] cursor-pointer"
-                  onClick={() => { setFilterCustomerId(null); setSearchText(''); setShowDropdown(false); setCurrentPage(1) }}>
+                  onClick={() => { setFilterCustomerId(null); setSearchText(''); setShowDropdown(false) }}>
                   {sl ? 'Vse stranke' : 'All customers'}
                 </div>
                 {customers.filter(c => c.customer_name.toLowerCase().includes(searchText.toLowerCase())).map(c => (
                   <div key={c.customer_id}
                     className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fafafa] ${filterCustomerId === c.customer_id ? 'text-gray-900 font-medium' : 'text-gray-700'}`}
-                    onClick={() => { setFilterCustomerId(c.customer_id); setSearchText(c.customer_name); setShowDropdown(false); setCurrentPage(1) }}>
+                    onClick={() => { setFilterCustomerId(c.customer_id); setSearchText(c.customer_name); setShowDropdown(false) }}>
                     {c.customer_name}
                   </div>
                 ))}
@@ -360,7 +356,7 @@ export default function DashboardPage() {
         {/* KPI cards: number, change vs the previous period, teal curve (Levelpath style) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {kpi.map(k => <KpiCard key={k.label} label={k.label} value={k.value} delta={k.delta}
-            deltaLabel={sl ? 'glede na prejšnje obdobje' : 'vs previous period'} hint={sl ? 'v izbranem obdobju' : 'in this period'} />)}
+            deltaLabel={sl ? 'glede na prejšnje obdobje' : 'vs previous period'} hint={('hint' in k && k.hint) || (sl ? 'v izbranem obdobju' : 'in this period')} />)}
         </div>
 
 
@@ -369,25 +365,27 @@ export default function DashboardPage() {
 
             {/* Values chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Vrednost ponudb' : 'Quote value'}</h2>
+              <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Posel po mesecih' : 'Business per month'}</h2>
+              <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Poslano v mesecu in dobljeno v mesecu, ko je bila ponudba sprejeta.' : 'Sent in the month, and won in the month the quote was accepted.'}</p>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={stacked} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
+                <BarChart data={months} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: '#f6f6f6' }} content={ratioTip('value')} />
+                  <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="realized_value" stackId="v" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={56} />
-                  <Bar dataKey="open_value" stackId="v" name={sl ? 'Poslano, ne (še) dobljeno' : 'Sent, not (yet) won'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={56} />
+                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
 
             {/* Count chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Število ponudb' : 'Quote count'}</h2>
+              <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Uspešnost ponudb' : 'Quote win rate'}</h2>
+              <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Ponudbe po mesecu pošiljanja in koliko jih je bilo dobljenih.' : 'Quotes by the month they were sent, and how many were won.'}</p>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={stacked} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
+                <BarChart data={months} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
@@ -484,76 +482,6 @@ export default function DashboardPage() {
             </div>
           )
         })()}
-
-        {/* Customer table */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-[15px] font-semibold text-gray-900">{s.topCustomers}</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm font-medium min-w-[600px]">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    {[
-                      { key: 'customer_name' as SortKey, label: sl ? 'Stranka' : 'Customer', align: 'left' },
-                      { key: 'sent_value' as SortKey, label: sl ? 'Poslana vrednost' : 'Sent value', align: 'right' },
-                      { key: 'realized_value' as SortKey, label: sl ? 'Dobljena vrednost' : 'Won value', align: 'right' },
-                      { key: 'sent_count' as SortKey, label: sl ? 'Poslane' : 'Sent', align: 'center' },
-                      { key: 'realized_count' as SortKey, label: sl ? 'Dobljene' : 'Won', align: 'center' },
-                      { key: 'win_rate' as SortKey, label: sl ? 'Uspešnost' : 'Win rate', align: 'right' },
-                    ].map(col => (
-                      <th key={col.key}
-                        className={`px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap cursor-pointer select-none hover:text-gray-700 text-${col.align}`}
-                        onClick={() => handleSort(col.key)}>
-                        <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : ''}`}>
-                          {col.label}
-                          <SortIcon active={sortKey === col.key} dir={sortDir} />
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {paginatedCustomers.length === 0 && (
-                    <tr><td colSpan={6}>
-                      <div className="flex flex-col items-center justify-center h-48 text-center">
-                        <Users className="w-10 h-10 text-gray-200 mb-3" />
-                        <p className="text-sm text-gray-400">{sl ? 'Ni še podatkov o strankah.' : 'No customer data yet.'}</p>
-                      </div>
-                    </td></tr>
-                  )}
-                  {paginatedCustomers.map(c => (
-                    <tr key={c.customer_id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{c.customer_name}</td>
-                      <td className="px-4 py-3 text-right text-gray-600 whitespace-nowrap">{money(c.sent_value)}</td>
-                      <td className="px-4 py-3 text-right text-gray-600 whitespace-nowrap">{money(c.realized_value)}</td>
-                      <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">{c.sent_count}</td>
-                      <td className="px-4 py-3 text-center text-gray-600 whitespace-nowrap">{c.realized_count}</td>
-                      <td className="px-4 py-3 text-right text-gray-600 whitespace-nowrap">{c.win_rate.toFixed(1)} %</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {totalPages > 1 && (
-              <div className="px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-                <span className="text-xs text-gray-400">
-                  {sl ? `Stran ${currentPage} od ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
-                </span>
-                <div className="flex gap-2">
-                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                    className="px-3 py-1 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-[#f6f6f6] disabled:opacity-40 disabled:cursor-not-allowed">
-                    {sl ? 'Prejšnja' : 'Previous'}
-                  </button>
-                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-[#f6f6f6] disabled:opacity-40 disabled:cursor-not-allowed">
-                    {sl ? 'Naslednja' : 'Next'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
       </div>
     </div>
   )
