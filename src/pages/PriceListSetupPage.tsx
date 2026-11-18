@@ -53,8 +53,23 @@ const toPrices = (p: ProfileRow): ProfilePrices => ({ frame_m: p.frame_m ?? 0, s
 const REF = { template: 'double_mullion' as WindowTemplate, w: 1200, h: 1400 }
 interface OptionRow { key: string; id?: string; group_key: OptionGroup; name: string; pricing: OptionPricing; price: number | null; is_default: boolean; swatch?: string; description?: string; price_piece?: number | null; per_item?: PerItem }
 
-type PerItem = 'window' | 'sill' | 'shade' | 'screen'
+type PerItem = 'window' | 'sill' | 'shade' | 'screen' | 'roof'
 interface Preset { name: string; pricing: OptionPricing; price: number; swatch?: string; description?: string; price_piece?: number; per_item?: PerItem; /** filled in for a new price list (the rest only under quick add) */ sample?: boolean }
+/** roof window work, a price per roof window (quick add in the roof windows group) */
+const ROOF_WORK: Record<'sl' | 'en', Preset[]> = {
+  sl: [
+    { name: 'Montaža strešnega okna', pricing: 'piece', price: 0, price_piece: 180, per_item: 'roof', description: 'Vgradnja strešnega okna v ostrešje z obrobo in tesnjenjem.' },
+    { name: 'Notranja obloga špalet', pricing: 'piece', price: 0, price_piece: 140, per_item: 'roof', description: 'Notranje špalete obložimo z mavčnimi ploščami ali obložnim kompletom.' },
+    { name: 'Parna zapora in izolacijski komplet', pricing: 'piece', price: 0, price_piece: 75, per_item: 'roof', description: 'Parna zapora in toplotna izolacija okoli okna, brez toplotnih mostov.' },
+    { name: 'Zamenjava starega strešnega okna', pricing: 'piece', price: 0, price_piece: 90, per_item: 'roof', description: 'Odstranitev starega strešnega okna in odvoz.' },
+  ],
+  en: [
+    { name: 'Roof window installation', pricing: 'piece', price: 0, price_piece: 180, per_item: 'roof', description: 'Fitting the roof window into the roof with flashing and sealing.' },
+    { name: 'Inner reveal lining', pricing: 'piece', price: 0, price_piece: 140, per_item: 'roof', description: 'Inner reveals lined with plasterboard or a lining kit.' },
+    { name: 'Vapour barrier and insulation kit', pricing: 'piece', price: 0, price_piece: 75, per_item: 'roof', description: 'Vapour barrier and insulation around the window, no thermal bridges.' },
+    { name: 'Replacing an old roof window', pricing: 'piece', price: 0, price_piece: 90, per_item: 'roof', description: 'Removing the old roof window and taking it away.' },
+  ],
+}
 interface Section { group: OptionGroup; title: string; hint: string; units: OptionPricing[]; single: boolean; presets: Preset[] }
 
 function metreOrSample(x: Partial<WindowSystem> & { material: WindowMaterial }) {
@@ -88,6 +103,8 @@ const TXT = {
     roofAddVersion: 'Dodaj izvedbo',
     roofFlashTitle: 'Obrobe za kritino', roofFlashHint: 'Obroba tesni stik med strešnim oknom in kritino. Stranka v konfiguratorju izbere obrobo glede na vrsto kritine. Cena velja za eno okno.',
     roofFlashPh: 'Obroba za valovito kritino',
+    roofWorkTitle: 'Montaža strešnih oken', roofWorkHint: 'Vpišite prodajne cene brez DDV za delo na strešnem oknu. Cena velja za vsako strešno okno. Stranka v konfiguratorju izbere, kaj potrebuje; montaža in dela za navadna okna strešnih oken ne štejejo.',
+    roofWorkPrice: 'Cena na strešno okno', roofWorkPh: 'Montaža strešnega okna', roofWorkAdd: 'Dodaj delo',
     roofFlashings: 'Obrobe za kritino (prodajna cena brez DDV)', roofBrand: 'Proizvajalec', roofDescription: 'Opis za stranko', roofDescriptionHint: 'Npr. troslojno steklo, Uw 1,0 W/m²K, les ali PVC …', roofDatasheet: 'Tehnični list (povezava do PDF)', roofVariants: 'Material in barva (doplačilo na ceno mere)', roofVariantHint: 'Npr. les naravni, PVC bel …', roofAddVariant: 'Dodaj material ali barvo', roofAddFlashing: 'Dodaj obrobo', roofHint: 'Strešna okna so izdelki iz kataloga: vpišite prodajne cene brez DDV, kot jih ima stranka v ponudbi. Marža se jim ne prišteva.',
     catEntry: 'Vhodna vrata', catRoof: 'Strešna okna', catGarage: 'Garažna vrata', catShading: 'Senčila', soon: 'Kmalu',
     sashCount: 'Število kril', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, panelCount: 'Število polj',
@@ -195,6 +212,8 @@ const TXT = {
     roofAddVersion: 'Add version',
     roofFlashTitle: 'Roof flashings', roofFlashHint: 'The flashing seals the joint between the roof window and the roofing. The customer picks the flashing for their roof type in the configurator. The price is per window.',
     roofFlashPh: 'Flashing for profiled roofing',
+    roofWorkTitle: 'Roof window installation', roofWorkHint: 'Enter sale prices excl. VAT for work on a roof window. The price is per roof window. The customer picks what they need in the configurator; installation and work for normal windows do not count roof windows.',
+    roofWorkPrice: 'Price per roof window', roofWorkPh: 'Roof window installation', roofWorkAdd: 'Add work',
     roofFlashings: 'Roof flashings (sale price excl. VAT)', roofBrand: 'Manufacturer', roofDescription: 'Description for the customer', roofDescriptionHint: 'E.g. triple glazing, Uw 1.0 W/m²K, wood or PVC …', roofDatasheet: 'Technical sheet (link to PDF)', roofVariants: 'Material and colour (surcharge on the size price)', roofVariantHint: 'E.g. natural wood, white PVC …', roofAddVariant: 'Add material or colour', roofAddFlashing: 'Add flashing', roofHint: 'Roof windows are catalogue products: enter sale prices excl. VAT as the customer sees them. No margin is added.',
     catEntry: 'Entrance doors', catRoof: 'Roof windows', catGarage: 'Garage doors', catShading: 'Shading', soon: 'Soon',
     sashCount: 'Number of sashes', nWall: (n: number) => `${n}-panel sliding wall`, panelCount: 'Number of panels',
@@ -765,10 +784,12 @@ export default function PriceListSetupPage() {
   // live preview (like Fenestro): one example window, base price + every default choice as its own line
 
   // services entered as sale prices (installation, removal): one card per kind, with a description for the customer
-  function serviceCards(group: OptionGroup, firstPicked: boolean, t: { namePh: string; descPh: string; add: string }, flat = false, perItem = false) {
+  function serviceCards(group: OptionGroup, firstPicked: boolean, t: { namePh: string; descPh: string; add: string }, flat = false, perItem = false, roofOnly = false) {
               const sec = sections.find(x => x.group === group)!
-              const rows = options.filter(o => o.group_key === group)
-              const unused = sec.presets.filter(pr => !rows.some(r => r.name.trim().toLowerCase() === pr.name.toLowerCase()))
+              // roof window work lives with the roof windows; the other steps never show it
+              const rows = options.filter(o => o.group_key === group && (roofOnly ? o.per_item === 'roof' : o.per_item !== 'roof'))
+              const presets: Preset[] = roofOnly ? ROOF_WORK[lang === 'en' ? 'en' : 'sl'] : sec.presets
+              const unused = presets.filter(pr => !rows.some(r => r.name.trim().toLowerCase() === pr.name.toLowerCase()))
               return <>
                 {rows.length > 0 && <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden mb-2">
                   {rows.map((r, i) => <div key={r.key} className="px-4 py-4 space-y-2">
@@ -784,7 +805,11 @@ export default function PriceListSetupPage() {
                       <Select value={r.per_item ?? 'window'} disabled={!canEdit} onChange={per => setOption(r.key, per === 'window' ? { per_item: per } : { per_item: per, price: 0 })}
                         options={(['window', 'sill', 'shade', 'screen'] as const).map(k => ({ value: k, label: T.perItems[k] }))} />
                     </div>}
-                    {perItem && (r.per_item ?? 'window') !== 'window'
+                    {roofOnly
+                      ? <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                          <NumberInput label={T.roofWorkPrice} unit={cur} value={r.price_piece ?? 0} onValue={v => setOption(r.key, { price_piece: v ?? 0 })} decimals={2} />
+                        </div>
+                      : perItem && (r.per_item ?? 'window') !== 'window'
                       ? <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                           <NumberInput label={T.servicePerPiece} unit={cur} value={r.price_piece ?? 0} onValue={v => setOption(r.key, { price_piece: v ?? 0 })} decimals={2} />
                         </div>
@@ -802,7 +827,7 @@ export default function PriceListSetupPage() {
                   </div>)}
                 </div>}
                 {canEdit && <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => addOption(sec)} className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{t.add}</button>
+                  <button type="button" onClick={() => addOption(sec, roofOnly ? { name: '', pricing: 'piece', price: 0, per_item: 'roof' } : undefined)} className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-900 hover:underline mr-2"><Plus className="w-4 h-4" />{t.add}</button>
                   {unused.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
                   {unused.map(pr => <button key={pr.name} type="button" onClick={() => addOption(sec, pr)}
                     className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors">+ {pr.name}</button>)}
@@ -851,7 +876,7 @@ export default function PriceListSetupPage() {
           </Step>
 
           {/* 2. settings per product group, each one a fold you open with the arrow */}
-          {(offer.windows || offer.slidingWindows || offer.doors || offer.sliding) && <Step n={2} title={T.s1b} hint={T.s1bhint}>
+          {(offer.windows || offer.slidingWindows || offer.doors || offer.sliding || offer.roof) && <Step n={2} title={T.s1b} hint={T.s1bhint}>
             <div className="space-y-3">
             {/* windows: sashes, top light / bottom panel, openings */}
             {offer.windows && <Fold open={!!folds.windows} onToggle={() => { toggleFold('windows'); setOpenSash(null); setVariantTab({}) }} title={T.catWindows} summary={windowsSummary}
@@ -941,6 +966,166 @@ export default function PriceListSetupPage() {
               </Fold>
             })()}
 
+            {/* roof windows: a catalogue of models (sizes with sale prices, versions), roof flashings */}
+            {offer.roof && (() => {
+              const roof: RoofCatalog = pricing.roof ?? { models: [], flashings: [] }
+              const setRoof = (r: RoofCatalog) => { setPricing(x => ({ ...x, roof: r })); touch() }
+              const setModel = (id: string, patch: Partial<RoofCatalog['models'][number]>) => setRoof({ ...roof, models: roof.models.map(m => m.id === id ? { ...m, ...patch } : m) })
+              const inputCls = 'w-full rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+              const chip = 'inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors'
+              const addBtn = 'inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline'
+              const trash = 'shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50'
+              const STD_SIZES: [number, number][] = [[55, 78], [66, 118], [78, 98], [78, 118], [78, 140], [94, 118], [94, 140], [114, 118], [114, 140]]
+              const STD_VERSIONS: [string, string, number][] = [['Les, naravni', 'Natural wood', 0], ['Les, belo lakiran', 'White lacquered wood', 10], ['PVC, bel', 'White PVC', 15], ['Poliuretan, bel', 'White polyurethane', 20]]
+              const STD_FLASHINGS: [string, string, number][] = [['Obroba za valovito kritino (opečna, betonska)', 'Flashing for profiled roofing (clay, concrete tiles)', 95], ['Obroba za ravno kritino (skodle, ploščice)', 'Flashing for flat roofing (shingles, slates)', 80], ['Obroba za pločevinasto kritino', 'Flashing for metal roofing', 90]]
+              const n2 = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+              return <Fold open={!!folds.roof} onToggle={() => toggleFold('roof')} title={T.catRoof}
+                summary={T.roofSummary(roof.models.length, roof.models.reduce((a, m) => a + m.sizes.length, 0))} pic={<RoofWindowDrawing size={72} />}>
+                <p className="text-[13px] leading-5 text-[#4f4f4f] -mt-1 mb-4 max-w-3xl">{T.roofStepHint}</p>
+                <div className="space-y-4">
+                  {roof.models.map(m => {
+                    const versions = m.variants ?? []
+                    const setVersions = (v: NonNullable<typeof m.variants>) => setModel(m.id, { variants: v })
+                    const exPrice = m.sizes[0]?.price ? Number(m.sizes[0].price) : 465
+                    const freeSizes = STD_SIZES.filter(([w, h]) => !m.sizes.some(x => x.w === w && x.h === h))
+                    const freeVersions = STD_VERSIONS.filter(([a, b]) => !versions.some(x => [a, b].includes(x.name.trim())))
+                    return <div key={m.id} className="rounded-xl border border-gray-200 bg-white">
+                      {/* the model: picture, manufacturer, name, opening, description, technical sheet */}
+                      <div className="p-4 flex gap-4">
+                        <label className={cn('relative w-[104px] h-[104px] shrink-0 rounded-lg border border-gray-200 bg-[#fafafa] flex items-center justify-center overflow-hidden', canEdit && 'cursor-pointer hover:border-gray-400')}
+                          title={m.image_url ? T.photoChange : T.photo}>
+                          {m.image_url ? <img src={m.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <RoofWindowDrawing size={72} opening={m.opening} />}
+                          {canEdit && <span className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-600">
+                            {uploadingKey === m.id ? '…' : <Upload className="w-3.5 h-3.5" />}</span>}
+                          {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(m.id, f, url => setModel(m.id, { image_url: url })) }} />}
+                        </label>
+                        <div className="flex-1 min-w-0 space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)_220px] gap-3">
+                              <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-[#4f4f4f]">{T.roofBrand}</label>
+                                <input value={m.brand ?? ''} onChange={e => setModel(m.id, { brand: e.target.value })} disabled={!canEdit} placeholder="Velux, Fakro, Roto" className={inputCls} />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-[#4f4f4f]">{T.roofModel}</label>
+                                <input value={m.name} onChange={e => setModel(m.id, { name: e.target.value })} disabled={!canEdit} placeholder="GGL" className={inputCls} />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-[#4f4f4f]">{T.roofOpening}</label>
+                                <Select value={m.opening} onChange={v => setModel(m.id, { opening: v as RoofOpening })} disabled={!canEdit}
+                                  options={[{ value: 'center', label: T.roofCenter }, { value: 'top', label: T.roofTop }]} />
+                              </div>
+                            </div>
+                            {canEdit && <button type="button" onClick={() => askRemove(m.name || T.catRoof, () => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) }))} title={T.remove}
+                              className={cn(trash, 'mt-[30px]')}><Trash2 className="w-4 h-4" /></button>}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] gap-3 pr-0 md:pr-[44px]">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDescription}</label>
+                              <textarea value={m.description ?? ''} onChange={e => setModel(m.id, { description: e.target.value })} disabled={!canEdit} rows={2}
+                                placeholder={lang === 'en' ? 'Triple glazing, Uw 1.0 W/m²K, wood or PVC' : 'Troslojno steklo, Uw 1,0 W/m²K, les ali PVC'} className={cn(inputCls, 'resize-y')} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDatasheet}</label>
+                              <input value={m.datasheet_url ?? ''} onChange={e => setModel(m.id, { datasheet_url: e.target.value })} disabled={!canEdit} placeholder="https://" className={inputCls} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* sizes with sale prices, as a small table */}
+                      <div className="border-t border-gray-100 p-4">
+                        <div className="field-label text-xs">{T.roofSizesTitle}</div>
+                        <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3">{T.roofSizesHint}</p>
+                        {m.sizes.length > 0 && <div className="max-w-[560px] rounded-[10px] border border-gray-200 overflow-hidden">
+                          <div className="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)_minmax(0,1.2fr)_36px] items-center gap-2 px-3 py-2.5 bg-[#fafafa] border-b border-gray-200 text-sm font-medium text-[#4f4f4f]">
+                            <span>{T.roofColW}</span><span /><span>{T.roofColH}</span><span>{T.roofColPrice}</span><span />
+                          </div>
+                          <div className="divide-y divide-gray-100">
+                            {m.sizes.map(sz => (
+                              <div key={sz.id} className="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)_minmax(0,1.2fr)_36px] items-center gap-2 px-3 py-2">
+                                <NumberInput value={sz.w} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, w: v ?? 0 } : x) })} />
+                                <span className="text-center text-sm text-gray-400">×</span>
+                                <NumberInput value={sz.h} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, h: v ?? 0 } : x) })} />
+                                <NumberInput value={sz.price} unit={cur} decimals={2} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, price: v ?? 0 } : x) })} />
+                                {canEdit ? <button type="button" onClick={() => askRemove(`${sz.w} × ${sz.h} cm`, () => setModel(m.id, { sizes: m.sizes.filter(x => x.id !== sz.id) }))} className={trash}><Trash2 className="w-4 h-4" /></button> : <span />}
+                              </div>
+                            ))}
+                          </div>
+                        </div>}
+                        {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
+                          <button type="button" onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w: 78, h: 118, price: 0 }] })} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddSize}</button>
+                          {freeSizes.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
+                          {freeSizes.map(([w, h]) => <button key={`${w}x${h}`} type="button" className={chip}
+                            onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w, h, price: 0 }].sort((a, b) => a.w - b.w || a.h - b.h) })}>+ {w} × {h}</button>)}
+                        </div>}
+                      </div>
+
+                      {/* versions: the first is the base one, the others carry a surcharge in % on the size price */}
+                      <div className="border-t border-gray-100 p-4">
+                        <div className="field-label text-xs">{T.roofVersionsTitle}</div>
+                        <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3 max-w-3xl">{T.roofVersionsHint(n2(exPrice), n2(exPrice * 1.1))}</p>
+                        {versions.length > 0 ? <div className="max-w-[560px] space-y-2">
+                          {versions.map((v, i) => (
+                            <div key={v.id} className="flex items-center gap-2">
+                              <input value={v.name} onChange={e => setVersions(versions.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))} disabled={!canEdit}
+                                placeholder={T.roofVersionPh} className={cn(inputCls, 'flex-1')} />
+                              <div className="w-[150px] shrink-0">
+                                {i === 0
+                                  ? <span className="inline-flex text-xs font-semibold rounded-lg px-[7px] py-[3px]" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{T.baseIncluded}</span>
+                                  : <NumberInput value={v.pct} unit="%" decimals={0} onValue={p => setVersions(versions.map(x => x.id === v.id ? { ...x, pct: p ?? 0 } : x))} />}
+                              </div>
+                              {canEdit ? <button type="button" onClick={() => askRemove(v.name, () => {
+                                const rest = versions.filter(x => x.id !== v.id)
+                                // the new first one becomes the base version
+                                setVersions(rest.map((x, j) => (j === 0 ? { ...x, pct: 0 } : x)))
+                              })} className={trash}><Trash2 className="w-4 h-4" /></button> : <span className="w-8" />}
+                            </div>
+                          ))}
+                        </div> : <p className="text-[13px] text-[#4f4f4f]">{T.roofNoVersions}</p>}
+                        {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
+                          <button type="button" onClick={() => setVersions([...versions, { id: newRoofId(), name: '', pct: versions.length ? 10 : 0 }])} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddVersion}</button>
+                          {freeVersions.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
+                          {freeVersions.map(([a, b, pct]) => <button key={a} type="button" className={chip}
+                            onClick={() => setVersions([...versions, { id: newRoofId(), name: lang === 'en' ? b : a, pct: versions.length ? pct || 10 : 0 }])}>+ {lang === 'en' ? b : a}</button>)}
+                        </div>}
+                      </div>
+                    </div>
+                  })}
+                  {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: [...roof.models, { id: newRoofId(), name: '', opening: 'center', sizes: [] }] })} className={addBtn}>
+                    <Plus className="w-4 h-4" />{T.roofAddModel}</button>}
+
+                  {/* roof window work: a price per roof window, the customer picks it */}
+                  <div className="pt-5 mt-1 border-t border-gray-100">
+                    <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.roofWorkTitle}</div>
+                    <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3 max-w-3xl">{T.roofWorkHint}</p>
+                    {serviceCards('finishing', false, { namePh: T.roofWorkPh, descPh: T.finishDescPh, add: T.roofWorkAdd }, false, false, true)}
+                  </div>
+
+                  {/* roof flashings: one price per window */}
+                  <div className="pt-5 mt-1 border-t border-gray-100">
+                    <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.roofFlashTitle}</div>
+                    <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3 max-w-3xl">{T.roofFlashHint}</p>
+                    {roof.flashings.length > 0 && <div className="max-w-[720px] space-y-2">
+                      {roof.flashings.map(f => (
+                        <div key={f.id} className="flex items-center gap-2">
+                          <input value={f.name} onChange={e => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, name: e.target.value } : x) })} disabled={!canEdit}
+                            placeholder={T.roofFlashPh} className={cn(inputCls, 'flex-1')} />
+                          <div className="w-[150px] shrink-0"><NumberInput value={f.price} unit={cur} decimals={2} onValue={v => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, price: v ?? 0 } : x) })} /></div>
+                          {canEdit && <button type="button" onClick={() => askRemove(f.name, () => setRoof({ ...roof, flashings: roof.flashings.filter(x => x.id !== f.id) }))} className={trash}><Trash2 className="w-4 h-4" /></button>}
+                        </div>
+                      ))}
+                    </div>}
+                    {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
+                      <button type="button" onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: '', price: 0 }] })} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>
+                      {STD_FLASHINGS.filter(([a, b]) => !roof.flashings.some(x => [a, b].includes(x.name.trim()))).length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
+                      {STD_FLASHINGS.filter(([a, b]) => !roof.flashings.some(x => [a, b].includes(x.name.trim()))).map(([a, b, price]) => <button key={a} type="button" className={chip}
+                        onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: lang === 'en' ? b : a, price }] })}>+ {lang === 'en' ? b : a}</button>)}
+                    </div>}
+                  </div>
+                </div>
+              </Fold>
+            })()}
             </div>
           </Step>}
 
@@ -1543,164 +1728,12 @@ export default function PriceListSetupPage() {
             {serviceCards('transport', false, { namePh: T.transportNamePh, descPh: T.transportDescPh, add: T.addTransport }, true)}
           </Step>
 
-          {/* 15. roof windows: a catalogue of models (sizes with sale prices, versions) and roof flashings */}
-          {offer.roof && (() => {
-            const roof: RoofCatalog = pricing.roof ?? { models: [], flashings: [] }
-            const setRoof = (r: RoofCatalog) => { setPricing(x => ({ ...x, roof: r })); touch() }
-            const setModel = (id: string, patch: Partial<RoofCatalog['models'][number]>) => setRoof({ ...roof, models: roof.models.map(m => m.id === id ? { ...m, ...patch } : m) })
-            const inputCls = 'w-full rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-            const chip = 'inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors'
-            const addBtn = 'inline-flex items-center gap-1.5 text-[15px] font-medium text-gray-900 hover:underline'
-            const trash = 'shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50'
-            const STD_SIZES: [number, number][] = [[55, 78], [66, 118], [78, 98], [78, 118], [78, 140], [94, 118], [94, 140], [114, 118], [114, 140]]
-            const STD_VERSIONS: [string, string, number][] = [['Les, naravni', 'Natural wood', 0], ['Les, belo lakiran', 'White lacquered wood', 10], ['PVC, bel', 'White PVC', 15], ['Poliuretan, bel', 'White polyurethane', 20]]
-            const STD_FLASHINGS: [string, string, number][] = [['Obroba za valovito kritino (opečna, betonska)', 'Flashing for profiled roofing (clay, concrete tiles)', 95], ['Obroba za ravno kritino (skodle, ploščice)', 'Flashing for flat roofing (shingles, slates)', 80], ['Obroba za pločevinasto kritino', 'Flashing for metal roofing', 90]]
-            const n2 = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-            return <Step n={15} title={T.roofStepTitle} hint={T.roofStepHint}>
-              <div className="space-y-4">
-                {roof.models.map(m => {
-                  const versions = m.variants ?? []
-                  const setVersions = (v: NonNullable<typeof m.variants>) => setModel(m.id, { variants: v })
-                  const exPrice = m.sizes[0]?.price ? Number(m.sizes[0].price) : 465
-                  const freeSizes = STD_SIZES.filter(([w, h]) => !m.sizes.some(x => x.w === w && x.h === h))
-                  const freeVersions = STD_VERSIONS.filter(([a, b]) => !versions.some(x => [a, b].includes(x.name.trim())))
-                  return <div key={m.id} className="rounded-xl border border-gray-200 bg-white">
-                    {/* the model: picture, manufacturer, name, opening, description, technical sheet */}
-                    <div className="p-4 flex gap-4">
-                      <label className={cn('relative w-[104px] h-[104px] shrink-0 rounded-lg border border-gray-200 bg-[#fafafa] flex items-center justify-center overflow-hidden', canEdit && 'cursor-pointer hover:border-gray-400')}
-                        title={m.image_url ? T.photoChange : T.photo}>
-                        {m.image_url ? <img src={m.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <RoofWindowDrawing size={72} opening={m.opening} />}
-                        {canEdit && <span className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-600">
-                          {uploadingKey === m.id ? '…' : <Upload className="w-3.5 h-3.5" />}</span>}
-                        {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(m.id, f, url => setModel(m.id, { image_url: url })) }} />}
-                      </label>
-                      <div className="flex-1 min-w-0 space-y-3">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)_220px] gap-3">
-                            <div className="flex flex-col gap-1">
-                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofBrand}</label>
-                              <input value={m.brand ?? ''} onChange={e => setModel(m.id, { brand: e.target.value })} disabled={!canEdit} placeholder="Velux, Fakro, Roto" className={inputCls} />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofModel}</label>
-                              <input value={m.name} onChange={e => setModel(m.id, { name: e.target.value })} disabled={!canEdit} placeholder="GGL" className={inputCls} />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <label className="text-xs font-medium text-[#4f4f4f]">{T.roofOpening}</label>
-                              <Select value={m.opening} onChange={v => setModel(m.id, { opening: v as RoofOpening })} disabled={!canEdit}
-                                options={[{ value: 'center', label: T.roofCenter }, { value: 'top', label: T.roofTop }]} />
-                            </div>
-                          </div>
-                          {canEdit && <button type="button" onClick={() => askRemove(m.name || T.catRoof, () => setRoof({ ...roof, models: roof.models.filter(x => x.id !== m.id) }))} title={T.remove}
-                            className={cn(trash, 'mt-[30px]')}><Trash2 className="w-4 h-4" /></button>}
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] gap-3 pr-0 md:pr-[44px]">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDescription}</label>
-                            <textarea value={m.description ?? ''} onChange={e => setModel(m.id, { description: e.target.value })} disabled={!canEdit} rows={2}
-                              placeholder={lang === 'en' ? 'Triple glazing, Uw 1.0 W/m²K, wood or PVC' : 'Troslojno steklo, Uw 1,0 W/m²K, les ali PVC'} className={cn(inputCls, 'resize-y')} />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-[#4f4f4f]">{T.roofDatasheet}</label>
-                            <input value={m.datasheet_url ?? ''} onChange={e => setModel(m.id, { datasheet_url: e.target.value })} disabled={!canEdit} placeholder="https://" className={inputCls} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* sizes with sale prices, as a small table */}
-                    <div className="border-t border-gray-100 p-4">
-                      <div className="field-label text-xs">{T.roofSizesTitle}</div>
-                      <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3">{T.roofSizesHint}</p>
-                      {m.sizes.length > 0 && <div className="max-w-[560px] rounded-[10px] border border-gray-200 overflow-hidden">
-                        <div className="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)_minmax(0,1.2fr)_36px] items-center gap-2 px-3 py-2.5 bg-[#fafafa] border-b border-gray-200 text-sm font-medium text-[#4f4f4f]">
-                          <span>{T.roofColW}</span><span /><span>{T.roofColH}</span><span>{T.roofColPrice}</span><span />
-                        </div>
-                        <div className="divide-y divide-gray-100">
-                          {m.sizes.map(sz => (
-                            <div key={sz.id} className="grid grid-cols-[minmax(0,1fr)_16px_minmax(0,1fr)_minmax(0,1.2fr)_36px] items-center gap-2 px-3 py-2">
-                              <NumberInput value={sz.w} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, w: v ?? 0 } : x) })} />
-                              <span className="text-center text-sm text-gray-400">×</span>
-                              <NumberInput value={sz.h} unit="cm" decimals={0} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, h: v ?? 0 } : x) })} />
-                              <NumberInput value={sz.price} unit={cur} decimals={2} onValue={v => setModel(m.id, { sizes: m.sizes.map(x => x.id === sz.id ? { ...x, price: v ?? 0 } : x) })} />
-                              {canEdit ? <button type="button" onClick={() => askRemove(`${sz.w} × ${sz.h} cm`, () => setModel(m.id, { sizes: m.sizes.filter(x => x.id !== sz.id) }))} className={trash}><Trash2 className="w-4 h-4" /></button> : <span />}
-                            </div>
-                          ))}
-                        </div>
-                      </div>}
-                      {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <button type="button" onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w: 78, h: 118, price: 0 }] })} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddSize}</button>
-                        {freeSizes.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
-                        {freeSizes.map(([w, h]) => <button key={`${w}x${h}`} type="button" className={chip}
-                          onClick={() => setModel(m.id, { sizes: [...m.sizes, { id: newRoofId(), w, h, price: 0 }].sort((a, b) => a.w - b.w || a.h - b.h) })}>+ {w} × {h}</button>)}
-                      </div>}
-                    </div>
-
-                    {/* versions: the first is the base one, the others carry a surcharge in % on the size price */}
-                    <div className="border-t border-gray-100 p-4">
-                      <div className="field-label text-xs">{T.roofVersionsTitle}</div>
-                      <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3 max-w-3xl">{T.roofVersionsHint(n2(exPrice), n2(exPrice * 1.1))}</p>
-                      {versions.length > 0 ? <div className="max-w-[560px] space-y-2">
-                        {versions.map((v, i) => (
-                          <div key={v.id} className="flex items-center gap-2">
-                            <input value={v.name} onChange={e => setVersions(versions.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))} disabled={!canEdit}
-                              placeholder={T.roofVersionPh} className={cn(inputCls, 'flex-1')} />
-                            <div className="w-[150px] shrink-0">
-                              {i === 0
-                                ? <span className="inline-flex text-xs font-semibold rounded-lg px-[7px] py-[3px]" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{T.baseIncluded}</span>
-                                : <NumberInput value={v.pct} unit="%" decimals={0} onValue={p => setVersions(versions.map(x => x.id === v.id ? { ...x, pct: p ?? 0 } : x))} />}
-                            </div>
-                            {canEdit ? <button type="button" onClick={() => askRemove(v.name, () => {
-                              const rest = versions.filter(x => x.id !== v.id)
-                              // the new first one becomes the base version
-                              setVersions(rest.map((x, j) => (j === 0 ? { ...x, pct: 0 } : x)))
-                            })} className={trash}><Trash2 className="w-4 h-4" /></button> : <span className="w-8" />}
-                          </div>
-                        ))}
-                      </div> : <p className="text-[13px] text-[#4f4f4f]">{T.roofNoVersions}</p>}
-                      {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <button type="button" onClick={() => setVersions([...versions, { id: newRoofId(), name: '', pct: versions.length ? 10 : 0 }])} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddVersion}</button>
-                        {freeVersions.length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
-                        {freeVersions.map(([a, b, pct]) => <button key={a} type="button" className={chip}
-                          onClick={() => setVersions([...versions, { id: newRoofId(), name: lang === 'en' ? b : a, pct: versions.length ? pct || 10 : 0 }])}>+ {lang === 'en' ? b : a}</button>)}
-                      </div>}
-                    </div>
-                  </div>
-                })}
-                {canEdit && <button type="button" onClick={() => setRoof({ ...roof, models: [...roof.models, { id: newRoofId(), name: '', opening: 'center', sizes: [] }] })} className={addBtn}>
-                  <Plus className="w-4 h-4" />{T.roofAddModel}</button>}
-
-                {/* roof flashings: one price per window */}
-                <div className="pt-5 mt-1 border-t border-gray-100">
-                  <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.roofFlashTitle}</div>
-                  <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 mb-3 max-w-3xl">{T.roofFlashHint}</p>
-                  {roof.flashings.length > 0 && <div className="max-w-[720px] space-y-2">
-                    {roof.flashings.map(f => (
-                      <div key={f.id} className="flex items-center gap-2">
-                        <input value={f.name} onChange={e => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, name: e.target.value } : x) })} disabled={!canEdit}
-                          placeholder={T.roofFlashPh} className={cn(inputCls, 'flex-1')} />
-                        <div className="w-[150px] shrink-0"><NumberInput value={f.price} unit={cur} decimals={2} onValue={v => setRoof({ ...roof, flashings: roof.flashings.map(x => x.id === f.id ? { ...x, price: v ?? 0 } : x) })} /></div>
-                        {canEdit && <button type="button" onClick={() => askRemove(f.name, () => setRoof({ ...roof, flashings: roof.flashings.filter(x => x.id !== f.id) }))} className={trash}><Trash2 className="w-4 h-4" /></button>}
-                      </div>
-                    ))}
-                  </div>}
-                  {canEdit && <div className="flex flex-wrap items-center gap-2 mt-3">
-                    <button type="button" onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: '', price: 0 }] })} className={cn(addBtn, 'mr-2')}><Plus className="w-4 h-4" />{T.roofAddFlashing}</button>
-                    {STD_FLASHINGS.filter(([a, b]) => !roof.flashings.some(x => [a, b].includes(x.name.trim()))).length > 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>}
-                    {STD_FLASHINGS.filter(([a, b]) => !roof.flashings.some(x => [a, b].includes(x.name.trim()))).map(([a, b, price]) => <button key={a} type="button" className={chip}
-                      onClick={() => setRoof({ ...roof, flashings: [...roof.flashings, { id: newRoofId(), name: lang === 'en' ? b : a, price }] })}>+ {lang === 'en' ? b : a}</button>)}
-                  </div>}
-                </div>
-              </div>
-            </Step>
-          })()}
-
           {/* 11+. extras and services (colour, glass and handles of built windows have their own steps) */}
           {sections.filter(sec => !OWN_STEP_GROUPS.includes(sec.group)).map((sec, i) => {
             const rows = options.filter(o => o.group_key === sec.group)
             const unused = sec.presets.filter(p => !rows.some(r => r.name.trim().toLowerCase() === p.name.toLowerCase()))
             return (
-              <Step key={sec.group} n={i + (offer.roof ? 16 : 15)} title={sec.title} hint={sec.hint}>
+              <Step key={sec.group} n={i + 15} title={sec.title} hint={sec.hint}>
                 <div className="space-y-2">
                   {rows.map(r => (
                     <div key={r.key} className="flex flex-wrap items-center gap-2">

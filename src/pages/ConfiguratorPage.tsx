@@ -70,7 +70,7 @@ const TXT = {
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
-    step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve',
+    step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
@@ -90,7 +90,7 @@ const TXT = {
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
-    step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services',
+    step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
@@ -211,12 +211,13 @@ export default function ConfiguratorPage() {
   }
   const serviceRows = useMemo(() => {
     if (!data) return []
-    const wins = items.map(x => ({ width: x.width ?? 0, height: x.height ?? 0, quantity: x.quantity, base: baseOf(x),
+    const wins = items.map(x => ({ width: x.width ?? 0, height: x.height ?? 0, quantity: x.quantity, base: baseOf(x), roof: !!x.roof,
       sills: (x.sills?.in ? 1 : 0) + (x.sills?.out ? 1 : 0), shades: x.shading?.shade ? 1 : 0, screens: x.shading?.screen ? 1 : 0 }))
     // work on chosen sills / shadings / insect screens comes automatically with the chosen installation
     const installing = data.options.some(o => o.group_key === 'installation' && services.includes(o.id))
-    const auto = (o: WindowOption) => !!o.per_item && o.per_item !== 'window'
-    return data.options.filter(o => auto(o) ? installing : services.includes(o.id)).map(o => ({ option: o, ...serviceLine(o, wins) })).filter(r => !auto(r.option) || r.qty > 0)
+    const auto = (o: WindowOption) => !!o.per_item && o.per_item !== 'window' && o.per_item !== 'roof'
+    return data.options.filter(o => auto(o) ? installing : services.includes(o.id)).map(o => ({ option: o, ...serviceLine(o, wins) }))
+      .filter(r => r.qty > 0 || r.option.pricing === 'flat' || r.option.pricing === 'percent')
   }, [data, items, services])
   function toggleService(o: WindowOption) {
     // one way of installation at a time; everything else is an on/off add-on
@@ -795,6 +796,14 @@ export default function ConfiguratorPage() {
               {data.options.some(isService) && <Section n={nextStep()} title={T.step5} accent={accent}>
                 <p className="text-sm text-gray-500 -mt-2 mb-4">{T.servicesHint}</p>
                 <div className="space-y-4">
+                  {items.some(x => x.roof) && data.options.some(o => o.per_item === 'roof') && <div>
+                    <div className="text-sm font-semibold text-gray-900 mb-2">{T.roofServices}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {data.options.filter(o => o.per_item === 'roof').map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
+                        {o.name}{show && Number(o.price_piece ?? 0) > 0 && <span className="ml-1.5 font-medium text-gray-500">{money(Number(o.price_piece), cur)} {L.pricing.piece}</span>}
+                      </Chip>)}
+                    </div>
+                  </div>}
                   {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g && (!o.per_item || o.per_item === 'window'))).map(g => <div key={g}>
                     <div className="text-sm font-semibold text-gray-900 mb-2">{L.groups[g]}</div>
                     <div className="flex flex-wrap gap-2">

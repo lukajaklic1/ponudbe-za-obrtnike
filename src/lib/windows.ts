@@ -46,7 +46,7 @@ export interface WindowOption {
   /** amount per window added on top of price (installation, removal) */
   price_piece?: number | null
   /** what the per-piece amount counts: every window, or only chosen sills / shadings / insect screens */
-  per_item?: 'window' | 'sill' | 'shade' | 'screen' | null
+  per_item?: 'window' | 'sill' | 'shade' | 'screen' | 'roof' | null
 }
 
 export const TEMPLATES: WindowTemplate[] = [
@@ -154,14 +154,17 @@ export function unitPrice(base: number | null, w: number, h: number, options: Wi
 }
 
 /** Services for a whole order: quantity summed over all windows (same rules as the server). */
-export function serviceLine(o: WindowOption, windows: { width: number; height: number; quantity: number; base: number | null; sills?: number; shades?: number; screens?: number }[]) {
+export function serviceLine(o: WindowOption, all: { width: number; height: number; quantity: number; base: number | null; sills?: number; shades?: number; screens?: number; roof?: boolean }[]) {
   const price = Number(o.price ?? 0)
-  // only the chosen pieces count (same as the server)
+  // only the chosen pieces count (same as the server); roof window work counts the roof windows
   if (o.per_item && o.per_item !== 'window') {
-    const n = windows.reduce((a, w) => a + (o.per_item === 'sill' ? w.sills ?? 0 : o.per_item === 'shade' ? w.shades ?? 0 : w.screens ?? 0) * (w.quantity || 0), 0)
+    const n = all.reduce((a, w) => a + (o.per_item === 'roof' ? (w.roof ? 1 : 0) : o.per_item === 'sill' ? w.sills ?? 0 : o.per_item === 'shade' ? w.shades ?? 0 : w.screens ?? 0) * (w.quantity || 0), 0)
     const unit = r2(Number(o.price_piece ?? 0))
     return { qty: n, unitPrice: unit, total: r2(n * unit) }
   }
+  // delivery and disposal count every window, roof windows too; work on windows only counts the windows
+  const windows = o.group_key === 'transport' ? all : all.filter(w => !w.roof)
+  if (!windows.some(w => w.quantity > 0) && o.pricing !== 'flat' && o.pricing !== 'percent') return { qty: 0, unitPrice: 0, total: 0 }
   let qty = 0
   for (const w of windows) {
     const q = w.quantity || 0
@@ -173,7 +176,7 @@ export function serviceLine(o: WindowOption, windows: { width: number; height: n
   if (o.pricing === 'flat' && !Number(o.price_piece ?? 0)) return { qty: 1, unitPrice: r2(price), total: r2(price) }
   if (o.pricing === 'flat') qty = 1
   if (o.pricing === 'percent') {
-    const sum = windows.reduce((a, w) => a + (w.base ?? 0) * (w.quantity || 0), 0)
+    const sum = all.reduce((a, w) => a + (w.base ?? 0) * (w.quantity || 0), 0)
     return { qty: 1, unitPrice: r2(sum * price / 100), total: r2(sum * price / 100) }
   }
   // an amount per window on top: one line per window with the average price (same as the server)
