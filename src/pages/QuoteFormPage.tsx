@@ -25,6 +25,7 @@ import SillIcon from '../components/SillIcon'
 import ShadingIcon from '../components/ShadingIcon'
 import type { Customer, Quote, QuoteLine, QuoteAttachment, QuoteStatus, OfferSnapshot, PriceItem, PriceUnit } from '../types/database'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
+import { isNewEnquiry, notifyQuotesChanged } from '../lib/newEnquiry'
 import { INCOTERMS } from '../lib/incoterms'
 import { leadSourceOptions } from '../lib/leadSources'
 
@@ -244,6 +245,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         const quote = q as Quote
         setStatusState(quote.status)
         if (quote.snapshot) setSnapshot(quote.snapshot as OfferSnapshot)
+        // opening an enquiry from the configurator: it is no longer new
+        if (isNewEnquiry(quote)) {
+          supabase.from('quotes').update({ viewed_at: new Date().toISOString() } as any).eq('id', quote.id).then(() => notifyQuotesChanged())
+        }
         if (!readOnly && !['draft', 'issued', 'sent'].includes(quote.status)) { navigate(`/quotes/${id}`, { replace: true }); return }
         setAlreadySent(['sent', 'won', 'lost'].includes(quote.status))
         setQuoteNumber(quote.quote_number ?? '')
@@ -573,7 +578,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (next === 'sent') patch.sent_at = new Date().toISOString()
     const { error } = await supabase.from('quotes').update(patch).eq('id', id)
     if (error) { toast.error(error.message); return }
-    setStatusState(next); setAlreadySent(['sent', 'won', 'lost'].includes(next)); toast.success(t.common.saved)
+    setStatusState(next); setAlreadySent(['sent', 'won', 'lost'].includes(next)); toast.success(t.common.saved); notifyQuotesChanged()
   }
 
   async function deleteQuote() {

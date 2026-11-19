@@ -170,6 +170,10 @@ export interface Quote {
   notes: string | null
   /** sales channel: where the customer heard of the supplier (google, social, referral, existing, fair, ad, other) */
   lead_source?: string | null
+  /** where the quote came from: 'configurator' (the customer's online enquiry) or made in the app */
+  source?: string | null
+  /** first time someone opened the quote in the app; an enquiry from the configurator is "new" until then */
+  viewed_at?: string | null
   created_by: string
   assignee_id: string | null
   sent_at: string | null

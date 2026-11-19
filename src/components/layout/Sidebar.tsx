@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { QUOTES_CHANGED } from '../../lib/newEnquiry'
 import {
   LayoutDashboard, ChartColumn, FileText, Users, UserCog, Settings, LogOut, X, Grid2x2, Globe, Building2, PanelLeft, ChevronDown,
 } from 'lucide-react'
@@ -50,11 +51,21 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   // open quotes (issued or sent, still waiting for the customer's answer), always in sight next to "Ponudbe"
   const location = useLocation()
   const [openQuotes, setOpenQuotes] = useState(0)
+  // new enquiries from the online configurator that nobody has opened yet
+  const [newQuotes, setNewQuotes] = useState(0)
+  const [tick, setTick] = useState(0)
+  useEffect(() => {
+    const on = () => setTick(x => x + 1)
+    window.addEventListener(QUOTES_CHANGED, on)
+    return () => window.removeEventListener(QUOTES_CHANGED, on)
+  }, [])
   useEffect(() => {
     if (!company?.id) return
     supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).in('status', ['issued', 'sent'])
       .then(({ count }) => setOpenQuotes(count ?? 0))
-  }, [company?.id, location.pathname])
+    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).eq('source', 'configurator').eq('status', 'draft').is('viewed_at', null)
+      .then(({ count }) => setNewQuotes(count ?? 0))
+  }, [company?.id, location.pathname, tick])
   const openLabel = lang === 'sl' ? `Odprte ponudbe (izdane in poslane): ${openQuotes}` : `Open quotes (issued and sent): ${openQuotes}`
 
   function toggleSection(id: string) {
@@ -73,12 +84,13 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   function handleNavClick() {
     onClose?.()
   }
-  const linkTo = (to: string, Icon: typeof LayoutDashboard, label: string, count = 0, countTitle = '') => (
+  const newLabel = lang === 'sl' ? `Nova povpraševanja iz spletnega konfiguratorja: ${newQuotes}` : `New enquiries from the online configurator: ${newQuotes}`
+  const linkTo = (to: string, Icon: typeof LayoutDashboard, label: string, count = 0, countTitle = '', fresh = 0) => (
     <NavLink
       key={to}
       to={to}
       onClick={handleNavClick}
-      title={rail ? (count ? `${label} · ${countTitle}` : label) : undefined}
+      title={rail ? [label, fresh ? newLabel : '', count ? countTitle : ''].filter(Boolean).join(' · ') : undefined}
       aria-label={label}
       className={({ isActive }) => cn(
         'group flex items-center rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
@@ -88,12 +100,15 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
     >
       <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
       {!rail && label}
-      {count > 0 && (rail
-        ? <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#131313] text-white text-[11px] font-semibold flex items-center justify-center tabular-nums">{count}</span>
-        : <span title={countTitle} className="ml-auto inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f4f4f4] border border-[#e6e6e6] text-[#5f5f5f] text-xs font-semibold tabular-nums">{count}</span>)}
+      {rail
+        ? (fresh > 0 || count > 0) && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', fresh > 0 ? 'bg-[#267a47] text-white' : 'bg-[#131313] text-white')}>{fresh > 0 ? fresh : count}</span>
+        : <span className="ml-auto flex items-center gap-1.5">
+            {fresh > 0 && <span title={newLabel} className="inline-flex items-center h-[20px] px-1.5 rounded-md bg-[#dbfce7] text-[#267a47] text-xs font-semibold tabular-nums whitespace-nowrap">{lang === 'sl' ? 'Nova' : 'New'} {fresh}</span>}
+            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f4f4f4] border border-[#e6e6e6] text-[#5f5f5f] text-xs font-semibold tabular-nums">{count}</span>}
+          </span>}
     </NavLink>
   )
-  const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key], key === 'quotes' ? openQuotes : 0, openLabel)
+  const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key], key === 'quotes' ? openQuotes : 0, openLabel, key === 'quotes' ? newQuotes : 0)
 
   if (rail) return (
     <aside className="w-14 bg-[#fafafa] border-r border-gray-200 flex flex-col h-screen shrink-0">

@@ -16,6 +16,7 @@ import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { Avatar } from '../components/ui/PersonBadge'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
+import { isNewEnquiry } from '../lib/newEnquiry'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
 
@@ -218,7 +219,7 @@ export default function QuotesPage() {
               <button key={q.id} type="button" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
                 className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}</span>
+                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}</span>
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
                 <div className="text-[15px] font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
@@ -243,7 +244,7 @@ export default function QuotesPage() {
               {paged.map(q => (
                 <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>
+                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 truncate">{q.customers?.name ?? '—'}</div>
