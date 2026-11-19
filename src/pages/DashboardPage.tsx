@@ -535,7 +535,7 @@ export default function DashboardPage() {
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 lg:min-h-[1015px]">
                 <h2 className="text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}</h2>
                 {top.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
-                <table className="w-full table-fixed">
+                <table className="w-full table-fixed keep-last-line">
                   <colgroup><col /><col className="w-[110px]" /><col className="w-[130px]" /><col className="w-[130px]" /><col className="w-[120px]" /></colgroup>
                   <thead><tr>
                     {th('name', sl ? 'Stranka' : 'Customer', false)}
