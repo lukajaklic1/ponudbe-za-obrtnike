@@ -270,6 +270,9 @@ export default function DashboardPage() {
   })()
   const hasValues = months.some(t => t.sent_value > 0 || t.won_value > 0)
   const hasCounts = months.some(t => t.sent_count > 0 || t.won_count > 0)
+  const GHOST = [0.45, 0.7, 0.55, 0.85, 0.6, 0.75, 0.5, 0.9, 0.65, 0.8, 0.4, 0.7]
+  const ghostMonths = months.map((m, i) => ({ ...m, sent_value: GHOST[i % 12] * 3000, won_value: GHOST[(i + 5) % 12] * 1600, sent_count: GHOST[i % 12] * 3, won_count: GHOST[(i + 5) % 12] * 1.6 }))
+  const GREY = { light: '#ececec', dark: '#dcdcdc' }
   // Same look as the other empty states in the app: light icon + short grey sentence
   const emptyOverlay = (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -374,14 +377,14 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Vrednost ponudb po času' : 'Quote value over time'}</h2>
               <div className="relative"><ResponsiveContainer width="100%" height={260}>
-                <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
+                <BarChart data={hasValues ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={hasValues ? { fontSize: 13, fill: '#4f4f4f', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
+                  {hasValues && <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
-                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasValues && emptyOverlay}</div>
             </div>
@@ -390,14 +393,14 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Število ponudb po času' : 'Quotes over time'}</h2>
               <div className="relative"><ResponsiveContainer width="100%" height={260}>
-                <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
+                <BarChart data={hasCounts ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: '#f6f6f6' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 13, fill: '#4f4f4f', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
+                  {hasCounts && <Tooltip cursor={{ fill: '#f6f6f6' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
-                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasCounts && emptyOverlay}</div>
             </div>
@@ -470,20 +473,20 @@ export default function DashboardPage() {
                 {/* Same look as the other charts: dashed grid, grey axis labels, rounded bars, shared tooltip; empty: the axes and grid with "Ni podatkov" */}
                 <div className="relative">
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={topServices.length ? topServices : Array.from({ length: 6 }, (_, i) => ({ name: ' '.repeat(i + 1), won: 0, rest: 0, total: 0 }))}
+                    <BarChart data={topServices.length ? topServices : [[1300, 2300], [900, 2100], [0, 2500], [700, 1300], [0, 1500], [400, 500]].map(([w, r], i) => ({ name: ' '.repeat(i + 1), won: w, rest: r, total: 0 }))}
                       layout="vertical" margin={{ top: 0, right: 56, left: 0, bottom: 0 }} barCategoryGap={10}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} verticalCoordinatesGenerator={({ offset }: any) => [0, 1, 2, 3, 4].map(i => offset.left + offset.width * i / 4)} />
-                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000], ticks: [0, 1000, 2000, 3000, 4000], interval: 0 })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000] })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                       <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       {topServices.length > 0 && <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />}
                       <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                      <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22}
+                      <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : TEAL.line} maxBarSize={22}
                         // fully won (nothing light after it): the dark part gets the rounded end
                         shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
-                        <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />
+                        {topServices.length > 0 && <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />}
                       </Bar>
-                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" name={sl ? 'Ponujeno' : 'Offered'} fill={TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
+                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
                         <LabelList dataKey="total" position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />
                       </Bar>
                     </BarChart>
