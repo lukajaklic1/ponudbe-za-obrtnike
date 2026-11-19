@@ -35,9 +35,11 @@ function readCollapsed(): string[] {
 
 interface SidebarProps {
   onClose?: () => void
+  /** the hidden sidebar: a slim rail with icons only (the name shows on hover) */
+  rail?: boolean
 }
 
-export default function Sidebar({ onClose }: SidebarProps) {
+export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   const { toggle } = useSidebarCollapse()
   const { signOut } = useAuth()
   const { company, profile, hasPerm } = useCompany()
@@ -54,29 +56,60 @@ export default function Sidebar({ onClose }: SidebarProps) {
   }
 
   const visible = (item: NavItem) => !item.mod || hasPerm(item.mod, 'view')
-  const navLink = ({ to, icon: Icon, key }: NavItem) => (
-    <NavLink
-      key={to}
-      to={to}
-      onClick={handleNavClick}
-      className={({ isActive }) => cn(
-        'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-        isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
-      )}
-    >
-      <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
-      {t.nav[key]}
-    </NavLink>
-  )
-
   async function handleSignOut() {
     await signOut()
     navigate('/login')
   }
-
   function handleNavClick() {
     onClose?.()
   }
+  const linkTo = (to: string, Icon: typeof LayoutDashboard, label: string) => (
+    <NavLink
+      key={to}
+      to={to}
+      onClick={handleNavClick}
+      title={rail ? label : undefined}
+      aria-label={label}
+      className={({ isActive }) => cn(
+        'group flex items-center rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
+        rail ? 'justify-center w-10 h-9 mx-auto' : 'gap-3 px-3 py-[7px]',
+        isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
+      )}
+    >
+      <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
+      {!rail && label}
+    </NavLink>
+  )
+  const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key])
+
+  if (rail) return (
+    <aside className="w-14 bg-[#fafafa] border-r border-gray-200 flex flex-col h-screen shrink-0">
+      <div className="h-14 border-b border-gray-200 flex items-center justify-center shrink-0">
+        <button onClick={toggle} title={lang === 'sl' ? 'Prikaži meni' : 'Show menu'} aria-label={lang === 'sl' ? 'Prikaži meni' : 'Show menu'}
+          className="p-2 rounded-lg text-[#131313] hover:bg-[#efefef] transition-colors">
+          <PanelLeft className="w-[18px] h-[18px]" />
+        </button>
+      </div>
+      <nav className="flex-1 overflow-y-auto py-3">
+        {TOP.filter(visible).map(navLink)}
+        {SECTIONS.map(sec => {
+          const items = sec.items.filter(visible)
+          if (!items.length) return null
+          return <div key={sec.id} className="mt-3 pt-3 border-t border-gray-200 mx-2">{items.map(navLink)}</div>
+        })}
+      </nav>
+      <div className="border-t border-gray-200 py-3 flex flex-col items-center gap-1">
+        {profile?.is_admin && linkTo('/users', UserCog, t.nav.users)}
+        {profile?.is_admin && linkTo('/settings', Settings, t.nav.settings)}
+        <div className="mt-1" title={profile ? `${profile.first_name} ${profile.last_name}` : ''}>
+          <Avatar tone="brand" name={profile ? `${profile.first_name} ${profile.last_name}` : '?'} size={28} />
+        </div>
+        <button onClick={handleSignOut} className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-[#efefef] transition-colors" title={t.nav.signOut} aria-label={t.nav.signOut}>
+          <LogOut className="w-4 h-4" />
+        </button>
+      </div>
+    </aside>
+  )
 
   return (
     <aside className="w-72 bg-[#fafafa] border-r border-gray-200 flex flex-col h-screen shrink-0">
@@ -128,28 +161,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* Bottom */}
       <div className="border-t border-gray-200 p-3">
-        {profile?.is_admin && <NavLink
-          to="/users"
-          onClick={handleNavClick}
-          className={({ isActive }) => cn(
-'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
-          )}
-        >
-          <UserCog className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
-          {t.nav.users}
-        </NavLink>}
-        {profile?.is_admin && <NavLink
-          to="/settings"
-          onClick={handleNavClick}
-          className={({ isActive }) => cn(
-'group flex items-center gap-3 px-3 py-[7px] rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-            isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
-          )}
-        >
-          <Settings className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
-          {t.nav.settings}
-        </NavLink>}
+        {profile?.is_admin && linkTo('/users', UserCog, t.nav.users)}
+        {profile?.is_admin && linkTo('/settings', Settings, t.nav.settings)}
 
         {/* Language switcher */}
         <div className="flex items-center gap-2 px-3 py-2 mb-1">
