@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { LayoutDashboard, Search, X, BarChart3, Tags } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
@@ -429,7 +429,9 @@ export default function DashboardPage() {
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                       <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                      <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22}>
+                      <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22}
+                        // fully won (nothing light after it): the dark part gets the rounded end
+                        shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
                         <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />
                       </Bar>
                       <Bar isAnimationActive={false} dataKey="rest" stackId="s" name={sl ? 'Ponujeno' : 'Offered'} fill={TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
