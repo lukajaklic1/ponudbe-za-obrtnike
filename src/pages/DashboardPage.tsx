@@ -385,14 +385,7 @@ export default function DashboardPage() {
                   <div className="relative w-[220px] h-[220px] shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none" labelLine={false}
-                          label={(p: any) => {
-                            const { cx, cy, midAngle, innerRadius, outerRadius, value, index } = p as { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; value: number; index: number }
-                            // the count in the middle of its slice, white on the dark slice
-                            const r = (innerRadius + outerRadius) / 2, a = -midAngle * Math.PI / 180
-                            const dark = slices.filter(x => x.count > 0)[index]?.key === 'won'
-                            return <text x={cx + r * Math.cos(a)} y={cy + r * Math.sin(a)} textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={400} fill={dark ? '#ffffff' : '#131313'}>{value}</text>
-                          }}>
+                        <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none">
                           {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                         </Pie>
                         <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
