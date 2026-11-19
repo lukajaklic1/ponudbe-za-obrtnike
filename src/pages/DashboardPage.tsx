@@ -222,7 +222,7 @@ export default function DashboardPage() {
   const sl = lang === 'sl'
 
   // every filter except the dates (customer and assignee are applied when loading)
-  const statusKey = (q: Q) => (q.status === 'issued' ? 'sent' : q.status)
+  const statusKey = (q: Q) => q.status
   const base = quotes.filter(q => (!statusFilter || statusKey(q) === statusFilter)
     && (!sourceFilter || (sourceFilter === 'configurator' ? q.source === 'configurator' : q.source !== 'configurator'))
     && (!typeFilter || (customerTypes[q.customer_id] ?? 'person') === typeFilter)
@@ -239,10 +239,11 @@ export default function DashboardPage() {
     const all = sum(() => true)
     const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
     const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), tone, sub })
-    const draft = sum(q => q.status === 'draft'), sent = sum(q => q.status === 'sent' || q.status === 'issued'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
+    const draft = sum(q => q.status === 'draft'), issued = sum(q => q.status === 'issued'), sent = sum(q => q.status === 'sent'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
     return [
       row(sl ? 'Skupna vrednost ponudb' : 'Total value of quotes', all, 'grey', all.value ? share(all.value) : ''),
       row(sl ? 'Osnutki' : 'Drafts', draft, 'grey', share(draft.value)),
+      row(sl ? 'Izdane' : 'Issued', issued, 'grey', share(issued.value)),
       row(sl ? 'Poslane' : 'Sent', sent, 'grey', share(sent.value)),
       row(sl ? 'Dobljene' : 'Won', won, 'grey', share(won.value)),
       row(sl ? 'Izgubljene' : 'Lost', lost, 'grey', share(lost.value)),
@@ -306,7 +307,7 @@ export default function DashboardPage() {
           <DateRangeFilter label={sl ? 'Obdobje' : 'Period'} from={dateFrom} to={dateTo} onChange={(fr, to) => { setDateFrom(fr); setDateTo(to) }} />
 
           <FilterSelect label={sl ? 'Status' : 'Status'} value={statusFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setStatusFilter}
-            options={[{ value: 'draft', label: sl ? 'Osnutki' : 'Drafts' }, { value: 'sent', label: sl ? 'Poslane' : 'Sent' }, { value: 'won', label: sl ? 'Dobljene' : 'Won' }, { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' }]} />
+            options={[{ value: 'draft', label: sl ? 'Osnutki' : 'Drafts' }, { value: 'issued', label: sl ? 'Izdane' : 'Issued' }, { value: 'sent', label: sl ? 'Poslane' : 'Sent' }, { value: 'won', label: sl ? 'Dobljene' : 'Won' }, { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' }]} />
 
           <FilterSelect label={sl ? 'Vir' : 'Source'} value={sourceFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setSourceFilter}
             options={[{ value: 'configurator', label: sl ? 'Spletni konfigurator' : 'Online configurator' }, { value: 'app', label: sl ? 'Narejene v aplikaciji' : 'Made in the app' }]} />
@@ -373,7 +374,7 @@ export default function DashboardPage() {
       <div className="px-6 py-5 space-y-6">
 
         {/* five value cards: total, then drafts / sent / won / lost of the quotes made in the period */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
           {cards.map((c, i) => <div key={c.label} className={i === 0 ? 'col-span-2 lg:col-span-1' : ''}><StatCard {...c} /></div>)}
         </div>
 
@@ -419,6 +420,7 @@ export default function DashboardPage() {
         {(() => {
           const slices = [
             { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: '#c9c9c9' },
+            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: TEAL.faint },
             { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: TEAL.light },
             { key: 'won', name: sl ? 'Dobljene' : 'Won', color: TEAL.line },
             { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: TEAL.grey },

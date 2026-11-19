@@ -8,7 +8,7 @@ export const GREEN: React.CSSProperties  = { color: '#267a47', backgroundColor: 
 
 const STATUS_COLORS: Record<QuoteStatus, React.CSSProperties> = {
   draft:    GREY,
-  issued:   YELLOW,   // older quotes: Izdano = Poslano
+  issued:   YELLOW,   // Izdano: the offer is locked, not sent yet
   sent:     YELLOW,
   accepted: GREEN,
   won:      GREEN,

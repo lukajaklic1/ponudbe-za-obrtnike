@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Select from '../components/ui/Select'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { ChevronLeft, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud, Send } from 'lucide-react'
 import OfferPdfPreview, { downloadOfferPdf } from '../components/OfferPdfPreview'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -547,10 +547,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
       notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null,
     } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l), config: l.config })))
-    // Izdano and Poslano are one step now: issuing an offer marks it as sent
-    const newStatus = 'sent' as const
+    // issuing locks the offer (Izdano); "Označi kot poslano" then marks it as sent to the customer.
+    // An offer that was already sent and is issued again stays sent.
+    const newStatus: QuoteStatus = status === 'sent' ? 'sent' : 'issued'
     const now = new Date().toISOString()
-    const { error } = await supabase.from('quotes').update({ snapshot: snap, status: newStatus, issued_at: now, ...(status === 'sent' ? {} : { sent_at: now }), updated_at: now } as any).eq('id', res.id)
+    const { error } = await supabase.from('quotes').update({ snapshot: snap, status: newStatus, issued_at: now, updated_at: now } as any).eq('id', res.id)
     setSaving(false)
     if (error) { toast.error(error.message); return }
     setStatusState(newStatus); setSnapshot(snap)
@@ -620,6 +621,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               <Button loading={saving} onClick={issue} disabled={!customerId}>{s.issueOffer}</Button>}
             {status !== 'draft' && snapshot?.lines &&
               <Button variant="secondary" className="gap-1.5" loading={downloading} onClick={downloadPdf}><Download className="w-3.5 h-3.5" />{s.downloadPdf}</Button>}
+            {hasPerm('quotes', 'create') && status === 'issued' &&
+              <Button onClick={() => changeStatus('sent')} className="gap-1.5"><Send className="w-3.5 h-3.5" />{s.markSentLabel}</Button>}
             {hasPerm('quotes', 'create') && status === 'sent' && <>
               <Button onClick={() => setConfirm('won')} className="gap-1.5"><Check className="w-3.5 h-3.5" />{s.markAccepted}</Button>
               <Button variant="secondary" onClick={() => setConfirm('lost')} className="gap-1.5"><X className="w-3.5 h-3.5" />{s.markRejected}</Button>

@@ -9,6 +9,7 @@ export interface KanbanQuote extends Quote {
 
 // Status changes allowed by dragging a card. Issuing a draft needs the editor (it locks the PDF content).
 export const ALLOWED_MOVES: Partial<Record<QuoteStatus, QuoteStatus[]>> = {
+  issued: ['sent'],
   sent: ['won', 'lost'],
 }
 

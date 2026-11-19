@@ -22,7 +22,7 @@ import { format } from 'date-fns'
 interface CompanyUser { id: string; first_name: string; last_name: string; is_active?: boolean }
 
 
-const STATUSES: QuoteStatus[] = ['draft', 'sent', 'won', 'lost']
+const STATUSES: QuoteStatus[] = ['draft', 'issued', 'sent', 'won', 'lost']
 
 const VIEW_KEY = 'obrtdesk-quotes-view'
 
