@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText } from 'lucide-react'
+import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -68,7 +68,7 @@ export interface ConfigItem {
 
 const TXT = {
   sl: {
-    title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Povezava je napačna ali pa ga ponudnik še ni vklopil.',
+    title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Ponudnik konfiguratorja še ni objavil.',
     qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
     nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
@@ -93,7 +93,7 @@ const TXT = {
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis',
   },
   en: {
-    title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The link is wrong or the supplier has not enabled it yet.',
+    title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
     qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
     nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
@@ -139,7 +139,10 @@ export default function ConfiguratorPage() {
   if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
   if (state === 'missing' || !data) return (
     <div className="min-h-screen flex items-center justify-center bg-white p-6 text-center">
-      <div><p className="text-lg font-semibold text-gray-900">{T.notFound}</p><p className="text-sm text-gray-500 mt-1">{T.notFoundHint}</p></div>
+      <div className="flex flex-col items-center max-w-sm">
+        <div className="w-12 h-12 rounded-full bg-[#f3f3f3] flex items-center justify-center mb-4"><EyeOff className="w-6 h-6 text-gray-400" /></div>
+        <p className="text-lg font-semibold text-gray-900">{T.notFound}</p><p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.notFoundHint}</p>
+      </div>
     </div>
   )
   return <ConfiguratorCore data={data} slug={slug ?? ''} />

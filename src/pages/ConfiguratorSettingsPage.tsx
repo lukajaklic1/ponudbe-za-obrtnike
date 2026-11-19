@@ -18,6 +18,10 @@ const TXT = {
     cfgAccent: 'Barva gumbov', cfgIntro: 'Uvodno besedilo', cfgLink: 'Povezava za tvojo spletno stran', copy: 'Kopiraj', copied: 'Kopirano',
     open: 'Odpri', embed: 'Vstavi v spletno stran (iframe)', slugInvalid: 'Naslov: 3–40 znakov, male črke, številke in vezaji',
     slugTaken: 'Ta naslov je že zaseden',
+    status: 'Stanje konfiguratorja', published: 'Objavljen', notPublished: 'Ni objavljen',
+    publishedHint: 'Stranke lahko konfigurator odprejo na povezavi spodaj in vam pošljejo povpraševanje.',
+    notPublishedHint: 'Vaš konfigurator ni objavljen. Stranke ga na povezavi ne vidijo.',
+    publish: 'Objavi konfigurator', hide: 'Skrij konfigurator', publishedToast: 'Konfigurator je objavljen.', hiddenToast: 'Konfigurator je skrit.',
   },
   en: {
     title: 'Publishing', save: 'Save',
@@ -25,6 +29,10 @@ const TXT = {
     cfgAccent: 'Button colour', cfgIntro: 'Intro text', cfgLink: 'Link for your website', copy: 'Copy', copied: 'Copied',
     open: 'Open', embed: 'Embed in your website (iframe)', slugInvalid: 'Address: 3–40 chars, lowercase letters, digits and dashes',
     slugTaken: 'This address is already taken',
+    status: 'Configurator status', published: 'Published', notPublished: 'Not published',
+    publishedHint: 'Customers can open the configurator at the link below and send you a request.',
+    notPublishedHint: 'Your configurator is not published. Customers cannot see it at the link.',
+    publish: 'Publish configurator', hide: 'Hide configurator', publishedToast: 'The configurator is published.', hiddenToast: 'The configurator is hidden.',
   },
 }
 type TT = typeof TXT['sl']
@@ -74,11 +82,33 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     if (error) { toast.error(error.code === '23505' ? T.slugTaken : error.message); return }
     toast.success(T.save + ' ✓'); onSaved()
   }
+  const [toggling, setToggling] = useState(false)
+  async function setPublished(on: boolean) {
+    if (on && !slugOk) { toast.error(T.slugInvalid); return }
+    setToggling(true)
+    const { error } = await supabase.from('companies').update({ configurator_enabled: on, ...(on ? { configurator_slug: form.slug } : {}) } as any).eq('id', company.id)
+    setToggling(false)
+    if (error) { toast.error(error.code === '23505' ? T.slugTaken : error.message); return }
+    setForm(f => ({ ...f, enabled: on }))
+    toast.success(on ? T.publishedToast : T.hiddenToast); onSaved()
+  }
   function copy(text: string) { navigator.clipboard.writeText(text).then(() => toast.success(T.copied)) }
 
   return <div className="px-6 py-6 max-w-3xl space-y-4">
+    <Card className="p-5 flex flex-wrap items-center gap-4">
+      <div className="flex-1 min-w-[240px]">
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-gray-900">{T.status}</h2>
+          <span className={form.enabled ? 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#dbfce7] text-[#267a47]' : 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#ececec] text-[#4a4a4a]'}>{form.enabled ? T.published : T.notPublished}</span>
+        </div>
+        <p className="text-sm font-medium text-[#4f4f4f] mt-1">{form.enabled ? T.publishedHint : T.notPublishedHint}</p>
+      </div>
+      {canEdit && (form.enabled
+        ? <Button variant="secondary" loading={toggling} onClick={() => setPublished(false)}>{T.hide}</Button>
+        : <Button loading={toggling} onClick={() => setPublished(true)}>{T.publish}</Button>)}
+    </Card>
+
     <Card className="p-5 space-y-4">
-      <Checkbox checked={form.enabled} onChange={v => setForm({ ...form, enabled: v })} label={T.cfgEnabled} />
       <Input label={T.cfgSlug} value={form.slug} onChange={e => setForm({ ...form, slug: slugify(e.target.value) })} error={slugOk ? undefined : T.slugInvalid} disabled={!canEdit} />
       <Checkbox checked={form.show} onChange={v => setForm({ ...form, show: v })} label={T.cfgShowPrices} />
       <div className="flex flex-col gap-1">
