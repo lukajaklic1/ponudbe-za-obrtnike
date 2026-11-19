@@ -609,7 +609,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 {roofModel && (roofModel.variants ?? []).length > 0 && <Section n={nextStep()} title={T.roofVariant} accent={accent}>
                   <div className="flex flex-wrap gap-2">
                     {(roofModel.variants ?? []).map(v => <Chip key={v.id} on={roofSel.variant === v.id} onClick={() => pickRoof({ variant: v.id })} accent={accent} single>
-                      {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {Number(v.pct)} %</span>}
+                      {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {Number(v.pct)}%</span>}
                     </Chip>)}
                   </div>
                 </Section>}
@@ -988,7 +988,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </ul>}
               {show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
-                {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate} %`} r={money(totals.vat, cur)} muted />}
+                {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate}%`} r={money(totals.vat, cur)} muted />}
                 <Row l={T.gross} r={money(totals.gross, cur)} bold />
                 {!internal && <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>}
               </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{T.pricesHidden}</p>}
@@ -1059,7 +1059,7 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
   const single = SINGLE_CHOICE_GROUPS.includes(group)
   const price = (o: WindowOption) => {
     if (!show || o.price == null || Number(o.price) === 0) return null
-    return o.pricing === 'percent' ? `+${Number(o.price).toLocaleString('de-DE')} %` : `+${money(Number(o.price), currency)}${o.pricing === 'm2' ? ' / m²' : ''}`
+    return o.pricing === 'percent' ? `+${Number(o.price).toLocaleString('de-DE')}%` : `+${money(Number(o.price), currency)}${o.pricing === 'm2' ? ' / m²' : ''}`
   }
   const anySelected = options.some(o => selected.includes(o.id))
   return <div>

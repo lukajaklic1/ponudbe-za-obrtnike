@@ -9,7 +9,7 @@ import type { WindowMaterial } from '../lib/windows'
  *
  * Parts that are shown (simplified but in the right order and proportion):
  * frame with rebate + outer stop, sash with overlap lip, glazing bead on the inside,
- * triple glazing (~46 % of the profile depth) with spacers, outer / middle / stop gaskets,
+ * triple glazing (~46% of the profile depth) with spacers, outer / middle / stop gaskets,
  * PVC chambers in one row with steel reinforcement, ALU thermal break (polyamide + foam),
  * glued wood lamellas, drip rail on wood, ALU cladding on PVC-ALU and wood-ALU.
  */

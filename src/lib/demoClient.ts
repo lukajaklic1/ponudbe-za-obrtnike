@@ -43,8 +43,8 @@ function seed(): DB {
     vat_payer: true, vat_exempt_note: 'DDV ni obračunan na podlagi 1. odstavka 94. člena ZDDV-1.', proforma_prefix: 'PR', proforma_counter: 0, invoice_prefix: 'R', invoice_counter: 0, invoice_due_days: 8, invoice_note: null,
     quote_prefix: 'P', quote_counter: 4,
     legal_form: 'sp', registration_number: '1234567000', registry_authority: null, share_capital: null, unpaid_capital: null,
-    payment_terms_list: ['30 % avans, ostalo po končanju del', '8 dni po izstavitvi računa', 'Takoj ob končanju del'],
-    default_payment_terms: '30 % avans, ostalo po končanju del', default_valid_days: 30, default_parity: null,
+    payment_terms_list: ['30% avans, ostalo po končanju del', '8 dni po izstavitvi računa', 'Takoj ob končanju del'],
+    default_payment_terms: '30% avans, ostalo po končanju del', default_valid_days: 30, default_parity: null,
     quote_terms: 'Cene so brez DDV, razen kjer je navedeno drugače. Material je vključen v ceno postavk. Dodatna dela se obračunajo po dejanskih količinah in veljavnem ceniku.',
     quote_terms_en: 'Prices exclude VAT unless stated otherwise. Material is included in item prices. Additional work is charged per actual quantities.',
     is_active: true, created_at: daysAgo(200), updated_at: daysAgo(10),
@@ -61,7 +61,7 @@ function seed(): DB {
     first_name: vat ? null : String(name).split(' ')[0], last_name: vat ? null : String(name).split(' ').slice(1).join(' '),
     contact_person: vat ? contact : null, email, phone, address: null,
     address_street: street, address_city: city, address_postal_code: postal, vat_number: vat, country: 'Slovenija',
-    payment_terms: i === 2 ? '30 dni po izstavitvi računa' : '30 % avans, ostalo po končanju del', parity: null,
+    payment_terms: i === 2 ? '30 dni po izstavitvi računa' : '30% avans, ostalo po končanju del', parity: null,
     status: 'active', notes: null, created_at: daysAgo(150 - i * 20), updated_at: daysAgo(150 - i * 20),
   }))
 
@@ -115,7 +115,7 @@ function seed(): DB {
       title: cust.name, status: d.status, lost_reason: d.status === 'lost' ? 'price' : null,
       valid_until: new Date(Date.parse(created) + 30 * 86400000).toISOString().slice(0, 10), delivery_date: null, lead_time: d.lead || null,
       contact_person: cust.contact_person, contact_email: cust.email, contact_phone: cust.phone, payment_terms: cust.payment_terms, parity: null,
-      notes: d.vat === 9.5 ? 'Obračunan znižan DDV 9,5 % za popravila stanovanjskih objektov.' : null,
+      notes: d.vat === 9.5 ? 'Obračunan znižan DDV 9,5% za popravila stanovanjskih objektov.' : null,
       created_by: userId, assignee_id: userId, sent_at: d.status !== 'draft' ? created : null, snapshot: null,
       issued_at: d.status !== 'draft' ? created : null, pdf_path: null, site_address: d.site, discount_pct: d.disc,
       total_net: tot.total_net, total_vat: tot.total_vat, total_gross: tot.total_gross, created_at: created, updated_at: created,

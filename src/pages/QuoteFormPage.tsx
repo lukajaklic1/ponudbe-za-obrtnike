@@ -275,7 +275,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
   // ── Lines ─────────────────────────────────────────────────
   const totals = useMemo(() => quoteTotals(lines.map(num), discountPct ?? 0), [lines, discountPct])
-  // follow the VAT already used on this quote (e.g. 9,5 % for home renovation)
+  // follow the VAT already used on this quote (e.g. 9,5% for home renovation)
   const currentVat = () => lines.length ? lines[lines.length - 1].vat_rate : 22
   const windowLines = lines.filter(l => windowCfg(l))
   const serviceLines = lines.filter(l => serviceCfg(l))
@@ -874,7 +874,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                         <td className="px-2 py-2.5"><NumCell value={l.discount_pct} decimals={0} disabled={ro} onValue={v => patchLine(l.key, { discount_pct: v })} /></td>
                         <td className="px-2 py-2.5">
                           <Select size="sm" align="right" value={l.vat_rate} disabled={ro} onChange={v => patchLine(l.key, { vat_rate: Number(v) })} className={ro ? 'border-transparent bg-transparent disabled:bg-transparent' : ''}
-                            options={VAT_RATES.map(v => ({ value: v, label: `${v.toLocaleString('de-DE')} %` }))} />
+                            options={VAT_RATES.map(v => ({ value: v, label: `${v.toLocaleString('de-DE')}%` }))} />
                         </td>
                         <td className="px-4 py-2.5 pt-4 text-right font-medium text-gray-800 whitespace-nowrap">{money(lineTotal(num(l)))}</td>
                         {!ro && <td className="px-2 py-2.5 pt-3.5">
@@ -912,7 +912,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 {(!ro || totals.discount_amount > 0) && <tr>
                   <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-1.5 text-right text-sm text-gray-500">{o.quoteDiscount}</td>
                   <td className="px-4 py-1.5 text-right">
-                    {ro ? <span className="text-sm text-gray-700">{totals.discount_amount > 0 ? `${(discountPct ?? 0).toLocaleString('de-DE')} % (−${money(totals.discount_amount)})` : ''}</span>
+                    {ro ? <span className="text-sm text-gray-700">{totals.discount_amount > 0 ? `${(discountPct ?? 0).toLocaleString('de-DE')}% (−${money(totals.discount_amount)})` : ''}</span>
                       : <div className="w-28 ml-auto"><NumberInput unit="%" value={discountPct} onValue={setDiscountPct} /></div>}
                   </td>
                   {!ro && <td />}
@@ -924,7 +924,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 </tr>
                 {totals.vat.map(v => (
                   <tr key={v.rate}>
-                    <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-1 text-right text-sm text-gray-500">{o.vat} {v.rate.toLocaleString('de-DE')} % ({money(v.base)})</td>
+                    <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-1 text-right text-sm text-gray-500">{o.vat} {v.rate.toLocaleString('de-DE')}% ({money(v.base)})</td>
                     <td className="px-4 py-1 text-right text-sm text-gray-700 whitespace-nowrap">{money(v.amount)}</td>
                     {!ro && <td />}
                   </tr>

@@ -634,7 +634,7 @@ export const translations = {
       cat: { measure: 'Izmera', removal: 'Demontaža', install: 'Montaža', accessories: 'Dodatki', transport: 'Prevoz', material: 'Material', other: 'Ostalo' },
       units: { m2: 'm²', m: 'tm', pcs: 'kos', h: 'ura', lump: 'pavšal', l: 'l', kg: 'kg' },
       siteAddress: 'Lokacija del', siteAddressHint: 'Ulica, kraj', executionTime: 'Rok izvedbe', executionTimeHint: 'npr. 5 delovnih dni',
-      paymentHint: 'npr. 30 % avans, ostalo po končanju', notesHint: 'Prikaže se na PDF ponudbi',
+      paymentHint: 'npr. 30% avans, ostalo po končanju', notesHint: 'Prikaže se na PDF ponudbi',
       pickCustomer: 'Najprej izberite stranko', addCustomerFirst: '+ Dodajte prvo stranko',
       lines: 'Ostale postavke', addRoom: 'Dodaj prostor', addFromPriceList: 'Iz storitev', addCustomLine: 'Prosta postavka',
       noLines: 'Ni še postavk', noLinesHint: 'Dodajte okna in vrata kot postavke, jih razvrstite po prostorih in dodajte montažo iz storitev.',

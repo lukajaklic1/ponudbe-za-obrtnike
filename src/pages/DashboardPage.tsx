@@ -37,14 +37,6 @@ interface Stats {
   realized_this_month: number
 }
 
-interface TrendData {
-  period: string
-  sent_count: number
-  sent_value: number
-  realized_count: number
-  realized_value: number
-}
-
 interface CustomerStat {
   customer_id: string
   customer_name: string
@@ -185,7 +177,7 @@ export default function DashboardPage() {
     const inPeriod = quotes.filter(q => +new Date(q.created_at) >= since)
     const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((acc, q) => ({ value: acc.value + (Number(q.total_net) || 0), count: acc.count + 1 }), { value: 0, count: 0 })
     const all = sum(() => true)
-    const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)} % ${sl ? 'vrednosti' : 'of the value'}` : '')
+    const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
     const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), tone, sub })
     const draft = sum(q => q.status === 'draft'), sent = sum(q => q.status === 'sent' || q.status === 'issued'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
     return [
@@ -204,40 +196,24 @@ export default function DashboardPage() {
     { v: 12 as const, sl: '12 mesecev', en: '12 months' },
   ]
 
-  // months of the chosen period: business by the day it happened (sent / won), and how each month's quotes ended
+  // months of the chosen period: sent in the month it was sent, won in the month it was won
   const months = (() => {
     const n = period, now = new Date()
     const keys = Array.from({ length: n }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` })
-    const rows = keys.map(k => ({ period: k, sent_value: 0, won_value: 0, sent_count: 0, realized_count: 0, realized_value: 0, open_count: 0, open_value: 0 }))
+    const rows = keys.map(k => ({ period: k, sent_value: 0, won_value: 0, sent_count: 0, won_count: 0 }))
     const at = (d: string | null | undefined) => (d ? rows.find(r => r.period === d.slice(0, 7)) : undefined)
     for (const q of quotes) {
       if (q.status === 'draft') continue
       const v = Number(q.total_net) || 0
       const sentRow = at(q.sent_at ?? q.created_at)
-      if (sentRow) {
-        sentRow.sent_value += v; sentRow.sent_count++
-        // how this month's quotes ended (cohort)
-        if (q.status === 'won') { sentRow.realized_count++; sentRow.realized_value += v }
-      }
-      // business won in the month it was won
-      if (q.status === 'won') { const w = at(q.closed_at ?? q.updated_at); if (w) w.won_value += v }
+      if (sentRow) { sentRow.sent_value += v; sentRow.sent_count++ }
+      // won in the month it was won
+      if (q.status === 'won') { const w = at(q.closed_at ?? q.updated_at); if (w) { w.won_value += v; w.won_count++ } }
     }
-    for (const r of rows) { r.open_count = Math.max(0, r.sent_count - r.realized_count); r.open_value = Math.max(0, r.sent_value - r.realized_value) }
     return rows
   })()
-  const ratioTip = (k: 'value' | 'count') => ({ active, payload, label }: { active?: boolean; payload?: readonly { payload?: unknown }[]; label?: string | number }) => {
-    if (!active || !payload?.length) return null
-    const t = payload[0].payload as TrendData
-    const sent = k === 'value' ? t.sent_value : t.sent_count, won = k === 'value' ? t.realized_value : t.realized_count
-    const fmt = (n: number) => (k === 'value' ? money(n) : String(n))
-    return <div className="rounded-[10px] border border-gray-200 bg-white px-3 py-2.5 text-[13px] font-medium shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
-      <div className="text-gray-900 mb-1">{formatPeriod(String(label ?? ''))}</div>
-      <div className="flex justify-between gap-6 text-[#4f4f4f]"><span>{sl ? 'Poslano' : 'Sent'}</span><span className="text-gray-900">{fmt(sent)}</span></div>
-      <div className="flex justify-between gap-6 text-[#4f4f4f]"><span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm" style={{ backgroundColor: TEAL.line }} />{sl ? 'Dobljeno' : 'Won'}</span><span className="text-gray-900">{fmt(won)}{sent ? ` (${Math.round(won / sent * 100)} %)` : ''}</span></div>
-    </div>
-  }
   const hasValues = months.some(t => t.sent_value > 0 || t.won_value > 0)
-  const hasCounts = months.some(t => t.sent_count > 0)
+  const hasCounts = months.some(t => t.sent_count > 0 || t.won_count > 0)
   // Same look as the other empty states in the app: light icon + short grey sentence
   const emptyChart = (
     <div className="flex flex-col items-center justify-center h-[260px] text-center">
@@ -349,17 +325,17 @@ export default function DashboardPage() {
 
             {/* Count chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Uspešnost ponudb' : 'Quote win rate'}</h2>
-              <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Ponudbe po mesecu pošiljanja in koliko jih je bilo dobljenih.' : 'Quotes by the month they were sent, and how many were won.'}</p>
+              <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Število ponudb po mesecih' : 'Quotes per month'}</h2>
+              <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Poslane v mesecu in dobljene v mesecu, ko je bila ponudba sprejeta.' : 'Sent in the month, and won in the month the quote was accepted.'}</p>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={months} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
+                <BarChart data={months} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: '#f6f6f6' }} content={ratioTip('count')} />
+                  <Tooltip cursor={{ fill: '#f6f6f6' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="realized_count" stackId="c" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} maxBarSize={56} />
-                  <Bar dataKey="open_count" stackId="c" name={sl ? 'Poslane, ne (še) dobljene' : 'Sent, not (yet) won'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={56} />
+                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40} />
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -439,7 +415,7 @@ export default function DashboardPage() {
                       <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false} />
                       <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
-                      <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0} %)`, sl ? 'Vrednost' : 'Value']}
+                      <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0}%)`, sl ? 'Vrednost' : 'Value']}
                         cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                       <Bar dataKey="value" fill={TEAL.fill} radius={[0, 6, 6, 0]} maxBarSize={22} />
                     </BarChart>
