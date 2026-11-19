@@ -15,8 +15,8 @@ const TXT = {
   sl: {
     title: 'Objava', save: 'Shrani', saved: 'Shranjeno.',
     cfgEnabled: 'Konfigurator je javno dostopen', cfgSlug: 'Naslov strani', cfgShowPrices: 'Stranka lahko sproti vidi cene med konfiguracijo',
-    cfgAccent: 'Barva gumbov', cfgIntro: 'Uvodno besedilo', cfgLink: 'Povezava za tvojo spletno stran', copy: 'Kopiraj', copied: 'Kopirano',
-    open: 'Odpri', embed: 'Vstavi v spletno stran (iframe)', slugInvalid: 'Naslov: 3–40 znakov, male črke, številke in vezaji',
+    cfgAccent: 'Barva gumbov', cfgIntro: 'Uvodno besedilo', cfgLink: 'Povezava do konfiguratorja', linkHint: 'Povezavo lahko dodate na gumb na vaši spletni strani (npr. »Izračunajte ceno«) ali jo pošljete stranki.', copy: 'Kopiraj', copied: 'Kopirano',
+    open: 'Odpri', embed: 'Koda za vgradnjo v vašo spletno stran', embedHint: 'Če želite konfigurator prikazati kot del vaše spletne strani, kopirajte kodo in jo prilepite na stran (v WordPressu ali Wixu v blok HTML).', slugInvalid: 'Naslov: 3–40 znakov, male črke, številke in vezaji',
     slugTaken: 'Ta naslov je že zaseden',
     status: 'Stanje konfiguratorja', published: 'Objavljen', notPublished: 'Ni objavljen',
     publishedHint: 'Stranke lahko konfigurator odprejo na povezavi spodaj in vam pošljejo povpraševanje.',
@@ -26,8 +26,8 @@ const TXT = {
   en: {
     title: 'Publishing', save: 'Save', saved: 'Saved.',
     cfgEnabled: 'Configurator is publicly available', cfgSlug: 'Page address', cfgShowPrices: 'Customer can see prices live while configuring',
-    cfgAccent: 'Button colour', cfgIntro: 'Intro text', cfgLink: 'Link for your website', copy: 'Copy', copied: 'Copied',
-    open: 'Open', embed: 'Embed in your website (iframe)', slugInvalid: 'Address: 3–40 chars, lowercase letters, digits and dashes',
+    cfgAccent: 'Button colour', cfgIntro: 'Intro text', cfgLink: 'Link to the configurator', linkHint: 'Put the link on a button on your website (e.g. "Get a price") or send it to a customer.', copy: 'Copy', copied: 'Copied',
+    open: 'Open', embed: 'Code to embed in your website', embedHint: 'If you want the configurator to show as part of your website, copy the code and paste it on the page (in WordPress or Wix into an HTML block).', slugInvalid: 'Address: 3–40 chars, lowercase letters, digits and dashes',
     slugTaken: 'This address is already taken',
     status: 'Configurator status', published: 'Published', notPublished: 'Not published',
     publishedHint: 'Customers can open the configurator at the link below and send you a request.',
@@ -127,13 +127,13 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     </Card>
 
     <Card className="p-5 space-y-3">
-      <h2 className="text-base font-semibold text-gray-900">{T.cfgLink}</h2>
+      <div><h2 className="text-base font-semibold text-gray-900">{T.cfgLink}</h2><p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.linkHint}</p></div>
       <div className="flex gap-2">
         <input readOnly value={url} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 bg-gray-50" />
         <Button variant="secondary" className="gap-1.5" onClick={() => copy(url)}><Copy className="w-4 h-4" />{T.copy}</Button>
         <a href={url} target="_blank" rel="noreferrer"><Button variant="secondary" className="gap-1.5"><ExternalLink className="w-4 h-4" />{T.open}</Button></a>
       </div>
-      <div className="text-sm font-medium text-[#4f4f4f]">{T.embed}</div>
+      <div className="pt-2"><h3 className="text-base font-semibold text-gray-900">{T.embed}</h3><p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.embedHint}</p></div>
       <div className="flex gap-2">
         <textarea readOnly rows={2} value={embed} className="flex-1 min-w-0 font-mono text-xs rounded-lg border border-gray-200 px-3 py-2 text-gray-700 bg-gray-50" />
         <Button variant="secondary" className="gap-1.5 self-start" onClick={() => copy(embed)}><Copy className="w-4 h-4" />{T.copy}</Button>
