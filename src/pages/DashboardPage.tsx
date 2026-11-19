@@ -31,6 +31,42 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
   )
 }
 
+/** a compact ring card: total value in the middle, legend with the number of quotes and the value of each part */
+function RingCard({ title, parts, money, lang }: { title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
+  const shown = parts.filter(p => p.value > 0)
+  const total = parts.reduce((a, p) => a + p.value, 0)
+  const pl = (n: number) => (lang === 'sl' ? (n === 1 ? 'ponudba' : n === 2 ? 'ponudbi' : n < 5 ? 'ponudbe' : 'ponudb') : n === 1 ? 'quote' : 'quotes')
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
+      <h2 className="text-[15px] font-semibold text-gray-900 mb-3">{title}</h2>
+      {total === 0 ? <div className="text-sm text-gray-400 py-8 text-center">{lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
+      <div className="flex items-center gap-5">
+        <div className="w-[136px] h-[136px] shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={44} outerRadius={64} paddingAngle={2} stroke="none">
+                {shown.map(p => <Cell key={p.key} fill={p.color} />)}
+              </Pie>
+              <Tooltip formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex-1 min-w-0 space-y-1.5">
+          {parts.filter(p => p.count > 0).sort((a, b) => b.value - a.value).map(p => (
+            <div key={p.key} className="text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+                <span className="text-gray-900 min-w-0 truncate" title={p.name}>{p.name}</span>
+              </div>
+              <div className="pl-[18px] text-[13px] text-[#4f4f4f] whitespace-nowrap">{money(p.value)} · {p.count} {pl(p.count)}</div>
+            </div>
+          ))}
+        </div>
+      </div>}
+    </div>
+  )
+}
+
 interface Stats {
   pipeline_value: number
   win_rate: number
@@ -464,7 +500,7 @@ export default function DashboardPage() {
             r.count++; r.value += val(q); if (q.status === 'won') r.won += val(q)
             byCustomer.set(q.customer_id, r)
           }
-          const top = [...byCustomer.values()].sort((a, b) => b.value - a.value).slice(0, 5)
+          const top = [...byCustomer.values()].sort((a, b) => b.value - a.value).slice(0, 8)
           const CH_COLORS = ['#2fa596', '#5cc0b2', '#8fd3c9', '#bfe6e0', '#7d7d7d', '#b5b5b5', '#dcdcdc']
           const channels = [...LEAD_SOURCES.map((k, i) => ({ key: k, color: CH_COLORS[i] })), { key: 'none', color: '#efefef' }]
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
@@ -497,49 +533,10 @@ export default function DashboardPage() {
                   </tbody>
                 </table>}
               </div>
+              {/* sales channel and where the quotes came from, two rings one under the other */}
               <div className="flex flex-col gap-4">
-              {/* sales channel: many parts, so bars (easier to compare than a ring) */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
-                <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Prodajni kanal' : 'Sales channel'}</h2>
-                {(() => {
-                  const rows = channels.filter(c => c.count > 0).sort((a, b) => b.value - a.value)
-                  const max = Math.max(1, ...rows.map(r => r.value))
-                  return rows.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
-                    <div className="space-y-4">
-                      {rows.map(r => <div key={r.key}>
-                        <div className="flex items-baseline gap-2 text-sm font-medium">
-                          <span className="text-gray-900 flex-1 min-w-0 truncate">{r.name}</span>
-                          <span className="text-[#4f4f4f]">{r.count} {sl ? (r.count === 1 ? 'ponudba' : r.count === 2 ? 'ponudbi' : r.count < 5 ? 'ponudbe' : 'ponudb') : (r.count === 1 ? 'quote' : 'quotes')}</span>
-                          <span className="text-gray-900 w-[88px] text-right">{money(r.value)}</span>
-                        </div>
-                        <div className="mt-1.5 h-2 rounded-full bg-[#f1f1f1] overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${Math.max(2, r.value / max * 100)}%`, backgroundColor: r.key === 'none' ? '#c9c9c9' : TEAL.line }} />
-                        </div>
-                      </div>)}
-                    </div>
-                })()}
-              </div>
-              {/* where the quotes came from: one bar split in two */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Vir ponudb' : 'Quote source'}</h2>
-                {(() => {
-                  const total = sources.reduce((a, x) => a + x.value, 0)
-                  if (!total) return <div className="text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div>
-                  return <>
-                    <div className="flex h-2.5 rounded-full overflow-hidden bg-[#f1f1f1]">
-                      {sources.filter(x => x.value > 0).map(x => <div key={x.key} style={{ width: `${x.value / total * 100}%`, backgroundColor: x.color }} />)}
-                    </div>
-                    <div className="mt-3 space-y-2">
-                      {sources.map(x => <div key={x.key} className="flex items-center gap-2 text-sm font-medium">
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: x.color }} />
-                        <span className="text-[#4f4f4f] flex-1 min-w-0 truncate">{x.name}</span>
-                        <span className="text-[#4f4f4f]">{x.count} {sl ? (x.count === 1 ? 'ponudba' : x.count === 2 ? 'ponudbi' : x.count < 5 ? 'ponudbe' : 'ponudb') : (x.count === 1 ? 'quote' : 'quotes')}</span>
-                        <span className="text-gray-900 w-[88px] text-right">{money(x.value)}</span>
-                      </div>)}
-                    </div>
-                  </>
-                })()}
-              </div>
+                <RingCard title={sl ? 'Prodajni kanal' : 'Sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'} />
+                <RingCard title={sl ? 'Vir ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
               </div>
             </div>
           )
