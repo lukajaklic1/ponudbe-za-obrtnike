@@ -34,21 +34,22 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
 }
 
 /** a ring card like "Ponudbe po statusu": ring with the total value, legend under it with count and value */
-function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: string; grow?: boolean; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
+function RingCard({ title, parts, money, empty, grow = true }: { empty?: string; grow?: boolean; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
   const shown = parts.filter(p => p.value > 0)
   const total = parts.reduce((a, p) => a + p.value, 0)
   return (
     <div className={`bg-white rounded-xl border border-gray-200 p-6 flex flex-col${grow ? " flex-1" : ""}`}>
       <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
-      {total === 0 ? <div className="flex-1 flex items-center justify-center min-h-[220px] px-6 text-center text-sm text-gray-400">{empty ?? (lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.')}</div> :
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-[200px] h-[200px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
-                {shown.map(p => <Cell key={p.key} fill={p.color} />)}
-              </Pie>
-              <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+              {total === 0
+                ? <Pie isAnimationActive={false} data={[{ name: '', value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#ececec" /></Pie>
+                : <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
+                    {shown.map(p => <Cell key={p.key} fill={p.color} />)}
+                  </Pie>}
+              {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />}
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -56,16 +57,17 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
           </div>
         </div>
         <div className="w-full flex flex-col gap-2">
-          {parts.filter(p => p.count > 0).sort((x, y) => y.value - x.value).map(p => (
+          {[...parts].sort((x, y) => y.value - x.value).map(p => (
             <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.count ? p.color : '#d9d9d9' }} />
               <span className="text-[#4f4f4f] flex-1 min-w-0 truncate" title={p.name}>{p.name}</span>
               <span className="text-[#4f4f4f] tabular-nums">{p.count}</span>
-              <span className="text-gray-900 tabular-nums w-[92px] text-right">{money(p.value)}</span>
+              <span className={`tabular-nums w-[92px] text-right ${p.count ? 'text-gray-900' : 'text-[#4f4f4f]'}`}>{money(p.value)}</span>
             </div>
           ))}
         </div>
-      </div>}
+        {total === 0 && empty && <p className="text-[13px] text-gray-400 text-center">{empty}</p>}
+      </div>
     </div>
   )
 }
