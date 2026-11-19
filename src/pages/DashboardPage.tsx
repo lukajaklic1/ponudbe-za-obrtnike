@@ -21,7 +21,7 @@ const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
-const TONES = { grey: { color: '#4a4a4a', backgroundColor: '#ececec' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
+const TONES = { grey: { color: '#5f5f5f', backgroundColor: '#f4f4f4' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
 function StatCard({ label, value, badge, tone }: { label: string; value: string; badge: string; tone: keyof typeof TONES; sub?: string }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 px-4 py-4 h-full">
@@ -544,7 +544,7 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 flex flex-col">
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
                 <h2 className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
-                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#ececec] text-[#4a4a4a] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
+                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f4] text-[#5f5f5f] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
                 <div className="overflow-x-auto"><table className="w-full table-fixed keep-last-line">
                   <colgroup><col /><col className="w-[84px] sm:w-[110px]" /><col className="w-[110px] sm:w-[130px]" /><col className="hidden sm:table-column w-[130px]" /><col className="hidden sm:table-column w-[120px]" /></colgroup>
                   <thead><tr>
