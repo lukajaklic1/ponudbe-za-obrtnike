@@ -41,7 +41,7 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
     <div className={`bg-white rounded-xl border border-gray-200 p-6 flex flex-col${grow ? " flex-1" : ""}`}>
       <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
       {total === 0 ? <div className="flex-1 flex items-center justify-center min-h-[220px] px-6 text-center text-sm text-gray-400">{empty ?? (lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.')}</div> :
-      <div className={`flex flex-col items-center gap-4${grow ? " flex-1 justify-center" : ""}`}>
+      <div className="flex flex-col items-center gap-4">
         <div className="relative w-[200px] h-[200px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -111,7 +111,7 @@ export default function DashboardPage() {
   // customers table: sorting and pages
   const [cSort, setCSort] = useState<{ key: 'name' | 'count' | 'value' | 'won' | 'rate'; dir: 'asc' | 'desc' }>({ key: 'value', dir: 'desc' })
   const [cPage, setCPage] = useState(1)
-  const cPageSize = 20
+  const cPageSize = 15
   const [customerNames, setCustomerNames] = useState<Record<string, string>>({})
   const [customerTypes, setCustomerTypes] = useState<Record<string, string>>({})
   const [filterCustomerId, setFilterCustomerId] = useState<string | null>(null)
@@ -532,7 +532,7 @@ export default function DashboardPage() {
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 flex flex-col">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 lg:min-h-[1015px]">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 lg:min-h-[789px]">
                 <h2 className="text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}</h2>
                 {top.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
                 <table className="w-full table-fixed keep-last-line">
