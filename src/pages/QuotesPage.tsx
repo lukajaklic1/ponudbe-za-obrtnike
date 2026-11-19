@@ -211,7 +211,26 @@ export default function QuotesPage() {
             <p className="text-sm text-gray-600">{s.noQuotes}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm font-medium min-w-[720px]">
+          <>
+          {/* phones: one card per quote instead of the wide table */}
+          <div className="sm:hidden divide-y divide-gray-200">
+            {paged.map(q => (
+              <button key={q.id} type="button" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
+                className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}</span>
+                  <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
+                </div>
+                <div className="text-[15px] font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
+                {q.site_address && <div className="text-[13px] font-medium text-[#4f4f4f] truncate">{q.site_address}</div>}
+                <div className="flex items-center justify-between gap-2 mt-1.5 text-sm font-medium">
+                  <span className="text-[#4f4f4f]">{format(new Date(q.created_at), 'd. M. yyyy')}</span>
+                  <span className="text-gray-900 tabular-nums">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="hidden sm:block overflow-x-auto"><table className="w-full text-sm font-medium min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['assignee', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} style={{ width: ['10%', '22%', '20%', '14%', '11%', '10%', '10%', '3%'][i], minWidth: key === 'customer' ? 200 : i === 2 ? 180 : undefined }} className={`${key === 'created_at' ? 'hidden 2xl:table-cell ' : ''}${key === 'value' ? 'text-right !pr-8' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
@@ -267,6 +286,7 @@ export default function QuotesPage() {
               ))}
             </tbody>
           </table></div>
+          </>
         )}
       </div>
 

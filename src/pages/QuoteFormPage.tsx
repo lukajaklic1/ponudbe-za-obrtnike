@@ -599,7 +599,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <button onClick={() => navigate('/quotes')} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800"><ChevronLeft className="w-4 h-4" />{s.quotes}</button>
       </div>
       <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto sm:flex-1 min-w-0">
           <h1 className="text-2xl leading-8 font-bold tracking-[-0.02em] text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
           {quoteNumber && <span className="text-sm" style={{ color: '#4f4f4f' }}>{quoteNumber}</span>}
           {isSaved && <QuoteStatusBadge status={status} label={s.status[status]} />}
@@ -929,7 +929,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               )}
 
               {/* Totals */}
-              <tfoot className={`border-t ${border} bg-gray-50`}>
+              <tfoot className={`hidden sm:table-footer-group border-t ${border} bg-gray-50`}>
                 <tr>
                   <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 pt-3 pb-1 text-right text-sm text-gray-500">{o.subtotal}</td>
                   <td className="px-4 pt-3 pb-1 text-right text-sm text-gray-700 whitespace-nowrap">{money(totals.subtotal)}</td>
@@ -976,6 +976,20 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 </tr>}
               </tfoot>
             </table>
+          </div>
+          {/* phones: the totals under the lines (the table scrolls sideways, so its footer is out of sight) */}
+          <div className={`sm:hidden border-t ${border} bg-gray-50 px-4 py-3 space-y-2 text-sm`}>
+            <div className="flex justify-between text-gray-500"><span>{o.subtotal}</span><span className="text-gray-700">{money(totals.subtotal)}</span></div>
+            {(!ro || totals.discount_amount > 0) && <div className="flex items-center justify-between gap-3 text-gray-500"><span>{o.quoteDiscount}</span>
+              {ro ? <span className="text-gray-700">{`${(discountPct ?? 0).toLocaleString('de-DE')}% (−${money(totals.discount_amount)})`}</span>
+                : <div className="w-28"><NumberInput unit="%" value={discountPct} onValue={setDiscountPct} /></div>}</div>}
+            <div className="flex justify-between font-medium text-gray-900"><span>{o.totalNet}</span><span>{money(totals.total_net)}</span></div>
+            {totals.vat.map(v => <div key={v.rate} className="flex justify-between text-gray-500"><span>{o.vat} {v.rate.toLocaleString('de-DE')}%</span><span className="text-gray-700">{money(v.amount)}</span></div>)}
+            <div className={`flex justify-between border-t-2 ${border} pt-2 font-bold text-gray-900`}><span>{o.totalGross}</span><span className="text-base">{money(totals.total_gross)}</span></div>
+            {(!ro || advanceGross != null) && <div className="flex items-center justify-between gap-3 text-gray-500"><span>{lang === 'en' ? 'Discount for 100% advance' : 'Popust ob 100% avansu'}</span>
+              {ro ? <span className="text-gray-700">{(advancePct ?? 0).toLocaleString('de-DE')}%</span>
+                : <div className="w-28"><NumberInput unit="%" value={advancePct} onValue={setAdvancePct} /></div>}</div>}
+            {advanceGross != null && <div className="flex justify-between font-semibold text-gray-900"><span>{lang === 'en' ? 'Total with 100% advance' : 'Skupaj ob 100% avansu'}</span><span className="text-[#26897a]">{money(advanceGross)}</span></div>}
           </div>
         </div>
       </>) : (
