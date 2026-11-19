@@ -13,7 +13,7 @@ import { cn } from '../lib/cn'
 
 const TXT = {
   sl: {
-    title: 'Objava', save: 'Shrani',
+    title: 'Objava', save: 'Shrani', saved: 'Shranjeno.',
     cfgEnabled: 'Konfigurator je javno dostopen', cfgSlug: 'Naslov strani', cfgShowPrices: 'Stranka lahko sproti vidi cene med konfiguracijo',
     cfgAccent: 'Barva gumbov', cfgIntro: 'Uvodno besedilo', cfgLink: 'Povezava za tvojo spletno stran', copy: 'Kopiraj', copied: 'Kopirano',
     open: 'Odpri', embed: 'Vstavi v spletno stran (iframe)', slugInvalid: 'Naslov: 3–40 znakov, male črke, številke in vezaji',
@@ -24,7 +24,7 @@ const TXT = {
     publish: 'Objavi konfigurator', hide: 'Skrij konfigurator', publishedToast: 'Konfigurator je objavljen.', hiddenToast: 'Konfigurator je skrit.',
   },
   en: {
-    title: 'Publishing', save: 'Save',
+    title: 'Publishing', save: 'Save', saved: 'Saved.',
     cfgEnabled: 'Configurator is publicly available', cfgSlug: 'Page address', cfgShowPrices: 'Customer can see prices live while configuring',
     cfgAccent: 'Button colour', cfgIntro: 'Intro text', cfgLink: 'Link for your website', copy: 'Copy', copied: 'Copied',
     open: 'Open', embed: 'Embed in your website (iframe)', slugInvalid: 'Address: 3–40 chars, lowercase letters, digits and dashes',
@@ -80,7 +80,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     } as any).eq('id', company.id)
     setSaving(false)
     if (error) { toast.error(error.code === '23505' ? T.slugTaken : error.message); return }
-    toast.success(T.save + ' ✓'); onSaved()
+    toast.success(T.saved); onSaved()
   }
   const [toggling, setToggling] = useState(false)
   async function setPublished(on: boolean) {
