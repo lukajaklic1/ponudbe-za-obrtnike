@@ -132,7 +132,7 @@ export default function OnboardingPage() {
       </div>
 
       <div className="flex justify-center pb-5">
-        <p className="text-xs text-gray-400">© {new Date().getFullYear()} Fenestrio</p>
+        <p className="text-xs text-gray-400">© {new Date().getFullYear()} Fenestio</p>
       </div>
     </div>
   )

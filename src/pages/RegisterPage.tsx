@@ -90,7 +90,7 @@ export default function RegisterPage() {
             : <>By creating an account you agree to our <Link to="/terms" className="underline hover:text-gray-600">Terms of Service</Link> and <Link to="/privacy" className="underline hover:text-gray-600">Privacy Policy</Link>.</>}
         </p>
         <div className="flex items-center gap-4">
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Fenestrio</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Fenestio</p>
           <div className="flex gap-1">
             {(['en', 'sl'] as const).map(l => (
               <button key={l} onClick={() => setLang(l)}

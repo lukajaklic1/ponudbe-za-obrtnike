@@ -61,7 +61,7 @@ export default function AcceptInvitePage() {
             <>
               <h1 className="text-2xl font-semibold text-gray-900 text-center mb-2">{a.title}</h1>
               <p className="text-sm text-gray-400 text-center mb-8">
-                {lang === 'sl' ? 'Povabljeni ste bili v Fenestrio. Nastavite geslo za vaš račun.' : "You've been invited to Fenestrio. Set a password for your account."}
+                {lang === 'sl' ? 'Povabljeni ste bili v Fenestio. Nastavite geslo za vaš račun.' : "You've been invited to Fenestio. Set a password for your account."}
               </p>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">

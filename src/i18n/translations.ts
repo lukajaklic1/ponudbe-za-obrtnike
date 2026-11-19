@@ -539,9 +539,9 @@ export const translations = {
     // Auth
     auth: {
       welcomeBack: 'Welcome back',
-      signInTo: 'Sign in to Fenestrio',
+      signInTo: 'Sign in to Fenestio',
       createAccount: 'Create account',
-      getStarted: 'Get started with Fenestrio',
+      getStarted: 'Get started with Fenestio',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm password',
@@ -1130,9 +1130,9 @@ export const translations = {
     // Auth
     auth: {
       welcomeBack: 'Dobrodošli nazaj',
-      signInTo: 'Prijavite se v Fenestrio',
+      signInTo: 'Prijavite se v Fenestio',
       createAccount: 'Ustvarite račun',
-      getStarted: 'Začnite uporabljati Fenestrio',
+      getStarted: 'Začnite uporabljati Fenestio',
       email: 'E-pošta',
       password: 'Geslo',
       confirmPassword: 'Potrdite geslo',
