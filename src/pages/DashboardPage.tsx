@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Search, X, CalendarDays, BarChart3, Tags } from 'lucide-react'
+import { LayoutDashboard, Search, X, BarChart3, Tags } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
@@ -8,10 +8,11 @@ import { toast } from '../components/ui/Toast'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
 import { FilterSelect } from '../components/ui/FilterSelect'
+import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 
 /** teal family for every chart */
 const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e4' }
-type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null }
+type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
 const TONES = { grey: { color: '#4a4a4a', backgroundColor: '#ececec' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
@@ -57,7 +58,13 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [customers, setCustomers] = useState<CustomerStat[]>([])
   const [loading, setLoading] = useState(true)
-  const [period, setPeriod] = useState<1 | 3 | 6 | 12>(3)
+  // filters: date range (default last 90 days), status, where the quote came from, customer type
+  const [dateFrom, setDateFrom] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 90); return d.toISOString().slice(0, 10) })
+  const [dateTo, setDateTo] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [sourceFilter, setSourceFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [customerTypes, setCustomerTypes] = useState<Record<string, string>>({})
   const [filterCustomerId, setFilterCustomerId] = useState<string | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState<string>('')
   const [companyUsers, setCompanyUsers] = useState<{ id: string; first_name: string; last_name: string }[]>([])
@@ -75,7 +82,7 @@ export default function DashboardPage() {
   async function loadStatusStats() {
     if (!company) return
     const [{ data }, { data: lineData }] = await Promise.all([
-      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at, closed_at').eq('company_id', company.id),
+      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at, closed_at, source').eq('company_id', company.id),
       supabase.from('quote_lines').select('quote_id, name, total_net').eq('company_id', company.id),
     ])
     const acc: Record<StatusKey, { value: number; count: number }> = {
@@ -119,15 +126,17 @@ export default function DashboardPage() {
       window.removeEventListener('focus', onFocus)
       if (channel) sb.removeChannel(channel)
     }
-  }, [company, filterCustomerId, assigneeFilter, period])
+  }, [company, filterCustomerId, assigneeFilter])
 
   useEffect(() => {
     if (company) {
       load()
+      supabase.from('customers').select('id, customer_type').eq('company_id', company.id)
+        .then(({ data }) => setCustomerTypes(Object.fromEntries(((data as { id: string; customer_type: string | null }[]) ?? []).map(c => [c.id, c.customer_type ?? 'person']))))
       supabase.from('users').select('id, first_name, last_name').eq('company_id', company.id).eq('is_active', true).order('first_name')
         .then(({ data }) => { if (data) setCompanyUsers(data) })
     }
-  }, [company, period, filterCustomerId, assigneeFilter])
+  }, [company, filterCustomerId, assigneeFilter])
 
   async function load() {
     if (!company) return
@@ -157,10 +166,19 @@ export default function DashboardPage() {
 
   const sl = lang === 'sl'
 
-  // quotes made in the chosen period, by their status now: the five values add up to the total
+  // every filter except the dates (customer and assignee are applied when loading)
+  const statusKey = (q: Q) => (q.status === 'issued' ? 'sent' : q.status)
+  const base = quotes.filter(q => (!statusFilter || statusKey(q) === statusFilter)
+    && (!sourceFilter || (sourceFilter === 'configurator' ? q.source === 'configurator' : q.source !== 'configurator'))
+    && (!typeFilter || (customerTypes[q.customer_id] ?? 'person') === typeFilter))
+  const fromT = dateFrom ? +new Date(dateFrom + 'T00:00:00') : -Infinity
+  const toT = dateTo ? +new Date(dateTo + 'T23:59:59') : Infinity
+  const inRange = (d: string | null | undefined) => !!d && +new Date(d) >= fromT && +new Date(d) <= toT
+  // quotes made in the chosen dates
+  const inPeriod = base.filter(q => inRange(q.created_at))
+
+  // quotes made in the chosen dates, by their status now: the five values add up to the total
   const cards = (() => {
-    const since = Date.now() - period * 30 * 86400000
-    const inPeriod = quotes.filter(q => +new Date(q.created_at) >= since)
     const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((acc, q) => ({ value: acc.value + (Number(q.total_net) || 0), count: acc.count + 1 }), { value: 0, count: 0 })
     const all = sum(() => true)
     const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
@@ -175,20 +193,18 @@ export default function DashboardPage() {
     ]
   })()
 
-  const periods = [
-    { v: 1 as const, sl: '30 dni', en: '30 days' },
-    { v: 3 as const, sl: '3 mesece', en: '3 months' },
-    { v: 6 as const, sl: '6 mesecev', en: '6 months' },
-    { v: 12 as const, sl: '12 mesecev', en: '12 months' },
-  ]
 
-  // months of the chosen period: sent in the month it was sent, won in the month it was won
+  // months of the chosen dates: sent in the month it was sent, won in the month it was won
   const months = (() => {
-    const n = period, now = new Date()
-    const keys = Array.from({ length: n }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` })
+    const first = dateFrom ? new Date(dateFrom) : new Date(Math.min(Date.now(), ...base.map(q => +new Date(q.created_at))))
+    const last = dateTo ? new Date(dateTo) : new Date()
+    const keys: string[] = []
+    for (let d = new Date(first.getFullYear(), first.getMonth(), 1); d <= last && keys.length < 24; d = new Date(d.getFullYear(), d.getMonth() + 1, 1))
+      keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+    if (!keys.length) keys.push(`${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, '0')}`)
     const rows = keys.map(k => ({ period: k, sent_value: 0, won_value: 0, sent_count: 0, won_count: 0 }))
-    const at = (d: string | null | undefined) => (d ? rows.find(r => r.period === d.slice(0, 7)) : undefined)
-    for (const q of quotes) {
+    const at = (d: string | null | undefined) => (d && inRange(d) ? rows.find(r => r.period === d.slice(0, 7)) : undefined)
+    for (const q of base) {
       if (q.status === 'draft') continue
       const v = Number(q.total_net) || 0
       const sentRow = at(q.sent_at ?? q.created_at)
@@ -222,15 +238,17 @@ export default function DashboardPage() {
       <div className="px-6 pt-5 flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap items-center gap-2">
 
-          {/* Period dropdown */}
-          <FilterSelect
-            label={sl ? 'Obdobje' : 'Period'}
-            value={String(period)}
-            allLabel=""
-            options={periods.map(p => ({ value: String(p.v), label: sl ? p.sl : p.en }))}
-            onChange={v => { if (v) setPeriod(Number(v) as 1 | 3 | 6 | 12) }}
-            icon={CalendarDays}
-          />
+          {/* dates from – to, with quick choices */}
+          <DateRangeFilter label={sl ? 'Obdobje' : 'Period'} from={dateFrom} to={dateTo} onChange={(fr, to) => { setDateFrom(fr); setDateTo(to) }} />
+
+          <FilterSelect label={sl ? 'Status' : 'Status'} value={statusFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setStatusFilter}
+            options={[{ value: 'draft', label: sl ? 'Osnutki' : 'Drafts' }, { value: 'sent', label: sl ? 'Poslane' : 'Sent' }, { value: 'won', label: sl ? 'Dobljene' : 'Won' }, { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' }]} />
+
+          <FilterSelect label={sl ? 'Vir' : 'Source'} value={sourceFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setSourceFilter}
+            options={[{ value: 'configurator', label: sl ? 'Spletni konfigurator' : 'Online configurator' }, { value: 'app', label: sl ? 'Narejene v aplikaciji' : 'Made in the app' }]} />
+
+          <FilterSelect label={sl ? 'Tip stranke' : 'Customer type'} value={typeFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setTypeFilter}
+            options={[{ value: 'person', label: sl ? 'Fizične osebe' : 'Private persons' }, { value: 'company', label: sl ? 'Podjetja' : 'Companies' }]} />
 
 
           {/* Assignee filter */}
@@ -253,7 +271,7 @@ export default function DashboardPage() {
               value={searchText}
               onChange={e => { setSearchText(e.target.value); setShowDropdown(true) }}
               onFocus={() => setShowDropdown(true)}
-              className="h-8 pl-9 pr-8 border border-gray-200 rounded-[10px] text-sm bg-white text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 transition-colors"
+              className="h-8 pl-9 pr-8 border border-gray-200 rounded-[10px] text-sm bg-white text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 transition-colors"
             />
             {(searchText || filterCustomerId) && (
               <button onClick={() => { setSearchText(''); setFilterCustomerId(null); setShowDropdown(false) }}
@@ -278,6 +296,10 @@ export default function DashboardPage() {
             )}
           </div>
 
+          {(statusFilter || sourceFilter || typeFilter || assigneeFilter || filterCustomerId || dateTo) && (
+            <button type="button" onClick={() => { setStatusFilter(''); setSourceFilter(''); setTypeFilter(''); setAssigneeFilter(''); setFilterCustomerId(null); setSearchText(''); setDateTo(''); const d = new Date(); d.setDate(d.getDate() - 90); setDateFrom(d.toISOString().slice(0, 10)) }}
+              className="h-8 px-2.5 rounded-[10px] text-sm font-medium text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100 transition-colors">{sl ? 'Počisti filtre' : 'Clear filters'}</button>
+          )}
         </div>
       </div>
 
@@ -328,9 +350,6 @@ export default function DashboardPage() {
 
         {/* Status breakdown (donut) + top services — the quotes made in the period, like the cards */}
         {(() => {
-          const since = Date.now() - period * 30 * 86400000
-          const inPeriod = quotes.filter(q => +new Date(q.created_at) >= since)
-          const statusKey = (q: Q) => (q.status === 'issued' ? 'sent' : q.status)
           const slices = [
             { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: '#c9c9c9' },
             { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: TEAL.light },
