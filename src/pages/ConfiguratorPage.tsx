@@ -76,7 +76,7 @@ const TXT = {
     openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
-    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
     grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
@@ -103,7 +103,7 @@ const TXT = {
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services',
-    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
@@ -524,10 +524,24 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const group = roofSel ? 'roof' : spec ? (spec.kind === 'sliding' ? 'sliding' : spec.kind === 'door' ? 'door' : spec.kind === 'wall' ? 'wall' : 'windows') : 'type:' + it.type_id
   const firstWall = offer ? [...(offer.wallSashes ?? [2, 3, 4])].sort().find(n => allowedCombos(n, offer, 'wall').length) ?? null : null
   const sysNow = data.systems.find(x => x.id === it.system_id)
+  // material first (PVC, aluminium, wood …), then the profiles of that material
+  const materials = [...new Set(allowedSystems.map(x => x.material))]
+  const matNow = sysNow && materials.includes(sysNow.material) ? sysNow.material : materials[0]
+  const matSystems = allowedSystems.filter(x => x.material === matNow)
+  const sysPrice = (id: string) => spec ? specBase(it, id) : type ? basePrice(data.prices.find(x => x.system_id === id && x.type_id === type.id), it.width ?? 0, it.height ?? 0) : null
+  /** choosing a material: its cheapest profile for this window */
+  function pickMaterial(m: string) {
+    if (m === matNow) return
+    const list = allowedSystems.filter(x => x.material === m)
+    const priced = list.map(x => ({ x, p: sysPrice(x.id) })).sort((a, b) => (a.p ?? Infinity) - (b.p ?? Infinity))
+    if (priced[0]) update({ system_id: priced[0].x.id })
+  }
   const colorList = spec && sysNow ? data.builder?.colors?.[sysNow.material] ?? [] : []
   const stepIds = [
     'product',
     ...(roofSel || (spec && spec.kind !== 'sliding') ? ['variant'] : []),
+    ...(spec && offer ? ['layout'] : []),
+    ...(!roofSel && materials.length > 1 ? ['material'] : []),
     ...(!roofSel ? ['profile'] : []),
     ...(colorList.length >= 2 ? ['color'] : []),
     'size',
@@ -544,8 +558,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const roofSize = roofModel?.sizes.find(x => x.id === roofSel?.size)
   const variantSummary = roofSel
     ? [roofModel ? [roofModel.brand, roofModel.name].filter(Boolean).join(' ') : '', roofSize ? `${roofSize.w} × ${roofSize.h} cm` : ''].filter(Boolean).join(' · ')
-    : spec ? [specName(spec), !slidingKind(spec) && bandKeyOf(spec) !== 'none' ? T.band[bandKeyOf(spec)] : ''].filter(Boolean).join(' · ') : ''
+    : spec ? specName(spec) : ''
+  // the layout step: top light / bottom panel and how each sash opens
+  const layoutSummary = spec ? [
+    !slidingKind(spec) ? T.band[bandKeyOf(spec)] : '',
+    spec.main.map(f => (lang === 'sl' ? OPEN_SL : OPEN_EN)[f.opening as string] ?? '').filter(Boolean).join(' + '),
+  ].filter(Boolean).join(' · ') : ''
   const profileSummary = sysNow?.name ?? ''
+  const materialSummary = matNow ? L.materials[matNow] : ''
   const colorSummary = colorList.length ? `${T.colorOut}: ${(colorList.find(c => c.id === it.colors?.out) ?? colorList[0]).name} · ${T.colorIn}: ${(colorList.find(c => c.id === it.colors?.in) ?? colorList[0]).name}` : ''
   const sizeSummary = roofSel ? `${it.quantity} ${T.pcs}` : `${it.width ?? '—'} × ${it.height ?? '—'} mm · ${it.quantity} ${T.pcs}`
   const equipSummary = [
@@ -736,6 +756,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   </div>
                 </Sub>}
               </>}
+              </>)}
+
+              {renderStep('layout', T.stepLayout, layoutSummary, <>
 {spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Sub title={T.bandsTitle}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                   {allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
@@ -753,17 +776,59 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   })}
                 </div>
               </Sub>}
+{spec && offer && <Sub title={T.openTitle}>
+                {(() => {
+                  // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
+                  // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
+                  const cards = slidingKind(spec)
+                    ? allowedCombos(spec.sashes, offer, slidingKind(spec)).map(cb => ({ ...spec, main: cb }))
+                    : allowedVariants(spec.sashes, offer, bk(spec)).filter(v => v.band === bandKeyOf(spec)).map(v => applyVariant(spec, v))
+                  const prices = cards.map(sp => (show ? specPrice(sp) : null))
+                  const known = prices.filter((x): x is number => x != null)
+                  const min = known.length ? Math.min(...known) : null
+                  const curMode = bandModeOf(spec)
+                  return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {cards.map((sp, i) => {
+                      const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
+                      const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
+                      return <button key={i} onClick={() => setSpec(sp)}
+                        className={cn('relative rounded-xl border p-3.5 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        style={on ? selStyle(accent) : undefined}>
+                        {on && <SelBadge accent={accent} />}
+                        <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
+                        {d != null && <div className="text-[13px] font-medium text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
+                      </button>
+                    })}
+                  </div>
+                })()}
+              </Sub>}
               </>)}
+
+              {renderStep('material', T.stepMaterial, materialSummary, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {materials.map(m => {
+                  const on = m === matNow
+                  const prices = allowedSystems.filter(x => x.material === m).map(x => sysPrice(x.id)).filter((v): v is number => v != null)
+                  const from = prices.length ? Math.min(...prices) : null
+                  return <button key={m} onClick={() => pickMaterial(m)}
+                    className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                    style={on ? selStyle(accent) : undefined}>
+                    {on && <SelBadge accent={accent} />}
+                    <div className="h-[96px] rounded-lg bg-[#fafafa] flex items-center justify-center overflow-hidden"><ProfileSection material={m} className="h-full p-2" /></div>
+                    <div className="text-[15px] font-semibold text-gray-900 mt-2.5">{L.materials[m]}</div>
+                    <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{T.profilesN(allowedSystems.filter(x => x.material === m).length)}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
+                  </button>
+                })}
+              </div>)}
 
               {renderStep('profile', T.step2, profileSummary, <>
 {!roofSel && <Sub>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {(() => {
                     // price of the same window in every profile; the cheapest is the base
-                    const bases = Object.fromEntries(allowedSystems.map(s => [s.id, spec ? specBase(it, s.id) : basePrice(data.prices.find(x => x.system_id === s.id && x.type_id === type!.id), it.width ?? 0, it.height ?? 0)]))
+                    const bases = Object.fromEntries(matSystems.map(s => [s.id, spec ? specBase(it, s.id) : basePrice(data.prices.find(x => x.system_id === s.id && x.type_id === type!.id), it.width ?? 0, it.height ?? 0)]))
                     const known = Object.values(bases).filter((v): v is number => v != null)
                     const min = known.length > 1 ? Math.min(...known) : null
-                    return allowedSystems.map(s => {
+                    return matSystems.map(s => {
                     const b = bases[s.id]
                     const diff = show && min != null && b != null ? Math.round(b - min) : null
                     return <button key={s.id} onClick={() => update({ system_id: s.id })}
@@ -821,7 +886,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               })()}
               </>)}
 
-              {renderStep('size', roofSel ? T.qtyTitle : T.stepSize, sizeSummary, <>
+              {renderStep('size', roofSel ? T.qtyTitle : T.sizeTitle, sizeSummary, <>
 <Sub title={roofSel ? '' : T.sizeTitle}>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v, ...(it.sashWidths && it.width && v ? { sashWidths: it.sashWidths.map(x => Math.round(x * v / it.width!)) } : {}) })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
@@ -872,32 +937,6 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   </div>
                 </div>
               </Sub>
-{spec && offer && <Sub title={T.openTitle}>
-                {(() => {
-                  // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
-                  // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
-                  const cards = slidingKind(spec)
-                    ? allowedCombos(spec.sashes, offer, slidingKind(spec)).map(cb => ({ ...spec, main: cb }))
-                    : allowedVariants(spec.sashes, offer, bk(spec)).filter(v => v.band === bandKeyOf(spec)).map(v => applyVariant(spec, v))
-                  const prices = cards.map(sp => (show ? specPrice(sp) : null))
-                  const known = prices.filter((x): x is number => x != null)
-                  const min = known.length ? Math.min(...known) : null
-                  const curMode = bandModeOf(spec)
-                  return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {cards.map((sp, i) => {
-                      const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
-                      const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
-                      return <button key={i} onClick={() => setSpec(sp)}
-                        className={cn('relative rounded-xl border p-3.5 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
-                        style={on ? selStyle(accent) : undefined}>
-                        {on && <SelBadge accent={accent} />}
-                        <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
-                        {d != null && <div className="text-[13px] font-medium text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
-                      </button>
-                    })}
-                  </div>
-                })()}
-              </Sub>}
               </>)}
 
               {renderStep('equipment', T.step4, equipSummary, <>
@@ -1234,6 +1273,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     </div>
   )
 }
+
+const OPEN_SL: Record<string, string> = { fixed: 'fiksno', tilt_turn: 'odpiranje in kip', turn: 'odpiranje', tilt: 'kip', passive: 'pasivno', slide_window: 'drsno', slide: 'drsno', lift_slide: 'dvižno-drsno' }
+const OPEN_EN: Record<string, string> = { fixed: 'fixed', tilt_turn: 'tilt & turn', turn: 'turn', tilt: 'tilt', passive: 'passive', slide_window: 'sliding', slide: 'sliding', lift_slide: 'lift & slide' }
 
 function clamp(v: number, min: number, max: number) { return Math.min(max, Math.max(min, v)) }
 
