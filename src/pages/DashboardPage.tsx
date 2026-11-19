@@ -41,7 +41,7 @@ function RingCard({ title, parts, money, lang, empty }: { empty?: string; title:
     <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1 flex flex-col">
       <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
       {total === 0 ? <div className="flex-1 flex items-center justify-center min-h-[220px] px-6 text-center text-sm text-gray-400">{empty ?? (lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.')}</div> :
-      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+      <div className="flex flex-col items-center gap-4">
         <div className="relative w-[200px] h-[200px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
