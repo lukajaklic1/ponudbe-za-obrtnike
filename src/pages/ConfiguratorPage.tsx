@@ -1213,6 +1213,19 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
           </aside>
         </div>
       )}
+
+      {/* phones: the price stays in sight while configuring (the summary is far down under the steps) */}
+      {!internal && stage === 'config' && <>
+        <div className="lg:hidden h-20" />
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-medium text-[#4f4f4f]">{T.gross}</div>
+            <div className="text-lg font-bold text-gray-900 tabular-nums">{show ? money(totals.gross, cur) : '—'}</div>
+          </div>
+          <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
+            className="h-11 px-5 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={btn}>{T.toReview}</button>
+        </div>
+      </>}
     </div>
   )
 }
