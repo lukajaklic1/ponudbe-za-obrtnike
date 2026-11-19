@@ -20,6 +20,7 @@ import {
 } from '../lib/costing'
 import { cn } from '../lib/cn'
 import Select from '../components/ui/Select'
+import { leadSourceOptions } from '../lib/leadSources'
 import {
   WL, OPTION_GROUPS, SERVICE_GROUPS, SINGLE_CHOICE_GROUPS, basePrice, unitPrice, serviceLine, isService, money, hasHingeChoice, isDoor,
   type WindowSystem, type WindowType, type WindowPrice, type WindowOption, type Hinge, type OptionGroup,
@@ -86,7 +87,7 @@ const TXT = {
     errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
-    heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite', heardOptions: ['Google', 'Facebook ali Instagram', 'Priporočilo prijatelja ali znanca', 'Že sem vaša stranka', 'Sejem ali razstava', 'Oglas', 'Drugo'],
+    heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
     reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Pregled povpraševanja', editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis',
@@ -111,7 +112,7 @@ const TXT = {
     errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
-    heard: 'How did you hear about us?', heardPick: 'Choose', heardOptions: ['Google', 'Facebook or Instagram', 'Recommended by a friend', 'I am already a customer', 'Trade fair', 'Advert', 'Other'],
+    heard: 'How did you hear about us?', heardPick: 'Choose',
     reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Review enquiry', editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description',
@@ -404,13 +405,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     setSending(true)
     const { data: res, error } = await (supabase as any).rpc('submit_configuration', {
       p_slug: slug,
-      p_customer: contact,
+      p_customer: { ...contact, lead_source: heard || null },
       p_items: items.map(x => x.roof
         ? { roof: x.roof, quantity: x.quantity, option_ids: [], label: x.label }
         : x.spec
         ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, glass: x.glass ?? null, handle: x.handle ?? null, sills: x.sills ?? null, shading: x.shading ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
         : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
-      p_note: [contact.note.trim(), heard ? `${T.heard} ${heard}` : ''].filter(Boolean).join('\n\n'),
+      p_note: contact.note,
       p_services: services,
     })
     setSending(false)
@@ -1022,7 +1023,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <div className="sm:col-span-2 flex flex-col gap-1">
                     <span className="text-sm font-semibold text-gray-900">{T.heard}</span>
                     <Select value={heard} onChange={setHeard} placeholder={T.heardPick}
-                      options={T.heardOptions.map((o: string) => ({ value: o, label: o }))} />
+                      options={leadSourceOptions(lang)} />
                   </div>
                   <div className="sm:col-span-2 flex flex-col gap-1">
                     <label className="text-sm font-semibold text-gray-900">{T.note}</label>

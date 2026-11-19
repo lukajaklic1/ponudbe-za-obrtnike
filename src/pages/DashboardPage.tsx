@@ -9,12 +9,13 @@ import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
+import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSources'
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
 const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won', 'rest']
 /** teal family for every chart */
 const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e4' }
-type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null }
+type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
 const TONES = { grey: { color: '#4a4a4a', backgroundColor: '#ececec' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
@@ -26,6 +27,42 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
         <p className="text-[24px] leading-8 font-bold text-gray-900 tracking-[-0.02em] whitespace-nowrap">{value}</p>
         <span className="inline-flex text-xs font-semibold px-[7px] py-[3px] rounded-lg whitespace-nowrap" style={TONES[tone]}>{badge}</span>
       </div>
+    </div>
+  )
+}
+
+/** a doughnut by value: total in the middle, legend with the number of quotes and the value of each part */
+function ValueDonut({ title, parts, money, lang }: { title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
+  const shown = parts.filter(p => p.value > 0)
+  const total = parts.reduce((a, p) => a + p.value, 0)
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
+      {total === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> : <>
+        <div className="relative w-[200px] h-[200px] mx-auto">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
+                {shown.map(p => <Cell key={p.key} fill={p.color} />)}
+              </Pie>
+              <Tooltip formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[20px] font-bold tracking-[-0.02em] text-gray-900">{money(total)}</span>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-col gap-2">
+          {parts.filter(p => p.count > 0).map(p => (
+            <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+              <span className="text-[#4f4f4f] flex-1 min-w-0 truncate">{p.name}</span>
+              <span className="text-[#4f4f4f] tabular-nums">{p.count}</span>
+              <span className="text-gray-900 tabular-nums w-[88px] text-right">{money(p.value)}</span>
+            </div>
+          ))}
+        </div>
+      </>}
     </div>
   )
 }
@@ -67,6 +104,8 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [sourceFilter, setSourceFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
+  const [channelFilter, setChannelFilter] = useState('')
+  const [customerNames, setCustomerNames] = useState<Record<string, string>>({})
   const [customerTypes, setCustomerTypes] = useState<Record<string, string>>({})
   const [filterCustomerId, setFilterCustomerId] = useState<string | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState<string>('')
@@ -85,7 +124,7 @@ export default function DashboardPage() {
   async function loadStatusStats() {
     if (!company) return
     const [{ data }, { data: lineData }] = await Promise.all([
-      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at, closed_at, source').eq('company_id', company.id),
+      supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at, closed_at, source, lead_source').eq('company_id', company.id),
       supabase.from('quote_lines').select('quote_id, name, total_net').eq('company_id', company.id),
     ])
     const acc: Record<StatusKey, { value: number; count: number }> = {
@@ -134,7 +173,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (company) {
       load()
-      supabase.from('customers').select('id, customer_type').eq('company_id', company.id)
+      supabase.from('customers').select('id, name, customer_type').eq('company_id', company.id)
+        .then(({ data }) => { setCustomerNames(Object.fromEntries(((data as { id: string; name: string }[]) ?? []).map(c => [c.id, c.name]))); return { data } })
         .then(({ data }) => setCustomerTypes(Object.fromEntries(((data as { id: string; customer_type: string | null }[]) ?? []).map(c => [c.id, c.customer_type ?? 'person']))))
       supabase.from('users').select('id, first_name, last_name').eq('company_id', company.id).eq('is_active', true).order('first_name')
         .then(({ data }) => { if (data) setCompanyUsers(data) })
@@ -173,7 +213,8 @@ export default function DashboardPage() {
   const statusKey = (q: Q) => (q.status === 'issued' ? 'sent' : q.status)
   const base = quotes.filter(q => (!statusFilter || statusKey(q) === statusFilter)
     && (!sourceFilter || (sourceFilter === 'configurator' ? q.source === 'configurator' : q.source !== 'configurator'))
-    && (!typeFilter || (customerTypes[q.customer_id] ?? 'person') === typeFilter))
+    && (!typeFilter || (customerTypes[q.customer_id] ?? 'person') === typeFilter)
+    && (!channelFilter || (q.lead_source ?? 'none') === channelFilter))
   const fromT = dateFrom ? +new Date(dateFrom + 'T00:00:00') : -Infinity
   const toT = dateTo ? +new Date(dateTo + 'T23:59:59') : Infinity
   const inRange = (d: string | null | undefined) => !!d && +new Date(d) >= fromT && +new Date(d) <= toT
@@ -250,6 +291,9 @@ export default function DashboardPage() {
           <FilterSelect label={sl ? 'Vir' : 'Source'} value={sourceFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setSourceFilter}
             options={[{ value: 'configurator', label: sl ? 'Spletni konfigurator' : 'Online configurator' }, { value: 'app', label: sl ? 'Narejene v aplikaciji' : 'Made in the app' }]} />
 
+          <FilterSelect label={sl ? 'Prodajni kanal' : 'Sales channel'} value={channelFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setChannelFilter}
+            options={[...leadSourceOptions(sl ? 'sl' : 'en'), { value: 'none', label: sl ? 'Ni podatka' : 'Unknown' }]} />
+
           <FilterSelect label={sl ? 'Tip stranke' : 'Customer type'} value={typeFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setTypeFilter}
             options={[{ value: 'person', label: sl ? 'Fizične osebe' : 'Private persons' }, { value: 'company', label: sl ? 'Podjetja' : 'Companies' }]} />
 
@@ -299,8 +343,8 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {(statusFilter || sourceFilter || typeFilter || assigneeFilter || filterCustomerId || dateTo) && (
-            <button type="button" onClick={() => { setStatusFilter(''); setSourceFilter(''); setTypeFilter(''); setAssigneeFilter(''); setFilterCustomerId(null); setSearchText(''); setDateTo(''); const d = new Date(); d.setDate(d.getDate() - 90); setDateFrom(d.toISOString().slice(0, 10)) }}
+          {(statusFilter || sourceFilter || typeFilter || channelFilter || assigneeFilter || filterCustomerId || dateTo) && (
+            <button type="button" onClick={() => { setStatusFilter(''); setSourceFilter(''); setTypeFilter(''); setChannelFilter(''); setAssigneeFilter(''); setFilterCustomerId(null); setSearchText(''); setDateTo(''); const d = new Date(); d.setDate(d.getDate() - 90); setDateFrom(d.toISOString().slice(0, 10)) }}
               className="h-8 px-2.5 rounded-[10px] text-sm font-medium text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100 transition-colors">{sl ? 'Počisti filtre' : 'Clear filters'}</button>
           )}
         </div>
@@ -382,11 +426,11 @@ export default function DashboardPage() {
                     <p className="text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</p>
                   </div>
                 ) : (<>
-                  <div className="flex items-center gap-6 h-[240px]">
-                  <div className="relative w-[220px] h-[220px] shrink-0">
+                  <div className="flex flex-col items-center gap-4">
+                  <div className="relative w-[200px] h-[200px] shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none">
+                        <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
                           {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                         </Pie>
                         <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
@@ -397,7 +441,7 @@ export default function DashboardPage() {
                       <span className="text-[13px] font-medium text-[#4f4f4f]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span>
                     </div>
                   </div>
-                  <div className="flex-1 flex flex-col gap-2">
+                  <div className="w-full flex flex-col gap-2">
                     {slices.map(x => (
                       <div key={x.key} className="flex items-center gap-2 text-sm font-medium">
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: x.color }} />
@@ -443,6 +487,50 @@ export default function DashboardPage() {
                   </ResponsiveContainer>
                 )}
               </div>
+            </div>
+          )
+        })()}
+
+        {/* customers, sales channel and source of the quotes made in the period */}
+        {(() => {
+          const val = (q: Q) => Number(q.total_net) || 0
+          const byCustomer = new Map<string, { id: string; name: string; count: number; value: number; won: number }>()
+          for (const q of inPeriod) {
+            const r = byCustomer.get(q.customer_id) ?? { id: q.customer_id, name: customerNames[q.customer_id] ?? '—', count: 0, value: 0, won: 0 }
+            r.count++; r.value += val(q); if (q.status === 'won') r.won += val(q)
+            byCustomer.set(q.customer_id, r)
+          }
+          const top = [...byCustomer.values()].sort((a, b) => b.value - a.value).slice(0, 8)
+          const CH_COLORS = ['#2fa596', '#5cc0b2', '#8fd3c9', '#bfe6e0', '#7d7d7d', '#b5b5b5', '#dcdcdc']
+          const channels = [...LEAD_SOURCES.map((k, i) => ({ key: k, color: CH_COLORS[i] })), { key: 'none', color: '#efefef' }]
+            .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
+          const sources = [
+            { key: 'app', name: sl ? 'Interna priprava ponudb' : 'Made in the app', color: TEAL.light, f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Spletni konfigurator' : 'Online configurator', color: TEAL.line, f: (q: Q) => q.source === 'configurator' },
+          ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <h2 className="text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}</h2>
+                {top.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
+                <table className="w-full table-fixed">
+                  <colgroup><col /><col className="w-[96px]" /><col className="w-[96px]" /></colgroup>
+                  <thead><tr>
+                    <th className="text-left px-4">{sl ? 'Stranka' : 'Customer'}</th>
+                    <th className="text-right px-3">{sl ? 'Vrednost' : 'Value'}</th>
+                    <th className="text-right px-4">{sl ? 'Dobljeno' : 'Won'}</th>
+                  </tr></thead>
+                  <tbody>
+                    {top.map(c => <tr key={c.id}>
+                      <td className="px-4"><div className="truncate" title={c.name}>{c.name}</div><div className="text-[13px] text-[#4f4f4f]">{c.count} {sl ? (c.count === 1 ? 'ponudba' : c.count === 2 ? 'ponudbi' : c.count < 5 ? 'ponudbe' : 'ponudb') : (c.count === 1 ? 'quote' : 'quotes')}</div></td>
+                      <td className="px-3 text-right whitespace-nowrap">{money(c.value)}</td>
+                      <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.won ? money(c.won) : '—'}</td>
+                    </tr>)}
+                  </tbody>
+                </table>}
+              </div>
+              <ValueDonut title={sl ? 'Prodajni kanal' : 'Sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'} />
+              <ValueDonut title={sl ? 'Vir ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
             </div>
           )
         })()}

@@ -26,6 +26,7 @@ import ShadingIcon from '../components/ShadingIcon'
 import type { Customer, Quote, QuoteLine, QuoteAttachment, QuoteStatus, OfferSnapshot, PriceItem, PriceUnit } from '../types/database'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import { INCOTERMS } from '../lib/incoterms'
+import { leadSourceOptions } from '../lib/leadSources'
 
 interface LineRow {
   key: string
@@ -190,6 +191,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [siteAddress, setSiteAddress] = useState('')
   const [paymentTerms, setPaymentTerms] = useState('')
   const [parity, setParity] = useState('')
+  const [leadSource, setLeadSource] = useState('')
   const [validUntil, setValidUntil] = useState('')
   const [leadTime, setLeadTime] = useState('')
   const [notes, setNotes] = useState('')
@@ -249,6 +251,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         // a draft without payment terms picks up the company default
         setPaymentTerms(quote.payment_terms || (quote.status === 'draft' && !readOnly ? company.default_payment_terms ?? '' : ''))
         setParity(quote.parity || (quote.status === 'draft' && !readOnly ? company.default_parity ?? '' : ''))
+        setLeadSource(quote.lead_source ?? '')
         setValidUntil(quote.valid_until ?? ''); setLeadTime(quote.lead_time ?? ''); setNotes(quote.notes ?? '')
         setDiscountPct(Number(quote.discount_pct ?? 0))
       }
@@ -463,7 +466,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       customer_id: customerId, title: customers.find(c => c.id === customerId)?.name ?? '',
       // contact details come from the customer record
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
-      site_address: siteAddress.trim() || null, payment_terms: paymentTerms.trim() || null, parity: parity || null,
+      site_address: siteAddress.trim() || null, payment_terms: paymentTerms.trim() || null, parity: parity || null, lead_source: leadSource || null,
       valid_until: validUntil || null, lead_time: leadTime.trim() || null, delivery_date: null, notes: notes.trim() || null,
       discount_pct: discountPct ?? 0, total_net: totals.total_net, total_vat: totals.total_vat, total_gross: totals.total_gross,
     }
@@ -673,6 +676,12 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 <label className="text-xs font-medium text-[#4f4f4f]">{o.parity}</label>
                 <Select className="h-[37.6px]" value={parity} onChange={setParity}
                   options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
+              </div>
+              {/* sales channel: where the customer heard of the company */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}</label>
+                <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
+                  options={[{ value: '', label: o.none }, ...leadSourceOptions(lang === 'en' ? 'en' : 'sl')]} />
               </div>
             </div>
             <div className="flex flex-col gap-1 mt-4">

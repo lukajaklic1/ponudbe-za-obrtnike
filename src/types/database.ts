@@ -166,6 +166,8 @@ export interface Quote {
   payment_terms: string | null
   parity: string | null
   notes: string | null
+  /** sales channel: where the customer heard of the supplier (google, social, referral, existing, fair, ad, other) */
+  lead_source?: string | null
   created_by: string
   assignee_id: string | null
   sent_at: string | null
