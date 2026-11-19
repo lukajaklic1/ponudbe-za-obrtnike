@@ -196,7 +196,24 @@ export default function CustomersPage() {
             <p className="text-sm text-gray-400">{s.noCustomers}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm font-medium min-w-[820px]">
+          <>
+          {/* phones: one card per customer instead of the wide table */}
+          <div className="sm:hidden divide-y divide-gray-200">
+            {paginated.map(c => (
+              <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[15px] font-semibold text-gray-900 truncate">{c.name}</span>
+                  <span className="shrink-0 text-[13px] font-medium text-[#4f4f4f]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
+                </div>
+                <div className="text-[13px] font-medium text-[#4f4f4f] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
+                <div className="flex items-center justify-between gap-2 mt-1 text-[13px] font-medium text-[#4f4f4f]">
+                  <span>{c.address_city ?? ''}</span>
+                  <span>{s.quotesCount}: {counts[c.id] ?? 0}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="hidden sm:block overflow-x-auto"><table className="w-full text-sm font-medium min-w-[820px]">
             <thead className="bg-gray-50 border-b border-gray-200"><tr>
               {([['name', o.customer], ['type', o.customerType], ['', t.common.email], ['', t.common.phone], ['city', o.city], ['quotes', s.quotesCount], ['status', t.common.status], ['', s.updatedAt], ['', '']] as [string, string][]).map(([key, h], i) => (
                 <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
@@ -240,6 +257,7 @@ export default function CustomersPage() {
               })}
             </tbody>
           </table></div>
+          </>
         )}
       </div>
 
