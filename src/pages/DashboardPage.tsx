@@ -294,8 +294,7 @@ export default function DashboardPage() {
 
             {/* Values chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Posel po mesecih' : 'Business per month'}</h2>
-              <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Poslano v mesecu in dobljeno v mesecu, ko je bila ponudba sprejeta.' : 'Sent in the month, and won in the month the quote was accepted.'}</p>
+              <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Posel po mesecih' : 'Business per month'}</h2>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
@@ -311,8 +310,7 @@ export default function DashboardPage() {
 
             {/* Count chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Število ponudb po mesecih' : 'Quotes per month'}</h2>
-              <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Poslane v mesecu in dobljene v mesecu, ko je bila ponudba sprejeta.' : 'Sent in the month, and won in the month the quote was accepted.'}</p>
+              <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Število ponudb po mesecih' : 'Quotes per month'}</h2>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
@@ -395,7 +393,6 @@ export default function DashboardPage() {
                   <h2 className="text-[15px] font-semibold text-gray-900">
                     {sl ? 'Storitve po vrednosti' : 'Services by value'}
                   </h2>
-                  <span className="text-[13px] font-medium text-[#4f4f4f]">{sl ? 'Vse poslane ponudbe, temni del je dobljeno' : 'All sent quotes, the dark part was won'}</span>
                 </div>
                 {topServices.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[260px] text-center">
