@@ -428,16 +428,19 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   /* Same look as the other charts: dashed grid, grey axis labels, blue rounded bars, shared tooltip */
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 150, left: 0, bottom: 0 }} barCategoryGap={8}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 56, left: 0, bottom: 0 }} barGap={3} barCategoryGap={10}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} />
                       <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                       <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n) => [money(v as number), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
-                      <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22} />
-                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" name={sl ? 'Poslano, ne dobljeno' : 'Sent, not won'} fill={TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
-                        <LabelList dataKey="label" position="right" style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} />
+                      <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
+                      <Bar isAnimationActive={false} dataKey="total" name={sl ? 'Ponujeno' : 'Offered'} fill={TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={14}>
+                        <LabelList position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} />
+                      </Bar>
+                      <Bar isAnimationActive={false} dataKey="won" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[0, 6, 6, 0]} maxBarSize={14}>
+                        <LabelList position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
