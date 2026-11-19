@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 import {
   LayoutDashboard, ChartColumn, FileText, Users, UserCog, Settings, LogOut, X, Grid2x2, Globe, Building2, PanelLeft, ChevronDown,
 } from 'lucide-react'
@@ -46,6 +47,15 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   const { lang, setLang, t } = useLanguage()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState<string[]>(readCollapsed)
+  // open quotes (issued or sent, still waiting for the customer's answer), always in sight next to "Ponudbe"
+  const location = useLocation()
+  const [openQuotes, setOpenQuotes] = useState(0)
+  useEffect(() => {
+    if (!company?.id) return
+    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).in('status', ['issued', 'sent'])
+      .then(({ count }) => setOpenQuotes(count ?? 0))
+  }, [company?.id, location.pathname])
+  const openLabel = lang === 'sl' ? `Odprte ponudbe (izdane in poslane): ${openQuotes}` : `Open quotes (issued and sent): ${openQuotes}`
 
   function toggleSection(id: string) {
     setCollapsed(c => {
@@ -63,24 +73,27 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   function handleNavClick() {
     onClose?.()
   }
-  const linkTo = (to: string, Icon: typeof LayoutDashboard, label: string) => (
+  const linkTo = (to: string, Icon: typeof LayoutDashboard, label: string, count = 0, countTitle = '') => (
     <NavLink
       key={to}
       to={to}
       onClick={handleNavClick}
-      title={rail ? label : undefined}
+      title={rail ? (count ? `${label} · ${countTitle}` : label) : undefined}
       aria-label={label}
       className={({ isActive }) => cn(
         'group flex items-center rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-        rail ? 'justify-center w-10 h-9 mx-auto' : 'gap-3 px-3 py-[7px]',
+        rail ? 'relative justify-center w-10 h-9 mx-auto' : 'gap-3 px-3 py-[7px]',
         isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
       )}
     >
       <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
       {!rail && label}
+      {count > 0 && (rail
+        ? <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#131313] text-white text-[11px] font-semibold flex items-center justify-center tabular-nums">{count}</span>
+        : <span title={countTitle} className="ml-auto inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f4f4f4] border border-[#e6e6e6] text-[#5f5f5f] text-xs font-semibold tabular-nums">{count}</span>)}
     </NavLink>
   )
-  const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key])
+  const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key], key === 'quotes' ? openQuotes : 0, openLabel)
 
   if (rail) return (
     <aside className="w-14 bg-[#fafafa] border-r border-gray-200 flex flex-col h-screen shrink-0">

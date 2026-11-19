@@ -181,9 +181,10 @@ class Query implements PromiseLike<{ data: any; error: any; count?: number }> {
   private lim: number | null = null
   private mode: 'many' | 'single' | 'maybe' = 'many'
   private table: string
+  private wantCount = false
   constructor(table: string) { this.table = table }
 
-  select(cols = '*') { if (this.op === 'select') this.sel = cols; else { this.wantReturn = true; this.sel = cols } return this }
+  select(cols = '*', opts?: { count?: string; head?: boolean }) { if (opts?.count) this.wantCount = true; if (this.op === 'select') this.sel = cols; else { this.wantReturn = true; this.sel = cols } return this }
   insert(rows: any) { this.op = 'insert'; this.payload = rows; return this }
   upsert(rows: any, opts?: { onConflict?: string }) { this.op = 'upsert'; this.payload = rows; this.conflict = opts?.onConflict ?? 'id'; return this }
   update(patch: any) { this.op = 'update'; this.payload = patch; return this }
@@ -265,7 +266,7 @@ class Query implements PromiseLike<{ data: any; error: any; count?: number }> {
     const shaped = this.shape(out)
     if (this.mode === 'single') return shaped.length === 1 ? { data: shaped[0], error: null } : { data: null, error: { message: 'Row not found', code: 'PGRST116' } }
     if (this.mode === 'maybe') return { data: shaped[0] ?? null, error: null }
-    return { data: shaped, error: null }
+    return { data: shaped, error: null, ...(this.wantCount ? { count: shaped.length } : {}) }
   }
 
   then<A = any, B = never>(ok?: ((v: { data: any; error: any }) => A | PromiseLike<A>) | null, fail?: ((e: any) => B | PromiseLike<B>) | null): PromiseLike<A | B> {
