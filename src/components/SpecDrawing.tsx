@@ -30,9 +30,11 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
     // a passive sash meets its neighbour without a mullion
     const slides = (f: Field) => f.opening === 'slide_window' || f.opening === 'slide'
     const mull = fields.slice(1).map((f, i) => !meetsWithoutMullion(fields[i], f) && !slides(f) && !slides(fields[i]))
-    const fw = (iw - mull.filter(Boolean).length * bar) / n
+    const free = iw - mull.filter(Boolean).length * bar
+    const total = fields.reduce((a, f) => a + (f.weight ?? 1), 0)
     let x = ix
     fields.forEach((f, i) => {
+      const fw = free * (f.weight ?? 1) / total
       parts.push(<FieldShape key={`${zone}${i}`} f={f} x={x} y={y} w={fw} h={rh} sashFrame={slim ? Math.max(1.5, frame * 0.6) : Math.max(3, frame * 0.75)} frameColor={frameColor} plain={plain}
         meetL={i > 0 && !mull[i - 1]} meetR={i < n - 1 && !mull[i]}
         onClick={onField ? () => onField(zone, i) : undefined} />)

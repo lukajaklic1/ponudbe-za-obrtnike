@@ -19,6 +19,7 @@ import {
   type WindowSpec, type Band, type Offer, type PricingSettings, type GlassType, type HandleType, type SillType, type ShadingType,
 } from '../lib/costing'
 import { cn } from '../lib/cn'
+import Select from '../components/ui/Select'
 import {
   WL, OPTION_GROUPS, SERVICE_GROUPS, SINGLE_CHOICE_GROUPS, basePrice, unitPrice, serviceLine, isService, money, hasHingeChoice, isDoor,
   type WindowSystem, type WindowType, type WindowPrice, type WindowOption, type Hinge, type OptionGroup,
@@ -60,6 +61,8 @@ export interface ConfigItem {
   shading?: { shade?: string | null; screen?: string | null } | null
   /** roof window from the catalogue: model + size (+ flashing) */
   roof?: { model: string; size: string; flashing: string | null; variant?: string | null } | null
+  /** width of each sash in mm (the last one fills the rest); missing = all the same */
+  sashWidths?: number[] | null
 }
 
 const TXT = {
@@ -83,6 +86,9 @@ const TXT = {
     errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
+    heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite', heardOptions: ['Google', 'Facebook ali Instagram', 'Priporočilo prijatelja ali znanca', 'Že sem vaša stranka', 'Sejem ali razstava', 'Oglas', 'Drugo'],
+    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Pregled povpraševanja', editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
+    sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis',
   },
   en: {
@@ -105,6 +111,9 @@ const TXT = {
     errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
+    heard: 'How did you hear about us?', heardPick: 'Choose', heardOptions: ['Google', 'Facebook or Instagram', 'Recommended by a friend', 'I am already a customer', 'Trade fair', 'Advert', 'Other'],
+    reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Review enquiry', editWindow: 'Edit', backToReview: 'Back to the review',
+    sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description',
   },
 }
@@ -162,8 +171,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const internal = mode === 'internal'
   const [items, setItems] = useState<ConfigItem[]>(initialItems ?? [])
   const [active, setActive] = useState(0)
-  const [stage, setStage] = useState<'config' | 'contact' | 'done'>('config')
+  const [stage, setStage] = useState<'config' | 'review' | 'contact' | 'done'>('config')
   const [contact, setContact] = useState({ first_name: '', last_name: '', email: '', phone: '', address: '', note: '' })
+  const [heard, setHeard] = useState('')
   const [consent, setConsent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
@@ -264,7 +274,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   }
   function sizeOk(it: ConfigItem) {
     if (it.roof) return roofPrice(it) != null || !show
-    if (it.spec) { const n = it.spec.sashes; return !!it.width && !!it.height && it.width >= 300 * n && it.width <= 1600 * n && it.height >= 300 && it.height <= 2800 }
+    if (it.spec) { const n = it.spec.sashes; return !!it.width && !!it.height && it.width >= 300 * n && it.width <= 1600 * n && it.height >= 300 && it.height <= 2800 && !(it.sashWidths ?? []).some(x => x < 300) }
     const t = data?.types.find(x => x.id === it.type_id)
     return !!t && !!it.width && !!it.height && it.width >= t.min_width && it.width <= t.max_width && it.height >= t.min_height && it.height <= t.max_height
   }
@@ -348,7 +358,25 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     && !(spec && ((g === 'color' && data.builder?.colors) || (g === 'glass' && glassList.length) || (g === 'handle' && handleList.length) || (g === 'sill' && sillList.length) || (g === 'shading' && shadeList.length)))) : []
   let stepNo = 0
   const nextStep = () => ++stepNo
-  const update = (patch: Partial<ConfigItem>) => setItems(xs => xs.map((x, i) => i === active ? { ...x, ...patch } : x))
+  const update = (patch: Partial<ConfigItem>) => setItems(xs => xs.map((x, i) => {
+    if (i !== active) return x
+    const next = { ...x, ...patch }
+    if (next.spec) {
+      const ws = next.sashWidths && next.sashWidths.length === next.spec.main.length && !next.spec.kind?.match(/sliding|wall/) ? next.sashWidths : null
+      next.sashWidths = ws
+      next.spec = { ...next.spec, main: next.spec.main.map((f, j) => (ws ? { ...f, weight: ws[j] } : (({ weight: _w, ...rest }) => rest)(f))) }
+    }
+    return next
+  }))
+  /** the customer types the sashes' widths: all but the last, which fills the rest */
+  function setSashWidth(j: number, v: number | null) {
+    if (!it.spec || !it.width) return
+    const n = it.spec.main.length
+    const cur = it.sashWidths && it.sashWidths.length === n ? [...it.sashWidths] : Array.from({ length: n }, () => Math.round(it.width! / n))
+    cur[j] = v ?? 0
+    cur[n - 1] = Math.max(0, it.width - cur.slice(0, n - 1).reduce((a, b) => a + b, 0))
+    update({ sashWidths: cur })
+  }
 
   function pickType(t: WindowType) {
     const keepSystem = data!.combos.some(c => c.system_id === it.system_id && c.type_id === t.id)
@@ -382,7 +410,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         : x.spec
         ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, glass: x.glass ?? null, handle: x.handle ?? null, sills: x.sills ?? null, shading: x.shading ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
         : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
-      p_note: contact.note,
+      p_note: [contact.note.trim(), heard ? `${T.heard} ${heard}` : ''].filter(Boolean).join('\n\n'),
       p_services: services,
     })
     setSending(false)
@@ -700,6 +728,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                           style={diff > 0 ? { color: '#4a4a4a', backgroundColor: '#ececec' } : { color: '#267a47', backgroundColor: '#dbfce7' }}>
                           {diff > 0 ? `+ ${money(diff, cur)}` : T.basePrice}
                         </div>}
+                        {/* the price of this window in this profile */}
+                        {show && b != null && <div className="mt-2"><span className="text-[15px] font-semibold text-gray-900">{money(b, cur)}</span><span className="text-[13px] font-medium text-gray-500"> / {T.pcs}</span></div>}
                       </div>
                     </div>
                   </button>})
@@ -737,8 +767,28 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               <Section n={nextStep()} title={roofSel ? T.qtyTitle : spec ? T.sizeTitle : T.step3} accent={accent}>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
+                  {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v, ...(it.sashWidths && it.width && v ? { sashWidths: it.sashWidths.map(x => Math.round(x * v / it.width!)) } : {}) })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
                   {!roofSel && <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />}
+                  {/* width of each sash: all but the last one, which takes what is left */}
+                  {spec && !slidingKind(spec) && spec.main.length > 1 && it.width ? (() => {
+                    const n = spec.main.length
+                    const ws = it.sashWidths && it.sashWidths.length === n ? it.sashWidths : Array.from({ length: n }, () => Math.round(it.width! / n))
+                    const bad = ws.some(x => x < 300)
+                    return <div className="sm:col-span-2">
+                      <div className="text-sm font-semibold text-gray-900 mb-1.5">{T.sashWidths}</div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {ws.map((x, j) => j < n - 1
+                          ? <MmInput key={j} label={T.sashN(j + 1)} value={x} onChange={v => setSashWidth(j, v)} min={300} max={Math.max(300, it.width! - 300 * (n - 1))} rangeLabel={T.range} />
+                          : <div key={j} className="flex flex-col gap-1">
+                              <label className="text-sm font-semibold text-gray-900">{T.sashN(j + 1)}</label>
+                              <div className={cn('flex items-center h-10 rounded-lg border bg-[#fafafa] px-3 text-sm text-gray-900', x < 300 ? 'border-red-400' : 'border-gray-200')}>{x}<span className="ml-auto text-gray-500">mm</span></div>
+                              <span className="text-[13px] text-gray-500">{T.sashRest}</span>
+                            </div>)}
+                      </div>
+                      {bad && <p className="text-[13px] text-red-600 mt-1">{T.sashTooNarrow}</p>}
+                      {it.sashWidths && <button type="button" onClick={() => update({ sashWidths: null })} className="mt-2 text-sm font-medium text-gray-900 hover:underline">{T.sashEqual}</button>}
+                    </div>
+                  })() : null}
                   {spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {type && hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
@@ -920,10 +970,47 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => addItem(true)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors"><Copy className="w-4 h-4" />{T.duplicate}</button>
                 {items.length > 1 && <button onClick={() => removeItem(active)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:text-red-600 hover:border-red-200 transition-colors"><Trash2 className="w-4 h-4" />{T.remove}</button>}
               </div>
-            </> : (
-              /* Contact stage */
+            </> : stage === 'review' ? (
+              /* Review: what the customer is about to send */
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <button onClick={() => setStage('config')} className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.back}</button>
+                <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900">{T.reviewTitle}</h2>
+                <p className="text-sm text-gray-500 mt-1 mb-5">{T.reviewHint}</p>
+                <div className="divide-y divide-gray-100 border-t border-gray-100">
+                  {items.map((x, i) => {
+                    const d = describe(x)
+                    const t = data.types.find(tt => tt.id === x.type_id)
+                    const xp = priceOf(x)
+                    return <div key={x.key} className="py-5 grid grid-cols-1 sm:grid-cols-[150px_minmax(0,1fr)_auto] gap-5">
+                      <div className="flex justify-center">
+                        {x.roof ? <RoofWindowDrawing size={110} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={130} showDims /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={130} showDims />}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-baseline gap-2"><span className="text-[13px] font-medium text-gray-500">{T.position} {i + 1}</span><span className="text-[15px] font-semibold text-gray-900">{d.title}</span></div>
+                        <dl className="mt-2 grid grid-cols-[minmax(100px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
+                          {d.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-gray-500">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
+                          {x.sashWidths && <div className="contents"><dt className="font-medium text-gray-500">{T.sashWidths}</dt><dd className="font-medium text-gray-900">{x.sashWidths.map(w => `${w} mm`).join(' · ')}</dd></div>}
+                        </dl>
+                      </div>
+                      <div className="sm:text-right flex sm:flex-col justify-between gap-2">
+                        {show && <div><div className="text-sm font-medium text-gray-500">{x.quantity} × {xp != null ? money(xp, cur) : T.noPrice}</div><div className="text-[17px] font-semibold text-gray-900">{xp != null ? money(xp * x.quantity, cur) : ''}</div></div>}
+                        <button type="button" onClick={() => { setActive(i); setStage('config'); window.scrollTo({ top: 0 }) }} className="self-start sm:self-end text-sm font-medium text-gray-900 hover:underline">{T.editWindow}</button>
+                      </div>
+                    </div>
+                  })}
+                </div>
+                {serviceRows.length > 0 && <div className="border-t border-gray-100 pt-4">
+                  <div className="text-sm font-semibold text-gray-900 mb-2">{T.servicesTitle}</div>
+                  {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm py-1">
+                    <span className="font-medium text-gray-900">{r.option.name}</span>
+                    {show && <span className="font-medium text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
+                  </div>)}
+                </div>}
+              </div>
+            ) : (
+              /* Contact stage */
+              <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <button onClick={() => setStage('review')} className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
                 <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-5">{T.contact}</h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <Field label={T.firstName} value={contact.first_name} onChange={v => setContact({ ...contact, first_name: v })} autoComplete="given-name" />
@@ -931,6 +1018,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <Field label={T.email} type="email" value={contact.email} onChange={v => setContact({ ...contact, email: v })} autoComplete="email" />
                   <Field label={T.phone} type="tel" value={contact.phone} onChange={v => setContact({ ...contact, phone: v })} autoComplete="tel" />
                   <div className="sm:col-span-2"><Field label={T.address} value={contact.address} onChange={v => setContact({ ...contact, address: v })} autoComplete="street-address" /></div>
+                  {/* where the customer heard of the supplier (goes to the enquiry's note) */}
+                  <div className="sm:col-span-2 flex flex-col gap-1">
+                    <span className="text-sm font-semibold text-gray-900">{T.heard}</span>
+                    <Select value={heard} onChange={setHeard} placeholder={T.heardPick}
+                      options={T.heardOptions.map((o: string) => ({ value: o, label: o }))} />
+                  </div>
                   <div className="sm:col-span-2 flex flex-col gap-1">
                     <label className="text-sm font-semibold text-gray-900">{T.note}</label>
                     <textarea rows={3} value={contact.note} onChange={e => setContact({ ...contact, note: e.target.value.slice(0, 2000) })}
@@ -1000,8 +1093,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     className="flex-1 h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{addLabel ?? T.addToQuote}</button>
                 </div>
               ) : stage === 'config' ? (
-                <button disabled={!items.every(sizeOk)} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
-                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
+                <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
+                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toReview}</button>
+              ) : stage === 'review' ? (
+                <button onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
+                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
               ) : (
                 <button disabled={sending || !consent || !contact.email || !(contact.first_name || contact.last_name)} onClick={submit}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" style={btn}>
