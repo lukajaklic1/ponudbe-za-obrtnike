@@ -52,6 +52,8 @@ export default function DashboardPage() {
   const { t, lang } = useLanguage()
   const cur = company?.currency ?? 'EUR'
   const money = (n: number) => (n ?? 0).toLocaleString('de-DE', { style: 'currency', currency: cur, maximumFractionDigits: 0 })
+  // short value on top of a bar: 4,0k (one line even on a narrow bar)
+  const kShort = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace('.', ',')}k` : String(Math.round(n)))
   const moneyK = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}k €` : `${n.toFixed(0)} €`
 
   const [stats, setStats] = useState<Stats | null>(null)
@@ -323,8 +325,8 @@ export default function DashboardPage() {
                   <YAxis tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? moneyK(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
-                  <Bar dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? moneyK(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
+                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -339,8 +341,8 @@ export default function DashboardPage() {
                   <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#f6f6f6' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
-                  <Bar dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
+                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -382,7 +384,14 @@ export default function DashboardPage() {
                   <div className="relative w-[220px] h-[220px] shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none">
+                        <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={74} outerRadius={104} paddingAngle={2} stroke="none" labelLine={false}
+                          label={(p: any) => {
+                            const { cx, cy, midAngle, innerRadius, outerRadius, value, index } = p as { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; value: number; index: number }
+                            // the count in the middle of its slice, white on the dark slice
+                            const r = (innerRadius + outerRadius) / 2, a = -midAngle * Math.PI / 180
+                            const dark = slices.filter(x => x.count > 0)[index]?.key === 'won'
+                            return <text x={cx + r * Math.cos(a)} y={cy + r * Math.sin(a)} textAnchor="middle" dominantBaseline="central" fontSize={13} fontWeight={600} fill={dark ? '#ffffff' : '#131313'}>{value}</text>
+                          }}>
                           {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                         </Pie>
                         <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
@@ -426,8 +435,8 @@ export default function DashboardPage() {
                       <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
                       <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n) => [money(v as number), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
-                      <Bar dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22} />
-                      <Bar dataKey="rest" stackId="s" name={sl ? 'Poslano, ne dobljeno' : 'Sent, not won'} fill={TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
+                      <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22} />
+                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" name={sl ? 'Poslano, ne dobljeno' : 'Sent, not won'} fill={TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
                         <LabelList dataKey="label" position="right" style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} />
                       </Bar>
                     </BarChart>
