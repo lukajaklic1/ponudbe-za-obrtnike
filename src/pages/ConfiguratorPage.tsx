@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff } from 'lucide-react'
+import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -73,10 +73,10 @@ const TXT = {
     qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
     nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
-    openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
+    openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
-    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
     grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
@@ -100,10 +100,10 @@ const TXT = {
     qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
     nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
-    openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
+    openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services',
-    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
@@ -189,6 +189,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [result, setResult] = useState<{ quote_number: string } | null>(null)
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
   const [openMap, setOpenMap] = useState<Record<string, string>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
+  const [reachedMap, setReachedMap] = useState<Record<string, number>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 99])))
   const [services, setServices] = useState<string[]>(() => data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
   // start with one window (or the windows handed in when a quote position is edited)
   useEffect(() => { if (!items.length) setItems([defaultItem(data)]) }, [])
@@ -414,7 +415,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   function addItem(copy = false) {
     const next = copy ? { ...it, key: newKey(), option_ids: [...it.option_ids] } : defaultItem(data!)
     // a copy keeps its choices, so its steps start closed
-    if (copy) setOpenMap(m => ({ ...m, [next.key]: 'none' }))
+    if (copy) { setOpenMap(m => ({ ...m, [next.key]: 'none' })); setReachedMap(m => ({ ...m, [next.key]: 99 })) }
     setItems(xs => [...xs, next]); setActive(items.length)
   }
   function removeItem(i: number) {
@@ -537,10 +538,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     if (priced[0]) update({ system_id: priced[0].x.id })
   }
   const colorList = spec && sysNow ? data.builder?.colors?.[sysNow.material] ?? [] : []
+  const showBands = !!spec && !slidingKind(spec) && !!offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1
   const stepIds = [
     'product',
     ...(roofSel || (spec && spec.kind !== 'sliding') ? ['variant'] : []),
-    ...(spec && offer ? ['layout'] : []),
+    ...(showBands ? ['bands'] : []),
+    ...(spec && offer ? ['opening'] : []),
     ...(!roofSel && materials.length > 1 ? ['material'] : []),
     ...(!roofSel ? ['profile'] : []),
     ...(colorList.length >= 2 ? ['color'] : []),
@@ -550,7 +553,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   ]
   const openStep = openMap[it.key] ?? 'product'
   const openIdx = stepIds.indexOf(openStep)
+  const reached = openStep === 'none' ? 99 : Math.max(reachedMap[it.key] ?? 0, openIdx)
   function setOpen(id: string) {
+    const i = id === 'none' ? 99 : stepIds.indexOf(id)
+    setReachedMap(m => ({ ...m, [it.key]: Math.max(m[it.key] ?? 0, i) }))
     setOpenMap(m => ({ ...m, [it.key]: id }))
     if (id !== 'none') setTimeout(() => document.getElementById('step-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
   }
@@ -559,12 +565,26 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const variantSummary = roofSel
     ? [roofModel ? [roofModel.brand, roofModel.name].filter(Boolean).join(' ') : '', roofSize ? `${roofSize.w} × ${roofSize.h} cm` : ''].filter(Boolean).join(' · ')
     : spec ? specName(spec) : ''
-  // the layout step: top light / bottom panel and how each sash opens
-  const layoutSummary = spec ? [
-    !slidingKind(spec) ? T.band[bandKeyOf(spec)] : '',
-    spec.main.map(f => (lang === 'sl' ? OPEN_SL : OPEN_EN)[f.opening as string] ?? '').filter(Boolean).join(' + '),
-  ].filter(Boolean).join(' · ') : ''
+  // the version (top light / bottom panel) and the opening are steps of their own
+  const bandsSummary = spec && !slidingKind(spec) ? T.band[bandKeyOf(spec)] : ''
+  const openingSummary = spec ? spec.main.map(f => (lang === 'sl' ? OPEN_SL : OPEN_EN)[f.opening as string] ?? '').filter(Boolean).join(' + ') : ''
   const profileSummary = sysNow?.name ?? ''
+  // what the drawing shows of the choices: outside colour of the frame, handle colour, sills, shading, screen
+  const look = (() => {
+    const out = colorList.find(c => c.id === it.colors?.out) ?? colorList[0]
+    const hnd = handleList.find(h => h.id === it.handle) ?? handleList[0]
+    const shadeX = shadeList.find(x => x.id === it.shading?.shade)
+    return {
+      frame: parseColor(out?.look)?.hex ?? '#fbfbfa',
+      extras: {
+        shade: it.shading?.shade ? (shadeX?.icon ?? 'roller') : null,
+        screen: !!it.shading?.screen,
+        sillOut: it.sills?.out ? sillList.find(x => x.id === it.sills?.out)?.material ?? 'alu_silver' : null,
+        sillIn: it.sills?.in ? sillList.find(x => x.id === it.sills?.in)?.material ?? 'pvc_white' : null,
+        handle: parseColor(hnd?.look)?.hex ?? null,
+      },
+    }
+  })()
   const materialSummary = matNow ? L.materials[matNow] : ''
   const colorSummary = colorList.length ? `${T.colorOut}: ${(colorList.find(c => c.id === it.colors?.out) ?? colorList[0]).name} · ${T.colorIn}: ${(colorList.find(c => c.id === it.colors?.in) ?? colorList[0]).name}` : ''
   const sizeSummary = roofSel ? `${it.quantity} ${T.pcs}` : `${it.width ?? '—'} × ${it.height ?? '—'} mm · ${it.quantity} ${T.pcs}`
@@ -591,17 +611,27 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   function renderStep(id: string, title: string, summary: string, body: React.ReactNode) {
     const idx = stepIds.indexOf(id)
     if (idx < 0) return null
-    const done = openIdx < 0 || idx < openIdx
+    // a step is done once you went past it; the ones you have not reached yet stay locked
+    const done = openStep !== id && idx <= reached && (openIdx < 0 || idx < openIdx || idx < reached)
+    const locked = openStep !== id && idx > reached
     const nextId = stepIds[idx + 1]
-    const num = <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0"
-      style={done || openStep === id ? { backgroundColor: accent, color: '#fff' } : { backgroundColor: '#f1f1f1', color: '#4f4f4f' }}>
-      {done ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : idx + 1}</span>
+    const num = done
+      ? <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-4 h-4" strokeWidth={2.75} /></span>
+      : <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0"
+          style={openStep === id ? { backgroundColor: accent, color: '#fff' } : { backgroundColor: '#f1f1f1', color: '#8a8a8a' }}>{idx + 1}</span>
+    if (locked) return <div id={'step-' + id} key={id} aria-disabled="true"
+      className="w-full bg-[#fcfcfc] border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-3 cursor-not-allowed scroll-mt-4">
+      {num}
+      <span className="text-[15px] font-semibold text-[#8a8a8a] shrink-0">{title}</span>
+      <span className="flex-1" />
+      <Lock className="w-4 h-4 text-[#b5b5b5] shrink-0" />
+    </div>
     if (openStep !== id) return <button id={'step-' + id} key={id} type="button" onClick={() => setOpen(id)}
       className="w-full bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-3 text-left hover:border-gray-400 transition-colors scroll-mt-4">
       {num}
       <span className="text-[15px] font-semibold text-gray-900 shrink-0">{title}</span>
-      <span className="flex-1 min-w-0 truncate text-right text-sm font-medium text-[#4f4f4f]">{done ? summary : ''}</span>
-      {done && <span className="text-sm font-semibold shrink-0 underline-offset-2 hover:underline" style={{ color: accent }}>{T.stepEdit}</span>}
+      <span className="flex-1 min-w-0 truncate text-right text-sm font-medium text-[#4f4f4f]">{summary}</span>
+      <span className="text-sm font-semibold shrink-0 underline-offset-2 hover:underline" style={{ color: accent }}>{T.stepEdit}</span>
     </button>
     return <section id={'step-' + id} key={id} className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-4">
       <h2 className="flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-4">{num}{title}</h2>
@@ -613,7 +643,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   }
 
   return (
-    <div className={internal ? 'text-gray-900' : 'min-h-screen bg-white text-gray-900'}>
+    <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'min-h-screen bg-white text-gray-900')}>
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200">
         <div className="px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
@@ -758,8 +788,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </>}
               </>)}
 
-              {renderStep('layout', T.stepLayout, layoutSummary, <>
-{spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Sub title={T.bandsTitle}>
+              {renderStep('bands', T.stepBands, bandsSummary, <>
+{spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Sub>
+                <p className="text-sm font-medium text-[#4f4f4f] -mt-2 mb-3">{T.bandsTitle}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                   {allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
                     const on = spec.top === top && spec.bottom === bottom
@@ -776,7 +807,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   })}
                 </div>
               </Sub>}
-{spec && offer && <Sub title={T.openTitle}>
+              </>)}
+
+              {renderStep('opening', T.stepOpening, openingSummary, <>
+{spec && offer && <Sub>
+                <p className="text-sm font-medium text-[#4f4f4f] -mt-2 mb-3">{T.openHint}</p>
                 {(() => {
                   // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
                   // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
@@ -1193,7 +1228,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex justify-center py-2 overflow-hidden">
                 {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} />
-                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims />
+                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims frameColor={look.frame} extras={look.extras} />
                   : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />}
               </div>
               {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}

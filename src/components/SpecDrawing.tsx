@@ -7,9 +7,27 @@ type Zone = 'main' | 'top' | 'bottom'
  * symbol of every field (viewed from inside: the triangle's apex points to the hinge side,
  * tilt = apex at the bottom). Fields can be clicked when `onField` is given.
  */
-export default function SpecDrawing({ spec, width, height, size = 220, frameColor = '#fbfbfa', showDims = false, onField, className, plain = false, slim = false }: {
+/** what is chosen on the window, drawn with it: shading box, insect screen, sills, handle colour */
+export interface DrawingExtras {
+  /** shading kind (roller, blinds, pleated …): a box over the window and guides at the sides */
+  shade?: string | null
+  /** insect screen: a fine mesh over the glass */
+  screen?: boolean
+  /** sill materials (outside and inside), drawn under the window */
+  sillOut?: string | null
+  sillIn?: string | null
+  /** colour of the handles */
+  handle?: string | null
+}
+const SILL_HEX: Record<string, string> = {
+  granite: '#9aa0a6', granite_dark: '#4b4f54', marble: '#ece9e4', wood_oak: '#b98a55', wood_walnut: '#6b4a32',
+  pvc_white: '#f4f4f2', pvc_oak: '#b98a55', pvc_anthracite: '#3d4246', alu_white: '#f2f2f2', alu_silver: '#c3c6c8',
+  alu_anthracite: '#3d4246', alu_brown: '#5a3e2b', stone: '#9aa0a6', pvc: '#f4f4f2', wood: '#b98a55', alu: '#c3c6c8', alu_dark: '#3d4246',
+}
+
+export default function SpecDrawing({ spec, width, height, size = 220, frameColor = '#fbfbfa', showDims = false, onField, className, plain = false, slim = false, extras }: {
   spec: WindowSpec; width: number; height: number; size?: number; frameColor?: string; showDims?: boolean; plain?: boolean; slim?: boolean
-  onField?: (zone: Zone, index: number) => void; className?: string
+  onField?: (zone: Zone, index: number) => void; className?: string; extras?: DrawingExtras
 }) {
   const w = Math.max(300, width || 0), h = Math.max(300, height || 0)
   const scale = size / Math.max(w, h)
@@ -24,6 +42,13 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
   const mainY = iy + (topH ? topH + bar : 0)
   const mainH = ih - (topH ? topH + bar : 0) - (botH ? botH + bar : 0)
 
+  // room for the shading box above and the sills below
+  const shade = extras?.shade && extras.shade !== 'none' && !String(extras.shade).startsWith('screen') ? extras.shade : null
+  const boxH = shade ? Math.max(10, H * 0.09) : 0
+  const sills = [extras?.sillOut, extras?.sillIn].filter((x): x is string => !!x && x !== 'none')
+  const sillH = Math.max(5, H * 0.03)
+  const below = sills.length ? sills.length * sillH + 2 : 0
+  const handleFill = extras?.handle || '#5b6168'
   const parts: React.ReactNode[] = []
   function row(zone: Zone, fields: Field[], y: number, rh: number) {
     const n = fields.length
@@ -35,7 +60,7 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
     let x = ix
     fields.forEach((f, i) => {
       const fw = free * (f.weight ?? 1) / total
-      parts.push(<FieldShape key={`${zone}${i}`} f={f} x={x} y={y} w={fw} h={rh} sashFrame={slim ? Math.max(1.5, frame * 0.6) : Math.max(3, frame * 0.75)} frameColor={frameColor} plain={plain}
+      parts.push(<FieldShape key={`${zone}${i}`} f={f} x={x} y={y} w={fw} h={rh} sashFrame={slim ? Math.max(1.5, frame * 0.6) : Math.max(3, frame * 0.75)} frameColor={frameColor} plain={plain} handleFill={handleFill}
         meetL={i > 0 && !mull[i - 1]} meetR={i < n - 1 && !mull[i]}
         onClick={onField ? () => onField(zone, i) : undefined} />)
       x += fw
@@ -47,15 +72,39 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
   if (botH) { parts.push(<rect key="bb" x={ix} y={mainY + mainH} width={Math.max(0, iw)} height={Math.max(0, bar)} fill={frameColor} stroke="#5b6168" strokeWidth={0.8} />); row('bottom', spec.bottomFields, mainY + mainH + bar, botH) }
 
   return (
-    <svg className={className} width={W + pad * 2} height={H + pad * 2} viewBox={`0 0 ${W + pad * 2} ${H + pad * 2}`} role="img" aria-label={`${width} × ${height} mm`}>
+    <svg className={className} width={W + pad * 2} height={H + pad * 2 + boxH + below} viewBox={`0 0 ${W + pad * 2} ${H + pad * 2 + boxH + below}`} role="img" aria-label={`${width} × ${height} mm`}>
+      <defs>
+        <pattern id="spec-mesh" width="3" height="3" patternUnits="userSpaceOnUse">
+          <path d="M0 0H3M0 0V3" stroke="#5b6168" strokeWidth="0.35" fill="none" />
+        </pattern>
+      </defs>
+      {/* shading: the box over the window */}
+      {shade && <rect x={pad - 2} y={pad} width={Math.max(0, W + 4)} height={Math.max(0, boxH)} rx={1.5} fill="#d6d9dc" stroke="#5b6168" strokeWidth={1} />}
+      <g transform={`translate(0 ${boxH})`}>
       <rect x={pad} y={pad} width={Math.max(0, W)} height={Math.max(0, H)} rx={1.5} fill={frameColor} stroke="#5b6168" strokeWidth={1.2} />
       <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill="#cfe3f3" stroke="#5b6168" strokeWidth={0.8} />
       {parts}
+      {/* shading lowered a little, so you see it is there */}
+      {shade && <g>
+        <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih * 0.22)} fill="#c4c8cc" opacity={0.92} />
+        {Array.from({ length: Math.max(2, Math.round(ih * 0.22 / 4)) }, (_, i) => <line key={i} x1={ix} x2={ix + iw} y1={iy + i * 4 + 4} y2={iy + i * 4 + 4} stroke="#8d9297" strokeWidth={0.5} />)}
+        <rect x={ix - 1} y={iy} width={2.5} height={Math.max(0, ih)} fill="#8d9297" />
+        <rect x={ix + iw - 1.5} y={iy} width={2.5} height={Math.max(0, ih)} fill="#8d9297" />
+      </g>}
+      {/* insect screen: a mesh over the glass */}
+      {extras?.screen && <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill="url(#spec-mesh)" opacity={0.45} />}
+      {/* sills under the window: outside first, then inside */}
+      {sills.map((m, i) => <rect key={i} x={pad - 5} y={pad + H + 1 + i * sillH} width={Math.max(0, W + 10)} height={sillH - (i ? 1 : 0)} rx={1}
+        fill={SILL_HEX[m] ?? '#c3c6c8'} stroke="#5b6168" strokeWidth={0.7} />)}
+      </g>
       {showDims && <g fontSize={11} fill="#8ea9c0" fontFamily="Inter, system-ui, sans-serif">
+        {/* the width stays over everything (also over a shading box), the height goes down with the window */}
         <line x1={pad} y1={pad - 12} x2={pad + W} y2={pad - 12} stroke="#a3a3a3" />
         <text x={pad + W / 2} y={pad - 16} textAnchor="middle">{width || '—'}</text>
-        <line x1={pad - 12} y1={pad} x2={pad - 12} y2={pad + H} stroke="#a3a3a3" />
-        <text x={pad - 16} y={pad + H / 2} textAnchor="middle" transform={`rotate(-90 ${pad - 16} ${pad + H / 2})`}>{height || '—'}</text>
+        <g transform={`translate(0 ${boxH})`}>
+          <line x1={pad - 12} y1={pad} x2={pad - 12} y2={pad + H} stroke="#a3a3a3" />
+          <text x={pad - 16} y={pad + H / 2} textAnchor="middle" transform={`rotate(-90 ${pad - 16} ${pad + H / 2})`}>{height || '—'}</text>
+        </g>
       </g>}
     </svg>
   )
@@ -63,7 +112,7 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
 
 const gyOf = (y: number, sashFrame: number) => y + 1.5 + sashFrame
 
-function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meetL = false, meetR = false }: { f: Field; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string; onClick?: () => void; plain?: boolean; meetL?: boolean; meetR?: boolean }) {
+function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meetL = false, meetR = false, handleFill = '#5b6168' }: { f: Field; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string; onClick?: () => void; plain?: boolean; meetL?: boolean; meetR?: boolean; handleFill?: string }) {
   const clickable = onClick ? { onClick, style: { cursor: 'pointer' } } : {}
   const hover = onClick ? <rect x={x} y={y} width={Math.max(0, w)} height={Math.max(0, h)} fill="#131313" opacity={0} className="hover:opacity-10 transition-opacity" /> : null
   if (f.opening === 'fixed') {
@@ -111,8 +160,8 @@ function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meet
     {!plain && turn && <polyline points={`${right ? gx : gx + gw},${gy} ${right ? gx + gw : gx},${gy + gh / 2} ${right ? gx : gx + gw},${gy + gh}`} {...line} />}
     {!plain && tilt && <polyline points={`${gx},${gy + gh} ${gx + gw / 2},${gy} ${gx + gw},${gy + gh}`} {...line} />}
     {plain || f.opening === 'passive' ? null : f.opening === 'tilt'
-      ? <rect x={sx + sw / 2 - hh / 2} y={sy + sashFrame / 2 - hw / 2} width={Math.max(0, hh)} height={Math.max(0, hw)} rx={1} fill="#5b6168" />
-      : <rect x={right ? sx + fl / 2 - hw / 2 : sx + sw - fr / 2 - hw / 2} y={sy + sh / 2 - hh / 2} width={Math.max(0, hw)} height={Math.max(0, hh)} rx={1} fill="#5b6168" />}
+      ? <rect x={sx + sw / 2 - hh / 2} y={sy + sashFrame / 2 - hw / 2} width={Math.max(0, hh)} height={Math.max(0, hw)} rx={1} fill={handleFill} stroke="#5b6168" strokeWidth={0.4} />
+      : <rect x={right ? sx + fl / 2 - hw / 2 : sx + sw - fr / 2 - hw / 2} y={sy + sh / 2 - hh / 2} width={Math.max(0, hw)} height={Math.max(0, hh)} rx={1} fill={handleFill} stroke="#5b6168" strokeWidth={0.4} />}
     {hover}
   </g>
 }
