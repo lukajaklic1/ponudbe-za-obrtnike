@@ -48,7 +48,7 @@ function RingCard({ title, parts, money, lang, empty }: { empty?: string; title:
               <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
                 {shown.map(p => <Cell key={p.key} fill={p.color} />)}
               </Pie>
-              <Tooltip formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+              <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -440,7 +440,7 @@ export default function DashboardPage() {
                         <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
                           {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                         </Pie>
-                        <Tooltip formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
+                        <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
