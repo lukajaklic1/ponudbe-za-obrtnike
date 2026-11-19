@@ -60,10 +60,10 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
         <div className="w-full flex flex-col gap-2">
           {[...parts].sort((x, y) => y.value - x.value).map(p => (
             <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.count ? p.color : '#d9d9d9' }} />
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
               <span className="text-[#4f4f4f] flex-1 min-w-0 truncate" title={p.name}>{p.name}</span>
               <span className="text-[#4f4f4f] tabular-nums">{p.count}</span>
-              <span className={`tabular-nums w-[92px] text-right ${p.count ? 'text-gray-900' : 'text-[#4f4f4f]'}`}>{money(p.value)}</span>
+              <span className={`tabular-nums w-[92px] text-right text-gray-900`}>{money(p.value)}</span>
             </div>
           ))}
         </div>
@@ -273,7 +273,7 @@ export default function DashboardPage() {
   // Same look as the other empty states in the app: light icon + short grey sentence
   const emptyOverlay = (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <span className="bg-white px-3 py-1 text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span>
+      <span className="text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span>
     </div>
   )
 
@@ -467,20 +467,16 @@ export default function DashboardPage() {
                     {sl ? 'Storitve po vrednosti' : 'Services by value'}
                   </h2>
                 </div>
-                {topServices.length === 0 ? (
-                  <div className="relative h-[300px] flex flex-col justify-center gap-[18px] pl-[210px] pr-14">
-                    {[78, 62, 50, 38, 26, 16].map(w => <div key={w} className="h-[22px] rounded-r-md bg-[#f3f3f3]" style={{ width: `${w}%` }} />)}
-                    {emptyOverlay}
-                  </div>
-                ) : (
-                  /* Same look as the other charts: dashed grid, grey axis labels, blue rounded bars, shared tooltip */
+                {/* Same look as the other charts: dashed grid, grey axis labels, rounded bars, shared tooltip; empty: the axes and grid with "Ni podatkov" */}
+                <div className="relative">
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 56, left: 0, bottom: 0 }} barCategoryGap={10}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} />
-                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                    <BarChart data={topServices.length ? topServices : Array.from({ length: 6 }, (_, i) => ({ name: ' '.repeat(i + 1), won: 0, rest: 0, total: 0 }))}
+                      layout="vertical" margin={{ top: 0, right: 56, left: 0, bottom: 0 }} barCategoryGap={10}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} verticalCoordinatesGenerator={({ offset }: any) => [0, 1, 2, 3, 4].map(i => offset.left + offset.width * i / 4)} />
+                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000], ticks: [0, 1000, 2000, 3000, 4000], interval: 0 })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                       <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
-                      <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                      {topServices.length > 0 && <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />}
                       <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
                       <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22}
                         // fully won (nothing light after it): the dark part gets the rounded end
@@ -492,7 +488,8 @@ export default function DashboardPage() {
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                )}
+                  {topServices.length === 0 && emptyOverlay}
+                </div>
               </div>
             </div>
           )
@@ -535,7 +532,6 @@ export default function DashboardPage() {
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
                 <h2 className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
                   <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#ececec] text-[#4a4a4a] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
-                {top.length === 0 ? <div className="flex-1 flex items-center justify-center min-h-[220px] text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div> :
                 <table className="w-full table-fixed keep-last-line">
                   <colgroup><col /><col className="w-[110px]" /><col className="w-[130px]" /><col className="w-[130px]" /><col className="w-[120px]" /></colgroup>
                   <thead><tr>
@@ -554,7 +550,8 @@ export default function DashboardPage() {
                       <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
                     </tr>)}
                   </tbody>
-                </table>}
+                </table>
+                {top.length === 0 && <div className="flex-1 flex items-center justify-center min-h-[220px] text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div>}
               </div>
               <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} fixedSize />
               </div>
