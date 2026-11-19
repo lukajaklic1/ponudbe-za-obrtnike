@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Search, X, BarChart3, Tags } from 'lucide-react'
+import { LayoutDashboard, Search, X } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
@@ -34,7 +34,7 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
 }
 
 /** a ring card like "Ponudbe po statusu": ring with the total value, legend under it with count and value */
-function RingCard({ title, parts, money, empty, grow = true }: { empty?: string; grow?: boolean; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
+function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: string; grow?: boolean; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
   const shown = parts.filter(p => p.value > 0)
   const total = parts.reduce((a, p) => a + p.value, 0)
   return (
@@ -53,7 +53,8 @@ function RingCard({ title, parts, money, empty, grow = true }: { empty?: string;
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[20px] font-bold tracking-[-0.02em] text-gray-900">{money(total)}</span>
+            {total === 0 ? <span className="text-sm font-medium text-gray-400">{lang === 'sl' ? 'Ni podatkov' : 'No data'}</span>
+              : <span className="text-[20px] font-bold tracking-[-0.02em] text-gray-900">{money(total)}</span>}
           </div>
         </div>
         <div className="w-full flex flex-col gap-2">
@@ -270,10 +271,9 @@ export default function DashboardPage() {
   const hasValues = months.some(t => t.sent_value > 0 || t.won_value > 0)
   const hasCounts = months.some(t => t.sent_count > 0 || t.won_count > 0)
   // Same look as the other empty states in the app: light icon + short grey sentence
-  const emptyChart = (
-    <div className="flex flex-col items-center justify-center h-[260px] text-center">
-      <BarChart3 className="w-10 h-10 text-gray-200 mb-3" />
-      <p className="text-sm text-gray-400">{sl ? 'Za izbrano obdobje še ni podatkov.' : 'No data for the selected period yet.'}</p>
+  const emptyOverlay = (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <span className="bg-white px-3 py-1 text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span>
     </div>
   )
 
@@ -373,33 +373,33 @@ export default function DashboardPage() {
             {/* Values chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Vrednost ponudb po času' : 'Quote value over time'}</h2>
-              {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
+              <div className="relative"><ResponsiveContainer width="100%" height={260}>
                 <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
                   <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
                   <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
                 </BarChart>
-              </ResponsiveContainer>}
+              </ResponsiveContainer>{!hasValues && emptyOverlay}</div>
             </div>
 
             {/* Count chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Število ponudb po času' : 'Quotes over time'}</h2>
-              {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
+              <div className="relative"><ResponsiveContainer width="100%" height={260}>
                 <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#f6f6f6' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
                   <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
                   <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} /></Bar>
                 </BarChart>
-              </ResponsiveContainer>}
+              </ResponsiveContainer>{!hasCounts && emptyOverlay}</div>
             </div>
           </div>
 
@@ -429,25 +429,23 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
-                {total === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-[220px] text-center">
-                    <BarChart3 className="w-10 h-10 text-gray-200 mb-3" />
-                    <p className="text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</p>
-                  </div>
-                ) : (<>
+                {(<>
                   <div className="flex flex-col items-center gap-4">
                   <div className="relative w-[200px] h-[200px] shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
-                          {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
-                        </Pie>
-                        <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
+                        {total === 0
+                          ? <Pie isAnimationActive={false} data={[{ value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#ececec" /></Pie>
+                          : <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
+                              {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
+                            </Pie>}
+                        {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />}
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      {total === 0 ? <span className="text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span> : <>
                       <span className="text-[26px] font-bold tracking-[-0.02em] text-gray-900">{total}</span>
-                      <span className="text-[13px] font-medium text-[#4f4f4f]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span>
+                      <span className="text-[13px] font-medium text-[#4f4f4f]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-2">
@@ -470,9 +468,9 @@ export default function DashboardPage() {
                   </h2>
                 </div>
                 {topServices.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-[260px] text-center">
-                    <Tags className="w-10 h-10 text-gray-200 mb-3" />
-                    <p className="text-sm text-gray-400">{sl ? 'Še ni podatkov o storitvah.' : 'No service data yet.'}</p>
+                  <div className="relative h-[300px] flex flex-col justify-center gap-[18px] pl-[210px] pr-14">
+                    {[78, 62, 50, 38, 26, 16].map(w => <div key={w} className="h-[22px] rounded-r-md bg-[#f3f3f3]" style={{ width: `${w}%` }} />)}
+                    {emptyOverlay}
                   </div>
                 ) : (
                   /* Same look as the other charts: dashed grid, grey axis labels, blue rounded bars, shared tooltip */
@@ -534,9 +532,10 @@ export default function DashboardPage() {
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 flex flex-col">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 lg:min-h-[789px]">
-                <h2 className="text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}</h2>
-                {top.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
+                <h2 className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
+                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#ececec] text-[#4a4a4a] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
+                {top.length === 0 ? <div className="flex-1 flex items-center justify-center min-h-[220px] text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div> :
                 <table className="w-full table-fixed keep-last-line">
                   <colgroup><col /><col className="w-[110px]" /><col className="w-[130px]" /><col className="w-[130px]" /><col className="w-[120px]" /></colgroup>
                   <thead><tr>
