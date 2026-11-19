@@ -34,14 +34,14 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
 }
 
 /** a ring card like "Ponudbe po statusu": ring with the total value, legend under it with count and value */
-function RingCard({ title, parts, money, lang, empty }: { empty?: string; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
+function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: string; grow?: boolean; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
   const shown = parts.filter(p => p.value > 0)
   const total = parts.reduce((a, p) => a + p.value, 0)
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1 flex flex-col">
+    <div className={`bg-white rounded-xl border border-gray-200 p-6 flex flex-col${grow ? " flex-1" : ""}`}>
       <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
       {total === 0 ? <div className="flex-1 flex items-center justify-center min-h-[220px] px-6 text-center text-sm text-gray-400">{empty ?? (lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.')}</div> :
-      <div className="flex flex-col items-center gap-4">
+      <div className={`flex flex-col items-center gap-4${grow ? " flex-1 justify-center" : ""}`}>
         <div className="relative w-[200px] h-[200px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
