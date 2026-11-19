@@ -74,7 +74,9 @@ const TXT = {
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Kliknite na krilo v risbi, da spremenite način odpiranja.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
-    step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
+    step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
+    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
@@ -99,7 +101,9 @@ const TXT = {
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Click a sash in the drawing to change how it opens.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
-    step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
+    step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services',
+    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
@@ -183,6 +187,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ quote_number: string } | null>(null)
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
+  const [openMap, setOpenMap] = useState<Record<string, string>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
   const [services, setServices] = useState<string[]>(() => data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
   // start with one window (or the windows handed in when a quote position is edited)
   useEffect(() => { if (!items.length) setItems([defaultItem(data)]) }, [])
@@ -360,8 +365,6 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   /** extras groups shown for this window: built windows take colour / glass / handle from the builder's own catalogues */
   const extraGroups = data ? OPTION_GROUPS.filter(g => data.options.some(o => o.group_key === g)
     && !(spec && ((g === 'color' && data.builder?.colors) || (g === 'glass' && glassList.length) || (g === 'handle' && handleList.length) || (g === 'sill' && sillList.length) || (g === 'shading' && shadeList.length)))) : []
-  let stepNo = 0
-  const nextStep = () => ++stepNo
   const update = (patch: Partial<ConfigItem>) => setItems(xs => xs.map((x, i) => {
     if (i !== active) return x
     const next = { ...x, ...patch }
@@ -395,6 +398,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   }
   function addItem(copy = false) {
     const next = copy ? { ...it, key: newKey(), option_ids: [...it.option_ids] } : defaultItem(data!)
+    // a copy keeps its choices, so its steps start closed
+    if (copy) setOpenMap(m => ({ ...m, [next.key]: 'none' }))
     setItems(xs => [...xs, next]); setActive(items.length)
   }
   function removeItem(i: number) {
@@ -500,15 +505,87 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const p = priceOf(it)
   const btn = { backgroundColor: accent }
 
+  // ── the configurator goes step by step: product, sashes, profile, colour, size and opening, equipment, services
+  const group = roofSel ? 'roof' : spec ? (spec.kind === 'sliding' ? 'sliding' : spec.kind === 'door' ? 'door' : spec.kind === 'wall' ? 'wall' : 'windows') : 'type:' + it.type_id
+  const firstWall = offer ? [...(offer.wallSashes ?? [2, 3, 4])].sort().find(n => allowedCombos(n, offer, 'wall').length) ?? null : null
+  const sysNow = data.systems.find(x => x.id === it.system_id)
+  const colorList = spec && sysNow ? data.builder?.colors?.[sysNow.material] ?? [] : []
+  const stepIds = [
+    'product',
+    ...(roofSel || (spec && spec.kind !== 'sliding') ? ['variant'] : []),
+    ...(!roofSel ? ['profile'] : []),
+    ...(colorList.length >= 2 ? ['color'] : []),
+    'size',
+    ...(!roofSel && ((spec && (glassList.length > 1 || handleList.length > 1 || sillList.length > 0 || shadeList.length > 0)) || extraGroups.length > 0) ? ['equipment'] : []),
+    ...(!internal && data.options.some(isService) ? ['services'] : []),
+  ]
+  const openStep = openMap[it.key] ?? 'product'
+  const openIdx = stepIds.indexOf(openStep)
+  function setOpen(id: string) {
+    setOpenMap(m => ({ ...m, [it.key]: id }))
+    if (id !== 'none') setTimeout(() => document.getElementById('step-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
+  const groupLabel = group === 'roof' ? T.grpRoof : group === 'sliding' ? T.grpSliding : group === 'door' ? T.grpDoors : group === 'wall' ? T.grpWalls : group === 'windows' ? T.grpWindows : type?.name ?? ''
+  const roofSize = roofModel?.sizes.find(x => x.id === roofSel?.size)
+  const variantSummary = roofSel
+    ? [roofModel ? [roofModel.brand, roofModel.name].filter(Boolean).join(' ') : '', roofSize ? `${roofSize.w} × ${roofSize.h} cm` : ''].filter(Boolean).join(' · ')
+    : spec ? [specName(spec), !slidingKind(spec) && bandKeyOf(spec) !== 'none' ? T.band[bandKeyOf(spec)] : ''].filter(Boolean).join(' · ') : ''
+  const profileSummary = sysNow?.name ?? ''
+  const colorSummary = colorList.length ? `${T.colorOut}: ${(colorList.find(c => c.id === it.colors?.out) ?? colorList[0]).name} · ${T.colorIn}: ${(colorList.find(c => c.id === it.colors?.in) ?? colorList[0]).name}` : ''
+  const sizeSummary = roofSel ? `${it.quantity} ${T.pcs}` : `${it.width ?? '—'} × ${it.height ?? '—'} mm · ${it.quantity} ${T.pcs}`
+  const equipSummary = [
+    spec && glassList.length > 1 ? (glassList.find(g => g.id === it.glass) ?? glassList[0]).name : '',
+    spec && handleList.length > 1 ? (handleList.find(h => h.id === it.handle) ?? handleList[0]).name : '',
+    ...[it.sills?.in, it.sills?.out].map(id => sillList.find(x => x.id === id)?.name ?? ''),
+    ...[it.shading?.shade, it.shading?.screen].map(id => shadeList.find(x => x.id === id)?.name ?? ''),
+    ...data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)).map(o => o.name),
+  ].filter(Boolean).join(', ') || T.stdEquip
+  const servicesSummary = data.options.filter(o => services.includes(o.id)).map(o => o.name).join(', ') || T.none
+  /** a product card in the first step: picking it only selects it, "Naprej" goes on */
+  const prodCard = (key: string, label: string, drawing: React.ReactNode, onPick: () => void, _next?: string) => {
+    const on = group === key
+    return <button key={key} onClick={() => { if (!on) onPick() }}
+      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+      style={on ? selStyle(accent) : undefined}>
+      {on && <SelBadge accent={accent} />}
+      <div className="h-[84px] flex items-center justify-center">{drawing}</div>
+      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{label}</div>
+    </button>
+  }
+  /** one step: open with its choices and "Naprej", or closed to one row with the choice and "Uredi" */
+  function renderStep(id: string, title: string, summary: string, body: React.ReactNode) {
+    const idx = stepIds.indexOf(id)
+    if (idx < 0) return null
+    const done = openIdx < 0 || idx < openIdx
+    const nextId = stepIds[idx + 1]
+    const num = <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0"
+      style={done || openStep === id ? { backgroundColor: accent, color: '#fff' } : { backgroundColor: '#f1f1f1', color: '#4f4f4f' }}>
+      {done ? <Check className="w-3.5 h-3.5" strokeWidth={3} /> : idx + 1}</span>
+    if (openStep !== id) return <button id={'step-' + id} key={id} type="button" onClick={() => setOpen(id)}
+      className="w-full bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-3 text-left hover:border-gray-400 transition-colors scroll-mt-4">
+      {num}
+      <span className="text-[15px] font-semibold text-gray-900 shrink-0">{title}</span>
+      <span className="flex-1 min-w-0 truncate text-right text-sm font-medium text-[#4f4f4f]">{done ? summary : ''}</span>
+      {done && <span className="text-sm font-semibold shrink-0 underline-offset-2 hover:underline" style={{ color: accent }}>{T.stepEdit}</span>}
+    </button>
+    return <section id={'step-' + id} key={id} className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-4">
+      <h2 className="flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-4">{num}{title}</h2>
+      <div className="space-y-6">{body}</div>
+      <div className="flex justify-end mt-6">
+        <button type="button" onClick={() => setOpen(nextId ?? 'none')} className="h-10 px-5 rounded-[10px] text-sm font-semibold text-white" style={btn}>{nextId ? T.stepNext : T.stepDone}</button>
+      </div>
+    </section>
+  }
+
   return (
     <div className={internal ? 'text-gray-900' : 'min-h-screen bg-white text-gray-900'}>
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+        <div className="px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             {data.company.logo_url
-              ? <img src={data.company.logo_url} alt="" className="h-8 w-auto max-w-[140px] object-contain" />
-              : <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[15px] font-semibold" style={btn}>{data.company.name.charAt(0)}</div>}
+              ? <img src={data.company.logo_url} alt="" className="h-12 w-auto max-w-[240px] object-contain" />
+              : <div className="w-11 h-11 rounded-lg flex items-center justify-center text-white text-lg font-semibold" style={btn}>{data.company.name.charAt(0)}</div>}
             <div className="min-w-0">
               <div className="text-[15px] font-semibold text-gray-900 truncate">{data.company.name}</div>
               <div className="text-[13px] font-medium text-gray-500">{T.title}</div>
@@ -534,7 +611,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-[1fr_360px] gap-6 items-start">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-6 grid lg:grid-cols-[1fr_380px] gap-6 items-start">
           {/* Main column */}
           <div className="space-y-4 min-w-0">
             {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
@@ -550,9 +627,24 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => addItem(false)} className="shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border border-dashed border-gray-300 text-gray-900 hover:border-gray-500 flex items-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
               </div>
 
-              <Section n={nextStep()} title={T.step1} accent={accent}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {offer?.windows && [...(offer.sashes ?? [])].sort().map(n => {
+              {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={makeSpec(2, 'none', 'none', 'fixed')} width={1300} height={1300} size={84} plain />,
+                  () => pickSashes(spec && !spec.kind ? spec.sashes : (offer.sashes ?? []).includes(2) ? 2 : [...(offer.sashes ?? [])].sort()[0]), 'variant')}
+                {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96} plain />, pickSliding, 'profile')}
+                {offer?.doors && prodCard('door', T.grpDoors, <SpecDrawing spec={makeSpec(1, 'none', 'none', 'fixed')} width={900} height={2200} size={84} plain />,
+                  () => pickDoor(spec?.kind === 'door' ? spec.sashes : [...(offer.doorSashes ?? [1, 2, 3])].sort()[0]), 'variant')}
+                {offer?.sliding && firstWall != null && prodCard('wall', T.grpWalls, <SpecDrawing spec={makeSpec(firstWall, 'none', 'none', 'fixed')} width={wallWidth(firstWall)} height={2200} size={96} plain />,
+                  () => pickWall(spec?.kind === 'wall' ? spec.sashes : firstWall), 'variant')}
+                {offer?.roof && !!roofCat?.models.length && prodCard('roof', T.grpRoof, <RoofWindowDrawing size={78} />, () => { if (!roofSel) pickRoof() }, 'variant')}
+                {visibleTypes.map(t => {
+                  const door = t.template.startsWith('door') || t.template === 'lift_slide'
+                  return prodCard('type:' + t.id, t.name, <WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} plain />, () => pickType(t), 'profile')
+                })}
+              </div>)}
+
+              {renderStep('variant', roofSel ? T.stepRoof : spec?.kind === 'wall' ? T.stepParts : T.stepSashes, variantSummary, <>
+                {(group === 'windows' || group === 'door' || group === 'wall') && <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {group === 'windows' && (offer?.windows && [...(offer.sashes ?? [])].sort().map(n => {
                     const on = spec?.sashes === n && !spec.kind
                     return <button key={'w' + n} onClick={() => pickSashes(n)}
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
@@ -561,18 +653,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={sashWidth(n)} height={1300} size={n > 2 ? 100 : 78} plain /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nSash(n)}</div>
                     </button>
-                  })}
-                  {offer?.slidingWindows && (() => {
-                    const on = spec?.kind === 'sliding'
-                    return <button key="sw" onClick={pickSliding}
-                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
-                      style={on ? selStyle(accent) : undefined}>
-                      {on && <SelBadge accent={accent} />}
-                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96} plain /></div>
-                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.slidingWindow}</div>
-                    </button>
-                  })()}
-                  {offer?.doors && [...(offer.doorSashes ?? [1, 2, 3])].sort().map(n => {
+                  }))}
+                  {group === 'door' && (offer?.doors && [...(offer.doorSashes ?? [1, 2, 3])].sort().map(n => {
                     const on = spec?.sashes === n && spec.kind === 'door'
                     return <button key={'d' + n} onClick={() => pickDoor(n)}
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
@@ -581,8 +663,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={doorWidth(n)} height={2200} size={84} plain /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nDoor(n)}</div>
                     </button>
-                  })}
-                  {offer?.sliding && [...(offer.wallSashes ?? [2, 3, 4])].sort().filter(n => allowedCombos(n, offer, 'wall').length).map(n => {
+                  }))}
+                  {group === 'wall' && (offer?.sliding && [...(offer.wallSashes ?? [2, 3, 4])].sort().filter(n => allowedCombos(n, offer, 'wall').length).map(n => {
                     const on = spec?.sashes === n && spec.kind === 'wall'
                     return <button key={'wall' + n} onClick={() => pickWall(n)}
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
@@ -591,32 +673,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={wallWidth(n)} height={2200} size={n > 3 ? 110 : 96} plain /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nWall(n)}</div>
                     </button>
-                  })}
-                  {offer?.roof && !!roofCat?.models.length && (() => {
-                    const on = !!roofSel
-                    return <button key="roof" onClick={() => pickRoof()}
-                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
-                      style={on ? selStyle(accent) : undefined}>
-                      {on && <SelBadge accent={accent} />}
-                      <div className="h-[84px] flex items-center justify-center"><RoofWindowDrawing size={78} /></div>
-                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.roofWindow}</div>
-                    </button>
-                  })()}
-                  {visibleTypes.map(t => {
-                    const door = t.template.startsWith('door') || t.template === 'lift_slide'
-                    return <button key={t.id} onClick={() => pickType(t)}
-                      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', !spec && it.type_id === t.id ? '' : 'border-gray-200 hover:border-gray-400')}
-                      style={!spec && it.type_id === t.id ? selStyle(accent) : undefined}>
-                      {!spec && it.type_id === t.id && <SelBadge accent={accent} />}
-                      <div className="h-[84px] flex items-center justify-center"><WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} plain /></div>
-                      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{t.name}</div>
-                    </button>
-                  })}
-                </div>
-              </Section>
-
-              {roofSel && roofCat && <>
-                <Section n={nextStep()} title={T.roofModelTitle} accent={accent}>
+                  }))}
+                </div>}
+{roofSel && roofCat && <>
+                <Sub title={T.roofModelTitle}>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {roofCat.models.map(m => {
                       const on = roofSel.model === m.id
@@ -632,37 +692,36 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       </button>
                     })}
                   </div>
-                </Section>
+                </Sub>
                 {roofModel && (roofModel.description || roofModel.datasheet_url) && <div className="rounded-xl border border-gray-200 bg-[#fafafa] px-4 py-3 -mt-2">
                   {roofModel.description && <p className="text-sm text-gray-900 whitespace-pre-line">{roofModel.description}</p>}
                   {roofModel.datasheet_url && <a href={roofModel.datasheet_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium hover:underline" style={{ color: accent }}>
                     <FileText className="w-4 h-4" />{T.roofDatasheet}</a>}
                 </div>}
-                {roofModel && (roofModel.variants ?? []).length > 0 && <Section n={nextStep()} title={T.roofVariant} accent={accent}>
+                {roofModel && (roofModel.variants ?? []).length > 0 && <Sub title={T.roofVariant}>
                   <div className="flex flex-wrap gap-2">
                     {(roofModel.variants ?? []).map(v => <Chip key={v.id} on={roofSel.variant === v.id} onClick={() => pickRoof({ variant: v.id })} accent={accent} single>
                       {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {Number(v.pct)}%</span>}
                     </Chip>)}
                   </div>
-                </Section>}
-                {roofModel && <Section n={nextStep()} title={T.roofSize} accent={accent}>
+                </Sub>}
+                {roofModel && <Sub title={T.roofSize}>
                   <div className="flex flex-wrap gap-2">
                     {roofModel.sizes.map(sz => <Chip key={sz.id} on={roofSel.size === sz.id} onClick={() => pickRoof({ size: sz.id })} accent={accent} single>
                       {sz.w} × {sz.h} cm{show && <span className="ml-1.5 font-medium text-gray-500">{money(roofUnitPrice(Number(sz.price), Number(roofModel.variants?.find(x => x.id === roofSel.variant)?.pct ?? 0), 0), cur)}</span>}
                     </Chip>)}
                   </div>
-                </Section>}
-                {roofCat.flashings.length > 0 && <Section n={nextStep()} title={T.roofFlashing} accent={accent}>
+                </Sub>}
+                {roofCat.flashings.length > 0 && <Sub title={T.roofFlashing}>
                   <div className="flex flex-wrap gap-2">
                     <Chip on={!roofSel.flashing} onClick={() => pickRoof({ flashing: null })} accent={accent} single>{T.none}</Chip>
                     {roofCat.flashings.map(f => <Chip key={f.id} on={roofSel.flashing === f.id} onClick={() => pickRoof({ flashing: f.id })} accent={accent} single>
                       {f.name}{show && Number(f.price) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {money(Number(f.price), cur)}</span>}
                     </Chip>)}
                   </div>
-                </Section>}
+                </Sub>}
               </>}
-
-              {spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Section n={nextStep()} title={T.bandsTitle} accent={accent}>
+{spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Sub title={T.bandsTitle}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                   {allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
                     const on = spec.top === top && spec.bottom === bottom
@@ -678,36 +737,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </button>
                   })}
                 </div>
-              </Section>}
+              </Sub>}
+              </>)}
 
-              {spec && offer && <Section n={nextStep()} title={T.openTitle} accent={accent}>
-                {(() => {
-                  // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
-                  // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
-                  const cards = slidingKind(spec)
-                    ? allowedCombos(spec.sashes, offer, slidingKind(spec)).map(cb => ({ ...spec, main: cb }))
-                    : allowedVariants(spec.sashes, offer, bk(spec)).filter(v => v.band === bandKeyOf(spec)).map(v => applyVariant(spec, v))
-                  const prices = cards.map(sp => (show ? specPrice(sp) : null))
-                  const known = prices.filter((x): x is number => x != null)
-                  const min = known.length ? Math.min(...known) : null
-                  const curMode = bandModeOf(spec)
-                  return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {cards.map((sp, i) => {
-                      const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
-                      const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
-                      return <button key={i} onClick={() => setSpec(sp)}
-                        className={cn('relative rounded-xl border p-3.5 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
-                        style={on ? selStyle(accent) : undefined}>
-                        {on && <SelBadge accent={accent} />}
-                        <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
-                        {d != null && <div className="text-[13px] font-medium text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
-                      </button>
-                    })}
-                  </div>
-                })()}
-              </Section>}
-
-              {!roofSel && <Section n={nextStep()} title={T.step2} accent={accent}>
+              {renderStep('profile', T.step2, profileSummary, <>
+{!roofSel && <Sub>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {(() => {
                     // price of the same window in every profile; the cheapest is the base
@@ -739,9 +773,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   </button>})
                   })()}
                 </div>
-              </Section>}
+              </Sub>}
+              </>)}
 
-              {spec && (() => {
+              {renderStep('color', T.colorTitle, colorSummary, <>
+{spec && (() => {
                 const sy = data.systems.find(x => x.id === it.system_id)
                 const list = sy ? data.builder?.colors?.[sy.material] ?? [] : []
                 if (list.length < 2) return null
@@ -764,12 +800,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     })}
                   </div>
                 </div>
-                return <Section n={nextStep()} title={T.colorTitle} accent={accent}>
+                return <Sub>
                   <div className="space-y-4">{row('out')}{row('in')}</div>
-                </Section>
+                </Sub>
               })()}
+              </>)}
 
-              <Section n={nextStep()} title={roofSel ? T.qtyTitle : spec ? T.sizeTitle : T.step3} accent={accent}>
+              {renderStep('size', roofSel ? T.qtyTitle : T.stepSize, sizeSummary, <>
+<Sub title={roofSel ? '' : T.sizeTitle}>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v, ...(it.sashWidths && it.width && v ? { sashWidths: it.sashWidths.map(x => Math.round(x * v / it.width!)) } : {}) })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
                   {!roofSel && <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />}
@@ -818,10 +856,38 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
                   </div>
                 </div>
-              </Section>
+              </Sub>
+{spec && offer && <Sub title={T.openTitle}>
+                {(() => {
+                  // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
+                  // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
+                  const cards = slidingKind(spec)
+                    ? allowedCombos(spec.sashes, offer, slidingKind(spec)).map(cb => ({ ...spec, main: cb }))
+                    : allowedVariants(spec.sashes, offer, bk(spec)).filter(v => v.band === bandKeyOf(spec)).map(v => applyVariant(spec, v))
+                  const prices = cards.map(sp => (show ? specPrice(sp) : null))
+                  const known = prices.filter((x): x is number => x != null)
+                  const min = known.length ? Math.min(...known) : null
+                  const curMode = bandModeOf(spec)
+                  return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {cards.map((sp, i) => {
+                      const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
+                      const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
+                      return <button key={i} onClick={() => setSpec(sp)}
+                        className={cn('relative rounded-xl border p-3.5 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        style={on ? selStyle(accent) : undefined}>
+                        {on && <SelBadge accent={accent} />}
+                        <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
+                        {d != null && <div className="text-[13px] font-medium text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
+                      </button>
+                    })}
+                  </div>
+                })()}
+              </Sub>}
+              </>)}
 
-              {/* glass package: cards with Ug; the first one is included */}
-              {spec && glassList.length > 1 && <Section n={nextStep()} title={T.glassTitle} accent={accent}>
+              {renderStep('equipment', T.step4, equipSummary, <>
+{/* glass package: cards with Ug; the first one is included */}
+              {spec && glassList.length > 1 && <Sub title={T.glassTitle}>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {glassList.map((g, i) => {
                     const sel = glassList.find(x => x.id === it.glass) ?? glassList[0]
@@ -843,10 +909,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </button>
                   })}
                 </div>
-              </Section>}
+              </Sub>}
 
               {/* handle: one per sash that opens with a handle */}
-              {spec && handleList.length > 1 && <Section n={nextStep()} title={T.handleTitle} accent={accent}>
+              {spec && handleList.length > 1 && <Sub title={T.handleTitle}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   {handleList.map((h, i) => {
                     const on = (handleList.find(x => x.id === it.handle) ?? handleList[0]).id === h.id
@@ -868,10 +934,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </button>
                   })}
                 </div>
-              </Section>}
+              </Sub>}
 
               {/* window sills: inside and outside, none by default */}
-              {spec && sillList.length > 0 && <Section n={nextStep()} title={T.sillTitle} accent={accent}>
+              {spec && sillList.length > 0 && <Sub title={T.sillTitle}>
                 <div className="space-y-4">
                   {(['inner', 'outer'] as const).map(side => {
                     const list = sillList.filter(x => x.side === side)
@@ -902,10 +968,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </div>
                   })}
                 </div>
-              </Section>}
+              </Sub>}
 
               {/* shading and insect screen, none by default */}
-              {spec && shadeList.length > 0 && <Section n={nextStep()} title={T.shadeTitle} accent={accent}>
+              {spec && shadeList.length > 0 && <Sub title={T.shadeTitle}>
                 <div className="space-y-4">
                   {(['shade', 'screen'] as const).map(kind => {
                     const list = shadeList.filter(x => x.kind === kind)
@@ -937,18 +1003,20 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </div>
                   })}
                 </div>
-              </Section>}
+              </Sub>}
 
-              {!roofSel && extraGroups.length > 0 && <Section n={nextStep()} title={T.step4} accent={accent}>
+              {!roofSel && extraGroups.length > 0 && <Sub title={T.step4}>
                 <div className="space-y-4">
                   {extraGroups.map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
                     options={data.options.filter(o => o.group_key === g)} selected={it.option_ids} onToggle={toggleOption}
                     onClear={() => update({ option_ids: it.option_ids.filter(id => !data.options.some(o => o.group_key === g && o.id === id)) })}
                     accent={accent} show={show} currency={cur} noneLabel={T.none} pricingLabels={L.pricing} />)}
                 </div>
-              </Section>}
+              </Sub>}
+              </>)}
 
-              {!internal && data.options.some(isService) && <Section n={nextStep()} title={T.step5} accent={accent}>
+              {renderStep('services', T.step5, servicesSummary, <>
+{!internal && data.options.some(isService) && <Sub>
                 <p className="text-sm text-gray-500 -mt-2 mb-4">{T.servicesHint}</p>
                 <div className="space-y-4">
                   {items.some(x => x.roof) && data.options.some(o => o.per_item === 'roof') && <div>
@@ -968,7 +1036,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </div>
                   </div>)}
                 </div>
-              </Section>}
+              </Sub>}
+              </>)}
 
               <div className="flex gap-2">
                 <button onClick={() => addItem(true)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors"><Copy className="w-4 h-4" />{T.duplicate}</button>
@@ -1118,13 +1187,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
 function clamp(v: number, min: number, max: number) { return Math.min(max, Math.max(min, v)) }
 
-function Section({ n, title, accent, children }: { n: number; title: string; accent: string; children: React.ReactNode }) {
-  return <section className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6">
-    <h2 className="flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-4">
-      <span className="w-7 h-7 rounded-full text-[13px] font-semibold text-white flex items-center justify-center shrink-0" style={{ backgroundColor: accent }}>{n}</span>{title}
-    </h2>
-    {children}
-  </section>
+function Sub({ title, children }: { title?: string; children: React.ReactNode }) {
+  return <div>{title && <h3 className="text-[15px] font-semibold text-gray-900 mb-3">{title}</h3>}{children}</div>
 }
 
 function MmInput({ label, value, onChange, min, max, rangeLabel }: { label: string; value: number | null; onChange: (v: number | null) => void; min: number; max: number; rangeLabel: string }) {
