@@ -10,7 +10,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { SortIcon } from '../components/ui/SortIcon'
-import Pagination, { usePageSize } from '../components/ui/Pagination'
+import Pagination from '../components/ui/Pagination'
 import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSources'
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
@@ -34,13 +34,13 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
 }
 
 /** a ring card like "Ponudbe po statusu": ring with the total value, legend under it with count and value */
-function RingCard({ title, parts, money, lang }: { title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
+function RingCard({ title, parts, money, lang, empty }: { empty?: string; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
   const shown = parts.filter(p => p.value > 0)
   const total = parts.reduce((a, p) => a + p.value, 0)
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
-      {total === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
+      {total === 0 ? <div className="flex items-center justify-center h-[220px] px-6 text-center text-sm text-gray-400">{empty ?? (lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.')}</div> :
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-[200px] h-[200px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
@@ -111,7 +111,7 @@ export default function DashboardPage() {
   // customers table: sorting and pages
   const [cSort, setCSort] = useState<{ key: 'name' | 'count' | 'value' | 'won' | 'rate'; dir: 'asc' | 'desc' }>({ key: 'value', dir: 'desc' })
   const [cPage, setCPage] = useState(1)
-  const [cPageSize, setCPageSize] = usePageSize('dashboard-customers')
+  const cPageSize = 15
   const [customerNames, setCustomerNames] = useState<Record<string, string>>({})
   const [customerTypes, setCustomerTypes] = useState<Record<string, string>>({})
   const [filterCustomerId, setFilterCustomerId] = useState<string | null>(null)
@@ -531,8 +531,8 @@ export default function DashboardPage() {
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 self-start">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="lg:col-span-2 flex flex-col">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1">
                 <h2 className="text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}</h2>
                 {top.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
                 <table className="w-full table-fixed">
@@ -555,11 +555,12 @@ export default function DashboardPage() {
                   </tbody>
                 </table>}
               </div>
-              <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} onPageSizeChange={setCPageSize} />
+              <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} fixedSize />
               </div>
               {/* sales channel and where the quotes came from, two rings one under the other */}
               <div className="flex flex-col gap-4">
-                <RingCard title={sl ? 'Prodajni kanal' : 'Sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'} />
+                <RingCard title={sl ? 'Prodajni kanal' : 'Sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'}
+                  empty={inPeriod.length ? (sl ? 'Ponudbe v tem obdobju še nimajo prodajnega kanala. Izberite ga pri urejanju ponudbe, nove ga imajo vedno.' : 'Quotes in this period have no sales channel yet. Set it when editing a quote; new ones always have it.') : undefined} />
                 <RingCard title={sl ? 'Vir ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
               </div>
             </div>

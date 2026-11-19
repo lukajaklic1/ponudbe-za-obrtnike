@@ -25,6 +25,8 @@ interface PaginationProps {
   onChange: (page: number) => void
   /** shows the rows-per-page picker (20 / 50 / 100) */
   onPageSizeChange?: (size: number) => void
+  /** show the footer as soon as there is more than one page (fixed page sizes, e.g. on the reports) */
+  fixedSize?: boolean
 }
 
 /** "14 rezultatov" in Slovene: 1 rezultat, 2 rezultata, 3–4 rezultati, 5+ rezultatov (… 101 rezultat …) */
@@ -38,11 +40,11 @@ function results(n: number, sl: boolean) {
  * Footer of a table (Levelpath style): number of results on the left, rows per page and the arrows on the right.
  * It sits right under the table and joins its frame (see .table-footer in index.css).
  */
-export default function Pagination({ total, page, pageSize, onChange, onPageSizeChange }: PaginationProps) {
+export default function Pagination({ total, page, pageSize, onChange, onPageSizeChange, fixedSize }: PaginationProps) {
   const { lang } = useLanguage()
   const sl = lang === 'sl'
   // only when the list is longer than the smallest page (20 rows) — short lists need no footer
-  if (total <= PAGE_SIZE_OPTIONS[0]) return null
+  if (total <= (fixedSize ? pageSize : PAGE_SIZE_OPTIONS[0])) return null
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const from = (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
