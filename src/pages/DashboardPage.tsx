@@ -31,42 +31,6 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
   )
 }
 
-/** a doughnut by value: total in the middle, legend with the number of quotes and the value of each part */
-function ValueDonut({ title, parts, money, lang }: { title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
-  const shown = parts.filter(p => p.value > 0)
-  const total = parts.reduce((a, p) => a + p.value, 0)
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
-      {total === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> : <>
-        <div className="relative w-[200px] h-[200px] mx-auto">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
-                {shown.map(p => <Cell key={p.key} fill={p.color} />)}
-              </Pie>
-              <Tooltip formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[20px] font-bold tracking-[-0.02em] text-gray-900">{money(total)}</span>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-col gap-2">
-          {parts.filter(p => p.count > 0).map(p => (
-            <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-              <span className="text-[#4f4f4f] flex-1 min-w-0 truncate">{p.name}</span>
-              <span className="text-[#4f4f4f] tabular-nums">{p.count}</span>
-              <span className="text-gray-900 tabular-nums w-[88px] text-right">{money(p.value)}</span>
-            </div>
-          ))}
-        </div>
-      </>}
-    </div>
-  )
-}
-
 interface Stats {
   pipeline_value: number
   win_rate: number
@@ -500,7 +464,7 @@ export default function DashboardPage() {
             r.count++; r.value += val(q); if (q.status === 'won') r.won += val(q)
             byCustomer.set(q.customer_id, r)
           }
-          const top = [...byCustomer.values()].sort((a, b) => b.value - a.value).slice(0, 8)
+          const top = [...byCustomer.values()].sort((a, b) => b.value - a.value).slice(0, 5)
           const CH_COLORS = ['#2fa596', '#5cc0b2', '#8fd3c9', '#bfe6e0', '#7d7d7d', '#b5b5b5', '#dcdcdc']
           const channels = [...LEAD_SOURCES.map((k, i) => ({ key: k, color: CH_COLORS[i] })), { key: 'none', color: '#efefef' }]
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
@@ -510,27 +474,73 @@ export default function DashboardPage() {
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden lg:col-span-2">
                 <h2 className="text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}</h2>
                 {top.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
                 <table className="w-full table-fixed">
-                  <colgroup><col /><col className="w-[96px]" /><col className="w-[96px]" /></colgroup>
+                  <colgroup><col /><col className="w-[110px]" /><col className="w-[130px]" /><col className="w-[130px]" /><col className="w-[120px]" /></colgroup>
                   <thead><tr>
                     <th className="text-left px-4">{sl ? 'Stranka' : 'Customer'}</th>
-                    <th className="text-right px-3">{sl ? 'Vrednost' : 'Value'}</th>
+                    <th className="text-right px-4">{sl ? 'Ponudbe' : 'Quotes'}</th>
+                    <th className="text-right px-4">{sl ? 'Vrednost' : 'Value'}</th>
                     <th className="text-right px-4">{sl ? 'Dobljeno' : 'Won'}</th>
+                    <th className="text-right px-4">{sl ? 'Uspešnost' : 'Win rate'}</th>
                   </tr></thead>
                   <tbody>
                     {top.map(c => <tr key={c.id}>
-                      <td className="px-4"><div className="truncate" title={c.name}>{c.name}</div><div className="text-[13px] text-[#4f4f4f]">{c.count} {sl ? (c.count === 1 ? 'ponudba' : c.count === 2 ? 'ponudbi' : c.count < 5 ? 'ponudbe' : 'ponudb') : (c.count === 1 ? 'quote' : 'quotes')}</div></td>
-                      <td className="px-3 text-right whitespace-nowrap">{money(c.value)}</td>
-                      <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.won ? money(c.won) : '—'}</td>
+                      <td className="px-4"><div className="truncate" title={c.name}>{c.name}</div></td>
+                      <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.count}</td>
+                      <td className="px-4 text-right whitespace-nowrap">{money(c.value)}</td>
+                      <td className="px-4 text-right whitespace-nowrap">{c.won ? money(c.won) : '—'}</td>
+                      <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
                     </tr>)}
                   </tbody>
                 </table>}
               </div>
-              <ValueDonut title={sl ? 'Prodajni kanal' : 'Sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'} />
-              <ValueDonut title={sl ? 'Vir ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
+              <div className="flex flex-col gap-4">
+              {/* sales channel: many parts, so bars (easier to compare than a ring) */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
+                <h2 className="text-[15px] font-semibold text-gray-900 mb-5">{sl ? 'Prodajni kanal' : 'Sales channel'}</h2>
+                {(() => {
+                  const rows = channels.filter(c => c.count > 0).sort((a, b) => b.value - a.value)
+                  const max = Math.max(1, ...rows.map(r => r.value))
+                  return rows.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
+                    <div className="space-y-4">
+                      {rows.map(r => <div key={r.key}>
+                        <div className="flex items-baseline gap-2 text-sm font-medium">
+                          <span className="text-gray-900 flex-1 min-w-0 truncate">{r.name}</span>
+                          <span className="text-[#4f4f4f]">{r.count} {sl ? (r.count === 1 ? 'ponudba' : r.count === 2 ? 'ponudbi' : r.count < 5 ? 'ponudbe' : 'ponudb') : (r.count === 1 ? 'quote' : 'quotes')}</span>
+                          <span className="text-gray-900 w-[88px] text-right">{money(r.value)}</span>
+                        </div>
+                        <div className="mt-1.5 h-2 rounded-full bg-[#f1f1f1] overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${Math.max(2, r.value / max * 100)}%`, backgroundColor: r.key === 'none' ? '#c9c9c9' : TEAL.line }} />
+                        </div>
+                      </div>)}
+                    </div>
+                })()}
+              </div>
+              {/* where the quotes came from: one bar split in two */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Vir ponudb' : 'Quote source'}</h2>
+                {(() => {
+                  const total = sources.reduce((a, x) => a + x.value, 0)
+                  if (!total) return <div className="text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div>
+                  return <>
+                    <div className="flex h-2.5 rounded-full overflow-hidden bg-[#f1f1f1]">
+                      {sources.filter(x => x.value > 0).map(x => <div key={x.key} style={{ width: `${x.value / total * 100}%`, backgroundColor: x.color }} />)}
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {sources.map(x => <div key={x.key} className="flex items-center gap-2 text-sm font-medium">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: x.color }} />
+                        <span className="text-[#4f4f4f] flex-1 min-w-0 truncate">{x.name}</span>
+                        <span className="text-[#4f4f4f]">{x.count} {sl ? (x.count === 1 ? 'ponudba' : x.count === 2 ? 'ponudbi' : x.count < 5 ? 'ponudbe' : 'ponudb') : (x.count === 1 ? 'quote' : 'quotes')}</span>
+                        <span className="text-gray-900 w-[88px] text-right">{money(x.value)}</span>
+                      </div>)}
+                    </div>
+                  </>
+                })()}
+              </div>
+              </div>
             </div>
           )
         })()}
