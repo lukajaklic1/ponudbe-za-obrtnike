@@ -8,6 +8,7 @@ import { toast } from '../components/ui/Toast'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
 import { FilterSelect } from '../components/ui/FilterSelect'
+import { cn } from '../lib/cn'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { SortIcon } from '../components/ui/SortIcon'
 import Pagination from '../components/ui/Pagination'
@@ -23,7 +24,7 @@ type Q = { id: string; status: string; total_net: number; customer_id: string; a
 const TONES = { grey: { color: '#4a4a4a', backgroundColor: '#ececec' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
 function StatCard({ label, value, badge, tone }: { label: string; value: string; badge: string; tone: keyof typeof TONES; sub?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 px-4 py-4">
+    <div className="bg-white rounded-xl border border-gray-200 px-4 py-4 h-full">
       <p className="text-[15px] font-medium text-gray-900 truncate" title={label}>{label}</p>
       <div className="flex items-center gap-2 mt-1.5 flex-wrap xl:flex-nowrap">
         <p className="text-[24px] leading-8 font-bold text-gray-900 tracking-[-0.02em] whitespace-nowrap">{value}</p>
@@ -111,6 +112,7 @@ export default function DashboardPage() {
   const [sourceFilter, setSourceFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [channelFilter, setChannelFilter] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   // customers table: sorting and pages
   const [cSort, setCSort] = useState<{ key: 'name' | 'count' | 'value' | 'won' | 'rate'; dir: 'asc' | 'desc' }>({ key: 'value', dir: 'desc' })
   const [cPage, setCPage] = useState(1)
@@ -273,6 +275,7 @@ export default function DashboardPage() {
   const GHOST = [0.45, 0.7, 0.55, 0.85, 0.6, 0.75, 0.5, 0.9, 0.65, 0.8, 0.4, 0.7]
   const ghostMonths = months.map((m, i) => ({ ...m, sent_value: GHOST[i % 12] * 3000, won_value: GHOST[(i + 5) % 12] * 1600, sent_count: GHOST[i % 12] * 3, won_count: GHOST[(i + 5) % 12] * 1.6 }))
   const GREY = { light: '#ececec', dark: '#dcdcdc' }
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 640
   // Same look as the other empty states in the app: light icon + short grey sentence
   const emptyOverlay = (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -292,7 +295,12 @@ export default function DashboardPage() {
 
       {/* Subtitle + filter bar */}
       <div className="px-6 pt-5 flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+        {(() => { const n = [statusFilter, sourceFilter, typeFilter, channelFilter, assigneeFilter, filterCustomerId].filter(Boolean).length
+          return <button type="button" onClick={() => setFiltersOpen(x => !x)}
+            className="sm:hidden h-9 px-3.5 rounded-[10px] border border-gray-200 bg-white text-sm font-medium text-gray-900 inline-flex items-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+            {sl ? 'Filtri' : 'Filters'}{n > 0 && <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-[#131313] text-white text-xs font-semibold">{n}</span>}
+          </button> })()}
+        <div className={cn('flex-wrap items-center gap-2', filtersOpen ? 'flex' : 'hidden sm:flex')}>
 
           {/* dates from – to, with quick choices */}
           <DateRangeFilter label={sl ? 'Obdobje' : 'Period'} from={dateFrom} to={dateTo} onChange={(fr, to) => { setDateFrom(fr); setDateTo(to) }} />
@@ -365,8 +373,8 @@ export default function DashboardPage() {
       <div className="px-6 py-5 space-y-6">
 
         {/* five value cards: total, then drafts / sent / won / lost of the quotes made in the period */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {cards.map(c => <StatCard key={c.label} {...c} />)}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+          {cards.map((c, i) => <div key={c.label} className={i === 0 ? 'col-span-2 lg:col-span-1' : ''}><StatCard {...c} /></div>)}
         </div>
 
 
@@ -474,11 +482,11 @@ export default function DashboardPage() {
                 <div className="relative">
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={topServices.length ? topServices : [[1300, 2300], [900, 2100], [0, 2500], [700, 1300], [0, 1500], [400, 500]].map(([w, r], i) => ({ name: ' '.repeat(i + 1), won: w, rest: r, total: 0 }))}
-                      layout="vertical" margin={{ top: 0, right: 56, left: 0, bottom: 0 }} barCategoryGap={10}>
+                      layout="vertical" margin={{ top: 0, right: narrow ? 40 : 56, left: 0, bottom: 0 }} barCategoryGap={10}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} verticalCoordinatesGenerator={({ offset }: any) => [0, 1, 2, 3, 4].map(i => offset.left + offset.width * i / 4)} />
                       <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000] })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
-                        tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
+                      <YAxis type="category" dataKey="name" width={narrow ? 120 : 210} tick={{ fontSize: narrow ? 12 : 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
+                        tickFormatter={(n: string) => { const max = narrow ? 16 : 26; return n.length > max ? n.slice(0, max - 1) + '…' : n }} />
                       {topServices.length > 0 && <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />}
                       <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
                       <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : TEAL.line} maxBarSize={22}
@@ -515,8 +523,8 @@ export default function DashboardPage() {
             return (va - vb) * m
           })
           const top = sorted.slice((cPage - 1) * cPageSize, cPage * cPageSize)
-          const th = (key: typeof cSort.key, label: string, right = true) => (
-            <th className={`${right ? 'text-right' : 'text-left'} px-4 cursor-pointer select-none hover:text-gray-900`}
+          const th = (key: typeof cSort.key, label: string, right = true, wide = false) => (
+            <th className={`${right ? 'text-right' : 'text-left'} ${wide ? 'hidden sm:table-cell' : ''} px-4 cursor-pointer select-none hover:text-gray-900`}
               onClick={() => { setCSort(s0 => ({ key, dir: s0.key === key && s0.dir === 'desc' ? 'asc' : 'desc' })); setCPage(1) }}>
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
@@ -535,25 +543,25 @@ export default function DashboardPage() {
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
                 <h2 className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
                   <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#ececec] text-[#4a4a4a] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
-                <table className="w-full table-fixed keep-last-line">
-                  <colgroup><col /><col className="w-[110px]" /><col className="w-[130px]" /><col className="w-[130px]" /><col className="w-[120px]" /></colgroup>
+                <div className="overflow-x-auto"><table className="w-full table-fixed keep-last-line">
+                  <colgroup><col /><col className="w-[84px] sm:w-[110px]" /><col className="w-[110px] sm:w-[130px]" /><col className="hidden sm:table-column w-[130px]" /><col className="hidden sm:table-column w-[120px]" /></colgroup>
                   <thead><tr>
                     {th('name', sl ? 'Stranka' : 'Customer', false)}
                     {th('count', sl ? 'Ponudbe' : 'Quotes')}
                     {th('value', sl ? 'Vrednost' : 'Value')}
-                    {th('won', sl ? 'Dobljeno' : 'Won')}
-                    {th('rate', sl ? 'Uspešnost' : 'Win rate')}
+                    {th('won', sl ? 'Dobljeno' : 'Won', true, true)}
+                    {th('rate', sl ? 'Uspešnost' : 'Win rate', true, true)}
                   </tr></thead>
                   <tbody>
                     {top.map(c => <tr key={c.id}>
                       <td className="px-4"><div className="truncate" title={c.name}>{c.name}</div></td>
                       <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.count}</td>
                       <td className="px-4 text-right whitespace-nowrap">{money(c.value)}</td>
-                      <td className="px-4 text-right whitespace-nowrap">{c.won ? money(c.won) : '—'}</td>
-                      <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
+                      <td className="hidden sm:table-cell px-4 text-right whitespace-nowrap">{c.won ? money(c.won) : '—'}</td>
+                      <td className="hidden sm:table-cell px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
                     </tr>)}
                   </tbody>
-                </table>
+                </table></div>
                 {top.length === 0 && <div className="flex-1 flex items-center justify-center min-h-[220px] text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div>}
               </div>
               <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} fixedSize />
