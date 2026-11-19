@@ -9,6 +9,8 @@ import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
+import { SortIcon } from '../components/ui/SortIcon'
+import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSources'
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
@@ -31,34 +33,35 @@ function StatCard({ label, value, badge, tone }: { label: string; value: string;
   )
 }
 
-/** a compact ring card: total value in the middle, legend with the number of quotes and the value of each part */
+/** a ring card like "Ponudbe po statusu": ring with the total value, legend under it with count and value */
 function RingCard({ title, parts, money, lang }: { title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
   const shown = parts.filter(p => p.value > 0)
   const total = parts.reduce((a, p) => a + p.value, 0)
-  const pl = (n: number) => (lang === 'sl' ? (n === 1 ? 'ponudba' : n === 2 ? 'ponudbi' : n < 5 ? 'ponudbe' : 'ponudb') : n === 1 ? 'quote' : 'quotes')
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 flex-1">
-      <h2 className="text-[15px] font-semibold text-gray-900 mb-3">{title}</h2>
-      {total === 0 ? <div className="text-sm text-gray-400 py-8 text-center">{lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
-      <div className="flex items-center gap-5">
-        <div className="w-[136px] h-[136px] shrink-0">
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
+      {total === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{lang === 'sl' ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-[200px] h-[200px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={44} outerRadius={64} paddingAngle={2} stroke="none">
+              <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
                 {shown.map(p => <Cell key={p.key} fill={p.color} />)}
               </Pie>
               <Tooltip formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
             </PieChart>
           </ResponsiveContainer>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[20px] font-bold tracking-[-0.02em] text-gray-900">{money(total)}</span>
+          </div>
         </div>
-        <div className="flex-1 min-w-0 space-y-1.5">
-          {parts.filter(p => p.count > 0).sort((a, b) => b.value - a.value).map(p => (
-            <div key={p.key} className="text-sm font-medium">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-                <span className="text-gray-900 min-w-0 truncate" title={p.name}>{p.name}</span>
-              </div>
-              <div className="pl-[18px] text-[13px] text-[#4f4f4f] whitespace-nowrap">{money(p.value)} · {p.count} {pl(p.count)}</div>
+        <div className="w-full flex flex-col gap-2">
+          {parts.filter(p => p.count > 0).sort((x, y) => y.value - x.value).map(p => (
+            <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+              <span className="text-[#4f4f4f] flex-1 min-w-0 truncate" title={p.name}>{p.name}</span>
+              <span className="text-[#4f4f4f] tabular-nums">{p.count}</span>
+              <span className="text-gray-900 tabular-nums w-[92px] text-right">{money(p.value)}</span>
             </div>
           ))}
         </div>
@@ -105,6 +108,10 @@ export default function DashboardPage() {
   const [sourceFilter, setSourceFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [channelFilter, setChannelFilter] = useState('')
+  // customers table: sorting and pages
+  const [cSort, setCSort] = useState<{ key: 'name' | 'count' | 'value' | 'won' | 'rate'; dir: 'asc' | 'desc' }>({ key: 'value', dir: 'desc' })
+  const [cPage, setCPage] = useState(1)
+  const [cPageSize, setCPageSize] = usePageSize('dashboard-customers')
   const [customerNames, setCustomerNames] = useState<Record<string, string>>({})
   const [customerTypes, setCustomerTypes] = useState<Record<string, string>>({})
   const [filterCustomerId, setFilterCustomerId] = useState<string | null>(null)
@@ -292,7 +299,7 @@ export default function DashboardPage() {
             options={[{ value: 'configurator', label: sl ? 'Spletni konfigurator' : 'Online configurator' }, { value: 'app', label: sl ? 'Narejene v aplikaciji' : 'Made in the app' }]} />
 
           <FilterSelect label={sl ? 'Prodajni kanal' : 'Sales channel'} value={channelFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setChannelFilter}
-            options={[...leadSourceOptions(sl ? 'sl' : 'en'), { value: 'none', label: sl ? 'Ni podatka' : 'Unknown' }]} />
+            options={leadSourceOptions(sl ? 'sl' : 'en')} />
 
           <FilterSelect label={sl ? 'Tip stranke' : 'Customer type'} value={typeFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setTypeFilter}
             options={[{ value: 'person', label: sl ? 'Fizične osebe' : 'Private persons' }, { value: 'company', label: sl ? 'Podjetja' : 'Companies' }]} />
@@ -500,9 +507,23 @@ export default function DashboardPage() {
             r.count++; r.value += val(q); if (q.status === 'won') r.won += val(q)
             byCustomer.set(q.customer_id, r)
           }
-          const top = [...byCustomer.values()].sort((a, b) => b.value - a.value).slice(0, 8)
-          const CH_COLORS = ['#2fa596', '#5cc0b2', '#8fd3c9', '#bfe6e0', '#7d7d7d', '#b5b5b5', '#dcdcdc']
-          const channels = [...LEAD_SOURCES.map((k, i) => ({ key: k, color: CH_COLORS[i] })), { key: 'none', color: '#efefef' }]
+          const rate = (c: { value: number; won: number }) => (c.value ? c.won / c.value : 0)
+          const sorted = [...byCustomer.values()].sort((a, b) => {
+            const m = cSort.dir === 'asc' ? 1 : -1
+            if (cSort.key === 'name') return a.name.localeCompare(b.name) * m
+            const va = cSort.key === 'rate' ? rate(a) : a[cSort.key], vb = cSort.key === 'rate' ? rate(b) : b[cSort.key]
+            return (va - vb) * m
+          })
+          const top = sorted.slice((cPage - 1) * cPageSize, cPage * cPageSize)
+          const th = (key: typeof cSort.key, label: string, right = true) => (
+            <th className={`${right ? 'text-right' : 'text-left'} px-4 cursor-pointer select-none hover:text-gray-900`}
+              onClick={() => { setCSort(s0 => ({ key, dir: s0.key === key && s0.dir === 'desc' ? 'asc' : 'desc' })); setCPage(1) }}>
+              <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
+            </th>
+          )
+          const CH_COLORS = ['#2fa596', '#4fb8a9', '#7ccabe', '#a8ded6', '#cdeee9', '#7d7d7d', '#b5b5b5', '#dcdcdc']
+          // every quote has a channel; older ones without it are left out here
+          const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           const sources = [
             { key: 'app', name: sl ? 'Interna priprava ponudb' : 'Made in the app', color: TEAL.light, f: (q: Q) => q.source !== 'configurator' },
@@ -510,17 +531,18 @@ export default function DashboardPage() {
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden lg:col-span-2">
+              <div className="lg:col-span-2 self-start">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <h2 className="text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}</h2>
                 {top.length === 0 ? <div className="flex items-center justify-center h-[220px] text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</div> :
                 <table className="w-full table-fixed">
                   <colgroup><col /><col className="w-[110px]" /><col className="w-[130px]" /><col className="w-[130px]" /><col className="w-[120px]" /></colgroup>
                   <thead><tr>
-                    <th className="text-left px-4">{sl ? 'Stranka' : 'Customer'}</th>
-                    <th className="text-right px-4">{sl ? 'Ponudbe' : 'Quotes'}</th>
-                    <th className="text-right px-4">{sl ? 'Vrednost' : 'Value'}</th>
-                    <th className="text-right px-4">{sl ? 'Dobljeno' : 'Won'}</th>
-                    <th className="text-right px-4">{sl ? 'Uspešnost' : 'Win rate'}</th>
+                    {th('name', sl ? 'Stranka' : 'Customer', false)}
+                    {th('count', sl ? 'Ponudbe' : 'Quotes')}
+                    {th('value', sl ? 'Vrednost' : 'Value')}
+                    {th('won', sl ? 'Dobljeno' : 'Won')}
+                    {th('rate', sl ? 'Uspešnost' : 'Win rate')}
                   </tr></thead>
                   <tbody>
                     {top.map(c => <tr key={c.id}>
@@ -532,6 +554,8 @@ export default function DashboardPage() {
                     </tr>)}
                   </tbody>
                 </table>}
+              </div>
+              <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} onPageSizeChange={setCPageSize} />
               </div>
               {/* sales channel and where the quotes came from, two rings one under the other */}
               <div className="flex flex-col gap-4">

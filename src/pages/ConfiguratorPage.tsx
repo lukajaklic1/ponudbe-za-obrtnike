@@ -1021,7 +1021,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <div className="sm:col-span-2"><Field label={T.address} value={contact.address} onChange={v => setContact({ ...contact, address: v })} autoComplete="street-address" /></div>
                   {/* where the customer heard of the supplier (goes to the enquiry's note) */}
                   <div className="sm:col-span-2 flex flex-col gap-1">
-                    <span className="text-sm font-semibold text-gray-900">{T.heard}</span>
+                    <span className="text-sm font-semibold text-gray-900">{T.heard}<span className="req-star"> *</span></span>
                     <Select value={heard} onChange={setHeard} placeholder={T.heardPick}
                       options={leadSourceOptions(lang)} />
                   </div>
@@ -1100,7 +1100,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
               ) : (
-                <button disabled={sending || !consent || !contact.email || !(contact.first_name || contact.last_name)} onClick={submit}
+                <button disabled={sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name)} onClick={submit}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" style={btn}>
                   {sending && <Loader2 className="w-4 h-4 animate-spin" />}{sending ? T.sending : T.send}
                 </button>

@@ -120,7 +120,7 @@ function seed(): DB {
       issued_at: d.status !== 'draft' ? created : null, pdf_path: null, site_address: d.site, discount_pct: d.disc,
       total_net: tot.total_net, total_vat: tot.total_vat, total_gross: tot.total_gross, created_at: created, updated_at: created,
       // a mix of sales channels and sources, so the reports have something to show
-      lead_source: ['google', 'referral', 'social', 'existing', 'google'][qi % 5], source: qi % 3 === 0 ? 'configurator' : 'manual',
+      lead_source: ['google', 'referral', 'facebook', 'existing', 'instagram'][qi % 5], source: qi % 3 === 0 ? 'configurator' : 'manual',
     }
     if (d.status !== 'draft') {
       q.snapshot = buildSnapshot(q as any, cust as any, company as any, lines)

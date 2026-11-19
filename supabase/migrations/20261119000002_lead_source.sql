@@ -1,6 +1,6 @@
 -- ============================================================
 -- 20261119000002_lead_source.sql
--- Sales channel of a quote ("Kje ste izvedeli za nas?"): google, social, referral, existing, fair, ad, other.
+-- Sales channel of a quote ("Kje ste izvedeli za nas?"): google, facebook, instagram, referral, existing, fair, ad, other.
 -- The customer picks it in the configurator; in the app it is set on the quote. Used in the reports. Re-runnable.
 -- ============================================================
 
@@ -121,7 +121,7 @@ BEGIN
           current_date + COALESCE(c.default_valid_days, 30), c.default_payment_terms,
           v_email, NULLIF(trim(COALESCE(p_customer->>'phone', '')), ''),
           -- where the customer heard of the supplier (one of the fixed keys, anything else is ignored)
-          CASE WHEN p_customer->>'lead_source' IN ('google', 'social', 'referral', 'existing', 'fair', 'ad', 'other') THEN p_customer->>'lead_source' END)
+          CASE WHEN p_customer->>'lead_source' IN ('google', 'facebook', 'instagram', 'referral', 'existing', 'fair', 'ad', 'other') THEN p_customer->>'lead_source' END)
   RETURNING id INTO v_quote;
 
   -- ── windows ────────────────────────────────────────────────

@@ -461,6 +461,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   // ── Persistence ───────────────────────────────────────────
   async function persist(): Promise<{ id: string; number: string } | null> {
     if (!company || !customerId) { toast.error(o.pickCustomer); return null }
+    if (!leadSource) { toast.error(lang === 'en' ? 'Choose the sales channel.' : 'Izberite prodajni kanal.'); return null }
     const fields = {
       // windows: no quote title in the UI; the required DB column gets the customer name
       customer_id: customerId, title: customers.find(c => c.id === customerId)?.name ?? '',
@@ -679,9 +680,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               </div>
               {/* sales channel: where the customer heard of the company */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}</label>
+                <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
                 <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
-                  options={[{ value: '', label: o.none }, ...leadSourceOptions(lang === 'en' ? 'en' : 'sl')]} />
+                  options={leadSourceOptions(lang === 'en' ? 'en' : 'sl')} />
               </div>
             </div>
             <div className="flex flex-col gap-1 mt-4">
