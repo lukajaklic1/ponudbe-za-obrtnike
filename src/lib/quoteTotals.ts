@@ -31,6 +31,11 @@ export function quoteTotals(lines: LineInput[], discountPct = 0) {
   return { subtotal, discount_amount, total_net, vat, total_vat, total_gross: r2(total_net + total_vat) }
 }
 
+/** total with VAT when paid 100% in advance: the advance discount lowers every base, so the VAT falls with it */
+export function advanceTotal(totalGross: number, pct: number | null | undefined): number | null {
+  return pct && pct > 0 ? r2(totalGross * (1 - pct / 100)) : null
+}
+
 // Room helper: walls (perimeter × height − openings) and ceiling (L × W), in m².
 export function roomAreas(length: number, width: number, height: number, openings: number) {
   const walls = Math.max(0, 2 * (length + width) * height - openings)

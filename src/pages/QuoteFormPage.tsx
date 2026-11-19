@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Select from '../components/ui/Select'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -14,7 +14,7 @@ import NumberInput from '../components/ui/NumberInput'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { buildSnapshot } from '../lib/offerSnapshot'
-import { lineTotal, quoteTotals, roomAreas } from '../lib/quoteTotals'
+import { advanceTotal, lineTotal, quoteTotals, roomAreas } from '../lib/quoteTotals'
 import { PRICE_UNITS, VAT_RATES } from '../lib/quoteTotals'
 import { isService, serviceLine, SERVICE_GROUPS, WL, type WindowOption } from '../lib/windows'
 import { ConfiguratorCore, isUsable, type ConfigData, type ConfigItem, type ConfiguredWindow } from './ConfiguratorPage'
@@ -196,6 +196,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [leadTime, setLeadTime] = useState('')
   const [notes, setNotes] = useState('')
   const [discountPct, setDiscountPct] = useState<number | null>(0)
+  // discount when the customer pays the whole quote in advance; the quote shows both prices
+  const [advancePct, setAdvancePct] = useState<number | null>(null)
   const [lines, setLines] = useState<LineRow[]>([])
   const [deleteQuoteOpen, setDeleteQuoteOpen] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -254,6 +256,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         setLeadSource(quote.lead_source ?? '')
         setValidUntil(quote.valid_until ?? ''); setLeadTime(quote.lead_time ?? ''); setNotes(quote.notes ?? '')
         setDiscountPct(Number(quote.discount_pct ?? 0))
+        // a draft without it picks up the company default
+        setAdvancePct(quote.advance_discount_pct != null ? Number(quote.advance_discount_pct) : quote.status === 'draft' && !readOnly ? Number(company.advance_discount_pct ?? 3) : null)
       }
       const { data: ls } = await supabase.from('quote_lines').select('*').eq('quote_id', id).order('position')
       const loaded = ((ls as QuoteLine[]) ?? []).map(l => ({
@@ -269,6 +273,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       const d = new Date(); d.setDate(d.getDate() + (company.default_valid_days || 30))
       setPaymentTerms(company.default_payment_terms ?? '')
       setParity(company.default_parity ?? '')
+      setAdvancePct(Number(company.advance_discount_pct ?? 3))
       setValidUntil(format(d, 'yyyy-MM-dd'))
       setLines([])
       setChosenServices([])
@@ -278,8 +283,12 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
   // ── Lines ─────────────────────────────────────────────────
   const totals = useMemo(() => quoteTotals(lines.map(num), discountPct ?? 0), [lines, discountPct])
-  // follow the VAT already used on this quote (e.g. 9,5% for home renovation)
-  const currentVat = () => lines.length ? lines[lines.length - 1].vat_rate : 22
+  const advanceGross = advanceTotal(totals.total_gross, advancePct)
+  // VAT: 9,5% when the windows are installed for a private person (home renovation), otherwise 22%; 0 for a company outside the VAT system
+  const installing = (cfg?.options ?? []).some(o => isService(o) && o.group_key === 'installation' && chosenServices.includes(o.id))
+  const isPerson = customers.find(c => c.id === customerId)?.customer_type === 'person'
+  const vatTarget = company?.vat_payer === false ? 0 : installing && isPerson ? 9.5 : 22
+  const currentVat = () => vatTarget
   const windowLines = lines.filter(l => windowCfg(l))
   const serviceLines = lines.filter(l => serviceCfg(l))
   const subLines = lines.filter(l => subCfg(l))
@@ -336,7 +345,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       return { width: it.width ?? 0, height: it.height ?? 0, quantity: l.quantity ?? 0, base: l.unit_price ?? 0, roof: !!it.roof,
         sills: (it.sills?.in ? 1 : 0) + (it.sills?.out ? 1 : 0), shades: it.shading?.shade ? 1 : 0, screens: it.shading?.screen ? 1 : 0 }
     })
-    const installing = svcOptions.some(o => o.group_key === 'installation' && chosenServices.includes(o.id))
     const auto = (o: WindowOption) => !!o.per_item && o.per_item !== 'window' && o.per_item !== 'roof'
     const old = new Map(serviceLines.map(l => [serviceCfg(l)!.option_id, l]))
     return svcOptions.filter(o => (auto(o) ? installing : chosenServices.includes(o.id)))
@@ -358,6 +366,15 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (sig(computedServices) === sig(serviceLines)) return
     setLines(ls => [...ls.filter(l => !serviceCfg(l)), ...computedServices])
   }, [computedServices])
+  const vatSeen = useRef<number | null>(null)
+  useEffect(() => {
+    if (loading || readOnly || !cfg) return
+    if (vatSeen.current === null) { vatSeen.current = vatTarget; return }
+    if (vatSeen.current === vatTarget) return
+    vatSeen.current = vatTarget
+    setLines(ls => ls.map(l => ({ ...l, vat_rate: vatTarget })))
+    toast.success(lang === 'en' ? `VAT set to ${vatTarget.toLocaleString('de-DE')}% on all lines.` : `DDV na vseh postavkah je zdaj ${vatTarget.toLocaleString('de-DE')}%.`)
+  }, [vatTarget, loading, cfg])
   function toggleService(o: WindowOption) {
     setChosenServices(sv => {
       if (sv.includes(o.id)) return sv.filter(x => x !== o.id)
@@ -469,7 +486,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
       site_address: siteAddress.trim() || null, payment_terms: paymentTerms.trim() || null, parity: parity || null, lead_source: leadSource || null,
       valid_until: validUntil || null, lead_time: leadTime.trim() || null, delivery_date: null, notes: notes.trim() || null,
-      discount_pct: discountPct ?? 0, total_net: totals.total_net, total_vat: totals.total_vat, total_gross: totals.total_gross,
+      discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null, total_net: totals.total_net, total_vat: totals.total_vat, total_gross: totals.total_gross,
     }
     let quoteId = id
     let number = quoteNumber
@@ -528,7 +545,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     const snap = buildSnapshot({
       quote_number: res.number, title: '', valid_until: validUntil || null, lead_time: leadTime || null, payment_terms: paymentTerms || null, parity: parity || null,
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
-      notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0,
+      notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null,
     } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l), config: l.config })))
     // Izdano and Poslano are one step now: issuing an offer marks it as sent
     const newStatus = 'sent' as const
@@ -944,6 +961,19 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   <td className="px-4 py-3 text-right text-base font-bold text-gray-900 whitespace-nowrap">{money(totals.total_gross)}</td>
                   {!ro && <td />}
                 </tr>
+                {(!ro || advanceGross != null) && <tr>
+                  <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 pt-1 pb-1.5 text-right text-sm text-gray-500">{lang === 'en' ? 'Discount for 100% advance payment' : 'Popust ob plačilu 100% avansa'}</td>
+                  <td className="px-4 pt-1 pb-1.5 text-right">
+                    {ro ? <span className="text-sm text-gray-700">{(advancePct ?? 0).toLocaleString('de-DE')}%</span>
+                      : <div className="w-28 ml-auto"><NumberInput unit="%" value={advancePct} onValue={setAdvancePct} /></div>}
+                  </td>
+                  {!ro && <td />}
+                </tr>}
+                {advanceGross != null && <tr>
+                  <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 pt-1 pb-3 text-right text-sm font-semibold text-gray-900">{lang === 'en' ? 'Total with 100% advance payment' : 'Skupaj ob plačilu 100% avansa'}</td>
+                  <td className="px-4 pt-1 pb-3 text-right text-base font-semibold text-[#26897a] whitespace-nowrap">{money(advanceGross)}</td>
+                  {!ro && <td />}
+                </tr>}
               </tfoot>
             </table>
           </div>

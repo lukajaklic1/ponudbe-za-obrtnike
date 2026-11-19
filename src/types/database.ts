@@ -43,6 +43,8 @@ export interface Company {
   default_payment_terms: string | null
   default_valid_days: number
   default_parity: string | null
+  /** discount for paying the whole quote in advance (%); the quote shows the price with and without it */
+  advance_discount_pct?: number
   invoice_prefix: string
   invoice_counter: number
   invoice_due_days: number
@@ -178,6 +180,8 @@ export interface Quote {
   pdf_path: string | null
   site_address: string | null
   discount_pct: number
+  /** discount for 100% advance payment on this quote (%), null = none */
+  advance_discount_pct?: number | null
   total_net: number
   total_vat: number
   total_gross: number
@@ -187,7 +191,7 @@ export interface Quote {
 
 // Frozen copy of an issued offer (so it never re-reads live price lists).
 export interface OfferSnapshot {
-  offer: { number: string; title?: string | null; issued_at: string; valid_until: string | null; lead_time: string | null; payment_terms: string | null; parity: string | null; notes: string | null; currency: string; site_address?: string | null; discount_pct?: number }
+  offer: { number: string; title?: string | null; issued_at: string; valid_until: string | null; lead_time: string | null; payment_terms: string | null; parity: string | null; notes: string | null; currency: string; site_address?: string | null; discount_pct?: number; advance_discount_pct?: number | null }
   customer: { name: string; vat_number: string | null; address: string | null; contact_person: string | null; contact_email: string | null; contact_phone: string | null }
   company: { name: string; address: string | null; tax_id: string | null; legal_form?: string | null; registration_number?: string | null; registry_authority?: string | null; share_capital?: number | null; unpaid_capital?: number | null; email: string | null; phone: string | null; bank_name: string | null; bank_iban: string | null; logo_url: string | null; quote_terms: string | null; quote_terms_en: string | null; website?: string | null; bank_bic?: string | null; vat_payer?: boolean; vat_exempt_note?: string | null }
   lines: OfferSnapshotLine[]
@@ -196,6 +200,8 @@ export interface OfferSnapshot {
   total_net: number
   vat: { rate: number; base: number; amount: number }[]
   total_gross: number
+  /** total with VAT when the whole quote is paid in advance (null = no advance price) */
+  advance_total_gross?: number | null
 }
 export interface OfferSnapshotLine {
   /** frozen window configuration (shape, size, profile, picture, colour, extras) at the time of the quote */

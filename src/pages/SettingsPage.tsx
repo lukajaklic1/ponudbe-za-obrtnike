@@ -234,6 +234,13 @@ export default function SettingsPage() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+            <Input id="advance_pct" label={lang === 'sl' ? 'Popust ob plačilu 100% avansa (%)' : 'Discount for 100% advance payment (%)'} type="number" min={0} step="0.5"
+              value={String(form.advance_discount_pct ?? 3)}
+              onChange={e => setForm(f => ({ ...f, advance_discount_pct: Math.max(0, Number(e.target.value.replace(',', '.')) || 0) }))} />
+            <p className="sm:col-span-2 self-end text-sm font-medium text-[#4f4f4f] pb-2">{lang === 'sl' ? 'Ponudba pokaže ceno brez avansa in ceno ob plačilu 100% avansa. Na posamezni ponudbi ga lahko spremenite, 0 pomeni brez te cene.' : 'The quote shows the price without and with 100% advance payment. You can change it on each quote, 0 means no advance price.'}</p>
+          </div>
+
           <div className="mt-5">
             <Checkbox checked={form.vat_payer === false} onChange={v => setForm(f => ({ ...f, vat_payer: !v, vat_exempt_note: v && !f.vat_exempt_note ? 'DDV ni obračunan na podlagi 1. odstavka 94. člena ZDDV-1.' : f.vat_exempt_note }))}
               label={lang === 'sl' ? 'Nisem zavezanec za DDV (cene v ponudbah in konfiguratorju so brez DDV)' : 'Not VAT registered (quote and configurator prices without VAT)'} />
@@ -243,7 +250,7 @@ export default function SettingsPage() {
             </div>}
           </div>
 
-          {isAdmin && <SaveRow loading={saving === 'quote'} onClick={() => save('quote', ['currency', 'quote_prefix', 'quote_counter', 'default_valid_days', 'default_parity', 'vat_payer', 'vat_exempt_note'])} label={t.common.save} />}
+          {isAdmin && <SaveRow loading={saving === 'quote'} onClick={() => save('quote', ['currency', 'quote_prefix', 'quote_counter', 'default_valid_days', 'default_parity', 'advance_discount_pct', 'vat_payer', 'vat_exempt_note'])} label={t.common.save} />}
         </Section>
 
         {/* Payment terms — the company's list; one is preselected on new quotes */}

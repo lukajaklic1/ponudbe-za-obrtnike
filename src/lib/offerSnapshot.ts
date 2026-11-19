@@ -1,5 +1,5 @@
 import type { Quote, Customer, Company, OfferSnapshot, OfferSnapshotLine } from '../types/database'
-import { lineTotal, quoteTotals } from './quoteTotals'
+import { advanceTotal, lineTotal, quoteTotals } from './quoteTotals'
 
 function composeAddress(c: { address_street?: string | null; address_postal_code?: string | null; address_city?: string | null; address_country?: string | null } | null): string | null {
   if (!c) return null
@@ -29,6 +29,7 @@ export function buildSnapshot(quote: Quote, customer: Customer | null, company: 
       currency: company?.currency || 'EUR',
       site_address: quote.site_address,
       discount_pct: quote.discount_pct ?? 0,
+      advance_discount_pct: quote.advance_discount_pct ?? null,
     },
     customer: {
       name: customer?.name ?? '—',
@@ -65,5 +66,6 @@ export function buildSnapshot(quote: Quote, customer: Customer | null, company: 
     total_net: tot.total_net,
     vat: tot.vat,
     total_gross: tot.total_gross,
+    advance_total_gross: advanceTotal(tot.total_gross, quote.advance_discount_pct),
   }
 }

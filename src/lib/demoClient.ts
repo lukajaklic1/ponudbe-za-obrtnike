@@ -44,7 +44,7 @@ function seed(): DB {
     quote_prefix: 'P', quote_counter: 4,
     legal_form: 'sp', registration_number: '1234567000', registry_authority: null, share_capital: null, unpaid_capital: null,
     payment_terms_list: ['30% avans, ostalo po končanju del', '8 dni po izstavitvi računa', 'Takoj ob končanju del'],
-    default_payment_terms: '30% avans, ostalo po končanju del', default_valid_days: 30, default_parity: null,
+    default_payment_terms: '30% avans, ostalo po končanju del', default_valid_days: 30, default_parity: null, advance_discount_pct: 3,
     quote_terms: 'Cene so brez DDV, razen kjer je navedeno drugače. Material je vključen v ceno postavk. Dodatna dela se obračunajo po dejanskih količinah in veljavnem ceniku.',
     quote_terms_en: 'Prices exclude VAT unless stated otherwise. Material is included in item prices. Additional work is charged per actual quantities.',
     is_active: true, created_at: daysAgo(200), updated_at: daysAgo(10),
