@@ -82,11 +82,11 @@ const TXT = {
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
     basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
-    contact: 'Vaši podatki', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov objekta', note: 'Opomba',
+    contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov objekta', note: 'Opomba',
     consent: 'Strinjam se, da ponudnik moje podatke uporabi za pripravo ponudbe.',
     doneTitle: 'Hvala, povpraševanje je oddano!', doneText: 'Ponudnik bo pripravil ponudbo in vas kontaktiral. Številka vašega povpraševanja:',
     newOne: 'Novo povpraševanje', invalidSize: 'Mere so izven dovoljenega razpona', pcs: 'kos',
-    errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
+    errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', company_required: 'Vnesite naziv podjetja.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
@@ -109,11 +109,11 @@ const TXT = {
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
     basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
-    contact: 'Your details', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Site address', note: 'Note',
+    contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Site address', note: 'Note',
     consent: 'I agree that the supplier uses my data to prepare a quote.',
     doneTitle: 'Thank you, your enquiry was sent!', doneText: 'The supplier will prepare a quote and contact you. Your enquiry number:',
     newOne: 'New enquiry', invalidSize: 'Size is outside the allowed range', pcs: 'pc',
-    errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
+    errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', company_required: 'Enter the company name.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
@@ -180,7 +180,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [items, setItems] = useState<ConfigItem[]>(initialItems ?? [])
   const [active, setActive] = useState(0)
   const [stage, setStage] = useState<'config' | 'review' | 'contact' | 'done'>('config')
-  const [contact, setContact] = useState({ first_name: '', last_name: '', email: '', phone: '', address: '', note: '' })
+  const [contact, setContact] = useState({ customer_type: 'person' as 'person' | 'company', company_name: '', vat_number: '', first_name: '', last_name: '', email: '', phone: '', address: '', note: '' })
   const [heard, setHeard] = useState('')
   const [consent, setConsent] = useState(false)
   const [sending, setSending] = useState(false)
@@ -290,10 +290,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
   const totals = useMemo(() => {
     const net = items.reduce((a, it) => a + (priceOf(it) ?? 0) * it.quantity, 0) + (show ? serviceRows.reduce((a, r) => a + r.total, 0) : 0)
-    const vatRate = data?.company.vat_rate ?? 22
+    const installing = !!data?.options.some(o => o.group_key === 'installation' && services.includes(o.id))
+    const baseRate = data?.company.vat_rate ?? 22
+    const vatRate = baseRate === 0 ? 0 : installing && contact.customer_type === 'person' ? 9.5 : baseRate
     const vat = Math.round(net * vatRate) / 100
     return { net, vat, gross: net + vat, vatRate, complete: items.every(it => priceOf(it) != null) }
-  }, [items, data, serviceRows])
+  }, [items, data, serviceRows, services, contact.customer_type])
 
   if (!items.length) return null
   const it = items[active] ?? items[0]
@@ -1085,7 +1087,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <button onClick={() => setStage('review')} className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
                 <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-5">{T.contact}</h2>
+                <div className="inline-flex p-1 rounded-[10px] bg-[#f1f1f1] mb-5">
+                  {(['person', 'company'] as const).map(k => <button key={k} type="button" onClick={() => setContact({ ...contact, customer_type: k })}
+                    className={cn('h-9 px-4 rounded-lg text-sm font-semibold transition-colors', contact.customer_type === k ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.1)]' : 'text-[#4f4f4f] hover:text-gray-900')}>
+                    {k === 'person' ? T.person : T.company}</button>)}
+                </div>
                 <div className="grid sm:grid-cols-2 gap-3">
+                  {contact.customer_type === 'company' && <>
+                    <Field label={T.companyName} value={contact.company_name} onChange={v => setContact({ ...contact, company_name: v })} autoComplete="organization" />
+                    <Field label={T.vatNo} value={contact.vat_number} onChange={v => setContact({ ...contact, vat_number: v })} />
+                    <div className="sm:col-span-2 text-sm font-semibold text-gray-900 pt-2">{T.contactPersonHint}</div>
+                  </>}
                   <Field label={T.firstName} value={contact.first_name} onChange={v => setContact({ ...contact, first_name: v })} autoComplete="given-name" />
                   <Field label={T.lastName} value={contact.last_name} onChange={v => setContact({ ...contact, last_name: v })} autoComplete="family-name" />
                   <Field label={T.email} type="email" value={contact.email} onChange={v => setContact({ ...contact, email: v })} autoComplete="email" />
@@ -1154,7 +1166,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </ul>}
               {show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
-                {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate}%`} r={money(totals.vat, cur)} muted />}
+                {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate.toLocaleString('de-DE')}%`} r={money(totals.vat, cur)} muted />}
                 <Row l={T.gross} r={money(totals.gross, cur)} bold />
                 {!internal && <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>}
               </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{T.pricesHidden}</p>}
@@ -1172,7 +1184,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
               ) : (
-                <button disabled={sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name)} onClick={submit}
+                <button disabled={sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name) || (contact.customer_type === 'company' && !contact.company_name.trim())} onClick={submit}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" style={btn}>
                   {sending && <Loader2 className="w-4 h-4 animate-spin" />}{sending ? T.sending : T.send}
                 </button>
