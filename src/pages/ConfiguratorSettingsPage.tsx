@@ -14,7 +14,7 @@ import { cn } from '../lib/cn'
 const TXT = {
   sl: {
     title: 'Objava', save: 'Shrani',
-    cfgEnabled: 'Konfigurator je javno dostopen', cfgSlug: 'Naslov strani', cfgShowPrices: 'Stranka vidi cene sproti',
+    cfgEnabled: 'Konfigurator je javno dostopen', cfgSlug: 'Naslov strani', cfgShowPrices: 'Stranka lahko sproti vidi cene med konfiguracijo',
     cfgAccent: 'Barva gumbov', cfgIntro: 'Uvodno besedilo', cfgLink: 'Povezava za tvojo spletno stran', copy: 'Kopiraj', copied: 'Kopirano',
     open: 'Odpri', embed: 'Vstavi v spletno stran (iframe)', slugInvalid: 'Naslov: 3–40 znakov, male črke, številke in vezaji',
     slugTaken: 'Ta naslov je že zaseden',
@@ -25,7 +25,7 @@ const TXT = {
   },
   en: {
     title: 'Publishing', save: 'Save',
-    cfgEnabled: 'Configurator is publicly available', cfgSlug: 'Page address', cfgShowPrices: 'Customer sees prices live',
+    cfgEnabled: 'Configurator is publicly available', cfgSlug: 'Page address', cfgShowPrices: 'Customer can see prices live while configuring',
     cfgAccent: 'Button colour', cfgIntro: 'Intro text', cfgLink: 'Link for your website', copy: 'Copy', copied: 'Copied',
     open: 'Open', embed: 'Embed in your website (iframe)', slugInvalid: 'Address: 3–40 chars, lowercase letters, digits and dashes',
     slugTaken: 'This address is already taken',
@@ -94,7 +94,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
   }
   function copy(text: string) { navigator.clipboard.writeText(text).then(() => toast.success(T.copied)) }
 
-  return <div className="px-6 py-6 max-w-3xl space-y-4">
+  return <div className="form-scope px-6 py-6 max-w-3xl mx-auto space-y-4">
     <Card className="p-5 flex flex-wrap items-center gap-4">
       <div className="flex-1 min-w-[240px]">
         <div className="flex items-center gap-2">
@@ -112,14 +112,14 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       <Input label={T.cfgSlug} value={form.slug} onChange={e => setForm({ ...form, slug: slugify(e.target.value) })} error={slugOk ? undefined : T.slugInvalid} disabled={!canEdit} />
       <Checkbox checked={form.show} onChange={v => setForm({ ...form, show: v })} label={T.cfgShowPrices} />
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{T.cfgAccent}</label>
+        <label>{T.cfgAccent}</label>
         <div className="flex items-center gap-2">
           <input type="color" value={form.accent} onChange={e => setForm({ ...form, accent: e.target.value })} className="h-9 w-12 rounded border border-gray-200 bg-white p-1" />
-          <span className="text-sm font-mono text-gray-600">{form.accent}</span>
+          <span className="text-sm font-medium text-[#4f4f4f]">{form.accent}</span>
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{T.cfgIntro}</label>
+        <label>{T.cfgIntro}</label>
         <textarea rows={3} value={form.intro} onChange={e => setForm({ ...form, intro: e.target.value })}
           className="w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
@@ -133,7 +133,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
         <Button variant="secondary" className="gap-1.5" onClick={() => copy(url)}><Copy className="w-4 h-4" />{T.copy}</Button>
         <a href={url} target="_blank" rel="noreferrer"><Button variant="secondary" className="gap-1.5"><ExternalLink className="w-4 h-4" />{T.open}</Button></a>
       </div>
-      <div className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{T.embed}</div>
+      <div className="text-sm font-medium text-[#4f4f4f]">{T.embed}</div>
       <div className="flex gap-2">
         <textarea readOnly rows={2} value={embed} className="flex-1 min-w-0 font-mono text-xs rounded-lg border border-gray-200 px-3 py-2 text-gray-700 bg-gray-50" />
         <Button variant="secondary" className="gap-1.5 self-start" onClick={() => copy(embed)}><Copy className="w-4 h-4" />{T.copy}</Button>
