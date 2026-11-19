@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { LayoutDashboard, Search, X, CalendarDays, BarChart3, Tags } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
@@ -66,23 +66,11 @@ export default function DashboardPage() {
 
   // Current state per status (value + count) — not limited to the period; refreshed live
   type StatusKey = 'all' | 'sent' | 'won' | 'lost'
-  const [statusStats, setStatusStats] = useState<Record<StatusKey, { value: number; count: number }> | null>(null)
+  const [, setStatusStats] = useState<Record<StatusKey, { value: number; count: number }> | null>(null)
   const [quotes, setQuotes] = useState<Q[]>([])
 
-  // Top services: lines of non-draft quotes, filtered by the chart's own status picker (default: won)
-  const [serviceLines, setServiceLines] = useState<{ name: string; value: number; status: string }[]>([])
-  const [serviceStatus, setServiceStatus] = useState<'won' | 'lost' | 'sent' | 'all'>('won')
-  const topServices = useMemo(() => {
-    const byName = new Map<string, { name: string; value: number; count: number }>()
-    for (const l of serviceLines) {
-      if (serviceStatus !== 'all' && l.status !== serviceStatus) continue
-      const key = l.name.toLowerCase()
-      const row = byName.get(key) ?? { name: l.name, value: 0, count: 0 }
-      row.value += l.value; row.count++
-      byName.set(key, row)
-    }
-    return [...byName.values()].sort((a, b) => b.value - a.value).slice(0, 6)
-  }, [serviceLines, serviceStatus])
+  // lines of all quotes (the services chart picks those of the period)
+  const [serviceLines, setServiceLines] = useState<{ quote_id: string; name: string; value: number }[]>([])
 
   async function loadStatusStats() {
     if (!company) return
@@ -108,8 +96,7 @@ export default function DashboardPage() {
     setStatusStats(acc)
 
     setServiceLines(((lineData as { quote_id: string; name: string; total_net: number }[]) ?? [])
-      .filter(l => statusOf.has(l.quote_id))
-      .map(l => ({ name: l.name.trim(), value: Number(l.total_net) || 0, status: statusOf.get(l.quote_id) === 'issued' ? 'sent' : statusOf.get(l.quote_id)! })))
+      .map(l => ({ quote_id: l.quote_id, name: l.name.trim(), value: Number(l.total_net) || 0 })))
   }
 
   useEffect(() => { if (company) loadStatusStats() }, [company, filterCustomerId, assigneeFilter])
@@ -170,7 +157,6 @@ export default function DashboardPage() {
 
   const sl = lang === 'sl'
 
-  const st = statusStats
   // quotes made in the chosen period, by their status now: the five values add up to the total
   const cards = (() => {
     const since = Date.now() - period * 30 * 86400000
@@ -311,14 +297,14 @@ export default function DashboardPage() {
               <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Posel po mesecih' : 'Business per month'}</h2>
               <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Poslano v mesecu in dobljeno v mesecu, ko je bila ponudba sprejeta.' : 'Sent in the month, and won in the month the quote was accepted.'}</p>
               {!hasValues ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={months} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
+                <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => moneyK(v)} width={64} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40} />
-                  <Bar dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? moneyK(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
+                  <Bar dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? moneyK(Number(v)) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
                 </BarChart>
               </ResponsiveContainer>}
             </div>
@@ -328,29 +314,44 @@ export default function DashboardPage() {
               <h2 className="text-[15px] font-semibold text-gray-900">{sl ? 'Število ponudb po mesecih' : 'Quotes per month'}</h2>
               <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{sl ? 'Poslane v mesecu in dobljene v mesecu, ko je bila ponudba sprejeta.' : 'Sent in the month, and won in the month the quote was accepted.'}</p>
               {!hasCounts ? emptyChart : <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={months} margin={{ top: 16, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
+                <BarChart data={months} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
                   <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <YAxis allowDecimals={false} width={36} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: '#f6f6f6' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
                   <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40} />
-                  <Bar dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={TEAL.light} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
+                  <Bar dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={TEAL.line} radius={[6, 6, 0, 0]} maxBarSize={40}><LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} /></Bar>
                 </BarChart>
               </ResponsiveContainer>}
             </div>
           </div>
 
 
-        {/* Status breakdown (donut) + top services */}
+        {/* Status breakdown (donut) + top services — the quotes made in the period, like the cards */}
         {(() => {
+          const since = Date.now() - period * 30 * 86400000
+          const inPeriod = quotes.filter(q => +new Date(q.created_at) >= since)
+          const statusKey = (q: Q) => (q.status === 'issued' ? 'sent' : q.status)
           const slices = [
+            { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: '#c9c9c9' },
             { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: TEAL.light },
             { key: 'won', name: sl ? 'Dobljene' : 'Won', color: TEAL.line },
             { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: TEAL.grey },
-          ].map(x => ({ ...x, count: st?.[x.key as StatusKey].count ?? 0, value: st?.[x.key as StatusKey].value ?? 0 }))
-          const total = st?.all.count ?? 0
-          const servicesTotal = topServices.reduce((a, x) => a + x.value, 0)
+          ].map(x => ({ ...x, count: inPeriod.filter(q => statusKey(q) === x.key).length }))
+          const total = inPeriod.length
+          // every service of the sent quotes: all of it (light) with the won part (dark) in one bar
+          const statusOfQ = new Map(inPeriod.filter(q => q.status !== 'draft').map(q => [q.id, q.status]))
+          const byName = new Map<string, { name: string; total: number; won: number }>()
+          for (const l of serviceLines) {
+            const stq = statusOfQ.get(l.quote_id)
+            if (!stq || !l.name) continue
+            const row = byName.get(l.name.toLowerCase()) ?? { name: l.name, total: 0, won: 0 }
+            row.total += l.value; if (stq === 'won') row.won += l.value
+            byName.set(l.name.toLowerCase(), row)
+          }
+          const topServices = [...byName.values()].sort((a, b) => b.total - a.total).slice(0, 6)
+            .map(x => ({ ...x, rest: Math.max(0, x.total - x.won), label: `${moneyK(x.total)} · ${x.total ? Math.round(x.won / x.total * 100) : 0}% ${sl ? 'dobljeno' : 'won'}` }))
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -358,7 +359,7 @@ export default function DashboardPage() {
                 {total === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[220px] text-center">
                     <BarChart3 className="w-10 h-10 text-gray-200 mb-3" />
-                    <p className="text-sm text-gray-400">{sl ? 'Še ni poslanih ponudb.' : 'No sent quotes yet.'}</p>
+                    <p className="text-sm text-gray-400">{sl ? 'V izbranem obdobju še ni ponudb.' : 'No quotes in this period yet.'}</p>
                   </div>
                 ) : (<>
                   <div className="flex items-center gap-6 h-[240px]">
@@ -394,13 +395,7 @@ export default function DashboardPage() {
                   <h2 className="text-[15px] font-semibold text-gray-900">
                     {sl ? 'Storitve po vrednosti' : 'Services by value'}
                   </h2>
-                  <FilterSelect label={sl ? 'Status ponudb' : 'Quote status'} value={serviceStatus === 'all' ? '' : serviceStatus} allLabel={sl ? 'Vse' : 'All'}
-                    options={[
-                      { value: 'won', label: sl ? 'Dobljene' : 'Won' },
-                      { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' },
-                      { value: 'sent', label: sl ? 'Poslane' : 'Sent' },
-                    ]}
-                    onChange={v => setServiceStatus((v || 'all') as typeof serviceStatus)} />
+                  <span className="text-[13px] font-medium text-[#4f4f4f]">{sl ? 'Vse poslane ponudbe, temni del je dobljeno' : 'All sent quotes, the dark part was won'}</span>
                 </div>
                 {topServices.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[260px] text-center">
@@ -410,14 +405,16 @@ export default function DashboardPage() {
                 ) : (
                   /* Same look as the other charts: dashed grid, grey axis labels, blue rounded bars, shared tooltip */
                   <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }} barCategoryGap={8}>
+                    <BarChart data={topServices} layout="vertical" margin={{ top: 0, right: 150, left: 0, bottom: 0 }} barCategoryGap={8}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} />
-                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 12, fill: '#4f4f4f' }} axisLine={false} tickLine={false}
+                      <XAxis type="number" tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => n.length > 26 ? n.slice(0, 25) + '…' : n} />
-                      <Tooltip formatter={(v) => [`${money(v as number)} (${servicesTotal ? Math.round(((v as number) / servicesTotal) * 100) : 0}%)`, sl ? 'Vrednost' : 'Value']}
-                        cursor={{ fill: '#f6f6f6' }} contentStyle={{ borderRadius: 8, border: '1px solid #dfdfdf', fontSize: 13 }} />
-                      <Bar dataKey="value" fill={TEAL.fill} radius={[0, 6, 6, 0]} maxBarSize={22} />
+                      <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n) => [money(v as number), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />
+                      <Bar dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={TEAL.line} maxBarSize={22} />
+                      <Bar dataKey="rest" stackId="s" name={sl ? 'Poslano, ne dobljeno' : 'Sent, not won'} fill={TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
+                        <LabelList dataKey="label" position="right" style={{ fontSize: 12, fontWeight: 500, fill: '#4f4f4f' }} />
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 )}
