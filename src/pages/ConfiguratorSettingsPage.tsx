@@ -10,10 +10,13 @@ import Input from '../components/ui/Input'
 import Checkbox from '../components/ui/Checkbox'
 import { PageHeader } from '../components/ui/PageHeader'
 import { cn } from '../lib/cn'
+import { COUNTRIES, SI_AREAS, DEFAULT_AREA, type InstallArea } from '../lib/siPosts'
 
 const TXT = {
   sl: {
     title: 'Objava', save: 'Shrani', saved: 'Shranjeno.',
+    area: 'Območje montaže', areaHint: 'Države, v katerih izvajate montažo. Stranka z naslovom izven območja lahko pošlje povpraševanje brez montaže.',
+    areaSi: 'V Sloveniji samo ta poštna območja (brez izbire velja vsa Slovenija):',
     cfgEnabled: 'Konfigurator je javno dostopen', cfgSlug: 'Naslov strani', cfgShowPrices: 'Stranka lahko sproti vidi cene med konfiguracijo',
     cfgAccent: 'Barva gumbov', cfgIntro: 'Uvodno besedilo', cfgLink: 'Povezava do konfiguratorja', linkHint: 'Povezavo lahko dodate na gumb na vaši spletni strani (npr. »Izračunajte ceno«) ali jo pošljete stranki.', copy: 'Kopiraj', copied: 'Kopirano',
     open: 'Odpri', embed: 'Koda za vgradnjo v vašo spletno stran', embedHint: 'Če želite konfigurator prikazati kot del vaše spletne strani, kopirajte kodo in jo prilepite na stran (v WordPressu ali Wixu v blok HTML).', slugInvalid: 'Naslov: 3–40 znakov, male črke, številke in vezaji',
@@ -25,6 +28,8 @@ const TXT = {
   },
   en: {
     title: 'Publishing', save: 'Save', saved: 'Saved.',
+    area: 'Installation area', areaHint: 'Countries where you install. A customer outside the area can still send an enquiry without installation.',
+    areaSi: 'In Slovenia only these postal areas (none ticked = all of Slovenia):',
     cfgEnabled: 'Configurator is publicly available', cfgSlug: 'Page address', cfgShowPrices: 'Customer can see prices live while configuring',
     cfgAccent: 'Button colour', cfgIntro: 'Intro text', cfgLink: 'Link to the configurator', linkHint: 'Put the link on a button on your website (e.g. "Get a price") or send it to a customer.', copy: 'Copy', copied: 'Copied',
     open: 'Open', embed: 'Code to embed in your website', embedHint: 'If you want the configurator to show as part of your website, copy the code and paste it on the page (in WordPress or Wix into an HTML block).', slugInvalid: 'Address: 3–40 chars, lowercase letters, digits and dashes',
@@ -65,6 +70,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     show: company.configurator_show_prices ?? true,
     accent: company.configurator_accent ?? '#2563eb',
     intro: company.configurator_intro ?? '',
+    area: ((company as any).configurator_area as InstallArea | null) ?? DEFAULT_AREA,
   })
   const [saving, setSaving] = useState(false)
   const slugOk = /^[a-z0-9]([a-z0-9-]{1,38})[a-z0-9]$/.test(form.slug)
@@ -76,7 +82,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     setSaving(true)
     const { error } = await supabase.from('companies').update({
       configurator_enabled: form.enabled, configurator_slug: form.slug, configurator_show_prices: form.show,
-      configurator_accent: form.accent, configurator_intro: form.intro.trim() || null,
+      configurator_accent: form.accent, configurator_intro: form.intro.trim() || null, configurator_area: form.area,
     } as any).eq('id', company.id)
     setSaving(false)
     if (error) { toast.error(error.code === '23505' ? T.slugTaken : error.message); return }
@@ -122,6 +128,23 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
         <label>{T.cfgIntro}</label>
         <textarea rows={3} value={form.intro} onChange={e => setForm({ ...form, intro: e.target.value })}
           className="w-full rounded-lg border border-gray-200 hover:border-gray-400 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div>
+        <label>{T.area}</label>
+        <p className="text-sm font-medium text-[#4f4f4f] mt-1 mb-3">{T.areaHint}</p>
+        <div className="flex flex-wrap gap-2">
+          {COUNTRIES.map(c => { const on = form.area.countries.includes(c.code)
+            return <button key={c.code} type="button" disabled={!canEdit}
+              onClick={() => setForm(f => ({ ...f, area: { ...f.area, countries: on ? f.area.countries.filter(x => x !== c.code) : [...f.area.countries, c.code] } }))}
+              className={cn('h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors', on ? 'border-[#26897a] bg-[#eef8f6] text-gray-900' : 'border-gray-200 bg-white text-[#4f4f4f] hover:border-gray-400')}>{c.sl}</button> })}
+        </div>
+        {form.area.countries.includes('SI') && <div className="mt-4">
+          <p className="text-sm font-medium text-[#4f4f4f] mb-2">{T.areaSi}</p>
+          <div className="grid sm:grid-cols-2 gap-2">
+            {SI_AREAS.map(a => <Checkbox key={a.key} checked={form.area.si_areas.includes(a.key)} label={a.sl}
+              onChange={on => setForm(f => ({ ...f, area: { ...f.area, si_areas: on ? [...f.area.si_areas, a.key] : f.area.si_areas.filter(x => x !== a.key) } }))} />)}
+          </div>
+        </div>}
       </div>
       {canEdit && <div className="flex justify-end"><Button onClick={save} loading={saving}>{T.save}</Button></div>}
     </Card>

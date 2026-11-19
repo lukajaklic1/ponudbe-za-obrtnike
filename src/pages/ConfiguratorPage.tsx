@@ -20,6 +20,7 @@ import {
 } from '../lib/costing'
 import { cn } from '../lib/cn'
 import Select from '../components/ui/Select'
+import { SI_POSTS, COUNTRIES, inArea, type InstallArea } from '../lib/siPosts'
 import { leadSourceOptions } from '../lib/leadSources'
 import {
   WL, OPTION_GROUPS, SERVICE_GROUPS, SINGLE_CHOICE_GROUPS, basePrice, unitPrice, serviceLine, isService, money, hasHingeChoice, isDoor,
@@ -29,7 +30,7 @@ import {
 // Public window configurator: /k/:slug — no login. Prices are recomputed on the server on submit.
 
 export interface ConfigData {
-  company: { name: string; logo_url: string | null; email: string | null; phone: string | null; currency: string; accent: string; intro: string | null; show_prices: boolean; vat_rate: number }
+  company: { name: string; logo_url: string | null; email: string | null; phone: string | null; currency: string; accent: string; intro: string | null; show_prices: boolean; vat_rate: number; area?: InstallArea | null }
   systems: WindowSystem[]
   types: WindowType[]
   prices: WindowPrice[]
@@ -82,11 +83,11 @@ const TXT = {
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
     basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
-    contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov objekta', note: 'Opomba',
+    contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov montaže', street: 'Ulica in hišna številka', postal: 'Poštna številka', city: 'Kraj', country: 'Država', postalPick: 'Vpišite številko ali kraj', outOfArea: 'Na tem naslovu montaže ne izvajamo. Povpraševanje lahko pošljete brez montaže.', note: 'Opomba',
     consent: 'Strinjam se, da ponudnik moje podatke uporabi za pripravo ponudbe.',
     doneTitle: 'Hvala, povpraševanje je oddano!', doneText: 'Ponudnik bo pripravil ponudbo in vas kontaktiral. Številka vašega povpraševanja:',
     newOne: 'Novo povpraševanje', invalidSize: 'Mere so izven dovoljenega razpona', pcs: 'kos',
-    errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', company_required: 'Vnesite naziv podjetja.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
+    errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', company_required: 'Vnesite naziv podjetja.', address_required: 'Vnesite celoten naslov montaže.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
@@ -109,11 +110,11 @@ const TXT = {
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
     basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
-    contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Site address', note: 'Note',
+    contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Installation address', street: 'Street and house number', postal: 'Postal code', city: 'Town', country: 'Country', postalPick: 'Type the code or the town', outOfArea: 'We do not install at this address. You can still send the enquiry without installation.', note: 'Note',
     consent: 'I agree that the supplier uses my data to prepare a quote.',
     doneTitle: 'Thank you, your enquiry was sent!', doneText: 'The supplier will prepare a quote and contact you. Your enquiry number:',
     newOne: 'New enquiry', invalidSize: 'Size is outside the allowed range', pcs: 'pc',
-    errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', company_required: 'Enter the company name.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
+    errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', company_required: 'Enter the company name.', address_required: 'Enter the full installation address.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
@@ -180,7 +181,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [items, setItems] = useState<ConfigItem[]>(initialItems ?? [])
   const [active, setActive] = useState(0)
   const [stage, setStage] = useState<'config' | 'review' | 'contact' | 'done'>('config')
-  const [contact, setContact] = useState({ customer_type: 'person' as 'person' | 'company', company_name: '', vat_number: '', first_name: '', last_name: '', email: '', phone: '', address: '', note: '' })
+  const [contact, setContact] = useState({ customer_type: 'person' as 'person' | 'company', company_name: '', vat_number: '', first_name: '', last_name: '', email: '', phone: '', street: '', postal_code: '', city: '', country: 'SI', note: '' })
   const [heard, setHeard] = useState('')
   const [consent, setConsent] = useState(false)
   const [sending, setSending] = useState(false)
@@ -191,6 +192,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [services, setServices] = useState<string[]>(() => data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
   // start with one window (or the windows handed in when a quote position is edited)
   useEffect(() => { if (!items.length) setItems([defaultItem(data)]) }, [])
+  // an installation address outside the supplier's area: the enquiry goes without installation
+  const outOfArea = !!contact.postal_code.trim() && !inArea(data.company.area, contact.country, contact.postal_code)
+  useEffect(() => {
+    if (!outOfArea) return
+    const inst = data.options.filter(o => o.group_key === 'installation').map(o => o.id)
+    setServices(sv => sv.filter(id => !inst.includes(id)))
+  }, [outOfArea])
 
   const accent = data?.company.accent || '#131313'
   const cur = data?.company.currency || 'EUR'
@@ -1102,7 +1110,19 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <Field label={T.lastName} value={contact.last_name} onChange={v => setContact({ ...contact, last_name: v })} autoComplete="family-name" />
                   <Field label={T.email} type="email" value={contact.email} onChange={v => setContact({ ...contact, email: v })} autoComplete="email" />
                   <Field label={T.phone} type="tel" value={contact.phone} onChange={v => setContact({ ...contact, phone: v })} autoComplete="tel" />
-                  <div className="sm:col-span-2"><Field label={T.address} value={contact.address} onChange={v => setContact({ ...contact, address: v })} autoComplete="street-address" /></div>
+                  <div className="sm:col-span-2 text-[15px] font-semibold text-gray-900 pt-3">{T.address}</div>
+                  <div className="sm:col-span-2"><Field label={T.street} value={contact.street} onChange={v => setContact({ ...contact, street: v })} autoComplete="address-line1" /></div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-semibold text-gray-900">{T.country}</span>
+                    <Select value={contact.country} onChange={v => setContact({ ...contact, country: v, postal_code: '', city: '' })}
+                      options={COUNTRIES.map(c => ({ value: c.code, label: c[lang] }))} />
+                  </div>
+                  {contact.country === 'SI'
+                    ? <PostPicker label={T.postal} placeholder={T.postalPick} code={contact.postal_code} city={contact.city}
+                        onPick={(code, city) => setContact({ ...contact, postal_code: code, city })} />
+                    : <Field label={T.postal} value={contact.postal_code} onChange={v => setContact({ ...contact, postal_code: v })} autoComplete="postal-code" />}
+                  {contact.country !== 'SI' && <Field label={T.city} value={contact.city} onChange={v => setContact({ ...contact, city: v })} autoComplete="address-level2" />}
+                  {outOfArea && <p className="sm:col-span-2 text-sm font-medium text-[#8a6100] bg-[#fef3cd] rounded-lg px-3 py-2">{T.outOfArea}</p>}
                   {/* where the customer heard of the supplier (goes to the enquiry's note) */}
                   <div className="sm:col-span-2 flex flex-col gap-1">
                     <span className="text-sm font-semibold text-gray-900">{T.heard}<span className="req-star"> *</span></span>
@@ -1184,7 +1204,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
               ) : (
-                <button disabled={sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name) || (contact.customer_type === 'company' && !contact.company_name.trim())} onClick={submit}
+                <button disabled={sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name) || (contact.customer_type === 'company' && !contact.company_name.trim()) || !contact.street.trim() || !contact.postal_code.trim() || !contact.city.trim()} onClick={submit}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" style={btn}>
                   {sending && <Loader2 className="w-4 h-4 animate-spin" />}{sending ? T.sending : T.send}
                 </button>
@@ -1213,6 +1233,27 @@ function MmInput({ label, value, onChange, min, max, rangeLabel }: { label: stri
       <span className="px-3 text-sm text-gray-500">mm</span>
     </div>
     <span className={cn('text-[13px]', bad ? 'text-red-600' : 'text-gray-500')}>{rangeLabel} {min}–{max} mm</span>
+  </div>
+}
+
+function PostPicker({ label, placeholder, code, city, onPick }: { label: string; placeholder: string; code: string; city: string; onPick: (code: string, city: string) => void }) {
+  const [q, setQ] = useState(code ? `${code} ${city}` : '')
+  const [open, setOpen] = useState(false)
+  useEffect(() => { setQ(code ? `${code} ${city}` : '') }, [code, city])
+  const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const hits = q.trim() && !(code && q === `${code} ${city}`)
+    ? SI_POSTS.filter(p => p.code.startsWith(q.trim()) || norm(p.name).includes(norm(q.trim()))).slice(0, 8)
+    : []
+  return <div className="flex flex-col gap-1 relative">
+    <label className="text-sm font-semibold text-gray-900">{label}</label>
+    <input value={q} placeholder={placeholder} autoComplete="off"
+      onChange={e => { setQ(e.target.value); setOpen(true); if (code) onPick('', '') }}
+      onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+      className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
+    {open && hits.length > 0 && <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 max-h-64 overflow-y-auto">
+      {hits.map(p => <button key={p.code + p.name} type="button" onMouseDown={e => e.preventDefault()} onClick={() => { onPick(p.code, p.name); setOpen(false) }}
+        className="w-full text-left px-3 py-2 text-sm hover:bg-[#f5f5f5] flex gap-3"><span className="font-semibold tabular-nums w-10">{p.code}</span><span className="text-gray-900">{p.name}</span></button>)}
+    </div>}
   </div>
 }
 
