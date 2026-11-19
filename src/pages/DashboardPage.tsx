@@ -16,7 +16,7 @@ type Q = { id: string; status: string; total_net: number; customer_id: string; a
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
 const TONES = { grey: { color: '#4a4a4a', backgroundColor: '#ececec' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
-function StatCard({ label, value, badge, tone, sub }: { label: string; value: string; badge: string; tone: keyof typeof TONES; sub: string }) {
+function StatCard({ label, value, badge, tone }: { label: string; value: string; badge: string; tone: keyof typeof TONES; sub?: string }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 px-4 py-4">
       <p className="text-[15px] font-medium text-gray-900 truncate" title={label}>{label}</p>
@@ -24,7 +24,6 @@ function StatCard({ label, value, badge, tone, sub }: { label: string; value: st
         <p className="text-[24px] leading-8 font-bold text-gray-900 tracking-[-0.02em] whitespace-nowrap">{value}</p>
         <span className="inline-flex text-xs font-semibold px-[7px] py-[3px] rounded-lg whitespace-nowrap" style={TONES[tone]}>{badge}</span>
       </div>
-      <p className="text-[13px] font-medium text-[#4f4f4f] mt-1.5">{sub}</p>
     </div>
   )
 }
