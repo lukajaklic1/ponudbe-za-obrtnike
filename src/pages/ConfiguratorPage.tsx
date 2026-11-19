@@ -226,11 +226,16 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     if (!data || !bPricing || !it.spec || !it.width || !it.height) return null
     const sy = data.systems.find(x => x.id === systemId)
     if (!sy) return null
-    const c = costWindow(specToLayout(it.spec), it.width, it.height, {
+    const prof = {
       frame_m: Number(sy.frame_m ?? 0), sash_m: Number(sy.sash_m ?? 0), mullion_m: Number(sy.mullion_m ?? 0), bead_m: Number(sy.bead_m ?? 0),
       frame_w: sy.frame_w, sash_w: sy.sash_w, mullion_w: sy.mullion_w,
-    }, bPricing, { colorPct: colorPctOf(data.builder?.colors?.[sy.material], it.colors?.out, it.colors?.in), glassId: it.glass, handleId: it.handle, sillIn: it.sills?.in, sillOut: it.sills?.out, shadeId: it.shading?.shade, screenId: it.shading?.screen })
-    return Math.round(Math.max(Number(sy.min_price ?? 0), c.price) * 100) / 100
+    }
+    const colorPct = colorPctOf(data.builder?.colors?.[sy.material], it.colors?.out, it.colors?.in)
+    const c = costWindow(specToLayout(it.spec), it.width, it.height, prof, bPricing, { colorPct, glassId: it.glass, handleId: it.handle, sillIn: it.sills?.in, sillOut: it.sills?.out, shadeId: it.shading?.shade, screenId: it.shading?.screen })
+    // the profile's lowest price is for the window alone (standard glass and handle):
+    // better glass, a dearer handle, sills, shading and insect screens are added on top of it
+    const win = costWindow(specToLayout(it.spec), it.width, it.height, prof, bPricing, { colorPct, glassId: glassList[0]?.id ?? it.glass, handleId: handleList[0]?.id ?? it.handle })
+    return Math.round((Math.max(Number(sy.min_price ?? 0), win.price) + (c.price - win.price)) * 100) / 100
   }
 
   function defaultItem(d: ConfigData, typeId?: string): ConfigItem {
