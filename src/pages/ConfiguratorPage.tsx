@@ -831,7 +831,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
       ) : (
-        <div className={cn('w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start', internal ? 'xl:grid-cols-[360px_minmax(0,1fr)_380px]' : 'max-w-[1360px] mx-auto')}>
+        <div className={cn('w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start', internal ? 'xl:grid-cols-[360px_minmax(0,1fr)_380px]' : 'max-w-[1480px] mx-auto')}>
           {/* The order at a glance (wide screens): the windows, one line of services, the final price */}
           {internal && <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-[100px] bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-116px)] overflow-y-auto">
             <div className="text-base font-semibold text-gray-900">{T.yourOrder}</div>
