@@ -76,7 +76,7 @@ const TXT = {
     openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
-    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
     grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
@@ -103,7 +103,7 @@ const TXT = {
     openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services',
-    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
@@ -548,7 +548,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     ...(!roofSel ? ['profile'] : []),
     ...(colorList.length >= 2 ? ['color'] : []),
     'size',
-    ...(!roofSel && ((spec && (glassList.length > 1 || handleList.length > 1 || sillList.length > 0 || shadeList.length > 0)) || extraGroups.length > 0) ? ['equipment'] : []),
+    ...(spec && glassList.length > 1 ? ['glass'] : []),
+    ...(spec && handleList.length > 1 ? ['handle'] : []),
+    ...(spec && sillList.length > 0 ? ['sills'] : []),
+    ...(spec && shadeList.length > 0 ? ['shading'] : []),
+    ...(!roofSel && extraGroups.length > 0 ? ['extras'] : []),
     ...(!internal && data.options.some(isService) ? ['services'] : []),
   ]
   const openStep = openMap[it.key] ?? 'product'
@@ -588,13 +592,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const materialSummary = matNow ? L.materials[matNow] : ''
   const colorSummary = colorList.length ? `${T.colorOut}: ${(colorList.find(c => c.id === it.colors?.out) ?? colorList[0]).name} · ${T.colorIn}: ${(colorList.find(c => c.id === it.colors?.in) ?? colorList[0]).name}` : ''
   const sizeSummary = roofSel ? `${it.quantity} ${T.pcs}` : `${it.width ?? '—'} × ${it.height ?? '—'} mm · ${it.quantity} ${T.pcs}`
-  const equipSummary = [
-    spec && glassList.length > 1 ? (glassList.find(g => g.id === it.glass) ?? glassList[0]).name : '',
-    spec && handleList.length > 1 ? (handleList.find(h => h.id === it.handle) ?? handleList[0]).name : '',
-    ...[it.sills?.in, it.sills?.out].map(id => sillList.find(x => x.id === id)?.name ?? ''),
-    ...[it.shading?.shade, it.shading?.screen].map(id => shadeList.find(x => x.id === id)?.name ?? ''),
-    ...data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)).map(o => o.name),
-  ].filter(Boolean).join(', ') || T.stdEquip
+  const glassSummary = glassList.length ? (glassList.find(g => g.id === it.glass) ?? glassList[0]).name : ''
+  const handleSummary = handleList.length ? (handleList.find(h => h.id === it.handle) ?? handleList[0]).name : ''
+  const sillsSummary = [it.sills?.in, it.sills?.out].map(id => sillList.find(x => x.id === id)?.name ?? '').filter(Boolean).join(', ') || T.noSill
+  const shadingSummary = [it.shading?.shade, it.shading?.screen].map(id => shadeList.find(x => x.id === id)?.name ?? '').filter(Boolean).join(', ') || T.noShade
+  const extrasSummary = data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)).map(o => o.name).join(', ') || T.none
   const servicesSummary = data.options.filter(o => services.includes(o.id)).map(o => o.name).join(', ') || T.none
   /** a product card in the first step: picking it only selects it, "Naprej" goes on */
   const prodCard = (key: string, label: string, drawing: React.ReactNode, onPick: () => void, _next?: string) => {
@@ -645,7 +647,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   return (
     <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'min-h-screen bg-white text-gray-900')}>
       {/* Header */}
-      {!internal && <header className="bg-white border-b border-gray-200">
+      {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] relative z-10">
         <div className="px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             {data.company.logo_url
@@ -974,9 +976,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>
               </>)}
 
-              {renderStep('equipment', T.step4, equipSummary, <>
+              {renderStep('glass', T.glassTitle, glassSummary, <>
 {/* glass package: cards with Ug; the first one is included */}
-              {spec && glassList.length > 1 && <Sub title={T.glassTitle}>
+              {spec && glassList.length > 1 && <Sub>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {glassList.map((g, i) => {
                     const sel = glassList.find(x => x.id === it.glass) ?? glassList[0]
@@ -1000,8 +1002,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 </div>
               </Sub>}
 
+              </>)}
+
+              {renderStep('handle', T.handleTitle, handleSummary, <>
               {/* handle: one per sash that opens with a handle */}
-              {spec && handleList.length > 1 && <Sub title={T.handleTitle}>
+              {spec && handleList.length > 1 && <Sub>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   {handleList.map((h, i) => {
                     const on = (handleList.find(x => x.id === it.handle) ?? handleList[0]).id === h.id
@@ -1025,8 +1030,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 </div>
               </Sub>}
 
+              </>)}
+
+              {renderStep('sills', T.sillTitle, sillsSummary, <>
               {/* window sills: inside and outside, none by default */}
-              {spec && sillList.length > 0 && <Sub title={T.sillTitle}>
+              {spec && sillList.length > 0 && <Sub>
                 <div className="space-y-4">
                   {(['inner', 'outer'] as const).map(side => {
                     const list = sillList.filter(x => x.side === side)
@@ -1059,8 +1067,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 </div>
               </Sub>}
 
+              </>)}
+
+              {renderStep('shading', T.shadeTitle, shadingSummary, <>
               {/* shading and insect screen, none by default */}
-              {spec && shadeList.length > 0 && <Sub title={T.shadeTitle}>
+              {spec && shadeList.length > 0 && <Sub>
                 <div className="space-y-4">
                   {(['shade', 'screen'] as const).map(kind => {
                     const list = shadeList.filter(x => x.kind === kind)
@@ -1094,7 +1105,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 </div>
               </Sub>}
 
-              {!roofSel && extraGroups.length > 0 && <Sub title={T.step4}>
+              </>)}
+
+              {renderStep('extras', T.extrasTitle, extrasSummary, <>
+              {!roofSel && extraGroups.length > 0 && <Sub>
                 <div className="space-y-4">
                   {extraGroups.map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
                     options={data.options.filter(o => o.group_key === g)} selected={it.option_ids} onToggle={toggleOption}
@@ -1266,7 +1280,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               {show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
                 {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate.toLocaleString('de-DE')}%`} r={money(totals.vat, cur)} muted />}
-                <Row l={T.gross} r={money(totals.gross, cur)} bold />
+                <div className="flex items-baseline justify-between pt-2 mt-1 border-t border-gray-200">
+                  <span className="text-[15px] font-semibold text-gray-900">{T.gross}</span>
+                  <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.gross, cur)}</span>
+                </div>
                 {!internal && <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>}
               </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{T.pricesHidden}</p>}
 
