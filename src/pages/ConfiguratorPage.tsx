@@ -769,7 +769,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     const nextId = stepIds[idx + 1]
     const num = done
       ? <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-4 h-4" strokeWidth={2.75} /></span>
-      : <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: accent }}>{idx + 1}</span>
+      : <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0 bg-white text-gray-900 ring-1 ring-inset ring-[#d4d4d4]">{idx + 1}</span>
     const last = !done && idx === frontier
     return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-[100px]', last && idx > 0 && 'cfg-step-in')}>
       <div className={cn('flex items-center gap-3', hint ? 'mb-1' : 'mb-4')}>
