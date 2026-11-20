@@ -658,11 +658,16 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               ? <img src={data.company.logo_url} alt={data.company.name} className="h-12 w-auto max-w-[240px] object-contain" />
               : <div className="text-lg font-bold tracking-[-0.01em] text-gray-900 truncate">{data.company.name}</div>}
           </div>
-          <div className="flex items-center gap-4 text-[13px] font-medium text-gray-500">
-            {data.company.phone && <a href={`tel:${data.company.phone}`} className="hidden sm:flex items-center gap-1.5 hover:text-gray-900 transition-colors"><Phone className="w-3.5 h-3.5" />{data.company.phone}</a>}
-            {data.company.email && <a href={`mailto:${data.company.email}`} className="hidden md:flex items-center gap-1.5 hover:text-gray-900 transition-colors"><Mail className="w-3.5 h-3.5" />{data.company.email}</a>}
-            <div className="flex p-0.5 rounded-lg bg-[#f4f4f4]">
-              {(['sl', 'en'] as const).map(l => <button key={l} onClick={() => setLang(l)} className={cn('px-2 h-6 rounded-md text-xs font-semibold uppercase transition-colors', lang === l ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.08)]' : 'text-gray-500 hover:text-gray-900')}>{l}</button>)}
+          {/* contact as buttons (on a phone only the icons), then the language */}
+          <div className="flex items-center gap-2">
+            {data.company.phone && <a href={`tel:${data.company.phone}`} title={data.company.phone}
+              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] hover:border-[#c4c4c4] hover:bg-[#fafafa] transition-colors">
+              <Phone className="w-4 h-4" /><span className="hidden sm:inline">{data.company.phone}</span></a>}
+            {data.company.email && <a href={`mailto:${data.company.email}`} title={data.company.email}
+              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] hover:border-[#c4c4c4] hover:bg-[#fafafa] transition-colors">
+              <Mail className="w-4 h-4" /><span className="hidden md:inline">{data.company.email}</span></a>}
+            <div className="flex items-center h-10 p-1 rounded-[10px] border border-[#dfdfdf] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
+              {(['sl', 'en'] as const).map(l => <button key={l} onClick={() => setLang(l)} className={cn('px-2.5 h-full rounded-md text-xs font-semibold uppercase transition-colors', lang === l ? 'bg-[#131313] text-white' : 'text-[#4f4f4f] hover:text-gray-900')}>{l}</button>)}
             </div>
           </div>
         </div>
