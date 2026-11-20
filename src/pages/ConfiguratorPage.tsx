@@ -736,7 +736,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       ? <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-4 h-4" strokeWidth={2.75} /></span>
       : <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: accent }}>{idx + 1}</span>
     const last = !done && idx === frontier
-    return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-4', last && idx > 0 && 'cfg-step-in')}>
+    return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-[100px]', last && idx > 0 && 'cfg-step-in')}>
       <div className={cn('flex items-center gap-3', hint ? 'mb-1' : 'mb-4')}>
         {num}
         <h2 className="flex-1 min-w-0 text-lg font-semibold tracking-[-0.01em] text-gray-900">{title}</h2>
@@ -755,7 +755,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   return (
     <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'min-h-screen bg-[#f5f5f6] text-gray-900')}>
       {/* Header */}
-      {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] relative z-10">
+      {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] sticky top-0 z-30">
         <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[72px] sm:h-20' : data.company.logo_size === 's' ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]')}>
           <div className="flex items-center gap-2.5 min-w-0">
             {/* only the supplier's logo; without a logo its name stands in */}
@@ -797,7 +797,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       ) : (
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[360px_minmax(0,1fr)_380px] gap-6 items-start">
           {/* The order at a glance (wide screens): the windows, one line of services, the final price */}
-          <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-4 bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-2rem)] overflow-y-auto">
+          <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-[100px] bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-116px)] overflow-y-auto">
             <div className="text-base font-semibold text-gray-900 mb-3">{T.yourOrder}</div>
             <div className="space-y-2">
               {items.map((x, i) => {
@@ -1411,7 +1411,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
           </div>
 
           {/* Summary column */}
-          <aside className="lg:sticky lg:top-4 space-y-3">
+          <aside className="lg:sticky lg:top-[100px] space-y-3">
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex justify-center py-2 overflow-hidden">
                 {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} />
