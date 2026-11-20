@@ -101,7 +101,7 @@ const TXT = {
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
     reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Pregled povpraševanja', editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
-    subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis',
+    subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije ponudbe se sestavljajo sproti, ko izbirate.',
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
@@ -131,7 +131,7 @@ const TXT = {
     heard: 'How did you hear about us?', heardPick: 'Choose',
     reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Review enquiry', editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
-    subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description',
+    subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'The positions of the quote build up as you choose.',
   },
 }
 
@@ -762,7 +762,51 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
       ) : (
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-6 grid lg:grid-cols-[1fr_380px] gap-6 items-start">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[360px_minmax(0,1fr)_380px] gap-6 items-start">
+          {/* The offer as it grows: every position with its choices, sub-positions and prices (wide screens) */}
+          <aside className="hidden xl:block xl:sticky xl:top-4 bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="text-base font-semibold text-gray-900">{T.offerPreview}</div>
+            <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-3">{T.offerPreviewHint}</p>
+            <div className="space-y-3">
+              {items.map((x, i) => {
+                const d = describe(x), sp = split(x)
+                const t = data.types.find(tt => tt.id === x.type_id)
+                const priceTxt = (v: number | null) => v == null ? '' : show ? money(v, cur) : showRange ? priceRange(v) : ''
+                return <div key={x.key} className={cn('rounded-lg border p-3 transition-colors', i === active && stage === 'config' ? 'border-[#c4c4c4] bg-[#fcfcfc]' : 'border-gray-100')}>
+                  <button type="button" onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-start gap-3 text-left">
+                    <div className="w-12 flex justify-center shrink-0 pt-0.5">{x.roof ? <RoofWindowDrawing size={44} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={44} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={44} />}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-sm font-semibold text-gray-900 truncate">{i + 1}. {d.title}</span>
+                        <span className="text-sm font-semibold text-gray-900 whitespace-nowrap tabular-nums">{priceTxt(sp.unitPrice != null ? sp.unitPrice * x.quantity : null)}</span>
+                      </div>
+                      <div className="text-[13px] font-medium text-[#4f4f4f]">{x.quantity} {T.pcs} · {x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
+                    </div>
+                  </button>
+                  {/* what the customer chose, in words */}
+                  <dl className="mt-2 pl-[60px] space-y-0.5 text-[13px]">
+                    {d.rows.filter(([k]) => k !== T.sizeTitle && k !== T.room).map(([k, v]) => <div key={k} className="flex gap-2"><dt className="text-[#8a8a8a] shrink-0">{k}</dt><dd className="font-medium text-gray-900 min-w-0">{v}</dd></div>)}
+                  </dl>
+                  {/* sills, shading and screens: their own lines on the quote */}
+                  {sp.subs.length > 0 && <div className="mt-2 pl-[60px] space-y-1">
+                    {sp.subs.map(sb => <div key={sb.code} className="flex items-baseline justify-between gap-2 text-[13px]">
+                      <span className="min-w-0"><span className="text-[#8a8a8a]">{i + 1}-{sb.code}</span> <span className="font-medium text-gray-900">{sb.title}</span></span>
+                      <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{priceTxt(sb.unitPrice * x.quantity)}</span>
+                    </div>)}
+                  </div>}
+                </div>
+              })}
+              {serviceRows.length > 0 && <div className="rounded-lg border border-gray-100 p-3">
+                <div className="text-sm font-semibold text-gray-900 mb-1">{T.servicesTitle}</div>
+                {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-2 text-[13px] py-0.5">
+                  <span className="font-medium text-gray-900 min-w-0">{r.option.name}</span>
+                  <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{show ? money(r.total, cur) : showRange ? priceRange(r.total) : ''}</span>
+                </div>)}
+              </div>}
+              <button type="button" onClick={() => addItem(false)} className="w-full h-10 rounded-lg border border-dashed border-gray-300 text-sm font-medium text-gray-900 hover:border-gray-500 flex items-center justify-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
+            </div>
+          </aside>
+
           {/* Main column */}
           <div className="space-y-4 min-w-0">
             {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
@@ -1353,7 +1397,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
             <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="text-base font-semibold text-gray-900 mb-2">{internal ? T.inQuote : T.yourOrder}</div>
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-gray-100 xl:hidden">
                 {items.map((x, i) => {
                   const t = data.types.find(tt => tt.id === x.type_id)
                   const xp = priceOf(x)
