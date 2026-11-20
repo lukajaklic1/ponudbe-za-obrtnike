@@ -152,11 +152,11 @@ export default function ConfiguratorPage() {
       document.title = `${T.title} · ${data!.company.name}`
     })
   }, [slug])
-  if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
+  if (state === 'loading') return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-[#8a8a8a]" /></div>
   if (state === 'missing' || !data) return (
     <div className="min-h-screen flex items-center justify-center bg-white p-6 text-center">
       <div className="flex flex-col items-center max-w-sm">
-        <div className="w-12 h-12 rounded-full bg-[#f3f3f3] flex items-center justify-center mb-4"><EyeOff className="w-6 h-6 text-gray-400" /></div>
+        <div className="w-12 h-12 rounded-full bg-[#f3f3f3] flex items-center justify-center mb-4"><EyeOff className="w-6 h-6 text-[#8a8a8a]" /></div>
         <p className="text-lg font-semibold text-gray-900">{T.notFound}</p><p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.notFoundHint}</p>
       </div>
     </div>
@@ -752,7 +752,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         <div className="max-w-lg mx-auto px-4 py-16 text-center">
           <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center text-white mb-4" style={btn}><Check className="w-6 h-6" /></div>
           <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{offerSnap ? T.pdfDoneTitle : T.doneTitle}</h1>
-          <p className="text-[15px] text-gray-500 mt-2">{offerSnap ? T.pdfDoneText : T.doneText}</p>
+          <p className="text-[15px] text-[#4f4f4f] mt-2">{offerSnap ? T.pdfDoneText : T.doneText}</p>
           <p className="text-lg font-semibold text-gray-900 mt-2">{result?.quote_number}</p>
           {/* the price after the details: when it was hidden until now, or with the offer */}
           {calc && (offerSnap || priceMode === 'end') && <div className="mt-5 inline-flex flex-col items-center rounded-xl border border-gray-200 bg-white px-6 py-4">
@@ -807,7 +807,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
           {/* Main column */}
           <div className="flex flex-col gap-4 min-w-0">
-            {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
+            {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-[#4f4f4f] whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
               {/* Position tabs (wide screens: adding, picking and removing windows is in the summary on the left) */}
@@ -880,9 +880,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
                         <div className="h-[84px] flex items-center justify-center">{m.image_url ? <img src={m.image_url} alt="" className="max-h-full max-w-full object-contain" /> : <RoofWindowDrawing size={80} opening={m.opening} />}</div>
-                        {m.brand && <div className="text-[13px] font-medium text-gray-500 mt-2.5 leading-snug">{m.brand}</div>}
+                        {m.brand && <div className="text-[13px] font-medium text-[#4f4f4f] mt-2.5 leading-snug">{m.brand}</div>}
                         <div className={cn('text-sm font-medium text-gray-900 leading-snug', !m.brand && 'mt-2.5')}>{m.name}</div>
-                        <div className="text-[13px] font-medium text-gray-500 mt-0.5">{m.opening === 'top' ? T.roofTop : T.roofCenter}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
+                        <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{m.opening === 'top' ? T.roofTop : T.roofCenter}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
                       </button>
                     })}
                   </div>
@@ -895,14 +895,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 {roofModel && (roofModel.variants ?? []).length > 0 && <Sub title={T.roofVariant}>
                   <div className="flex flex-wrap gap-2">
                     {(roofModel.variants ?? []).map(v => <Chip key={v.id} on={roofSel.variant === v.id} onClick={() => pickRoof({ variant: v.id })} accent={accent} single>
-                      {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {Number(v.pct)}%</span>}
+                      {v.name}{show && Number(v.pct) > 0 && <span className="ml-1.5 font-medium text-[#4f4f4f]">+ {Number(v.pct)}%</span>}
                     </Chip>)}
                   </div>
                 </Sub>}
                 {roofModel && <Sub title={T.roofSize}>
                   <div className="flex flex-wrap gap-2">
                     {roofModel.sizes.map(sz => <Chip key={sz.id} on={roofSel.size === sz.id} onClick={() => pickRoof({ size: sz.id })} accent={accent} single>
-                      {sz.w} × {sz.h} cm{show && <span className="ml-1.5 font-medium text-gray-500">{money(roofUnitPrice(Number(sz.price), Number(roofModel.variants?.find(x => x.id === roofSel.variant)?.pct ?? 0), 0), cur)}</span>}
+                      {sz.w} × {sz.h} cm{show && <span className="ml-1.5 font-medium text-[#4f4f4f]">{money(roofUnitPrice(Number(sz.price), Number(roofModel.variants?.find(x => x.id === roofSel.variant)?.pct ?? 0), 0), cur)}</span>}
                     </Chip>)}
                   </div>
                 </Sub>}
@@ -910,7 +910,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <div className="flex flex-wrap gap-2">
                     <Chip on={!roofSel.flashing} onClick={() => pickRoof({ flashing: null })} accent={accent} single>{T.none}</Chip>
                     {roofCat.flashings.map(f => <Chip key={f.id} on={roofSel.flashing === f.id} onClick={() => pickRoof({ flashing: f.id })} accent={accent} single>
-                      {f.name}{show && Number(f.price) > 0 && <span className="ml-1.5 font-medium text-gray-500">+ {money(Number(f.price), cur)}</span>}
+                      {f.name}{show && Number(f.price) > 0 && <span className="ml-1.5 font-medium text-[#4f4f4f]">+ {money(Number(f.price), cur)}</span>}
                     </Chip>)}
                   </div>
                 </Sub>}
@@ -931,7 +931,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       {on && <SelBadge accent={accent} />}
                       <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={preview} width={it.width ?? 1200} height={it.height ?? 1400} size={80} plain /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.band[k]}</div>
-                      {pr != null && curP != null && Math.round(pr - curP) !== 0 && <div className="text-[13px] font-medium text-gray-500 mt-0.5">{pr > curP ? '+' : '−'} {money(Math.abs(Math.round(pr - curP)), cur)}</div>}
+                      {pr != null && curP != null && Math.round(pr - curP) !== 0 && <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{pr > curP ? '+' : '−'} {money(Math.abs(Math.round(pr - curP)), cur)}</div>}
                     </button>
                   })}
                 </div>
@@ -960,7 +960,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
                         <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
-                        {d != null && <div className="text-[13px] font-medium text-gray-500 mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
+                        {d != null && <div className="text-[13px] font-medium text-[#4f4f4f] mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
                       </button>
                     })}
                   </div>
@@ -1005,13 +1005,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><span className="text-xs font-semibold px-[7px] py-[3px] rounded-lg bg-[#ececec] text-[#4a4a4a]">{L.materials[s.material]}</span><span className="text-[15px] font-semibold text-gray-900">{s.name}</span></div>
-                        {s.description && <div className="text-[13px] leading-5 text-gray-500 mt-1.5">{s.description}</div>}
+                        {s.description && <div className="text-[13px] leading-5 text-[#4f4f4f] mt-1.5">{s.description}</div>}
                         {diff != null && <div className="inline-flex items-center mt-2.5 rounded-lg px-[7px] py-[3px] text-xs font-semibold"
                           style={diff > 0 ? { color: '#4a4a4a', backgroundColor: '#ececec' } : { color: '#267a47', backgroundColor: '#dbfce7' }}>
                           {diff > 0 ? `+ ${money(diff, cur)}` : T.basePrice}
                         </div>}
                         {/* the price of this window in this profile */}
-                        {show && b != null && <div className="mt-2"><span className="text-[15px] font-semibold text-gray-900">{money(b, cur)}</span><span className="text-[13px] font-medium text-gray-500"> / {T.pcs}</span></div>}
+                        {show && b != null && <div className="mt-2"><span className="text-[15px] font-semibold text-gray-900">{money(b, cur)}</span><span className="text-[13px] font-medium text-[#4f4f4f]"> / {T.pcs}</span></div>}
                       </div>
                     </div>
                   </button>})
@@ -1039,7 +1039,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         style={on ? selStyle(accent) : undefined}>
                         {lookSpec && <ColorSwatch spec={lookSpec} size={22} rounded={6} />}
                         <span className="text-gray-900">{c.name}</span>
-                        {p != null && now != null && Math.round(p - now) !== 0 && <span className="text-[13px] font-medium text-gray-500">{p > now ? '+' : '−'} {money(Math.abs(Math.round(p - now)), cur)}</span>}
+                        {p != null && now != null && Math.round(p - now) !== 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{p > now ? '+' : '−'} {money(Math.abs(Math.round(p - now)), cur)}</span>}
                       </button>
                     })}
                   </div>
@@ -1067,8 +1067,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                           ? <MmInput key={j} label={T.sashN(j + 1)} value={x} onChange={v => setSashWidth(j, v)} min={300} max={Math.max(300, it.width! - 300 * (n - 1))} rangeLabel={T.range} />
                           : <div key={j} className="flex flex-col gap-1">
                               <label className="text-sm font-semibold text-gray-900">{T.sashN(j + 1)}</label>
-                              <div className={cn('flex items-center h-10 rounded-lg border bg-[#fafafa] px-3 text-sm text-gray-900', x < 300 ? 'border-red-400' : 'border-gray-200')}>{x}<span className="ml-auto text-gray-500">mm</span></div>
-                              <span className="text-[13px] text-gray-500">{T.sashRest}</span>
+                              <div className={cn('flex items-center h-10 rounded-lg border bg-[#fafafa] px-3 text-sm text-gray-900', x < 300 ? 'border-red-400' : 'border-gray-200')}>{x}<span className="ml-auto text-[#4f4f4f]">mm</span></div>
+                              <span className="text-[13px] text-[#4f4f4f]">{T.sashRest}</span>
                             </div>)}
                       </div>
                       {bad && <p className="text-[13px] text-red-600 mt-1">{T.sashTooNarrow}</p>}
@@ -1122,7 +1122,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       {on && <SelBadge accent={accent} />}
                       <div className="flex justify-center py-2"><GlassIcon layers={g.layers ?? 2} size={104} /></div>
                       <div className="text-[15px] font-semibold text-gray-900 mt-1">{g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')}` : g.name}</div>
-                      <div className="text-[13px] leading-5 text-gray-500 mt-1 flex-1">{g.ug != null ? g.name : null}{g.description ? <>{g.ug != null ? ' ' : ''}{g.description}</> : null}</div>
+                      <div className="text-[13px] leading-5 text-[#4f4f4f] mt-1 flex-1">{g.ug != null ? g.name : null}{g.description ? <>{g.ug != null ? ' ' : ''}{g.description}</> : null}</div>
                       <div className="text-sm font-medium text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
                     </button>
                   })}
@@ -1150,7 +1150,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         {h.image_url ? <img src={h.image_url} alt={h.name} className="max-h-full max-w-full object-contain" /> : <HandleIcon look={h.look} lockable={h.lockable} size={56} />}
                       </div>
                       <div className="text-sm font-medium text-gray-900 mt-1">{h.name}</div>
-                      <div className="text-[13px] leading-5 text-gray-500 mt-0.5 flex-1">{h.lockable ? T.lockable : ''}</div>
+                      <div className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 flex-1">{h.lockable ? T.lockable : ''}</div>
                       <div className="text-sm font-medium text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
                     </button>
                   })}
@@ -1179,7 +1179,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         {on && <SelBadge accent={accent} />}
                         <div className="flex justify-center py-1 h-[64px] items-center">{(() => { const x = list.find(y => y.id === id); return !x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : sillMaterialOf(x.material) === 'none' ? null : <SillIcon material={x.material} size={56} /> })()}</div>
                         <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{title}</div>
-                        <div className="text-[13px] leading-5 text-gray-500 mt-0.5 flex-1">{desc}</div>
+                        <div className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 flex-1">{desc}</div>
                         <div className="text-sm font-medium text-gray-900 mt-2">{id ? (d != null && d !== 0 ? `+ ${money(d, currency)}` : '') : ''}</div>
                       </button>
                     }
@@ -1217,7 +1217,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                           {!x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : (x.icon ?? 'none') === 'none' ? null : <ShadingIcon kind={x.icon} size={56} />}
                         </div>
                         <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{x ? x.name : kind === 'shade' ? T.noShade : T.noScreen}</div>
-                        <div className="text-[13px] leading-5 text-gray-500 mt-0.5 flex-1">{x?.description}</div>
+                        <div className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 flex-1">{x?.description}</div>
                         <div className="text-sm font-medium text-gray-900 mt-2">{x && d != null && d !== 0 ? `+ ${money(d, currency)}` : ''}</div>
                       </button>
                     }
@@ -1262,13 +1262,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               {renderStep('services', T.step5, servicesSummary, <>
 {!internal && data.options.some(isService) && <Sub>
-                <p className="text-sm text-gray-500 -mt-2 mb-4">{T.servicesHint}</p>
+                <p className="text-sm text-[#4f4f4f] -mt-2 mb-4">{T.servicesHint}</p>
                 <div className="space-y-4">
                   {items.some(x => x.roof) && data.options.some(o => o.per_item === 'roof') && <div>
                     <div className="text-sm font-semibold text-gray-900 mb-2">{T.roofServices}</div>
                     <div className="flex flex-wrap gap-2">
                       {data.options.filter(o => o.per_item === 'roof').map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
-                        {o.name}{show && Number(o.price_piece ?? 0) > 0 && <span className="ml-1.5 font-medium text-gray-500">{money(Number(o.price_piece), cur)} {L.pricing.piece}</span>}
+                        {o.name}{show && Number(o.price_piece ?? 0) > 0 && <span className="ml-1.5 font-medium text-[#4f4f4f]">{money(Number(o.price_piece), cur)} {L.pricing.piece}</span>}
                       </Chip>)}
                     </div>
                   </div>}
@@ -1276,7 +1276,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     <div className="text-sm font-semibold text-gray-900 mb-2">{L.groups[g]}</div>
                     <div className="flex flex-wrap gap-2">
                       {data.options.filter(o => o.group_key === g && (!o.per_item || o.per_item === 'window')).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
-                        {o.name}{show && <span className="ml-1.5 font-medium text-gray-500">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
+                        {o.name}{show && <span className="ml-1.5 font-medium text-[#4f4f4f]">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
                       </Chip>)}
                     </div>
                   </div>)}
@@ -1291,9 +1291,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             </> : stage === 'review' ? (
               /* Review: what the customer is about to send */
               <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <button onClick={() => setStage('config')} className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.back}</button>
+                <button onClick={() => setStage('config')} className="flex items-center gap-1.5 text-sm font-medium text-[#4f4f4f] hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.back}</button>
                 <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900">{T.reviewTitle}</h2>
-                <p className="text-sm text-gray-500 mt-1 mb-5">{T.reviewHint}</p>
+                <p className="text-sm text-[#4f4f4f] mt-1 mb-5">{T.reviewHint}</p>
                 <div className="divide-y divide-gray-100 border-t border-gray-100">
                   {items.map((x, i) => {
                     const d = describe(x)
@@ -1304,14 +1304,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         {x.roof ? <RoofWindowDrawing size={110} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={130} showDims /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={130} showDims />}
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-baseline gap-2"><span className="text-[13px] font-medium text-gray-500">{T.position} {i + 1}</span><span className="text-[15px] font-semibold text-gray-900">{d.title}</span></div>
+                        <div className="flex items-baseline gap-2"><span className="text-[13px] font-medium text-[#4f4f4f]">{T.position} {i + 1}</span><span className="text-[15px] font-semibold text-gray-900">{d.title}</span></div>
                         <dl className="mt-2 grid grid-cols-[minmax(100px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
-                          {d.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-gray-500">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
-                          {x.sashWidths && <div className="contents"><dt className="font-medium text-gray-500">{T.sashWidths}</dt><dd className="font-medium text-gray-900">{x.sashWidths.map(w => `${w} mm`).join(' · ')}</dd></div>}
+                          {d.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
+                          {x.sashWidths && <div className="contents"><dt className="font-medium text-[#4f4f4f]">{T.sashWidths}</dt><dd className="font-medium text-gray-900">{x.sashWidths.map(w => `${w} mm`).join(' · ')}</dd></div>}
                         </dl>
                       </div>
                       <div className="sm:text-right flex sm:flex-col justify-between gap-2">
-                        {show && <div><div className="text-sm font-medium text-gray-500">{x.quantity} × {xp != null ? money(xp, cur) : T.noPrice}</div><div className="text-[17px] font-semibold text-gray-900">{xp != null ? money(xp * x.quantity, cur) : ''}</div></div>}
+                        {show && <div><div className="text-sm font-medium text-[#4f4f4f]">{x.quantity} × {xp != null ? money(xp, cur) : T.noPrice}</div><div className="text-[17px] font-semibold text-gray-900">{xp != null ? money(xp * x.quantity, cur) : ''}</div></div>}
                         <button type="button" onClick={() => { setActive(i); setStage('config'); window.scrollTo({ top: 0 }) }} className="self-start sm:self-end text-sm font-medium text-gray-900 hover:underline">{T.editWindow}</button>
                       </div>
                     </div>
@@ -1328,7 +1328,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             ) : (
               /* Contact stage */
               <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <button onClick={() => setStage('review')} className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
+                <button onClick={() => setStage('review')} className="flex items-center gap-1.5 text-sm font-medium text-[#4f4f4f] hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
                 <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-5">{T.contact}</h2>
                 <div className="inline-flex p-1 rounded-[10px] bg-[#f1f1f1] mb-5">
                   {(['person', 'company'] as const).map(k => <button key={k} type="button" onClick={() => setContact({ ...contact, customer_type: k })}
@@ -1405,7 +1405,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     <span className="text-[15px] font-semibold text-gray-900">{T.positionPrice}</span>
                     <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priced ? txt(p != null ? p * it.quantity : null) : '—'}</span>
                   </div>
-                  <p className="text-[13px] text-gray-500 mt-1">{priced ? T.positionNote : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>
+                  <p className="text-[13px] text-[#4f4f4f] mt-1">{priced ? T.positionNote : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>
                   {/* wide screens: the whole order is on the left, so the way on is here */}
                   {!internal && <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
                     className="hidden xl:flex mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity items-center justify-center" style={btn}>{T.toReview}</button>}
@@ -1423,8 +1423,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     <button onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-center gap-3 py-2 text-left">
                       <div className="w-10 flex justify-center shrink-0">{x.roof ? <RoofWindowDrawing size={36} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn('text-sm font-medium truncate', i === active && stage === 'config' ? 'text-gray-900' : 'text-gray-500')}>{x.quantity} × {x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
-                        <div className="text-[13px] text-gray-500">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
+                        <div className={cn('text-sm font-medium truncate', i === active && stage === 'config' ? 'text-gray-900' : 'text-[#4f4f4f]')}>{x.quantity} × {x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
+                        <div className="text-[13px] text-[#4f4f4f]">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
                       </div>
                       {show && <div className="text-sm font-medium text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}
                     </button>
@@ -1432,9 +1432,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 })}
               </ul>
               {!internal && serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 space-y-1">
-                <li className="text-[13px] font-medium text-gray-500">{T.servicesTitle}</li>
+                <li className="text-[13px] font-medium text-[#4f4f4f]">{T.servicesTitle}</li>
                 {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-gray-900 min-w-0 truncate">{r.option.name} <span className="text-[13px] text-gray-500">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
+                  <span className="text-gray-900 min-w-0 truncate">{r.option.name} <span className="text-[13px] text-[#4f4f4f]">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
                   {show && <span className="font-medium text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
                 </li>)}
               </ul>}
@@ -1445,12 +1445,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <span className="text-[15px] font-semibold text-gray-900">{T.gross}</span>
                   <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.gross, cur)}</span>
                 </div>
-                {!internal && <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>}
+                {!internal && <p className="text-[13px] leading-5 text-[#4f4f4f] pt-1.5">{T.estimate}</p>}
               </div> : showRange ? <div className="border-t border-gray-200 mt-3 pt-3">
                 <div className="text-[15px] font-semibold text-gray-900">{T.rangeTitle}</div>
                 <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums mt-1">{priceRange(totals.gross)}</div>
-                <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.rangeNote}</p>
-              </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
+                <p className="text-[13px] leading-5 text-[#4f4f4f] pt-1.5">{T.rangeNote}</p>
+              </div> : <p className="text-[13px] text-[#4f4f4f] border-t border-gray-200 mt-3 pt-3">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
 
               {internal ? (
                 <div className="mt-4 flex gap-2">
@@ -1539,9 +1539,9 @@ function MmInput({ label, value, onChange, min, max, rangeLabel }: { label: stri
     <div className={cn('flex items-center h-10 rounded-lg border bg-white transition-colors focus-within:ring-2', bad ? 'border-red-400' : 'border-gray-200 hover:border-gray-400 focus-within:ring-blue-500')}>
       <input type="number" inputMode="numeric" value={value ?? ''} onChange={e => onChange(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
         className="flex-1 min-w-0 h-full px-3 text-sm text-gray-900 bg-transparent focus:outline-none" />
-      <span className="px-3 text-sm text-gray-500">mm</span>
+      <span className="px-3 text-sm text-[#4f4f4f]">mm</span>
     </div>
-    <span className={cn('text-[13px]', bad ? 'text-red-600' : 'text-gray-500')}>{rangeLabel} {min}–{max} mm</span>
+    <span className={cn('text-[13px]', bad ? 'text-red-600' : 'text-[#4f4f4f]')}>{rangeLabel} {min}–{max} mm</span>
   </div>
 }
 
@@ -1575,7 +1575,7 @@ function Field({ label, value, onChange, type = 'text', autoComplete }: { label:
 }
 
 function Row({ l, r, bold, muted }: { l: string; r: string; bold?: boolean; muted?: boolean }) {
-  return <div className={cn('flex justify-between font-medium', bold ? 'text-[15px] font-semibold text-gray-900' : muted ? 'text-gray-500' : 'text-gray-900')}><span>{l}</span><span>{r}</span></div>
+  return <div className={cn('flex justify-between font-medium', bold ? 'text-[15px] font-semibold text-gray-900' : muted ? 'text-[#4f4f4f]' : 'text-gray-900')}><span>{l}</span><span>{r}</span></div>
 }
 
 function OptionGroupPicker({ group, title, options, selected, onToggle, onClear, accent, show, currency, noneLabel, pricingLabels }: {
@@ -1593,7 +1593,7 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
     <div className="flex flex-wrap gap-2">
       {!single && <Chip on={!anySelected} onClick={onClear} accent={accent} single>{noneLabel}</Chip>}
       {options.map(o => <Chip key={o.id} on={selected.includes(o.id)} onClick={() => onToggle(o)} accent={accent} single={single}>
-        {o.name}{price(o) && <span className="ml-1.5 font-medium text-gray-500">{price(o)}</span>}
+        {o.name}{price(o) && <span className="ml-1.5 font-medium text-[#4f4f4f]">{price(o)}</span>}
       </Chip>)}
     </div>
     {void pricingLabels}
