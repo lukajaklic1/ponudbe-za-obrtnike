@@ -106,7 +106,7 @@ const TXT = {
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
-    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
+    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Okna lahko uredite ali odstranite, dodate novo okno ali nadaljujete na oddajo.', addToEnquiry: 'Dodaj v povpraševanje', summary: 'Povzetek', saveChanges: 'Shrani spremembe', addAnother: 'Dodaj še eno okno', notFinished: 'Ni dokončano', finishWindow: 'Dokončaj', toEnquiry: (n: number) => `Vaše povpraševanje (${n})`, toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
@@ -143,7 +143,7 @@ const TXT = {
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
-    reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
+    reviewTitle: 'Review your enquiry', reviewHint: 'Edit or remove windows, add another one or continue to send.', addToEnquiry: 'Add to enquiry', summary: 'Summary', saveChanges: 'Save changes', addAnother: 'Add another window', notFinished: 'Not finished', finishWindow: 'Finish', toEnquiry: (n: number) => `Your enquiry (${n})`, toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
@@ -684,7 +684,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const drawPlain = !internal && stage === 'config' && openingIdx >= 0 && reached < openingIdx
   /** the enquiry can be finished once every window went through all its steps */
   const atLast = !!it && stepIds.length > 0 && reached >= stepIds.length - 1
-  const firstOpen = items.findIndex(x => !(doneKeys[x.key] || (reachedMap[x.key] ?? 0) >= 99 || (x.key === it.key && atLast)))
+  const isDone = (x: ConfigItem) => !!doneKeys[x.key] || (reachedMap[x.key] ?? 0) >= 99 || (x.key === it.key && atLast)
+  const firstOpen = items.findIndex(x => !isDone(x))
   const canFinish = items.every(sizeOk) && firstOpen < 0
   const finishNote = firstOpen >= 0 ? T.finishOpen(firstOpen + 1) : T.finishHint
   const finish = () => { setStage('review'); window.scrollTo({ top: 0 }) }
@@ -781,11 +782,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       <div className="space-y-6">{body}</div>
       {/* only the newest step moves on; the last one goes to the review */}
       {last && <div className="flex justify-end mt-6">
-        {(() => {
-          const other = items.findIndex((x, i) => i !== active && !doneKeys[x.key] && (reachedMap[x.key] ?? 0) < 99)
-          return <button type="button" onClick={() => { if (nextId) setOpen(nextId); else if (internal) setOpen('none'); else if (other >= 0) { setOpen('none'); setActive(other); window.scrollTo({ top: 0 }) } else { setOpen('none'); finish() } }}
-            className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : other >= 0 ? T.toPosition(other + 1) : finishLabel}</button>
-        })()}
+        <button type="button" onClick={() => { if (nextId) setOpen(nextId); else { setOpen('none'); if (!internal) finish() } }}
+          className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : T.addToEnquiry}</button>
       </div>}
     </section>
   }
@@ -794,7 +792,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'min-h-screen bg-[#f5f5f6] text-gray-900')}>
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] sticky top-0 z-30">
-        <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[72px] sm:h-20' : data.company.logo_size === 's' ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]')}>
+        <div className={cn('max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[72px] sm:h-20' : data.company.logo_size === 's' ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]')}>
           <div className="flex items-center gap-2.5 min-w-0">
             {/* only the supplier's logo; without a logo its name stands in */}
             {data.company.logo_url
@@ -833,9 +831,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
       ) : (
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[360px_minmax(0,1fr)_380px] gap-6 items-start">
+        <div className={cn('w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start', internal ? 'xl:grid-cols-[360px_minmax(0,1fr)_380px]' : 'max-w-[1360px] mx-auto')}>
           {/* The order at a glance (wide screens): the windows, one line of services, the final price */}
-          <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-[100px] bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-116px)] overflow-y-auto">
+          {internal && <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-[100px] bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-116px)] overflow-y-auto">
             <div className="text-base font-semibold text-gray-900">{T.yourOrder}</div>
             <p className="text-[13px] leading-5 text-[#4f4f4f] mt-1 mb-5">{T.yourOrderHint}</p>
             <div className="space-y-2">
@@ -880,15 +878,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 className="mt-4 w-full h-12 rounded-xl text-[15px] font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{finishLabel}</button>
               <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>
             </>}
-          </aside>
+          </aside>}
 
           {/* Main column */}
           <div className="flex flex-col gap-4 min-w-0">
             {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-[#4f4f4f] whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
+              {!internal && (items.length > 1 || isDone(it)) && <button type="button" onClick={finish}
+                className="self-start inline-flex items-center gap-1.5 text-sm font-medium text-[#4f4f4f] hover:text-gray-900 transition-colors"><ArrowLeft className="w-4 h-4" />{T.toEnquiry(items.length)}</button>}
               {/* Position tabs (wide screens: adding, picking and removing windows is in the summary on the left) */}
-              <div className="flex xl:hidden gap-1.5 overflow-x-auto pb-1">
+              <div className={cn('gap-1.5 overflow-x-auto pb-1', internal ? 'flex xl:hidden' : 'hidden')}>
                 {items.map((x, i) => <div key={x.key} className={cn('shrink-0 h-9 pl-3.5 rounded-[10px] text-sm font-medium border transition-colors flex items-center', items.length > 1 ? 'pr-1' : 'pr-3.5', i === active ? 'text-white border-transparent' : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400')}
                   style={i === active ? btn : undefined}>
                   <button type="button" onClick={() => setActive(i)} className="h-full">{T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}</button>
@@ -1365,11 +1365,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>}
               </>)}
 
+              {!internal && reached >= 99 && <div className="flex justify-end">
+                <button type="button" onClick={finish} className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.saveChanges}</button>
+              </div>}
             </> : stage === 'review' ? (
               /* Review: what the customer is about to send */
               <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <button onClick={() => setStage('config')} className="flex items-center gap-1.5 text-sm font-medium text-[#4f4f4f] hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.back}</button>
-                <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900">{T.reviewTitle}</h2>
+                <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900">{T.yourOrder}</h2>
                 <p className="text-sm text-[#4f4f4f] mt-1 mb-5">{T.reviewHint}</p>
                 <div className="divide-y divide-gray-100 border-t border-gray-100">
                   {items.map((x, i) => {
@@ -1381,7 +1383,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         {x.roof ? <RoofWindowDrawing size={110} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={130} showDims /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={130} showDims />}
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-baseline gap-2"><span className="text-[13px] font-medium text-[#4f4f4f]">{T.position} {i + 1}</span><span className="text-[15px] font-semibold text-gray-900">{d.title}</span></div>
+                        <div className="flex items-baseline gap-2 flex-wrap"><span className="text-[13px] font-medium text-[#4f4f4f]">{T.position} {i + 1}</span><span className="text-[15px] font-semibold text-gray-900">{d.title}</span>
+                          {!isDone(x) && <span className="self-center inline-flex items-center h-6 px-2 rounded-md text-xs font-semibold bg-[#fef3cd] text-[#8a6100]">{T.notFinished}</span>}</div>
                         <dl className="mt-2 grid grid-cols-[minmax(100px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
                           {d.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
                           {x.sashWidths && <div className="contents"><dt className="font-medium text-[#4f4f4f]">{T.sashWidths}</dt><dd className="font-medium text-gray-900">{x.sashWidths.map(w => `${w} mm`).join(' · ')}</dd></div>}
@@ -1389,11 +1392,18 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       </div>
                       <div className="sm:text-right flex sm:flex-col justify-between gap-2">
                         {show && <div><div className="text-sm font-medium text-[#4f4f4f]">{x.quantity} × {xp != null ? money(xp, cur) : T.noPrice}</div><div className="text-[17px] font-semibold text-gray-900">{xp != null ? money(xp * x.quantity, cur) : ''}</div></div>}
-                        <button type="button" onClick={() => { setActive(i); setStage('config'); window.scrollTo({ top: 0 }) }} className="self-start sm:self-end text-sm font-medium text-gray-900 hover:underline">{T.editWindow}</button>
+                        <div className="flex items-center gap-2 self-start sm:self-end">
+                          <button type="button" onClick={() => { setActive(i); setStage('config'); window.scrollTo({ top: 0 }) }}
+                            className="h-9 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors">{isDone(x) ? T.editWindow : T.finishWindow}</button>
+                          {items.length > 1 && <button type="button" onClick={() => setAskRemove(i)} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
+                            className="w-9 h-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-[#5f5f5f] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>}
+                        </div>
                       </div>
                     </div>
                   })}
                 </div>
+                <button type="button" onClick={() => { addItem(false); setStage('config'); window.scrollTo({ top: 0 }) }}
+                  className="mt-1 mb-5 w-full h-12 rounded-xl border border-dashed border-gray-300 text-[15px] font-semibold text-gray-900 flex items-center justify-center gap-2 hover:border-gray-500 transition-colors"><Plus className="w-4 h-4" strokeWidth={2.5} />{T.addAnother}</button>
                 {serviceRows.length > 0 && <div className="border-t border-gray-100 pt-4">
                   <div className="text-sm font-semibold text-gray-900 mb-2">{T.servicesTitle}</div>
                   {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm py-1">
@@ -1487,10 +1497,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               })()}
             </div>}
 
-            <div className={cn('bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'xl:hidden')}>
-              <div className={cn('text-base font-semibold text-gray-900', internal || stage !== 'config' ? 'mb-2' : '')}>{internal ? T.inQuote : T.yourOrder}</div>
+            <div className={cn('bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'hidden')}>
+              <div className={cn('text-base font-semibold text-gray-900', internal || stage !== 'config' ? 'mb-2' : '')}>{internal ? T.inQuote : T.summary}</div>
               {!internal && stage === 'config' && <p className="text-[13px] leading-5 text-[#4f4f4f] mt-1 mb-4">{T.yourOrderHint}</p>}
-              <ul className="divide-y divide-gray-100 xl:hidden">
+              <ul className={cn('divide-y divide-gray-100', internal ? 'xl:hidden' : 'hidden')}>
                 {items.map((x, i) => {
                   const t = data.types.find(tt => tt.id === x.type_id)
                   const xp = priceOf(x)
@@ -1538,9 +1548,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{finishLabel}</button>
                 <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>
               </>
-              ) : stage === 'review' ? (
-                <button onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
-                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
+              ) : stage === 'review' ? (<>
+                <button disabled={!canFinish} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
+                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{finishLabel}</button>
+                {!canFinish && <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>}
+              </>
               ) : (
                 (() => {
                   const blocked = sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name) || (contact.customer_type === 'company' && !contact.company_name.trim()) || !contact.street.trim() || !contact.postal_code.trim() || !contact.city.trim()
@@ -1581,8 +1593,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             <div className="text-[13px] font-medium text-[#4f4f4f]">{T.gross}</div>
             <div className="text-lg font-bold text-gray-900 tabular-nums">{show ? money(totals.gross, cur) : showRange ? priceRange(totals.gross) : '—'}</div>
           </div>
-          <button disabled={!canFinish} title={finishNote} onClick={finish}
-            className="h-11 px-5 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={btn}>{finishLabel}</button>
+          {(items.length > 1 || isDone(it)) && <button onClick={finish}
+            className="h-11 px-5 rounded-lg text-sm font-semibold text-white" style={btn}>{T.toEnquiry(items.length)}</button>}
         </div>
       </>}
     </div>
