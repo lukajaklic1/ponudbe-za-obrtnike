@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X } from 'lucide-react'
+import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -812,7 +812,6 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     {x.roof ? <RoofWindowDrawing size={92} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim plain /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
-                    {on && <span className="inline-flex items-center h-5 px-1.5 mb-1 rounded-md bg-[#131313] text-white text-[11px] font-semibold">{T.editing}</span>}
                     <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
                     <div className="text-[13px] font-medium text-[#8a8a8a] truncate mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
                     <div className="text-[15px] font-semibold text-gray-900 tabular-nums mt-1.5">{xp == null || !itemPriced(x) ? '' : showLive ? money(xp * x.quantity, cur) : showRangeLive ? priceRange(xp * x.quantity) : ''}</div>
@@ -1319,10 +1318,6 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>}
               </>)}
 
-              <div className="flex gap-2">
-                <button onClick={() => addItem(true)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors"><Copy className="w-4 h-4" />{T.duplicate}</button>
-                {items.length > 1 && <button onClick={() => setAskRemove(active)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:text-red-600 hover:border-red-200 transition-colors"><Trash2 className="w-4 h-4" />{T.remove}</button>}
-              </div>
             </> : stage === 'review' ? (
               /* Review: what the customer is about to send */
               <div className="bg-white border border-gray-200 rounded-xl p-6">
