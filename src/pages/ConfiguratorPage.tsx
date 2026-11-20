@@ -774,9 +774,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 const xp = priceOf(x)
                 const on = i === active && stage === 'config'
                 return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
-                  className={cn('group relative w-full rounded-xl border px-3 py-2.5 flex items-center gap-3 cursor-pointer transition-colors', on ? 'border-[#131313]' : 'border-gray-200 hover:border-gray-400')}>
-                  <div className="w-11 flex justify-center shrink-0">
-                    {x.roof ? <RoofWindowDrawing size={38} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={40} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={40} />}
+                  className={cn('group relative w-full rounded-xl border p-2.5 flex items-center gap-3.5 cursor-pointer transition-colors', on ? 'border-[#131313]' : 'border-gray-200 hover:border-gray-400')}>
+                  <div className="w-[96px] h-[96px] rounded-lg bg-[#f5f5f6] flex items-center justify-center shrink-0">
+                    {x.roof ? <RoofWindowDrawing size={76} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={80} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={80} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-gray-900 truncate">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
