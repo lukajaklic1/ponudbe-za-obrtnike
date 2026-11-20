@@ -101,7 +101,7 @@ const TXT = {
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
     reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Pregled povpraševanja', editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
-    subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', startTitle: 'Kaj želite naročiti?', startHint: 'Izberite vrsto izdelka in ga v nekaj korakih sestavite po meri.', startNext: 'Naprej', startSteps: ['Izberite izdelek in število kril', 'Sestavite okno: profil, barva, mere in oprema', 'Pošljite povpraševanje ali prejmite ponudbo'], offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
+    subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
@@ -131,7 +131,7 @@ const TXT = {
     heard: 'How did you hear about us?', heardPick: 'Choose',
     reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Review enquiry', editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
-    subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', startTitle: 'What would you like to order?', startHint: 'Choose the type of product and build it to measure in a few steps.', startNext: 'Next', startSteps: ['Choose the product and the number of sashes', 'Build the window: profile, colour, size and equipment', 'Send an enquiry or get the quote'], offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
+    subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
 }
 
@@ -191,7 +191,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const internal = mode === 'internal'
   const [items, setItems] = useState<ConfigItem[]>(initialItems ?? [])
   const [active, setActive] = useState(0)
-  const [stage, setStage] = useState<'start' | 'config' | 'review' | 'contact' | 'done'>(internal || initialItems?.length ? 'config' : 'start')
+  const [stage, setStage] = useState<'config' | 'review' | 'contact' | 'done'>('config')
   const [contact, setContact] = useState({ customer_type: 'person' as 'person' | 'company', company_name: '', vat_number: '', first_name: '', last_name: '', email: '', phone: '', street: '', postal_code: '', city: '', country: 'SI', note: '' })
   const [heard, setHeard] = useState('')
   const [consent, setConsent] = useState(false)
@@ -676,41 +676,15 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const extrasSummary = data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)).map(o => o.name).join(', ') || T.none
   const servicesSummary = data.options.filter(o => services.includes(o.id)).map(o => o.name).join(', ') || T.none
   /** a product card in the first step: picking it only selects it, "Naprej" goes on */
-  const prodCard = (key: string, label: string, drawing: React.ReactNode, onPick: () => void, big = false) => {
+  const prodCard = (key: string, label: string, drawing: React.ReactNode, onPick: () => void, _next?: string) => {
     const on = group === key
     return <button key={key} onClick={() => { if (!on) onPick() }}
-      className={cn('relative rounded-xl border bg-white transition-colors', big ? 'p-5 text-center' : 'p-3.5 text-left', on ? '' : 'border-gray-200 hover:border-gray-400')}
+      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
       style={on ? selStyle(accent) : undefined}>
       {on && <SelBadge accent={accent} />}
-      <div className={cn('flex items-center justify-center', big ? 'h-[150px]' : 'h-[84px]')}>{drawing}</div>
-      <div className={cn('font-semibold text-gray-900 leading-snug', big ? 'text-[16px] mt-4' : 'text-sm font-medium mt-2.5')}>{label}</div>
+      <div className="h-[84px] flex items-center justify-center">{drawing}</div>
+      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{label}</div>
     </button>
-  }
-  /** the products the supplier offers, as cards (k: drawing scale) */
-  const productCards = (big = false) => {
-    const k = big ? 1.65 : 1
-    return <>
-      {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={makeSpec(2, 'none', 'none', 'fixed')} width={1300} height={1300} size={84 * k} plain />,
-        () => pickSashes(spec && !spec.kind ? spec.sashes : (offer.sashes ?? []).includes(2) ? 2 : [...(offer.sashes ?? [])].sort()[0]), big)}
-      {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96 * k} plain />, pickSliding, big)}
-      {offer?.doors && prodCard('door', T.grpDoors, <SpecDrawing spec={makeSpec(1, 'none', 'none', 'fixed')} width={900} height={2200} size={84 * k} plain />,
-        () => pickDoor(spec?.kind === 'door' ? spec.sashes : [...(offer.doorSashes ?? [1, 2, 3])].sort()[0]), big)}
-      {offer?.sliding && firstWall != null && prodCard('wall', T.grpWalls, <SpecDrawing spec={makeSpec(firstWall, 'none', 'none', 'fixed')} width={wallWidth(firstWall)} height={2200} size={96 * k} plain />,
-        () => pickWall(spec?.kind === 'wall' ? spec.sashes : firstWall), big)}
-      {offer?.roof && !!roofCat?.models.length && prodCard('roof', T.grpRoof, <RoofWindowDrawing size={78 * k} />, () => { if (!roofSel) pickRoof() }, big)}
-      {visibleTypes.map(t => {
-        const door = t.template.startsWith('door') || t.template === 'lift_slide'
-        return prodCard('type:' + t.id, t.name, <WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78 * k} plain />, () => pickType(t), big)
-      })}
-    </>
-  }
-  /** from the start screen into the configurator: the product is chosen, the next step opens */
-  function startConfig() {
-    setStage('config')
-    const nextId = stepIds[1] ?? 'none'
-    setReachedMap(m => ({ ...m, [it.key]: Math.max(m[it.key] ?? 0, 1) }))
-    setOpenMap(m => ({ ...m, [it.key]: nextId }))
-    window.scrollTo({ top: 0 })
   }
   /** one step: open with its choices and "Naprej", or closed to one row with the choice and "Uredi" */
   function renderStep(id: string, title: string, summary: string, body: React.ReactNode) {
@@ -773,31 +747,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         </div>
       </header>}
 
-      {stage === 'start' ? (
-        // our own start: on the left what to do and how it goes, on the right the products to pick from
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 grid lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
-          <div className="lg:sticky lg:top-8">
-            <h1 className="text-[28px] sm:text-[36px] leading-tight font-bold tracking-[-0.02em] text-gray-900">{T.startTitle}</h1>
-            <p className="text-[15px] sm:text-base text-[#4f4f4f] mt-3 whitespace-pre-line">{data.company.intro || T.startHint}</p>
-            <ol className="mt-7 space-y-4">
-              {T.startSteps.map((txt, i) => <li key={i} className="flex items-start gap-3">
-                <span className="w-7 h-7 rounded-full bg-white border border-[#dfdfdf] text-[13px] font-semibold text-gray-900 flex items-center justify-center shrink-0">{i + 1}</span>
-                <span className="text-[15px] font-medium text-gray-900 pt-0.5">{txt}</span>
-              </li>)}
-            </ol>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6">
-            <div className="text-[15px] font-semibold text-gray-900 mb-4">{T.stepProduct}</div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {productCards(true)}
-            </div>
-            <div className="flex justify-end mt-5">
-              <button type="button" onClick={startConfig}
-                className="inline-flex items-center justify-center h-12 px-10 rounded-xl text-white text-[15px] font-semibold hover:opacity-90 transition-opacity" style={btn}>{T.startNext}</button>
-            </div>
-          </div>
-        </div>
-      ) : stage === 'done' ? (
+      {stage === 'done' ? (
         <div className="max-w-lg mx-auto px-4 py-16 text-center">
           <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center text-white mb-4" style={btn}><Check className="w-6 h-6" /></div>
           <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{offerSnap ? T.pdfDoneTitle : T.doneTitle}</h1>
@@ -856,6 +806,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
           {/* Main column */}
           <div className="flex flex-col gap-4 min-w-0">
+            {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
               {/* Position tabs (wide screens: adding, picking and removing windows is in the summary on the left) */}
@@ -870,7 +821,18 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </div>
 
               {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {productCards()}
+                {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={makeSpec(2, 'none', 'none', 'fixed')} width={1300} height={1300} size={84} plain />,
+                  () => pickSashes(spec && !spec.kind ? spec.sashes : (offer.sashes ?? []).includes(2) ? 2 : [...(offer.sashes ?? [])].sort()[0]), 'variant')}
+                {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96} plain />, pickSliding, 'profile')}
+                {offer?.doors && prodCard('door', T.grpDoors, <SpecDrawing spec={makeSpec(1, 'none', 'none', 'fixed')} width={900} height={2200} size={84} plain />,
+                  () => pickDoor(spec?.kind === 'door' ? spec.sashes : [...(offer.doorSashes ?? [1, 2, 3])].sort()[0]), 'variant')}
+                {offer?.sliding && firstWall != null && prodCard('wall', T.grpWalls, <SpecDrawing spec={makeSpec(firstWall, 'none', 'none', 'fixed')} width={wallWidth(firstWall)} height={2200} size={96} plain />,
+                  () => pickWall(spec?.kind === 'wall' ? spec.sashes : firstWall), 'variant')}
+                {offer?.roof && !!roofCat?.models.length && prodCard('roof', T.grpRoof, <RoofWindowDrawing size={78} />, () => { if (!roofSel) pickRoof() }, 'variant')}
+                {visibleTypes.map(t => {
+                  const door = t.template.startsWith('door') || t.template === 'lift_slide'
+                  return prodCard('type:' + t.id, t.name, <WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} plain />, () => pickType(t), 'profile')
+                })}
               </div>)}
 
               {renderStep('variant', roofSel ? T.stepRoof : spec?.kind === 'wall' ? T.stepParts : T.stepSashes, variantSummary, <>
