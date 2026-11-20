@@ -30,7 +30,11 @@ import {
 // Public window configurator: /k/:slug — no login. Prices are recomputed on the server on submit.
 
 export interface ConfigData {
-  company: { name: string; logo_url: string | null; email: string | null; phone: string | null; currency: string; accent: string; intro: string | null; show_prices: boolean; vat_rate: number; area?: InstallArea | null }
+  company: { name: string; logo_url: string | null; email: string | null; phone: string | null; currency: string; accent: string; intro: string | null; show_prices: boolean; vat_rate: number; area?: InstallArea | null
+    /** how the configurator works: prices live / at the end / as a range / never; the end: enquiry / offer PDF / the customer picks */
+    price_mode?: PriceMode | null; end_mode?: EndMode | null
+    /** size of the logo in the top bar: s / m / l */
+    logo_size?: 's' | 'm' | 'l' | null }
   systems: WindowSystem[]
   types: WindowType[]
   prices: WindowPrice[]
@@ -82,7 +86,10 @@ const TXT = {
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
-    basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.',
+    basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.', pricesAtEnd: 'Ceno boste videli na koncu, ko vpišete svoje podatke.', rangeTitle: 'Okvirna cena z DDV', rangeNote: 'Okvirni razpon. Natančno ceno pripravimo po izmeri na terenu.',
+    getOffer: 'Pridobi ponudbo', getOfferPdf: 'Prenesi ponudbo (PDF)', orEnquiry: 'Ali samo pošljite povpraševanje',
+    pdfDoneTitle: 'Vaša ponudba je pripravljena', pdfDoneText: 'Informativna ponudba se je prenesla na vašo napravo. Ponudnik je prejel tudi vaše povpraševanje. Številka:', pdfAgain: 'Prenesi ponudbo znova', yourTotal: 'Skupaj z DDV',
+    pdfNote: 'Informativna ponudba, izračunana v spletnem konfiguratorju. Končno ponudbo pripravimo po izmeri na terenu.', pdfTaken: 'Stranka je prenesla informativno ponudbo (PDF).',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
     contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov montaže', street: 'Ulica in hišna številka', postal: 'Poštna številka', city: 'Kraj', country: 'Država', postalPick: 'Vpišite številko ali kraj', outOfArea: 'Na tem naslovu montaže ne izvajamo. Povpraševanje lahko pošljete brez montaže.', note: 'Opomba',
     consent: 'Strinjam se, da ponudnik moje podatke uporabi za pripravo ponudbe.',
@@ -109,7 +116,10 @@ const TXT = {
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
-    basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.',
+    basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.', pricesAtEnd: 'You will see the price at the end, after entering your details.', rangeTitle: 'Estimated price incl. VAT', rangeNote: 'An estimated range. We prepare the exact price after measuring on site.',
+    getOffer: 'Get the quote', getOfferPdf: 'Download the quote (PDF)', orEnquiry: 'Or just send an enquiry',
+    pdfDoneTitle: 'Your quote is ready', pdfDoneText: 'The informative quote was downloaded to your device. The supplier received your enquiry too. Number:', pdfAgain: 'Download the quote again', yourTotal: 'Total incl. VAT',
+    pdfNote: 'Informative quote, calculated in the online configurator. We prepare the final quote after measuring on site.', pdfTaken: 'The customer downloaded the informative quote (PDF).',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
     contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Installation address', street: 'Street and house number', postal: 'Postal code', city: 'Town', country: 'Country', postalPick: 'Type the code or the town', outOfArea: 'We do not install at this address. You can still send the enquiry without installation.', note: 'Note',
     consent: 'I agree that the supplier uses my data to prepare a quote.',
@@ -187,7 +197,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [consent, setConsent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
-  const [result, setResult] = useState<{ quote_number: string } | null>(null)
+  const [result, setResult] = useState<{ quote_number: string; valid_until?: string; company?: Record<string, any> } | null>(null)
+  // the informative offer the customer downloaded (kept to download it again)
+  const [offerSnap, setOfferSnap] = useState<any>(null)
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
   const [openMap, setOpenMap] = useState<Record<string, string>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
   const [reachedMap, setReachedMap] = useState<Record<string, number>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 99])))
@@ -205,7 +217,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const accent = data?.company.accent || '#131313'
   const cur = data?.company.currency || 'EUR'
   const currency = cur
-  const show = !!data?.company.show_prices
+  // prices are worked out whenever the supplier sends them; how they are shown depends on the mode (in a quote always)
+  const calc = !!data?.company.show_prices
+  const priceMode: PriceMode = internal ? 'live' : (data?.company.price_mode ?? (calc ? 'live' : 'never'))
+  const endMode: EndMode = internal ? 'enquiry' : (data?.company.end_mode ?? 'enquiry')
+  const show = calc && priceMode === 'live'
+  const showRange = calc && priceMode === 'range'
+  /** a from–to range around a price (−10 % … +10 %, rounded to 10) */
+  const priceRange = (v: number) => `${money(Math.floor(v * 0.9 / 10) * 10, cur)} – ${money(Math.ceil(v * 1.1 / 10) * 10, cur)}`
 
   const builder = data?.builder ?? null
   const bPricing = builder?.pricing ? pricingFrom({ ...builder.pricing, glass: builder.glass ?? undefined, handles: builder.handles ?? undefined, sills: builder.sills ?? undefined, shading: builder.shading ?? undefined }) : null
@@ -268,8 +287,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     return roofUnitPrice(Number(sz.price), Number(v?.pct ?? 0), Number(fl?.price ?? 0))
   }
   function priceOf(it: ConfigItem): number | null {
-    if (it.roof) return show ? roofPrice(it) : null
-    if (!data || !show || !it.width || !it.height) return null
+    if (it.roof) return calc ? roofPrice(it) : null
+    if (!data || !calc || !it.width || !it.height) return null
     const base = it.spec ? specBase(it) : basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
     return unitPrice(base, it.width, it.height, data.options.filter(o => it.option_ids.includes(o.id) && !isService(o)))
   }
@@ -297,14 +316,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     } else setServices(sv => sv.includes(o.id) ? sv.filter(id => id !== o.id) : [...sv, o.id])
   }
   function sizeOk(it: ConfigItem) {
-    if (it.roof) return roofPrice(it) != null || !show
+    if (it.roof) return roofPrice(it) != null || !calc
     if (it.spec) { const n = it.spec.sashes; return !!it.width && !!it.height && it.width >= 300 * n && it.width <= 1600 * n && it.height >= 300 && it.height <= 2800 && !(it.sashWidths ?? []).some(x => x < 300) }
     const t = data?.types.find(x => x.id === it.type_id)
     return !!t && !!it.width && !!it.height && it.width >= t.min_width && it.width <= t.max_width && it.height >= t.min_height && it.height <= t.max_height
   }
 
   const totals = useMemo(() => {
-    const net = items.reduce((a, it) => a + (priceOf(it) ?? 0) * it.quantity, 0) + (show ? serviceRows.reduce((a, r) => a + r.total, 0) : 0)
+    const net = items.reduce((a, it) => a + (priceOf(it) ?? 0) * it.quantity, 0) + (calc ? serviceRows.reduce((a, r) => a + r.total, 0) : 0)
     const installing = !!data?.options.some(o => o.group_key === 'installation' && services.includes(o.id))
     const baseRate = data?.company.vat_rate ?? 22
     const vatRate = baseRate === 0 ? 0 : installing && contact.customer_type === 'person' ? 9.5 : baseRate
@@ -424,10 +443,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     setItems(xs => xs.filter((_, j) => j !== i)); setActive(a => Math.max(0, a >= i ? a - 1 : a))
   }
 
-  async function submit() {
+  async function submit(withPdf = false) {
     setError('')
     if (!consent) return
     setSending(true)
+    // the lines of the offer are worked out before sending (the same prices the customer saw)
+    const offerLines = withPdf ? offerLinesNow() : null
     const { data: res, error } = await (supabase as any).rpc('submit_configuration', {
       p_slug: slug,
       p_customer: { ...contact, lead_source: heard || null },
@@ -436,16 +457,67 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         : x.spec
         ? { system_id: x.system_id, spec: x.spec, colors: x.colors ?? null, glass: x.glass ?? null, handle: x.handle ?? null, sills: x.sills ?? null, shading: x.shading ?? null, width: x.width, height: x.height, quantity: x.quantity, option_ids: x.option_ids, label: x.label }
         : { system_id: x.system_id, type_id: x.type_id, width: x.width, height: x.height, quantity: x.quantity, hinge: x.hinge, option_ids: x.option_ids, label: x.label }),
-      p_note: contact.note,
+      p_note: [contact.note, withPdf ? T.pdfTaken : ''].filter(Boolean).join('\n'),
       p_services: services,
     })
-    setSending(false)
     if (error) {
+      setSending(false)
       const code = Object.keys(T.errors).find(k => String(error.message).includes(k))
       setError(code ? T.errors[code] : T.genericError)
       return
     }
+    if (withPdf && offerLines) {
+      try {
+        const snap = await makeOfferSnapshot(res, offerLines)
+        setOfferSnap(snap)
+        await downloadOffer(snap, res.quote_number)
+      } catch (e) { console.error('offer pdf', e) }
+    }
+    setSending(false)
     setResult(res); setStage('done'); window.scrollTo({ top: 0 })
+  }
+
+  /** the offer's lines: each window with its sills / shading as sub-positions, then the services */
+  function offerLinesNow() {
+    const vat = totals.vatRate
+    const lines: any[] = []
+    for (const x of items) {
+      const d = describe(x), sp = split(x)
+      const uid = Math.random().toString(36).slice(2, 10)
+      lines.push({ room: x.label || null, name: d.title, description: d.rows.filter(([l]) => l !== '').slice(0, 2).map(([, v]) => v).join(' · ') || null,
+        unit: 'pcs', quantity: x.quantity, unit_price: sp.unitPrice ?? 0, discount_pct: 0, vat_rate: vat,
+        config: { kind: 'window', uid, item: x, title: d.title, rows: d.rows, template: data.types.find(t => t.id === x.type_id)?.template ?? null } })
+      for (const sb of sp.subs) lines.push({ room: x.label || null, name: sb.title, description: sb.rows.map(([k, v]) => `${k}: ${v}`).join(' · '),
+        unit: 'pcs', quantity: x.quantity, unit_price: sb.unitPrice, discount_pct: 0, vat_rate: vat,
+        config: { kind: 'sub', parent: uid, code: sb.code, title: sb.title, rows: sb.rows, image_url: sb.image_url ?? null, sill: sb.sill ?? null, shade: sb.shade ?? null } })
+    }
+    for (const r of serviceRows) {
+      const o = r.option
+      const unit = Number(o.price_piece ?? 0) > 0 || (o.per_item && o.per_item !== 'window') ? 'pcs'
+        : o.pricing === 'piece' ? 'pcs' : o.pricing === 'm2' ? 'm2' : o.pricing === 'perimeter' || o.pricing === 'width' ? 'm' : 'lump'
+      lines.push({ room: null, name: o.name, description: o.description ?? null, unit, quantity: r.qty, unit_price: r.unitPrice, discount_pct: 0, vat_rate: vat,
+        config: { kind: 'service', option_id: o.id } })
+    }
+    return lines
+  }
+  /** the offer as the PDF reads it: the supplier from the server, the customer from the form */
+  async function makeOfferSnapshot(res: { quote_number: string; valid_until?: string; company?: Record<string, any> }, lines: any[]) {
+    const { buildSnapshot } = await import('../lib/offerSnapshot')
+    const person = [contact.first_name, contact.last_name].filter(Boolean).join(' ')
+    const site = [contact.street, [contact.postal_code, contact.city].filter(Boolean).join(' '), contact.country !== 'SI' ? COUNTRIES.find(c => c.code === contact.country)?.[lang] : ''].filter(Boolean).join(', ')
+    const co = res.company ?? { name: data.company.name, logo_url: data.company.logo_url, email: data.company.email, phone: data.company.phone, currency: data.company.currency }
+    return buildSnapshot({
+      quote_number: res.quote_number, title: '', valid_until: res.valid_until ?? null, lead_time: null, payment_terms: co.default_payment_terms ?? null, parity: null,
+      contact_person: person || null, contact_email: contact.email || null, contact_phone: contact.phone || null,
+      notes: T.pdfNote, site_address: site || null, discount_pct: 0, advance_discount_pct: co.advance_discount_pct ?? null,
+    } as any, {
+      name: contact.customer_type === 'company' && contact.company_name.trim() ? contact.company_name.trim() : person, vat_number: contact.customer_type === 'company' ? contact.vat_number || null : null,
+      address: site || null,
+    } as any, co as any, lines)
+  }
+  async function downloadOffer(snap: any, number: string) {
+    const { downloadOfferPdf } = await import('../components/OfferPdfPreview')
+    await downloadOfferPdf(snap, lang, `Ponudba_${number}.pdf`)
   }
 
   /** title + every choice of a window in words, in the order of the configurator */
@@ -648,14 +720,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   }
 
   return (
-    <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'min-h-screen bg-white text-gray-900')}>
+    <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'min-h-screen bg-[#f5f5f6] text-gray-900')}>
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] relative z-10">
-        <div className="px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
+        <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-20 sm:h-28' : data.company.logo_size === 's' ? 'h-16 sm:h-[72px]' : 'h-20 sm:h-24')}>
           <div className="flex items-center gap-2.5 min-w-0">
             {/* only the supplier's logo; without a logo its name stands in */}
             {data.company.logo_url
-              ? <img src={data.company.logo_url} alt={data.company.name} className="h-12 w-auto max-w-[240px] object-contain" />
+              ? <img src={data.company.logo_url} alt={data.company.name} className={cn('w-auto object-contain object-left', data.company.logo_size === 'l' ? 'h-14 sm:h-20 max-w-[200px] sm:max-w-[360px]' : data.company.logo_size === 's' ? 'h-9 sm:h-10 max-w-[160px] sm:max-w-[220px]' : 'h-11 sm:h-14 max-w-[180px] sm:max-w-[280px]')} />
               : <div className="text-lg font-bold tracking-[-0.01em] text-gray-900 truncate">{data.company.name}</div>}
           </div>
           {/* contact as buttons (on a phone only the icons), then the language */}
@@ -676,10 +748,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       {stage === 'done' ? (
         <div className="max-w-lg mx-auto px-4 py-16 text-center">
           <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center text-white mb-4" style={btn}><Check className="w-6 h-6" /></div>
-          <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{T.doneTitle}</h1>
-          <p className="text-[15px] text-gray-500 mt-2">{T.doneText}</p>
+          <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{offerSnap ? T.pdfDoneTitle : T.doneTitle}</h1>
+          <p className="text-[15px] text-gray-500 mt-2">{offerSnap ? T.pdfDoneText : T.doneText}</p>
           <p className="text-lg font-semibold text-gray-900 mt-2">{result?.quote_number}</p>
-          <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setContact(c => ({ ...c, note: '' })) }}
+          {/* the price after the details: when it was hidden until now, or with the offer */}
+          {calc && (offerSnap || priceMode === 'end') && <div className="mt-5 inline-flex flex-col items-center rounded-xl border border-gray-200 bg-white px-6 py-4">
+            <span className="text-sm font-medium text-[#4f4f4f]">{T.yourTotal}</span>
+            <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(offerSnap?.total_gross ?? totals.gross, cur)}</span>
+          </div>}
+          {offerSnap && <div><button onClick={() => downloadOffer(offerSnap, result?.quote_number ?? '')}
+            className="mt-5 inline-flex items-center gap-2 h-11 px-5 rounded-lg text-sm font-semibold text-white hover:opacity-90" style={btn}><FileText className="w-4 h-4" />{T.pdfAgain}</button></div>}
+          <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })) }}
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
       ) : (
@@ -1268,7 +1347,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}
               <div className="flex items-baseline justify-between mt-3">
                 <span className="text-sm font-medium text-gray-500">{T.unit}</span>
-                <span className="text-xl font-bold tracking-[-0.01em] text-gray-900">{show ? (p != null ? money(p, cur) : T.noPrice) : '—'}</span>
+                <span className="text-xl font-bold tracking-[-0.01em] text-gray-900">{show ? (p != null ? money(p, cur) : T.noPrice) : showRange && p != null ? priceRange(p) : '—'}</span>
               </div>
             </div>}
 
@@ -1305,7 +1384,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.gross, cur)}</span>
                 </div>
                 {!internal && <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.estimate}</p>}
-              </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{T.pricesHidden}</p>}
+              </div> : showRange ? <div className="border-t border-gray-200 mt-3 pt-3">
+                <div className="text-[15px] font-semibold text-gray-900">{T.rangeTitle}</div>
+                <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums mt-1">{priceRange(totals.gross)}</div>
+                <p className="text-[13px] leading-5 text-gray-500 pt-1.5">{T.rangeNote}</p>
+              </div> : <p className="text-[13px] text-gray-500 border-t border-gray-200 mt-3 pt-3">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
 
               {internal ? (
                 <div className="mt-4 flex gap-2">
@@ -1320,10 +1403,20 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
               ) : (
-                <button disabled={sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name) || (contact.customer_type === 'company' && !contact.company_name.trim()) || !contact.street.trim() || !contact.postal_code.trim() || !contact.city.trim()} onClick={submit}
-                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" style={btn}>
-                  {sending && <Loader2 className="w-4 h-4 animate-spin" />}{sending ? T.sending : T.send}
-                </button>
+                (() => {
+                  const blocked = sending || !consent || !heard || !contact.email || !(contact.first_name || contact.last_name) || (contact.customer_type === 'company' && !contact.company_name.trim()) || !contact.street.trim() || !contact.postal_code.trim() || !contact.city.trim()
+                  const primary = (label: string, pdf: boolean) => <button disabled={blocked} onClick={() => submit(pdf)}
+                    className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" style={btn}>
+                    {sending && <Loader2 className="w-4 h-4 animate-spin" />}{sending ? T.sending : label}
+                  </button>
+                  if (endMode === 'enquiry' || !calc) return primary(T.send, false)
+                  if (endMode === 'pdf') return primary(T.getOffer, true)
+                  return <>
+                    {primary(T.getOfferPdf, true)}
+                    <button disabled={blocked} onClick={() => submit(false)}
+                      className="mt-2 w-full h-11 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-900 disabled:opacity-40 hover:border-gray-400 transition-colors">{T.orEnquiry}</button>
+                  </>
+                })()
               )}
             </div>
           </aside>
@@ -1336,7 +1429,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-medium text-[#4f4f4f]">{T.gross}</div>
-            <div className="text-lg font-bold text-gray-900 tabular-nums">{show ? money(totals.gross, cur) : '—'}</div>
+            <div className="text-lg font-bold text-gray-900 tabular-nums">{show ? money(totals.gross, cur) : showRange ? priceRange(totals.gross) : '—'}</div>
           </div>
           <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
             className="h-11 px-5 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={btn}>{T.toReview}</button>
@@ -1345,6 +1438,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     </div>
   )
 }
+
+export type PriceMode = 'live' | 'end' | 'range' | 'never'
+export type EndMode = 'enquiry' | 'pdf' | 'choose'
 
 /** colours of a shutter / blind and its box; the first follows the frame */
 const SHADE_COLORS: { key: string | null; sl: string; en: string; hex: string | null }[] = [

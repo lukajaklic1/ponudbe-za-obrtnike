@@ -15,6 +15,24 @@ import { COUNTRIES, SI_AREAS, DEFAULT_AREA, type InstallArea } from '../lib/siPo
 const TXT = {
   sl: {
     title: 'Objava', save: 'Shrani', saved: 'Shranjeno.',
+    logoSize: 'Velikost logotipa', logoSizeHint: 'Logotip naložite v Nastavitvah; prazen rob okoli njega se obreže sam.', logoSizes: { s: 'Majhen', m: 'Srednji', l: 'Velik' } as Record<string, string>,
+    modeTitle: 'Kako deluje konfigurator za stranke', modeHint: 'Izberite, ali stranka vidi cene in kaj dobi na koncu. Povpraševanje z vsemi izbirami dobite vedno, ponudbo iz njega izdate z enim klikom.',
+    priceModeLabel: 'Cene',
+    priceModes: [
+      ['live', 'Sproti', 'Stranka vidi ceno okna in vsakega doplačila med izbiranjem.'],
+      ['end', 'Šele na koncu', 'Med izbiranjem brez cen, ceno vidi, ko vpiše svoje podatke.'],
+      ['range', 'Okvirno (od–do)', 'Namesto natančne cene razpon, na primer od 820 do 980 €.'],
+      ['never', 'Nikoli', 'Stranka cen ne vidi, pošlje samo povpraševanje.'],
+    ] as [string, string, string][],
+    endModeLabel: 'Na koncu',
+    endModes: [
+      ['enquiry', 'Pošlje povpraševanje', 'Stranka pošlje povpraševanje, vi pripravite in pošljete ponudbo.'],
+      ['pdf', 'Takoj prenese ponudbo', 'Stranka prenese informativno ponudbo (PDF), vi dobite povpraševanje.'],
+      ['choose', 'Stranka izbere', 'Stranka izbere: prenese ponudbo ali samo pošlje povpraševanje.'],
+    ] as [string, string, string][],
+    modeResult: (p: string, e: string) => e !== 'enquiry' && p === 'never'
+      ? 'Stranka cen med izbiranjem ne vidi, na koncu pa prenese ponudbo s cenami.'
+      : `Stranka ${p === 'live' ? 'vidi cene sproti' : p === 'end' ? 'vidi ceno šele na koncu' : p === 'range' ? 'vidi okvirni razpon cene' : 'cen ne vidi'}, na koncu ${e === 'enquiry' ? 'pošlje povpraševanje' : e === 'pdf' ? 'takoj prenese ponudbo' : 'izbere med ponudbo in povpraševanjem'}.`,
     area: 'Območje montaže', areaHint: 'Države, v katerih izvajate montažo. Stranka z naslovom izven območja lahko pošlje povpraševanje brez montaže.',
     areaSi: 'V Sloveniji samo ta poštna območja (brez izbire velja vsa Slovenija):',
     cfgEnabled: 'Konfigurator je javno dostopen', cfgSlug: 'Naslov strani', cfgShowPrices: 'Stranka lahko sproti vidi cene med konfiguracijo',
@@ -28,6 +46,24 @@ const TXT = {
   },
   en: {
     title: 'Publishing', save: 'Save', saved: 'Saved.',
+    logoSize: 'Logo size', logoSizeHint: 'Upload the logo in Settings; the empty margin around it is cut away.', logoSizes: { s: 'Small', m: 'Medium', l: 'Large' } as Record<string, string>,
+    modeTitle: 'How the configurator works for customers', modeHint: 'Choose whether the customer sees prices and what they get at the end. You always receive the enquiry with every choice, and issue the quote from it in one click.',
+    priceModeLabel: 'Prices',
+    priceModes: [
+      ['live', 'Live', 'The customer sees the price of the window and every extra while choosing.'],
+      ['end', 'Only at the end', 'No prices while choosing, the price after entering their details.'],
+      ['range', 'Estimate (from–to)', 'A range instead of the exact price, e.g. from 820 to 980 €.'],
+      ['never', 'Never', 'The customer does not see prices and only sends an enquiry.'],
+    ] as [string, string, string][],
+    endModeLabel: 'At the end',
+    endModes: [
+      ['enquiry', 'Sends an enquiry', 'The customer sends an enquiry, you prepare and send the quote.'],
+      ['pdf', 'Downloads the quote', 'The customer downloads an informative quote (PDF), you get the enquiry.'],
+      ['choose', 'The customer chooses', 'The customer chooses: download the quote or only send an enquiry.'],
+    ] as [string, string, string][],
+    modeResult: (p: string, e: string) => e !== 'enquiry' && p === 'never'
+      ? 'The customer sees no prices while choosing and downloads a quote with prices at the end.'
+      : `The customer ${p === 'live' ? 'sees prices live' : p === 'end' ? 'sees the price only at the end' : p === 'range' ? 'sees an estimated range' : 'sees no prices'}, and at the end ${e === 'enquiry' ? 'sends an enquiry' : e === 'pdf' ? 'downloads the quote' : 'chooses between the quote and an enquiry'}.`,
     area: 'Installation area', areaHint: 'Countries where you install. A customer outside the area can still send an enquiry without installation.',
     areaSi: 'In Slovenia only these postal areas (none ticked = all of Slovenia):',
     cfgEnabled: 'Configurator is publicly available', cfgSlug: 'Page address', cfgShowPrices: 'Customer can see prices live while configuring',
@@ -67,7 +103,10 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
   const [form, setForm] = useState({
     enabled: company.configurator_enabled ?? false,
     slug: company.configurator_slug ?? slugify(company.name),
-    show: company.configurator_show_prices ?? true,
+    // how the configurator works for the customer
+    priceMode: ((company as any).configurator_price_mode as string | null) ?? (company.configurator_show_prices === false ? 'never' : 'live'),
+    endMode: ((company as any).configurator_end_mode as string | null) ?? 'enquiry',
+    logoSize: ((company as any).configurator_logo_size as string | null) ?? 'm',
     accent: company.configurator_accent ?? '#2563eb',
     intro: company.configurator_intro ?? '',
     area: ((company as any).configurator_area as InstallArea | null) ?? DEFAULT_AREA,
@@ -81,7 +120,10 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     if (!slugOk) { toast.error(T.slugInvalid); return }
     setSaving(true)
     const { error } = await supabase.from('companies').update({
-      configurator_enabled: form.enabled, configurator_slug: form.slug, configurator_show_prices: form.show,
+      configurator_enabled: form.enabled, configurator_slug: form.slug,
+      configurator_price_mode: form.priceMode, configurator_end_mode: form.endMode, configurator_logo_size: form.logoSize,
+      // the page needs the prices unless they are never shown and only an enquiry is sent
+      configurator_show_prices: !(form.priceMode === 'never' && form.endMode === 'enquiry'),
       configurator_accent: form.accent, configurator_intro: form.intro.trim() || null, configurator_area: form.area,
     } as any).eq('id', company.id)
     setSaving(false)
@@ -114,9 +156,41 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
         : <Button loading={toggling} onClick={() => setPublished(true)}>{T.publish}</Button>)}
     </Card>
 
+    <Card className="p-5 space-y-5">
+      <div>
+        <h2 className="text-base font-semibold text-gray-900">{T.modeTitle}</h2>
+        <p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.modeHint}</p>
+      </div>
+      {([['priceMode', T.priceModeLabel, T.priceModes], ['endMode', T.endModeLabel, T.endModes]] as const).map(([key, label, opts]) => (
+        <div key={key}>
+          <label>{label}</label>
+          <div className="grid sm:grid-cols-2 gap-2 mt-2">
+            {opts.map(([value, title, hint]) => { const on = form[key] === value
+              return <button key={value} type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, [key]: value }))}
+                className={cn('text-left rounded-xl border px-4 py-3 transition-colors', on ? 'border-[#26897a] bg-[#eef8f6]' : 'border-gray-200 bg-white hover:border-gray-400')}>
+                <div className="flex items-center gap-2">
+                  <span className={cn('w-4 h-4 rounded-full border-2 shrink-0', on ? 'border-[#26897a] bg-[#26897a] shadow-[inset_0_0_0_2px_#fff]' : 'border-gray-300')} />
+                  <span className="text-[15px] font-semibold text-gray-900">{title}</span>
+                </div>
+                <p className="text-sm font-medium text-[#4f4f4f] mt-1 pl-6">{hint}</p>
+              </button> })}
+          </div>
+        </div>
+      ))}
+      <p className="text-sm font-medium text-[#4f4f4f]">{T.modeResult(form.priceMode, form.endMode)}</p>
+    </Card>
+
     <Card className="p-5 space-y-4">
       <Input label={T.cfgSlug} value={form.slug} onChange={e => setForm({ ...form, slug: slugify(e.target.value) })} error={slugOk ? undefined : T.slugInvalid} disabled={!canEdit} />
-      <Checkbox checked={form.show} onChange={v => setForm({ ...form, show: v })} label={T.cfgShowPrices} />
+      <div className="flex flex-col gap-1">
+        <label>{T.logoSize}</label>
+        <p className="text-sm font-medium text-[#4f4f4f]">{T.logoSizeHint}</p>
+        <div className="inline-flex p-1 rounded-[10px] bg-[#f1f1f1] w-fit mt-1">
+          {(['s', 'm', 'l'] as const).map(k => <button key={k} type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, logoSize: k }))}
+            className={cn('h-9 px-4 rounded-lg text-sm font-semibold transition-colors', form.logoSize === k ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.1)]' : 'text-[#4f4f4f] hover:text-gray-900')}>
+            {T.logoSizes[k]}</button>)}
+        </div>
+      </div>
       <div className="flex flex-col gap-1">
         <label>{T.cfgAccent}</label>
         <div className="flex items-center gap-2">

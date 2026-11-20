@@ -15,6 +15,7 @@ import Checkbox from '../components/ui/Checkbox'
 import { currencySymbol } from '../lib/currency'
 import { INCOTERMS } from '../lib/incoterms'
 import type { Company } from '../types/database'
+import { trimImage } from '../lib/trimImage'
 
 const LBL = {
   sl: {
@@ -91,10 +92,12 @@ export default function SettingsPage() {
     toast.success(t.common.saved); refetch()
   }
 
-  async function uploadLogo(file: File) {
+  async function uploadLogo(original: File) {
     if (!company) return
-    if (file.size > 2 * 1024 * 1024) { toast.error('Max 2 MB'); return }
+    if (original.size > 2 * 1024 * 1024) { toast.error('Max 2 MB'); return }
     setUploading(true)
+    // the empty margin around the logo is cut away, so it shows as big as it can
+    const file = await trimImage(original)
     const ext = (file.name.split('.').pop() || 'png').toLowerCase()
     const path = `${company.id}/logo-${Date.now()}.${ext}`
     const { error: upErr } = await supabase.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type })
