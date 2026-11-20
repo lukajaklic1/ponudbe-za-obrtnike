@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { meetsWithoutMullion, type Field, type WindowSpec } from '../lib/costing'
 
 type Zone = 'main' | 'top' | 'bottom'
@@ -6,6 +7,9 @@ type Zone = 'main' | 'top' | 'bottom'
  * Window drawn from sashes: frame, mullions, top light / bottom panel and the opening
  * symbol of every field (viewed from inside: the triangle's apex points to the hinge side,
  * tilt = apex at the bottom). Fields can be clicked when `onField` is given.
+ *
+ * Drawn like a render, not a scheme: profiles with depth (light from the top left), glass with
+ * a sky reflection, a soft shadow under the window and real handles — the geometry is the same.
  */
 /** what is chosen on the window, drawn with it: shading box, insect screen, sills, handle colour */
 export interface DrawingExtras {
@@ -27,13 +31,58 @@ const SILL_HEX: Record<string, string> = {
   alu_anthracite: '#3d4246', alu_brown: '#5a3e2b', stone: '#9aa0a6', pvc: '#f4f4f2', wood: '#b98a55', alu: '#c3c6c8', alu_dark: '#3d4246',
 }
 
+/** ids of the shared gradients of one drawing (several drawings are on a page) */
+interface Ids { glass: string; shine: string; prof: string; metal: string }
+const EDGE = '#80868d'
+
+/** a profile (frame, sash, mullion, bead): its colour with light from the top left */
+function Prof({ x, y, w, h, color, ids, rx = 0.8, edge = EDGE, sw = 0.7 }: { x: number; y: number; w: number; h: number; color: string; ids: Ids; rx?: number; edge?: string; sw?: number }) {
+  if (w <= 0 || h <= 0) return null
+  return <g>
+    <rect x={x} y={y} width={w} height={h} rx={rx} fill={color} stroke={edge} strokeWidth={sw} />
+    <rect x={x} y={y} width={w} height={h} rx={rx} fill={`url(#${ids.prof})`} />
+  </g>
+}
+
+/** glass: sky-blue with depth, two soft reflections and the shadow of the rebate at its edge */
+function Glass({ x, y, w, h, ids }: { x: number; y: number; w: number; h: number; ids: Ids }) {
+  if (w <= 0 || h <= 0) return null
+  return <g>
+    <rect x={x} y={y} width={w} height={h} fill={`url(#${ids.glass})`} />
+    <rect x={x} y={y} width={w} height={h} fill={`url(#${ids.shine})`} />
+    <rect x={x + 0.6} y={y + 0.6} width={Math.max(0, w - 1.2)} height={Math.max(0, h - 1.2)} fill="none" stroke="#0b1f33" strokeOpacity={0.07} strokeWidth={1} />
+    <rect x={x} y={y} width={w} height={h} fill="none" stroke="#a9b6c1" strokeWidth={0.5} />
+  </g>
+}
+
+/** a handle: a round rose on the sash and the lever pointing down (sideways on a tilt-only sash) */
+function Handle({ cx, cy, len, thick, fill, ids, flat = false }: { cx: number; cy: number; len: number; thick: number; fill: string; ids: Ids; flat?: boolean }) {
+  const rw = thick * 1.25, rh = thick * 2.3
+  return <g>
+    {flat
+      ? <rect x={cx - rh / 2} y={cy - rw / 2} width={rh} height={rw} rx={rw / 2} fill={fill} stroke="#4d535a" strokeWidth={0.4} />
+      : <rect x={cx - rw / 2} y={cy - rh / 2} width={rw} height={rh} rx={rw / 2} fill={fill} stroke="#4d535a" strokeWidth={0.4} />}
+    {flat
+      ? <rect x={cx - len / 2} y={cy - thick * 0.38} width={len} height={thick * 0.76} rx={thick * 0.38} fill={fill} stroke="#4d535a" strokeWidth={0.4} />
+      : <rect x={cx - thick * 0.38} y={cy - rh * 0.15} width={thick * 0.76} height={len} rx={thick * 0.38} fill={fill} stroke="#4d535a" strokeWidth={0.4} />}
+    {flat
+      ? <rect x={cx - len / 2} y={cy - thick * 0.38} width={len} height={thick * 0.76} rx={thick * 0.38} fill={`url(#${ids.metal})`} />
+      : <rect x={cx - thick * 0.38} y={cy - rh * 0.15} width={thick * 0.76} height={len} rx={thick * 0.38} fill={`url(#${ids.metal})`} />}
+  </g>
+}
+
 export default function SpecDrawing({ spec, width, height, size = 220, frameColor = '#fbfbfa', showDims = false, onField, className, plain = false, slim = false, extras }: {
   spec: WindowSpec; width: number; height: number; size?: number; frameColor?: string; showDims?: boolean; plain?: boolean; slim?: boolean
   onField?: (zone: Zone, index: number) => void; className?: string; extras?: DrawingExtras
 }) {
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
+  const ids: Ids = { glass: `sg${uid}`, shine: `ss${uid}`, prof: `sp${uid}`, metal: `sm${uid}` }
+  const shadowId = `sd${uid}`
   const w = Math.max(300, width || 0), h = Math.max(300, height || 0)
   const scale = size / Math.max(w, h)
-  const pad = showDims ? 26 : 2
+  // room for the soft shadow under the window
+  const shadowOn = !slim && size >= 60
+  const pad = showDims ? 26 : shadowOn ? 6 : 2
   const W = w * scale, H = h * scale
   // slim: thin, true-to-scale profiles for small list pictures, which would otherwise look heavy
   const frame = slim ? Math.max(2.5, Math.min(11, 45 * scale)) : Math.max(5, Math.min(11, 70 * scale))
@@ -50,7 +99,7 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
   const sills = [extras?.sillOut, extras?.sillIn].filter((x): x is string => !!x && x !== 'none')
   const sillH = Math.max(5, H * 0.03)
   const below = sills.length ? sills.length * sillH + 2 : 0
-  const handleFill = extras?.handle || '#5b6168'
+  const handleFill = extras?.handle || '#e9eaec'
   const parts: React.ReactNode[] = []
   function row(zone: Zone, fields: Field[], y: number, rh: number) {
     const n = fields.length
@@ -62,42 +111,78 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
     let x = ix
     fields.forEach((f, i) => {
       const fw = free * (f.weight ?? 1) / total
-      parts.push(<FieldShape key={`${zone}${i}`} f={f} x={x} y={y} w={fw} h={rh} sashFrame={slim ? Math.max(1.5, frame * 0.6) : Math.max(3, frame * 0.75)} frameColor={frameColor} plain={plain} handleFill={handleFill}
+      parts.push(<FieldShape key={`${zone}${i}`} f={f} x={x} y={y} w={fw} h={rh} sashFrame={slim ? Math.max(1.5, frame * 0.6) : Math.max(3, frame * 0.75)} frameColor={frameColor} plain={plain} handleFill={handleFill} ids={ids}
         meetL={i > 0 && !mull[i - 1]} meetR={i < n - 1 && !mull[i]}
         onClick={onField ? () => onField(zone, i) : undefined} />)
       x += fw
-      if (i < n - 1 && mull[i]) { parts.push(<rect key={`${zone}m${i}`} x={x} y={y} width={Math.max(0, bar)} height={Math.max(0, rh)} fill={frameColor} stroke="#5b6168" strokeWidth={0.8} />); x += bar }
+      if (i < n - 1 && mull[i]) { parts.push(<Prof key={`${zone}m${i}`} x={x} y={y} w={Math.max(0, bar)} h={Math.max(0, rh)} color={frameColor} ids={ids} rx={0} />); x += bar }
     })
   }
-  if (topH) { row('top', spec.topFields, iy, topH); parts.push(<rect key="tb" x={ix} y={iy + topH} width={Math.max(0, iw)} height={Math.max(0, bar)} fill={frameColor} stroke="#5b6168" strokeWidth={0.8} />) }
+  if (topH) { row('top', spec.topFields, iy, topH); parts.push(<Prof key="tb" x={ix} y={iy + topH} w={Math.max(0, iw)} h={Math.max(0, bar)} color={frameColor} ids={ids} rx={0} />) }
   row('main', spec.main, mainY, mainH)
-  if (botH) { parts.push(<rect key="bb" x={ix} y={mainY + mainH} width={Math.max(0, iw)} height={Math.max(0, bar)} fill={frameColor} stroke="#5b6168" strokeWidth={0.8} />); row('bottom', spec.bottomFields, mainY + mainH + bar, botH) }
+  if (botH) { parts.push(<Prof key="bb" x={ix} y={mainY + mainH} w={Math.max(0, iw)} h={Math.max(0, bar)} color={frameColor} ids={ids} rx={0} />); row('bottom', spec.bottomFields, mainY + mainH + bar, botH) }
 
   return (
     <svg className={className} width={W + pad * 2} height={H + pad * 2 + boxH + below} viewBox={`0 0 ${W + pad * 2} ${H + pad * 2 + boxH + below}`} role="img" aria-label={`${width} × ${height} mm`}>
       <defs>
-        <pattern id="spec-mesh" width="3" height="3" patternUnits="userSpaceOnUse">
+        <pattern id={`mesh${uid}`} width="3" height="3" patternUnits="userSpaceOnUse">
           <path d="M0 0H3M0 0V3" stroke="#5b6168" strokeWidth="0.35" fill="none" />
         </pattern>
+        {/* glass: light sky at the top, deeper blue at the bottom */}
+        <linearGradient id={ids.glass} x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0" stopColor="#eef5fa" />
+          <stop offset="0.5" stopColor="#dfecf5" />
+          <stop offset="1" stopColor="#d0e3f0" />
+        </linearGradient>
+        {/* two diagonal reflections over the glass */}
+        <linearGradient id={ids.shine} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.25" />
+          <stop offset="0.22" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.36" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.42" stopColor="#fff" stopOpacity="0.55" />
+          <stop offset="0.5" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.56" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.6" stopColor="#fff" stopOpacity="0.35" />
+          <stop offset="0.66" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+        {/* profiles: light from the top left, a little shade to the bottom right */}
+        <linearGradient id={ids.prof} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.45" />
+          <stop offset="0.5" stopColor="#fff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity="0.1" />
+        </linearGradient>
+        {/* metal of the handles */}
+        <linearGradient id={ids.metal} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
+          <stop offset="0.5" stopColor="#fff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity="0.22" />
+        </linearGradient>
+        <filter id={shadowId} x="-15%" y="-15%" width="130%" height="135%">
+          <feDropShadow dx="0" dy={Math.max(1, size * 0.012)} stdDeviation={Math.max(1, size * 0.016)} floodColor="#1b2430" floodOpacity="0.2" />
+        </filter>
       </defs>
       {/* shading: the box over the window */}
-      {shade && <rect x={pad - 2} y={pad} width={Math.max(0, W + 4)} height={Math.max(0, boxH)} rx={1.5} fill={extras?.shadeColor ?? frameColor} stroke="#5b6168" strokeWidth={1} />}
+      {shade && <Prof x={pad - 2} y={pad} w={Math.max(0, W + 4)} h={Math.max(0, boxH)} rx={1.5} color={extras?.shadeColor ?? frameColor} ids={ids} sw={0.9} />}
       <g transform={`translate(0 ${boxH})`}>
-      <rect x={pad} y={pad} width={Math.max(0, W)} height={Math.max(0, H)} rx={1.5} fill={frameColor} stroke="#5b6168" strokeWidth={1.2} />
-      <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill="#cfe3f3" stroke="#5b6168" strokeWidth={0.8} />
+      {/* the frame, with its soft shadow */}
+      {shadowOn && <rect x={pad} y={pad} width={Math.max(0, W)} height={Math.max(0, H)} rx={1.5} fill={frameColor} filter={`url(#${shadowId})`} />}
+      <Prof x={pad} y={pad} w={Math.max(0, W)} h={Math.max(0, H)} rx={1.5} color={frameColor} ids={ids} sw={1} />
+      {/* the gap between frame and sashes */}
+      <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill={frameColor} />
+      <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill="#1b2430" fillOpacity={0.22} stroke={EDGE} strokeWidth={0.6} />
       {parts}
       {/* shading lowered a little, so you see it is there */}
       {shade && <g>
-        <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih * 0.22)} fill={extras?.shadeColor ?? frameColor} opacity={0.95} />
-        {Array.from({ length: Math.max(2, Math.round(ih * 0.22 / 4)) }, (_, i) => <line key={i} x1={ix} x2={ix + iw} y1={iy + i * 4 + 4} y2={iy + i * 4 + 4} stroke="#8d9297" strokeWidth={0.5} />)}
+        <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih * 0.22)} fill={extras?.shadeColor ?? frameColor} opacity={0.97} />
+        {Array.from({ length: Math.max(2, Math.round(ih * 0.22 / 4)) }, (_, i) => <line key={i} x1={ix} x2={ix + iw} y1={iy + i * 4 + 4} y2={iy + i * 4 + 4} stroke="#000" strokeOpacity={0.18} strokeWidth={0.6} />)}
         <rect x={ix - 1} y={iy} width={2.5} height={Math.max(0, ih)} fill="#8d9297" />
         <rect x={ix + iw - 1.5} y={iy} width={2.5} height={Math.max(0, ih)} fill="#8d9297" />
       </g>}
       {/* insect screen: a mesh over the glass */}
-      {extras?.screen && <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill="url(#spec-mesh)" opacity={0.45} />}
+      {extras?.screen && <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill={`url(#mesh${uid})`} opacity={0.45} />}
       {/* sills under the window: outside first, then inside */}
-      {sills.map((m, i) => <rect key={i} x={pad - 5} y={pad + H + 1 + i * sillH} width={Math.max(0, W + 10)} height={sillH - (i ? 1 : 0)} rx={1}
-        fill={SILL_HEX[m] ?? '#c3c6c8'} stroke="#5b6168" strokeWidth={0.7} />)}
+      {sills.map((m, i) => <Prof key={i} x={pad - 5} y={pad + H + 1 + i * sillH} w={Math.max(0, W + 10)} h={sillH - (i ? 1 : 0)} rx={1}
+        color={SILL_HEX[m] ?? '#c3c6c8'} ids={ids} />)}
       </g>
       {showDims && <g fontSize={11} fill="#8ea9c0" fontFamily="Inter, system-ui, sans-serif">
         {/* the width stays over everything (also over a shading box), the height goes down with the window */}
@@ -114,15 +199,19 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
 
 const gyOf = (y: number, sashFrame: number) => y + 1.5 + sashFrame
 
-function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meetL = false, meetR = false, handleFill = '#5b6168' }: { f: Field; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string; onClick?: () => void; plain?: boolean; meetL?: boolean; meetR?: boolean; handleFill?: string }) {
+function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meetL = false, meetR = false, handleFill, ids }: { f: Field; x: number; y: number; w: number; h: number; sashFrame: number; frameColor: string; onClick?: () => void; plain?: boolean; meetL?: boolean; meetR?: boolean; handleFill: string; ids: Ids }) {
   const clickable = onClick ? { onClick, style: { cursor: 'pointer' } } : {}
   const hover = onClick ? <rect x={x} y={y} width={Math.max(0, w)} height={Math.max(0, h)} fill="#131313" opacity={0} className="hover:opacity-10 transition-opacity" /> : null
+  // the opening symbol: thin and soft, it should not cover the glass
+  const line = { stroke: '#4f5d6a', strokeOpacity: 0.55, strokeWidth: 0.8, fill: 'none' }
   if (f.opening === 'fixed') {
-    // glass in the frame: a small cross marks "fixed", like on the competitors' drawings
+    // glass in the frame behind a glazing bead; a small cross marks "fixed", like on the competitors' drawings
+    const bead = Math.max(1.5, sashFrame * 0.45)
     const c = Math.min(w, h) * 0.12
     return <g {...clickable}>
-      <rect x={x + 1} y={y + 1} width={Math.max(0, w - 2)} height={Math.max(0, h - 2)} fill="#cfe3f3" stroke="#8ea9c0" strokeWidth={0.5} />
-      {!plain && <g stroke="#a3a3a3" strokeWidth={0.8}><line x1={x + w / 2 - c} y1={y + h / 2} x2={x + w / 2 + c} y2={y + h / 2} /><line x1={x + w / 2} y1={y + h / 2 - c} x2={x + w / 2} y2={y + h / 2 + c} /></g>}
+      <Prof x={x + 0.5} y={y + 0.5} w={Math.max(0, w - 1)} h={Math.max(0, h - 1)} color={frameColor} ids={ids} rx={0} sw={0.5} />
+      <Glass x={x + 0.5 + bead} y={y + 0.5 + bead} w={Math.max(0, w - 1 - 2 * bead)} h={Math.max(0, h - 1 - 2 * bead)} ids={ids} />
+      {!plain && <g {...line} strokeOpacity={0.45}><line x1={x + w / 2 - c} y1={y + h / 2} x2={x + w / 2 + c} y2={y + h / 2} /><line x1={x + w / 2} y1={y + h / 2 - c} x2={x + w / 2} y2={y + h / 2 + c} /></g>}
       {hover}
     </g>
   }
@@ -132,38 +221,38 @@ function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meet
   const fl = sashFrame, fr = sashFrame
   const sx = x + il, sy = y + inset, sw = w - il - ir, sh = h - 2 * inset
   const gx = sx + fl, gy = sy + sashFrame, gw = Math.max(0, sw - fl - fr), gh = Math.max(0, sh - 2 * sashFrame)
-  const line = { stroke: '#7c7f82', strokeWidth: 0.8, fill: 'none' }
   const slide = f.opening === 'slide_window' || f.opening === 'slide'
+  const thick = Math.max(2.4, sashFrame * 0.55), len = Math.max(7, Math.min(22, sh * 0.11))
   if (slide) {
-    // sliding sash: arrow towards the side it slides to
-    const dir = f.hinge === 'right' ? 1 : -1, cy = gyOf(y, sashFrame) + (h - 2 * sashFrame - 3) / 2, cx = x + w / 2, len = w * 0.22
+    // sliding sash: arrow towards the side it slides to, a long pull handle on the side it opens from
+    const dir = f.hinge === 'right' ? 1 : -1, cy = gyOf(y, sashFrame) + (h - 2 * sashFrame - 3) / 2, cx = x + w / 2, alen = w * 0.22
+    const px = x + 1.5, pw = Math.max(0, w - 3)
+    const gx2 = px + sashFrame, gy2 = y + 1.5 + sashFrame, gw2 = Math.max(0, w - 3 - 2 * sashFrame), gh2 = Math.max(0, h - 3 - 2 * sashFrame)
     return <g {...clickable}>
-      <rect x={x + 1.5} y={y + 1.5} width={Math.max(0, w - 3)} height={Math.max(0, h - 3)} fill={frameColor} stroke="#5b6168" strokeWidth={0.8} />
-      <rect x={x + 1.5 + sashFrame} y={y + 1.5 + sashFrame} width={Math.max(0, w - 3 - 2 * sashFrame)} height={Math.max(0, h - 3 - 2 * sashFrame)} fill="#cfe3f3" stroke="#5b6168" strokeWidth={0.6} />
-      {!plain && f.opening === 'slide' && (() => {
-        // parallel slide & tilt (PSK): the panel tilts too
-        const gx = x + 1.5 + sashFrame, gy = y + 1.5 + sashFrame, gw = Math.max(0, w - 3 - 2 * sashFrame), gh = Math.max(0, h - 3 - 2 * sashFrame)
-        return <polyline points={`${gx},${gy + gh} ${gx + gw / 2},${gy} ${gx + gw},${gy + gh}`} stroke="#7c7f82" strokeWidth={0.8} fill="none" />
-      })()}
-      {!plain && <g stroke="#7c7f82" strokeWidth={1.1} fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <line x1={cx - dir * len} y1={cy} x2={cx + dir * len} y2={cy} />
-        <polyline points={`${cx + dir * (len - 5)},${cy - 4} ${cx + dir * len},${cy} ${cx + dir * (len - 5)},${cy + 4}`} />
+      <Prof x={px} y={y + 1.5} w={pw} h={Math.max(0, h - 3)} color={frameColor} ids={ids} rx={0} />
+      <Glass x={gx2} y={gy2} w={gw2} h={gh2} ids={ids} />
+      {!plain && f.opening === 'slide' && <polyline points={`${gx2},${gy2 + gh2} ${gx2 + gw2 / 2},${gy2} ${gx2 + gw2},${gy2 + gh2}`} {...line} />}
+      {!plain && <g {...line} strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round">
+        <line x1={cx - dir * alen} y1={cy} x2={cx + dir * alen} y2={cy} />
+        <polyline points={`${cx + dir * (alen - 5)},${cy - 4} ${cx + dir * alen},${cy} ${cx + dir * (alen - 5)},${cy + 4}`} />
       </g>}
+      {/* the handle on the side the sash is pulled from */}
+      {!plain && <Handle cx={dir > 0 ? px + sashFrame / 2 : px + pw - sashFrame / 2} cy={y + h / 2 - len / 2} len={len * 1.4} thick={thick} fill={handleFill} ids={ids} />}
       {hover}
     </g>
   }
   const turn = f.opening === 'turn' || f.opening === 'tilt_turn' || f.opening === 'passive'
   const tilt = f.opening === 'tilt' || f.opening === 'tilt_turn'
   const right = f.hinge === 'right'
-  const hw = Math.max(2.5, sashFrame * 0.55), hh = Math.max(8, Math.min(22, sh * 0.12))
   return <g {...clickable}>
-    <rect x={sx} y={sy} width={Math.max(0, sw)} height={Math.max(0, sh)} fill={frameColor} stroke="#5b6168" strokeWidth={0.8} />
-    <rect x={gx} y={gy} width={Math.max(0, gw)} height={Math.max(0, gh)} fill="#cfe3f3" stroke="#5b6168" strokeWidth={0.6} />
+    <Prof x={sx} y={sy} w={Math.max(0, sw)} h={Math.max(0, sh)} color={frameColor} ids={ids} rx={0.6} />
+    <Glass x={gx} y={gy} w={gw} h={gh} ids={ids} />
     {!plain && turn && <polyline points={`${right ? gx : gx + gw},${gy} ${right ? gx + gw : gx},${gy + gh / 2} ${right ? gx : gx + gw},${gy + gh}`} {...line} />}
     {!plain && tilt && <polyline points={`${gx},${gy + gh} ${gx + gw / 2},${gy} ${gx + gw},${gy + gh}`} {...line} />}
+    {/* the handle sits on the side that opens (on top for a tilt-only sash); a passive sash has none */}
     {plain || f.opening === 'passive' ? null : f.opening === 'tilt'
-      ? <rect x={sx + sw / 2 - hh / 2} y={sy + sashFrame / 2 - hw / 2} width={Math.max(0, hh)} height={Math.max(0, hw)} rx={1} fill={handleFill} stroke="#5b6168" strokeWidth={0.4} />
-      : <rect x={right ? sx + fl / 2 - hw / 2 : sx + sw - fr / 2 - hw / 2} y={sy + sh / 2 - hh / 2} width={Math.max(0, hw)} height={Math.max(0, hh)} rx={1} fill={handleFill} stroke="#5b6168" strokeWidth={0.4} />}
+      ? <Handle cx={sx + sw / 2} cy={sy + sashFrame / 2} len={len} thick={thick} fill={handleFill} ids={ids} flat />
+      : <Handle cx={right ? sx + fl / 2 : sx + sw - fr / 2} cy={sy + sh / 2 - len * 0.35} len={len} thick={thick} fill={handleFill} ids={ids} />}
     {hover}
   </g>
 }

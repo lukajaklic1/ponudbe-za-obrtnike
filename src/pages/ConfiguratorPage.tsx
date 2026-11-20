@@ -1450,16 +1450,18 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <Field label={T.phone} type="tel" value={contact.phone} onChange={v => setContact({ ...contact, phone: v })} autoComplete="tel" />
                   <div className="sm:col-span-2 text-[15px] font-semibold text-gray-900 pt-3">{T.address}</div>
                   <div className="sm:col-span-2"><Field label={T.street} value={contact.street} onChange={v => setContact({ ...contact, street: v })} autoComplete="address-line1" /></div>
+                  {contact.country === 'SI'
+                    ? <PostFields postalLabel={T.postal} cityLabel={T.city} code={contact.postal_code} city={contact.city}
+                        onChange={(postal_code, city) => setContact(c => ({ ...c, postal_code, city }))} />
+                    : <>
+                      <Field label={T.postal} value={contact.postal_code} onChange={v => setContact({ ...contact, postal_code: v })} autoComplete="postal-code" />
+                      <Field label={T.city} value={contact.city} onChange={v => setContact({ ...contact, city: v })} autoComplete="address-level2" />
+                    </>}
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-semibold text-gray-900">{T.country}</span>
                     <Select value={contact.country} onChange={v => setContact({ ...contact, country: v, postal_code: '', city: '' })}
                       options={COUNTRIES.map(c => ({ value: c.code, label: c[lang] }))} />
                   </div>
-                  {contact.country === 'SI'
-                    ? <PostPicker label={T.postal} placeholder={T.postalPick} code={contact.postal_code} city={contact.city}
-                        onPick={(code, city) => setContact({ ...contact, postal_code: code, city })} />
-                    : <Field label={T.postal} value={contact.postal_code} onChange={v => setContact({ ...contact, postal_code: v })} autoComplete="postal-code" />}
-                  {contact.country !== 'SI' && <Field label={T.city} value={contact.city} onChange={v => setContact({ ...contact, city: v })} autoComplete="address-level2" />}
                   {outOfArea && <p className="sm:col-span-2 text-sm font-medium text-[#8a6100] bg-[#fef3cd] rounded-lg px-3 py-2">{T.outOfArea}</p>}
                   {/* where the customer heard of the supplier (goes to the enquiry's note) */}
                   <div className="sm:col-span-2 flex flex-col gap-1">
@@ -1650,22 +1652,44 @@ function MmInput({ label, value, onChange, min, max, rangeLabel }: { label: stri
   </div>
 }
 
-function PostPicker({ label, placeholder, code, city, onPick }: { label: string; placeholder: string; code: string; city: string; onPick: (code: string, city: string) => void }) {
-  const [q, setQ] = useState(code ? `${code} ${city}` : '')
+/**
+ * Slovenian address: the postal code and the town in two fields. Each suggests from the list of
+ * post offices; a full code fills in its town and a known town fills in its code.
+ */
+function PostFields({ postalLabel, cityLabel, code, city, onChange }: { postalLabel: string; cityLabel: string; code: string; city: string; onChange: (code: string, city: string) => void }) {
+  const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  const byCode = code && !SI_POSTS.some(p => p.code === code) ? SI_POSTS.filter(p => p.code.startsWith(code)).slice(0, 8) : []
+  const byCity = city.trim() && !SI_POSTS.some(p => norm(p.name) === norm(city)) ? SI_POSTS.filter(p => norm(p.name).includes(norm(city))).slice(0, 8) : []
+  return <>
+    <Suggest label={postalLabel} value={code} inputMode="numeric" autoComplete="postal-code" hits={byCode}
+      onType={v => {
+        const c = v.replace(/\D/g, '').slice(0, 4)
+        const hit = c.length === 4 ? SI_POSTS.find(p => p.code === c) : undefined
+        onChange(c, hit ? hit.name : city)
+      }}
+      onPick={p => onChange(p.code, p.name)} />
+    <Suggest label={cityLabel} value={city} autoComplete="address-level2" hits={byCity}
+      onType={v => {
+        const same = SI_POSTS.filter(p => norm(p.name) === norm(v))
+        onChange(same.length === 1 ? same[0].code : code, v.slice(0, 80))
+      }}
+      onPick={p => onChange(p.code, p.name)} />
+  </>
+}
+
+function Suggest({ label, value, hits, onType, onPick, inputMode, autoComplete }: {
+  label: string; value: string; hits: { code: string; name: string }[]; onType: (v: string) => void; onPick: (p: { code: string; name: string }) => void
+  inputMode?: 'numeric'; autoComplete?: string
+}) {
   const [open, setOpen] = useState(false)
-  useEffect(() => { setQ(code ? `${code} ${city}` : '') }, [code, city])
-  const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  const hits = q.trim() && !(code && q === `${code} ${city}`)
-    ? SI_POSTS.filter(p => p.code.startsWith(q.trim()) || norm(p.name).includes(norm(q.trim()))).slice(0, 8)
-    : []
   return <div className="flex flex-col gap-1 relative">
     <label className="text-sm font-semibold text-gray-900">{label}</label>
-    <input value={q} placeholder={placeholder} autoComplete="off"
-      onChange={e => { setQ(e.target.value); setOpen(true); if (code) onPick('', '') }}
+    <input value={value} inputMode={inputMode} autoComplete={autoComplete}
+      onChange={e => { onType(e.target.value); setOpen(true) }}
       onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
       className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
     {open && hits.length > 0 && <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 max-h-64 overflow-y-auto">
-      {hits.map(p => <button key={p.code + p.name} type="button" onMouseDown={e => e.preventDefault()} onClick={() => { onPick(p.code, p.name); setOpen(false) }}
+      {hits.map(p => <button key={p.code + p.name} type="button" onMouseDown={e => e.preventDefault()} onClick={() => { onPick(p); setOpen(false) }}
         className="w-full text-left px-3 py-2 text-sm hover:bg-[#f5f5f5] flex gap-3"><span className="font-semibold tabular-nums w-10">{p.code}</span><span className="text-gray-900">{p.name}</span></button>)}
     </div>}
   </div>
