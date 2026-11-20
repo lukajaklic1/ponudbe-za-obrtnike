@@ -653,13 +653,10 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] relative z-10">
         <div className="px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
+            {/* only the supplier's logo; without a logo its name stands in */}
             {data.company.logo_url
-              ? <img src={data.company.logo_url} alt="" className="h-12 w-auto max-w-[240px] object-contain" />
-              : <div className="w-11 h-11 rounded-lg flex items-center justify-center text-white text-lg font-semibold" style={btn}>{data.company.name.charAt(0)}</div>}
-            <div className="min-w-0">
-              <div className="text-[15px] font-semibold text-gray-900 truncate">{data.company.name}</div>
-              <div className="text-[13px] font-medium text-gray-500">{T.title}</div>
-            </div>
+              ? <img src={data.company.logo_url} alt={data.company.name} className="h-12 w-auto max-w-[240px] object-contain" />
+              : <div className="text-lg font-bold tracking-[-0.01em] text-gray-900 truncate">{data.company.name}</div>}
           </div>
           <div className="flex items-center gap-4 text-[13px] font-medium text-gray-500">
             {data.company.phone && <a href={`tel:${data.company.phone}`} className="hidden sm:flex items-center gap-1.5 hover:text-gray-900 transition-colors"><Phone className="w-3.5 h-3.5" />{data.company.phone}</a>}
