@@ -740,11 +740,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const prodCard = (key: string, label: string, drawing: React.ReactNode, onPick: () => void, _next?: string) => {
     const on = group === key
     return <button key={key} onClick={() => { if (!on) onPick() }}
-      className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+      className={cn('relative rounded-xl border p-4 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
       style={on ? selStyle(accent) : undefined}>
       {on && <SelBadge accent={accent} />}
-      <div className="h-[84px] flex items-center justify-center">{drawing}</div>
-      <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{label}</div>
+      {/* the first choice: big pictures, so the products are easy to tell apart */}
+      <div className="h-[150px] flex items-center justify-center">{drawing}</div>
+      <div className="text-[15px] font-medium text-gray-900 mt-3 leading-snug">{label}</div>
     </button>
   }
   /** what to do on each step, under its title */
@@ -899,17 +900,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </div>
 
               {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={makeSpec(2, 'none', 'none', 'fixed')} width={1300} height={1300} size={84} plain />,
+                {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={makeSpec(2, 'none', 'none', 'fixed')} width={1300} height={1300} size={140} plain />,
                   () => pickSashes(spec && !spec.kind ? spec.sashes : (offer.sashes ?? []).includes(2) ? 2 : [...(offer.sashes ?? [])].sort()[0]), 'variant')}
-                {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96} plain />, pickSliding, 'profile')}
-                {offer?.doors && prodCard('door', T.grpDoors, <SpecDrawing spec={makeSpec(1, 'none', 'none', 'fixed')} width={900} height={2200} size={84} plain />,
+                {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={160} plain />, pickSliding, 'profile')}
+                {offer?.doors && prodCard('door', T.grpDoors, <SpecDrawing spec={makeSpec(1, 'none', 'none', 'fixed')} width={900} height={2200} size={140} plain />,
                   () => pickDoor(spec?.kind === 'door' ? spec.sashes : [...(offer.doorSashes ?? [1, 2, 3])].sort()[0]), 'variant')}
-                {offer?.sliding && firstWall != null && prodCard('wall', T.grpWalls, <SpecDrawing spec={makeSpec(firstWall, 'none', 'none', 'fixed')} width={wallWidth(firstWall)} height={2200} size={96} plain />,
+                {offer?.sliding && firstWall != null && prodCard('wall', T.grpWalls, <SpecDrawing spec={makeSpec(firstWall, 'none', 'none', 'fixed')} width={wallWidth(firstWall)} height={2200} size={160} plain />,
                   () => pickWall(spec?.kind === 'wall' ? spec.sashes : firstWall), 'variant')}
-                {offer?.roof && !!roofCat?.models.length && prodCard('roof', T.grpRoof, <RoofWindowDrawing size={78} />, () => { if (!roofSel) pickRoof() }, 'variant')}
+                {offer?.roof && !!roofCat?.models.length && prodCard('roof', T.grpRoof, <RoofWindowDrawing size={130} />, () => { if (!roofSel) pickRoof() }, 'variant')}
                 {visibleTypes.map(t => {
                   const door = t.template.startsWith('door') || t.template === 'lift_slide'
-                  return prodCard('type:' + t.id, t.name, <WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} plain />, () => pickType(t), 'profile')
+                  return prodCard('type:' + t.id, t.name, <WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={130} plain />, () => pickType(t), 'profile')
                 })}
               </div>, T.stepProductHint)}
 
