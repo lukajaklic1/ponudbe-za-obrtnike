@@ -60,7 +60,8 @@ export interface ConfigItem {
   /** window sills inside / outside (ids; missing = no sill) */
   sills?: { in?: string | null; out?: string | null } | null
   /** shading and insect screen (ids; missing = none) */
-  shading?: { shade?: string | null; screen?: string | null } | null
+  /** color: colour of the shutter / blind and its box (null = same as the frame) */
+  shading?: { shade?: string | null; screen?: string | null; color?: string | null } | null
   /** roof window from the catalogue: model + size (+ flashing) */
   roof?: { model: string; size: string; flashing: string | null; variant?: string | null } | null
   /** width of each sash in mm (the last one fills the rest); missing = all the same */
@@ -71,7 +72,7 @@ const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Ponudnik konfiguratorja še ni objavil.',
     qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
-    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
+    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeColor: 'Barva senčila in omarice', shadeColorHint: 'Brez doplačila. Končno barvo potrdimo pri izmeri.', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
@@ -98,7 +99,7 @@ const TXT = {
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
     qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
-    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
+    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeColor: 'Colour of the shading and its box', shadeColorHint: 'No extra charge. We confirm the colour when measuring.', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
@@ -475,6 +476,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       add(T.glassTitle, g ? [g.name, g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')} W/m²K` : null].filter(Boolean).join(', ') : null)
       const h = handleList.find(hh => hh.id === x.handle) ?? handleList[0]
       add(T.handleTitle, h ? `${h.name}${h.lockable ? ` · ${T.lockable}` : ''}` : null)
+      if (x.shading?.shade) add(T.shadeColor, SHADE_COLORS.find(c => c.key === (x.shading?.color ?? null))?.[lang] ?? null)
     } else if (t && hasHingeChoice(t.template)) add(T.hinge, L.hinge[x.hinge])
     const extras = data.options.filter(o => x.option_ids.includes(o.id) && !isService(o)).map(o => o.name)
     add(T.step4, extras.join(', '))
@@ -496,7 +498,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     const steps: [keyof typeof pick, string | null | undefined, string, string, (id: string) => Found | undefined, [string, string][]][] = [
       ['sIn', x.sills?.in, 'P1', T.sillIn, id => sillList.find(s => s.id === id), [[T.subLength, `${x.width} mm`]]],
       ['sOut', x.sills?.out, 'P2', T.sillOut, id => sillList.find(s => s.id === id), [[T.subLength, `${x.width} mm`]]],
-      ['shade', x.shading?.shade, 'S', T.shadeLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size]]],
+      ['shade', x.shading?.shade, 'S', T.shadeLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size], [T.shadeColor, SHADE_COLORS.find(c => c.key === (x.shading?.color ?? null))?.[lang] ?? '']]],
       ['screen', x.shading?.screen, 'K', T.screenLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size]]],
     ]
     for (const [k, id, code, kind, find, rows] of steps) {
@@ -582,6 +584,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       frame: parseColor(out?.look)?.hex ?? '#fbfbfa',
       extras: {
         shade: it.shading?.shade ? (shadeX?.icon ?? 'roller') : null,
+        shadeColor: SHADE_COLORS.find(c => c.key === (it.shading?.color ?? null))?.hex ?? null,
         screen: !!it.shading?.screen,
         sillOut: it.sills?.out ? sillList.find(x => x.id === it.sills?.out)?.material ?? 'alu_silver' : null,
         sillIn: it.sills?.in ? sillList.find(x => x.id === it.sills?.in)?.material ?? 'pvc_white' : null,
@@ -1102,6 +1105,21 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       </div>
                     </div>
                   })}
+                  {it.shading?.shade && <div>
+                    <div className="text-sm font-semibold text-gray-900">{T.shadeColor}</div>
+                    <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-2">{T.shadeColorHint}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {SHADE_COLORS.map(c => {
+                        const on = (it.shading?.color ?? null) === c.key
+                        return <button key={c.key ?? 'frame'} type="button" onClick={() => update({ shading: { ...(it.shading ?? {}), color: c.key } })}
+                          className={cn('inline-flex items-center gap-2 h-10 pl-2 pr-3 rounded-[10px] border bg-white text-sm font-medium transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                          style={on ? selStyle(accent) : undefined}>
+                          <span className="w-[22px] h-[22px] rounded-md border border-black/10" style={{ background: c.hex ?? look.frame }} />
+                          <span className="text-gray-900">{c[lang]}</span>
+                        </button>
+                      })}
+                    </div>
+                  </div>}
                 </div>
               </Sub>}
 
@@ -1326,6 +1344,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   )
 }
 
+/** colours of a shutter / blind and its box; the first follows the frame */
+const SHADE_COLORS: { key: string | null; sl: string; en: string; hex: string | null }[] = [
+  { key: null, sl: 'Enako kot okvir', en: 'Same as the frame', hex: null },
+  { key: 'white', sl: 'Bela', en: 'White', hex: '#f4f4f2' },
+  { key: 'silver', sl: 'Srebrna', en: 'Silver', hex: '#c3c6c8' },
+  { key: 'anthracite', sl: 'Antracit', en: 'Anthracite', hex: '#383e42' },
+  { key: 'brown', sl: 'Rjava', en: 'Brown', hex: '#5a3e2b' },
+]
 const OPEN_SL: Record<string, string> = { fixed: 'fiksno', tilt_turn: 'odpiranje in kip', turn: 'odpiranje', tilt: 'kip', passive: 'pasivno', slide_window: 'drsno', slide: 'drsno', lift_slide: 'dvižno-drsno' }
 const OPEN_EN: Record<string, string> = { fixed: 'fixed', tilt_turn: 'tilt & turn', turn: 'turn', tilt: 'tilt', passive: 'passive', slide_window: 'sliding', slide: 'sliding', lift_slide: 'lift & slide' }
 

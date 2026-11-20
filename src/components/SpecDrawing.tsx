@@ -11,6 +11,8 @@ type Zone = 'main' | 'top' | 'bottom'
 export interface DrawingExtras {
   /** shading kind (roller, blinds, pleated …): a box over the window and guides at the sides */
   shade?: string | null
+  /** colour of the shading and its box (default: the frame colour) */
+  shadeColor?: string | null
   /** insect screen: a fine mesh over the glass */
   screen?: boolean
   /** sill materials (outside and inside), drawn under the window */
@@ -79,14 +81,14 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
         </pattern>
       </defs>
       {/* shading: the box over the window */}
-      {shade && <rect x={pad - 2} y={pad} width={Math.max(0, W + 4)} height={Math.max(0, boxH)} rx={1.5} fill="#d6d9dc" stroke="#5b6168" strokeWidth={1} />}
+      {shade && <rect x={pad - 2} y={pad} width={Math.max(0, W + 4)} height={Math.max(0, boxH)} rx={1.5} fill={extras?.shadeColor ?? frameColor} stroke="#5b6168" strokeWidth={1} />}
       <g transform={`translate(0 ${boxH})`}>
       <rect x={pad} y={pad} width={Math.max(0, W)} height={Math.max(0, H)} rx={1.5} fill={frameColor} stroke="#5b6168" strokeWidth={1.2} />
       <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih)} fill="#cfe3f3" stroke="#5b6168" strokeWidth={0.8} />
       {parts}
       {/* shading lowered a little, so you see it is there */}
       {shade && <g>
-        <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih * 0.22)} fill="#c4c8cc" opacity={0.92} />
+        <rect x={ix} y={iy} width={Math.max(0, iw)} height={Math.max(0, ih * 0.22)} fill={extras?.shadeColor ?? frameColor} opacity={0.95} />
         {Array.from({ length: Math.max(2, Math.round(ih * 0.22 / 4)) }, (_, i) => <line key={i} x1={ix} x2={ix + iw} y1={iy + i * 4 + 4} y2={iy + i * 4 + 4} stroke="#8d9297" strokeWidth={0.5} />)}
         <rect x={ix - 1} y={iy} width={2.5} height={Math.max(0, ih)} fill="#8d9297" />
         <rect x={ix + iw - 1.5} y={iy} width={2.5} height={Math.max(0, ih)} fill="#8d9297" />
