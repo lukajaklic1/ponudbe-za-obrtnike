@@ -106,7 +106,7 @@ const TXT = {
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
-    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Zaključi povpraševanje', yourOrderHint: 'Okna, ki ste jih izbrali. Kliknite okno, da ga uredite.', finishHint: 'Nato pregledate okna in vpišete svoje podatke.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
+    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Okna, ki ste jih izbrali. Kliknite okno, da ga uredite.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
@@ -143,7 +143,7 @@ const TXT = {
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
-    reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Finish enquiry', yourOrderHint: 'The windows you chose. Click a window to change it.', finishHint: 'Then you check the windows and enter your details.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
+    reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'The windows you chose. Click a window to change it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
@@ -261,6 +261,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const calc = !!data?.company.show_prices
   const priceMode: PriceMode = internal ? 'live' : (data?.company.price_mode ?? (calc ? 'live' : 'never'))
   const endMode: EndMode = internal ? 'enquiry' : (data?.company.end_mode ?? 'enquiry')
+  /** the way on names where it leads: sending an enquiry, getting the offer, or either */
+  const finishLabel = endMode === 'pdf' ? T.toOffer : endMode === 'choose' ? T.toSend : T.toReview
   const showLive = calc && priceMode === 'live'
   const showRangeLive = calc && priceMode === 'range'
   /** a from–to range around a price (−10 % … +10 %, rounded to 10) */
@@ -782,7 +784,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         {(() => {
           const other = items.findIndex((x, i) => i !== active && !doneKeys[x.key] && (reachedMap[x.key] ?? 0) < 99)
           return <button type="button" onClick={() => { if (nextId) setOpen(nextId); else if (internal) setOpen('none'); else if (other >= 0) { setOpen('none'); setActive(other); window.scrollTo({ top: 0 }) } else { setOpen('none'); finish() } }}
-            className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : other >= 0 ? T.toPosition(other + 1) : T.toReview}</button>
+            className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : other >= 0 ? T.toPosition(other + 1) : finishLabel}</button>
         })()}
       </div>}
     </section>
@@ -875,7 +877,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             </div>
             {!internal && <>
               <button type="button" disabled={!canFinish} onClick={finish}
-                className="mt-4 w-full h-12 rounded-xl text-[15px] font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toReview}</button>
+                className="mt-4 w-full h-12 rounded-xl text-[15px] font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{finishLabel}</button>
               <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>
             </>}
           </aside>
@@ -1533,7 +1535,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 </div>
               ) : stage === 'config' ? (<>
                 <button disabled={!canFinish} onClick={finish}
-                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toReview}</button>
+                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{finishLabel}</button>
                 <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>
               </>
               ) : stage === 'review' ? (
@@ -1580,7 +1582,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             <div className="text-lg font-bold text-gray-900 tabular-nums">{show ? money(totals.gross, cur) : showRange ? priceRange(totals.gross) : '—'}</div>
           </div>
           <button disabled={!canFinish} title={finishNote} onClick={finish}
-            className="h-11 px-5 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={btn}>{T.toReview}</button>
+            className="h-11 px-5 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={btn}>{finishLabel}</button>
         </div>
       </>}
     </div>
