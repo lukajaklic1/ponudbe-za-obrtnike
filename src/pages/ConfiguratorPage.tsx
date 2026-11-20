@@ -106,7 +106,7 @@ const TXT = {
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
-    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Pregled povpraševanja', editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
+    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Zaključi povpraševanje', yourOrderHint: 'Okna, ki ste jih izbrali. Kliknite okno, da ga uredite.', finishHint: 'Nato pregledate okna in vpišete svoje podatke.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
@@ -143,7 +143,7 @@ const TXT = {
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
-    reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Review enquiry', editWindow: 'Edit', backToReview: 'Back to the review',
+    reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Finish enquiry', yourOrderHint: 'The windows you chose. Click a window to change it.', finishHint: 'Then you check the windows and enter your details.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
@@ -233,15 +233,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
   const [openMap, setOpenMap] = useState<Record<string, string>>(() => draft?.openMap ?? Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
   const [reachedMap, setReachedMap] = useState<Record<string, number>>(() => draft?.reachedMap ?? Object.fromEntries((initialItems ?? []).map(x => [x.key, 99])))
+  // windows that reached their last step (so finishing is possible even before "Naprej" there)
+  const [doneKeys, setDoneKeys] = useState<Record<string, boolean>>(() => draft?.doneKeys ?? {})
   const [services, setServices] = useState<string[]>(() => Array.isArray(draft?.services) ? draft.services.filter((id: string) => data.options.some(o => o.id === id)) : data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
   // keep the draft on every change; once the enquiry is sent it is gone
   useEffect(() => {
     if (internal || !slug) return
     try {
       if (stage === 'done') localStorage.removeItem(draftKey(slug))
-      else if (items.length) localStorage.setItem(draftKey(slug), JSON.stringify({ v: 1, items, active, stage, contact, heard, openMap, reachedMap, services }))
+      else if (items.length) localStorage.setItem(draftKey(slug), JSON.stringify({ v: 1, items, active, stage, contact, heard, openMap, reachedMap, doneKeys, services }))
     } catch { /* storage off: nothing kept */ }
-  }, [items, active, stage, contact, heard, openMap, reachedMap, services])
+  }, [items, active, stage, contact, heard, openMap, reachedMap, doneKeys, services])
   // start with one window (or the windows handed in when a quote position is edited)
   useEffect(() => { if (!items.length) setItems([defaultItem(data)]) }, [])
   // an installation address outside the supplier's area: the enquiry goes without installation
@@ -678,6 +680,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   // the drawing shows how the sashes open only from the opening step on
   const openingIdx = stepIds.indexOf('opening')
   const drawPlain = !internal && stage === 'config' && openingIdx >= 0 && reached < openingIdx
+  /** the enquiry can be finished once every window went through all its steps */
+  const atLast = !!it && stepIds.length > 0 && reached >= stepIds.length - 1
+  const firstOpen = items.findIndex(x => !(doneKeys[x.key] || (reachedMap[x.key] ?? 0) >= 99 || (x.key === it.key && atLast)))
+  const canFinish = items.every(sizeOk) && firstOpen < 0
+  const finishNote = firstOpen >= 0 ? T.finishOpen(firstOpen + 1) : T.finishHint
+  const finish = () => { setStage('review'); window.scrollTo({ top: 0 }) }
   /** a window's sizes show once the customer reached the size step (not on the first steps, before they chose anything) */
   const dimsOn = (x: ConfigItem) => internal || stage !== 'config' || (x.key === it.key ? (unlockIdx < 0 || reached >= unlockIdx) : (reachedMap[x.key] ?? 0) >= (x.roof ? 1 : 2))
   /** a window's own price can show once its sizes were entered (each window on its own) */
@@ -686,6 +694,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   function setOpen(id: string) {
     const i = id === 'none' ? 99 : stepIds.indexOf(id)
     setReachedMap(m => ({ ...m, [it.key]: Math.max(m[it.key] ?? 0, i) }))
+    if (i >= stepIds.length - 1) setDoneKeys(m => m[it.key] ? m : { ...m, [it.key]: true })
     setOpenMap(m => ({ ...m, [it.key]: id }))
     if (id !== 'none') setTimeout(() => document.getElementById('step-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
   }
@@ -766,12 +775,15 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         <h2 className="flex-1 min-w-0 text-lg font-semibold tracking-[-0.01em] text-gray-900">{title}</h2>
         {!internal && <span className="text-[13px] font-medium text-[#8a8a8a] whitespace-nowrap">{T.stepOf(idx + 1, stepIds.length)}</span>}
       </div>
-      {hint && <p className="text-sm font-medium text-[#4f4f4f] pl-10 mb-5">{hint}</p>}
+      {hint && <p className="text-sm text-[#4f4f4f] pl-10 mb-5">{hint}</p>}
       <div className="space-y-6">{body}</div>
       {/* only the newest step moves on; the last one goes to the review */}
       {last && <div className="flex justify-end mt-6">
-        <button type="button" onClick={() => { if (nextId) setOpen(nextId); else if (internal) setOpen('none'); else { setOpen('none'); setStage('review'); window.scrollTo({ top: 0 }) } }}
-          className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : T.toReview}</button>
+        {(() => {
+          const other = items.findIndex((x, i) => i !== active && !doneKeys[x.key] && (reachedMap[x.key] ?? 0) < 99)
+          return <button type="button" onClick={() => { if (nextId) setOpen(nextId); else if (internal) setOpen('none'); else if (other >= 0) { setOpen('none'); setActive(other); window.scrollTo({ top: 0 }) } else { setOpen('none'); finish() } }}
+            className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : other >= 0 ? T.toPosition(other + 1) : T.toReview}</button>
+        })()}
       </div>}
     </section>
   }
@@ -822,7 +834,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[360px_minmax(0,1fr)_380px] gap-6 items-start">
           {/* The order at a glance (wide screens): the windows, one line of services, the final price */}
           <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-[100px] bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-116px)] overflow-y-auto">
-            <div className="text-base font-semibold text-gray-900 mb-3">{T.yourOrder}</div>
+            <div className="text-base font-semibold text-gray-900">{T.yourOrder}</div>
+            <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-3">{T.yourOrderHint}</p>
             <div className="space-y-2">
               {items.map((x, i) => {
                 const t = data.types.find(tt => tt.id === x.type_id)
@@ -860,6 +873,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priceRange(totals.gross)}</div>
               </div> : <p className="text-[13px] font-medium text-[#8a8a8a]">{hiddenPriceText}</p>}
             </div>
+            {!internal && <>
+              <button type="button" disabled={!canFinish} onClick={finish}
+                className="mt-4 w-full h-12 rounded-xl text-[15px] font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toReview}</button>
+              <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>
+            </>}
           </aside>
 
           {/* Main column */}
@@ -1293,7 +1311,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   })}
                   {it.shading?.shade && <div>
                     <div className="text-sm font-semibold text-gray-900">{T.shadeColor}</div>
-                    <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-2">{T.shadeColorHint}</p>
+                    <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-2">{T.shadeColorHint}</p>
                     <div className="flex flex-wrap gap-2">
                       {SHADE_COLORS.map(c => {
                         const on = (it.shading?.color ?? null) === c.key
@@ -1463,15 +1481,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priced ? txt(p != null ? p * it.quantity : null) : '—'}</span>
                   </div>
                   <p className="text-[13px] text-[#4f4f4f] mt-1">{priced ? T.positionNote : hiddenPriceText}</p>
-                  {/* wide screens: the whole order is on the left, so the way on is here */}
-                  {!internal && <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
-                    className="hidden xl:flex mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity items-center justify-center" style={btn}>{T.toReview}</button>}
                 </div>
               })()}
             </div>}
 
             <div className={cn('bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'xl:hidden')}>
-              <div className="text-base font-semibold text-gray-900 mb-2">{internal ? T.inQuote : T.yourOrder}</div>
+              <div className={cn('text-base font-semibold text-gray-900', internal || stage !== 'config' ? 'mb-2' : '')}>{internal ? T.inQuote : T.yourOrder}</div>
+              {!internal && stage === 'config' && <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-2">{T.yourOrderHint}</p>}
               <ul className="divide-y divide-gray-100 xl:hidden">
                 {items.map((x, i) => {
                   const t = data.types.find(tt => tt.id === x.type_id)
@@ -1515,9 +1531,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   <button type="button" disabled={!items.every(sizeOk)} onClick={handBack}
                     className="flex-1 h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{addLabel ?? T.addToQuote}</button>
                 </div>
-              ) : stage === 'config' ? (
-                <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
+              ) : stage === 'config' ? (<>
+                <button disabled={!canFinish} onClick={finish}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toReview}</button>
+                <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>
+              </>
               ) : stage === 'review' ? (
                 <button onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{T.next}</button>
@@ -1561,7 +1579,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             <div className="text-[13px] font-medium text-[#4f4f4f]">{T.gross}</div>
             <div className="text-lg font-bold text-gray-900 tabular-nums">{show ? money(totals.gross, cur) : showRange ? priceRange(totals.gross) : '—'}</div>
           </div>
-          <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
+          <button disabled={!canFinish} title={finishNote} onClick={finish}
             className="h-11 px-5 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={btn}>{T.toReview}</button>
         </div>
       </>}
