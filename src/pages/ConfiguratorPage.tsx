@@ -837,7 +837,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
           {/* The order at a glance (wide screens): the windows, one line of services, the final price */}
           <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-[100px] bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-116px)] overflow-y-auto">
             <div className="text-base font-semibold text-gray-900">{T.yourOrder}</div>
-            <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-3">{T.yourOrderHint}</p>
+            <p className="text-[13px] leading-5 text-[#4f4f4f] mt-1 mb-5">{T.yourOrderHint}</p>
             <div className="space-y-2">
               {items.map((x, i) => {
                 const t = data.types.find(tt => tt.id === x.type_id)
@@ -1489,7 +1489,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
             <div className={cn('bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'xl:hidden')}>
               <div className={cn('text-base font-semibold text-gray-900', internal || stage !== 'config' ? 'mb-2' : '')}>{internal ? T.inQuote : T.yourOrder}</div>
-              {!internal && stage === 'config' && <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-2">{T.yourOrderHint}</p>}
+              {!internal && stage === 'config' && <p className="text-[13px] leading-5 text-[#4f4f4f] mt-1 mb-4">{T.yourOrderHint}</p>}
               <ul className="divide-y divide-gray-100 xl:hidden">
                 {items.map((x, i) => {
                   const t = data.types.find(tt => tt.id === x.type_id)
