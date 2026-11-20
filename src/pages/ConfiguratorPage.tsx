@@ -765,60 +765,42 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         </div>
       ) : (
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[360px_minmax(0,1fr)_380px] gap-6 items-start">
-          {/* The order at a glance (wide screens): each position with its drawing and key data, the services and the final price */}
-          <aside className="hidden xl:block xl:sticky xl:top-4 bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-2rem)] overflow-y-auto">
-            <div className="text-base font-semibold text-gray-900">{T.yourOrder}</div>
-            <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{T.offerPreviewHint}</p>
-            <div className="space-y-2.5">
+          {/* The order at a glance (wide screens): the windows, one line of services, the final price */}
+          <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-4 bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="text-base font-semibold text-gray-900 mb-3">{T.yourOrder}</div>
+            <div className="space-y-2">
               {items.map((x, i) => {
-                const d = describe(x)
                 const t = data.types.find(tt => tt.id === x.type_id)
                 const xp = priceOf(x)
-                const sy = data.systems.find(ss => ss.id === x.system_id)
-                const extras = [x.sills?.in || x.sills?.out ? T.sillTitle : '', x.shading?.shade ? T.shadeLabel : '', x.shading?.screen ? T.screenLabel : ''].filter(Boolean)
                 const on = i === active && stage === 'config'
                 return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
-                  className={cn('group relative w-full text-left rounded-xl border p-3 flex gap-3 transition-colors cursor-pointer', on ? 'border-[#131313] bg-[#fcfcfc]' : 'border-gray-200 hover:border-gray-400')}>
-                  {items.length > 1 && <button type="button" onClick={e => { e.stopPropagation(); setAskRemove(i) }} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
-                    className="absolute bottom-2 right-2 w-7 h-7 rounded-md flex items-center justify-center text-[#8a8a8a] hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"><Trash2 className="w-3.5 h-3.5" /></button>}
-                  <div className="w-[68px] h-[68px] rounded-lg bg-[#f5f5f6] flex items-center justify-center shrink-0">
-                    {x.roof ? <RoofWindowDrawing size={54} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={56} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={56} />}
+                  className={cn('group relative w-full rounded-xl border px-3 py-2.5 flex items-center gap-3 cursor-pointer transition-colors', on ? 'border-[#131313]' : 'border-gray-200 hover:border-gray-400')}>
+                  <div className="w-11 flex justify-center shrink-0">
+                    {x.roof ? <RoofWindowDrawing size={38} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={40} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={40} />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="text-[13px] font-semibold text-[#8a8a8a]">{T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}</span>
-                      <span className="text-sm font-semibold text-gray-900 whitespace-nowrap tabular-nums">{xp == null ? '' : show ? money(xp * x.quantity, cur) : showRange ? priceRange(xp * x.quantity) : ''}</span>
-                    </div>
-                    <div className="text-[15px] font-semibold text-gray-900 truncate">{d.title}</div>
-                    <div className="text-[13px] font-medium text-[#4f4f4f] truncate">{x.quantity} {T.pcs} · {x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{sy && !x.roof ? ` · ${sy.name}` : ''}</div>
-                    {extras.length > 0 && <div className="flex flex-wrap gap-1 mt-1.5">{extras.map(e => <span key={e} className="px-1.5 py-[1px] rounded-md bg-[#f4f4f4] text-[#5f5f5f] text-xs font-medium">{e}</span>)}</div>}
+                    <div className="text-sm font-semibold text-gray-900 truncate">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
+                    <div className="text-[13px] font-medium text-[#8a8a8a] truncate">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
                   </div>
+                  <span className="text-sm font-semibold text-gray-900 whitespace-nowrap tabular-nums group-hover:opacity-0 transition-opacity">{xp == null ? '' : show ? money(xp * x.quantity, cur) : showRange ? priceRange(xp * x.quantity) : ''}</span>
+                  {items.length > 1 && <button type="button" onClick={e => { e.stopPropagation(); setAskRemove(i) }} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
+                    className="absolute right-2 w-8 h-8 rounded-md flex items-center justify-center text-[#8a8a8a] hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>}
                 </div>
               })}
-              <button type="button" onClick={() => addItem(false)} className="w-full h-10 rounded-lg border border-dashed border-gray-300 text-sm font-medium text-gray-900 hover:border-gray-500 flex items-center justify-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
             </div>
-            {serviceRows.length > 0 && <div className="mt-4 pt-3 border-t border-gray-100">
-              <div className="text-[13px] font-semibold text-[#8a8a8a] mb-1">{T.servicesTitle} · {T.servicesForAll}</div>
-              {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-2 text-sm py-0.5">
-                <span className="text-gray-900 min-w-0 truncate">{r.option.name}</span>
-                <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{show ? money(r.total, cur) : showRange ? priceRange(r.total) : ''}</span>
-              </div>)}
+            <button type="button" onClick={() => addItem(false)} className="mt-3 w-full h-12 rounded-xl bg-[#131313] text-white text-[15px] font-semibold flex items-center justify-center gap-2 hover:bg-black transition-colors"><Plus className="w-4 h-4" strokeWidth={2.5} />{T.addWindow}</button>
+            {serviceRows.length > 0 && <div className="mt-4 text-[13px] font-medium text-[#8a8a8a]">
+              {T.servicesTitle}: <span className="text-gray-900">{serviceRows.map(r => r.option.name).join(', ')}</span>
             </div>}
             {/* the final price of the whole order */}
-            <div className="mt-4 pt-3 border-t border-gray-200 space-y-1.5 text-sm">
-              {show ? <>
-                <Row l={T.total} r={money(totals.net, cur)} />
-                {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate.toLocaleString('de-DE')}%`} r={money(totals.vat, cur)} muted />}
-                <div className="flex items-baseline justify-between pt-2 mt-1 border-t border-gray-200">
-                  <span className="text-[15px] font-semibold text-gray-900">{T.gross}</span>
-                  <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.gross, cur)}</span>
-                </div>
-                <p className="text-[13px] leading-5 text-gray-500 pt-1">{T.estimate}</p>
-              </> : showRange ? <>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              {show ? <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[15px] font-semibold text-gray-900">{T.gross}</span>
+                <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.gross, cur)}</span>
+              </div> : showRange ? <div>
                 <div className="text-[15px] font-semibold text-gray-900">{T.rangeTitle}</div>
                 <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priceRange(totals.gross)}</div>
-                <p className="text-[13px] leading-5 text-gray-500">{T.rangeNote}</p>
-              </> : <p className="text-[13px] text-gray-500">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
+              </div> : <p className="text-[13px] font-medium text-[#8a8a8a]">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
             </div>
           </aside>
 
