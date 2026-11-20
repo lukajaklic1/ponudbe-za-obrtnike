@@ -775,16 +775,16 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 const on = i === active && stage === 'config'
                 return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
                   className={cn('group relative w-full rounded-xl border p-2.5 flex items-center gap-3.5 cursor-pointer transition-colors', on ? 'border-[#131313]' : 'border-gray-200 hover:border-gray-400')}>
-                  <div className="w-[96px] h-[96px] rounded-lg bg-[#f5f5f6] flex items-center justify-center shrink-0">
-                    {x.roof ? <RoofWindowDrawing size={76} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={80} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={80} />}
+                  <div className="w-[112px] h-[104px] flex items-center justify-center shrink-0">
+                    {x.roof ? <RoofWindowDrawing size={92} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-gray-900 truncate">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
-                    <div className="text-[13px] font-medium text-[#8a8a8a] truncate">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
+                  <div className="flex-1 min-w-0 pr-8">
+                    <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
+                    <div className="text-[13px] font-medium text-[#8a8a8a] truncate mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
+                    <div className="text-[15px] font-semibold text-gray-900 tabular-nums mt-1.5">{xp == null ? '' : show ? money(xp * x.quantity, cur) : showRange ? priceRange(xp * x.quantity) : ''}</div>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900 whitespace-nowrap tabular-nums group-hover:opacity-0 transition-opacity">{xp == null ? '' : show ? money(xp * x.quantity, cur) : showRange ? priceRange(xp * x.quantity) : ''}</span>
                   {items.length > 1 && <button type="button" onClick={e => { e.stopPropagation(); setAskRemove(i) }} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
-                    className="absolute right-2 w-8 h-8 rounded-md flex items-center justify-center text-[#8a8a8a] hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"><Trash2 className="w-4 h-4" /></button>}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-[#5f5f5f] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>}
                 </div>
               })}
             </div>
