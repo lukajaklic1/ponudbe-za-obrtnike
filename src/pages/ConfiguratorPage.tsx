@@ -88,7 +88,7 @@ const TXT = {
     hProfile: 'Profil določa toplotno izolacijo in videz okvirja. Cena se ob vsakem profilu spremeni.', hColor: 'Barva okvirja zunaj in znotraj. Lahko sta različni.',
     hGlass: 'Več slojev stekla pomeni boljšo toplotno izolacijo (nižji Ug). Prvo steklo je vključeno v ceno.', hHandle: 'Izberite kljuko. Standardna je vključena v ceno.',
     hSills: 'Po želji dodajte notranjo in zunanjo polico.', hShading: 'Po želji dodajte roleto, žaluzije ali komarnik.', hExtras: 'Dodatna oprema po želji.',
-    pricesAfterSize: 'Ceno vidite, ko vpišete mere.', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepOf: (i: number, n: number) => `Korak ${i} od ${n}`, stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    pricesAfterSize: 'Ceno vidite, ko vpišete mere.', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepOf: (i: number, n: number) => `Korak ${i} od ${n}`, editing: 'Urejate', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
     grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Montaža in ostale storitve veljajo za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani', removeAsk: (n: number) => `Odstranim pozicijo ${n}?`, removeHint: 'Okno in vse njegove izbire bodo odstranjeni iz povpraševanja.',
@@ -125,7 +125,7 @@ const TXT = {
     hProfile: 'The profile sets the insulation and the look of the frame. The price changes with each profile.', hColor: 'Frame colour outside and inside. They can differ.',
     hGlass: 'More panes mean better insulation (lower Ug). The first glass is included in the price.', hHandle: 'Choose the handle. The standard one is included.',
     hSills: 'Add an inside and outside sill if you like.', hShading: 'Add a shutter, blinds or an insect screen if you like.', hExtras: 'Extra equipment if you like.',
-    pricesAfterSize: 'You see the price once you enter the sizes.', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepOf: (i: number, n: number) => `Step ${i} of ${n}`, stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    pricesAfterSize: 'You see the price once you enter the sizes.', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepOf: (i: number, n: number) => `Step ${i} of ${n}`, editing: 'Editing', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove', removeAsk: (n: number) => `Remove position ${n}?`, removeHint: 'The window and all its choices will be removed from the enquiry.',
@@ -656,6 +656,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   // the drawing shows how the sashes open only from the opening step on
   const openingIdx = stepIds.indexOf('opening')
   const drawPlain = !internal && stage === 'config' && openingIdx >= 0 && reached < openingIdx
+  /** a window's own price can show once its sizes were entered (each window on its own) */
+  const itemPriced = (x: ConfigItem) => internal || stage !== 'config' || (x.key === it.key ? pricesOn : (reachedMap[x.key] ?? 0) > (x.roof ? 1 : 2))
   const hiddenPriceText = (showLive || showRangeLive) && !pricesOn ? T.pricesAfterSize : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden
   function setOpen(id: string) {
     const i = id === 'none' ? 99 : stepIds.indexOf(id)
@@ -803,14 +805,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 const xp = priceOf(x)
                 const on = i === active && stage === 'config'
                 return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
-                  className={cn('group relative w-full rounded-xl border p-2.5 flex items-center gap-3.5 cursor-pointer transition-colors', on ? 'border-[#131313]' : 'border-gray-200 hover:border-gray-400')}>
+                  className={cn('group relative w-full rounded-xl border p-2.5 flex items-center gap-3.5 cursor-pointer transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                  // the window being configured: a clear black outline (inline, so it wins over the soft card border)
+                  style={on ? { borderColor: '#131313', boxShadow: '0 0 0 1px #131313, 0 1px 3px rgba(16,24,40,.08)' } : undefined}>
                   <div className="w-[112px] h-[104px] flex items-center justify-center shrink-0">
                     {x.roof ? <RoofWindowDrawing size={92} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim plain /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
+                    {on && <span className="inline-flex items-center h-5 px-1.5 mb-1 rounded-md bg-[#131313] text-white text-[11px] font-semibold">{T.editing}</span>}
                     <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
                     <div className="text-[13px] font-medium text-[#8a8a8a] truncate mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
-                    <div className="text-[15px] font-semibold text-gray-900 tabular-nums mt-1.5">{xp == null ? '' : show ? money(xp * x.quantity, cur) : showRange ? priceRange(xp * x.quantity) : ''}</div>
+                    <div className="text-[15px] font-semibold text-gray-900 tabular-nums mt-1.5">{xp == null || !itemPriced(x) ? '' : showLive ? money(xp * x.quantity, cur) : showRangeLive ? priceRange(xp * x.quantity) : ''}</div>
                   </div>
                   {items.length > 1 && <button type="button" onClick={e => { e.stopPropagation(); setAskRemove(i) }} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
                     className="absolute top-2 right-2 w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-[#5f5f5f] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>}
