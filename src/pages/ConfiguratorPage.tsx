@@ -15,7 +15,7 @@ import HandleIcon from '../components/HandleIcon'
 import SillIcon, { sillMaterialOf } from '../components/SillIcon'
 import ShadingIcon from '../components/ShadingIcon'
 import {
-  costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey, makeDoorSpec, makeWallSpec, type BuilderKind, roofUnitPrice, productGroupOf, profileServes, colorPctOf, type ColorCatalog,
+  costWindow, specToLayout, makeSpec, makeSlidingSpec, reshapeSpec, allowedCombos, allowedBands, bandKeyOf, comboKey, BAND_SHAPE, bandModeOf, sameField, pricingFrom, allowedVariants, applyVariant, specVariantKey, makeDoorSpec, makeWallSpec, type BuilderKind, type Variant, roofUnitPrice, productGroupOf, profileServes, colorPctOf, type ColorCatalog,
   type WindowSpec, type Band, type Offer, type PricingSettings, type GlassType, type HandleType, type SillType, type ShadingType,
 } from '../lib/costing'
 import { cn } from '../lib/cn'
@@ -106,7 +106,7 @@ const TXT = {
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
-    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Okna lahko uredite ali odstranite, dodate novo okno ali nadaljujete na oddajo.', addToEnquiry: 'Dodaj v povpraševanje', summary: 'Povzetek', saveChanges: 'Shrani spremembe', addAnother: 'Dodaj še eno okno', notFinished: 'Ni dokončano', finishWindow: 'Dokončaj', toEnquiry: (n: number) => `Vaše povpraševanje (${n})`, toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
+    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Okna lahko uredite ali odstranite, dodate novo okno ali nadaljujete na oddajo.', addToEnquiry: 'Dodaj v povpraševanje', backToEnquiry: 'Nazaj na povpraševanje', summary: 'Povzetek', saveChanges: 'Shrani spremembe', addAnother: 'Dodaj še eno okno', notFinished: 'Ni dokončano', finishWindow: 'Dokončaj', toEnquiry: (n: number) => `Vaše povpraševanje (${n})`, toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
@@ -143,7 +143,7 @@ const TXT = {
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
-    reviewTitle: 'Review your enquiry', reviewHint: 'Edit or remove windows, add another one or continue to send.', addToEnquiry: 'Add to enquiry', summary: 'Summary', saveChanges: 'Save changes', addAnother: 'Add another window', notFinished: 'Not finished', finishWindow: 'Finish', toEnquiry: (n: number) => `Your enquiry (${n})`, toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
+    reviewTitle: 'Review your enquiry', reviewHint: 'Edit or remove windows, add another one or continue to send.', addToEnquiry: 'Add to enquiry', backToEnquiry: 'Back to the enquiry', summary: 'Summary', saveChanges: 'Save changes', addAnother: 'Add another window', notFinished: 'Not finished', finishWindow: 'Finish', toEnquiry: (n: number) => `Your enquiry (${n})`, toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
@@ -278,10 +278,22 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const wallWidth = (n: number) => n * 1000
   /** sliding windows and sliding walls: panel layouts instead of top lights and variants */
   const slidingKind = (sp: WindowSpec) => (sp.kind === 'sliding' || sp.kind === 'wall' ? sp.kind : undefined)
+  /**
+   * The opening most people buy: a double window opens on one sash and tilts and opens on the other
+   * (no mullion between them), not two tilt-and-turn sashes; otherwise tilt and turn everywhere.
+   */
+  function popularSpec(sp: WindowSpec, offer: Offer | undefined): WindowSpec {
+    if (!offer || slidingKind(sp)) return sp
+    const vs = allowedVariants(sp.sashes, offer, bk(sp)).filter(v => v.band === bandKeyOf(sp) && v.mode !== 'tilt')
+    const ops = (v: Variant) => v.combo.map(c => c.opening).join(',')
+    const pick = (sp.sashes === 2 ? vs.find(v => ops(v) === 'passive,tilt_turn') ?? vs.find(v => ops(v) === 'tilt_turn,passive') : undefined)
+      ?? vs.find(v => v.combo.every(c => c.opening === 'tilt_turn'))
+    return pick ? applyVariant(sp, pick) : sp
+  }
   function defaultSpecItem(d: ConfigData, n: number): ConfigItem {
     return {
       key: newKey(), type_id: '', system_id: d.systems[0].id, width: sashWidth(n), height: 1400, hinge: 'left', quantity: 1, label: '',
-      option_ids: d.options.filter(o => o.is_default && SINGLE_CHOICE_GROUPS.includes(o.group_key)).map(o => o.id), spec: makeSpec(n),
+      option_ids: d.options.filter(o => o.is_default && SINGLE_CHOICE_GROUPS.includes(o.group_key)).map(o => o.id), spec: popularSpec(makeSpec(n), d.builder?.offer),
     }
   }
   /** base price of a window built from sashes, in this profile */
@@ -426,7 +438,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   function pickSashes(n: number) {
     const cur = spec && !spec.kind ? spec : makeSpec(n)
     const wasWindow = !!spec && !spec.kind
-    update({ roof: null, spec: fitOffer(reshapeSpec(cur, n, cur.top, cur.bottom)), type_id: '', system_id: sysFor(undefined), width: wasWindow && spec!.sashes === n ? it.width : sashWidth(n), height: wasWindow ? it.height : 1400 })
+    const shaped = fitOffer(reshapeSpec(cur, n, cur.top, cur.bottom))
+    // a new number of sashes starts with the usual opening
+    update({ roof: null, spec: wasWindow && spec!.sashes === n ? shaped : popularSpec(shaped, offer), type_id: '', system_id: sysFor(undefined), width: wasWindow && spec!.sashes === n ? it.width : sashWidth(n), height: wasWindow ? it.height : 1400 })
   }
   function pickWall(n: number) {
     const was = spec?.kind === 'wall' && spec.sashes === n
@@ -435,7 +449,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   function pickDoor(n: number) {
     const wasDoor = spec?.kind === 'door'
     const cur = wasDoor ? spec! : makeDoorSpec(n)
-    update({ roof: null, spec: fitOffer(reshapeSpec(cur, n, cur.top, 'none')), type_id: '', system_id: sysFor('door'), width: wasDoor && spec!.sashes === n ? it.width : doorWidth(n), height: wasDoor ? it.height : 2200 })
+    const shaped = fitOffer(reshapeSpec(cur, n, cur.top, 'none'))
+    update({ roof: null, spec: wasDoor && spec!.sashes === n ? shaped : popularSpec(shaped, offer), type_id: '', system_id: sysFor('door'), width: wasDoor && spec!.sashes === n ? it.width : doorWidth(n), height: wasDoor ? it.height : 2200 })
   }
   function pickBand(top: Band, bottom: Band) { if (spec) setSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom))) }
   const specPrice = (sp: WindowSpec) => specBase({ ...it, spec: sp })
@@ -887,7 +902,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
             {stage === 'config' ? <>
               {!internal && (items.length > 1 || isDone(it)) && <button type="button" onClick={finish}
-                className="self-start inline-flex items-center gap-1.5 text-sm font-medium text-[#4f4f4f] hover:text-gray-900 transition-colors"><ArrowLeft className="w-4 h-4" />{T.toEnquiry(items.length)}</button>}
+                className="self-start inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-[10px] border border-gray-200 bg-white text-sm font-semibold text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-gray-400 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToEnquiry}</button>}
               {/* Position tabs (wide screens: adding, picking and removing windows is in the summary on the left) */}
               <div className={cn('gap-1.5 overflow-x-auto pb-1', internal ? 'flex xl:hidden' : 'hidden')}>
                 {items.map((x, i) => <div key={x.key} className={cn('shrink-0 h-9 pl-3.5 rounded-[10px] text-sm font-medium border transition-colors flex items-center', items.length > 1 ? 'pr-1' : 'pr-3.5', i === active ? 'text-white border-transparent' : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400')}
