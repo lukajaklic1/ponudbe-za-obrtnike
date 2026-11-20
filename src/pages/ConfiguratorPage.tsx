@@ -81,7 +81,7 @@ const TXT = {
     openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
-    stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    stepProduct: 'Kaj želite kupiti?', stepProductHint: 'Izberite vrsto izdelka, ki ga želite kupiti.', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
     grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani', removeAsk: (n: number) => `Odstranim pozicijo ${n}?`, removeHint: 'Okno in vse njegove izbire bodo odstranjeni iz povpraševanja.',
@@ -111,7 +111,7 @@ const TXT = {
     openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services',
-    stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    stepProduct: 'What would you like to buy?', stepProductHint: 'Choose the type of product you would like to buy.', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove', removeAsk: (n: number) => `Remove position ${n}?`, removeHint: 'The window and all its choices will be removed from the enquiry.',
@@ -687,7 +687,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     </button>
   }
   /** one step: open with its choices and "Naprej", or closed to one row with the choice and "Uredi" */
-  function renderStep(id: string, title: string, summary: string, body: React.ReactNode) {
+  function renderStep(id: string, title: string, summary: string, body: React.ReactNode, hint?: string) {
     const idx = stepIds.indexOf(id)
     if (idx < 0) return null
     // a step is done once you went past it; the ones you have not reached yet stay locked
@@ -713,7 +713,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       <span className="text-sm font-semibold shrink-0 underline-offset-2 hover:underline" style={{ color: accent }}>{T.stepEdit}</span>
     </button>
     return <section id={'step-' + id} key={id} className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-4">
-      <h2 className="flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-4">{num}{title}</h2>
+      <h2 className={cn("flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900", hint ? "mb-1" : "mb-4")}>{num}{title}</h2>
+      {hint && <p className="text-sm font-medium text-[#4f4f4f] pl-10 mb-4">{hint}</p>}
       <div className="space-y-6">{body}</div>
       <div className="flex justify-end mt-6">
         <button type="button" onClick={() => setOpen(nextId ?? 'none')} className="h-10 px-5 rounded-[10px] text-sm font-semibold text-white" style={btn}>{nextId ? T.stepNext : T.stepDone}</button>
@@ -833,7 +834,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   const door = t.template.startsWith('door') || t.template === 'lift_slide'
                   return prodCard('type:' + t.id, t.name, <WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={78} plain />, () => pickType(t), 'profile')
                 })}
-              </div>)}
+              </div>, T.stepProductHint)}
 
               {renderStep('variant', roofSel ? T.stepRoof : spec?.kind === 'wall' ? T.stepParts : T.stepSashes, variantSummary, <>
                 {(group === 'windows' || group === 'door' || group === 'wall') && <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
