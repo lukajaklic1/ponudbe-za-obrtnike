@@ -238,3 +238,8 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
   box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03);
 }
 .cfg-scope button:is(.rounded-xl, .rounded-2xl, .rounded-\[10px\]).border:hover { border-color: #c4c4c4; }
+
+/* configurator: a new step fades and slides in */
+@keyframes cfg-step-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.cfg-step-in { animation: cfg-step-in .45s cubic-bezier(.2, .7, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .cfg-step-in { animation: none; } }

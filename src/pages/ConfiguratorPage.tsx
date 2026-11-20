@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, Lock, X } from 'lucide-react'
+import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -81,8 +81,15 @@ const TXT = {
     openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
-    stepProduct: 'Kaj želite kupiti?', stepProductHint: 'Izberite vrsto izdelka, ki ga želite kupiti.', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
-    grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
+    stepProduct: 'Kaj želite kupiti?', stepProductHint: 'Izberite vrsto izdelka, ki ga želite kupiti.',
+    hSashes: 'Koliko kril naj ima okno? Krilo je del okna, ki se odpira.', hParts: 'Iz koliko delov naj bo drsna stena?', hRoof: 'Izberite model strešnega okna, material in mero.',
+    hSize: 'Vpišite širino in višino okna v milimetrih. Natančno izmerimo pred izdelavo, zato so lahko mere približne.', hQty: 'Koliko enakih strešnih oken potrebujete?',
+    hBands: 'Ali ima okno nad krili (nadsvetloba) ali pod njimi še poseben del?', hMaterial: 'Iz katerega materiala naj bo okvir okna?',
+    hProfile: 'Profil določa toplotno izolacijo in videz okvirja. Cena se ob vsakem profilu spremeni.', hColor: 'Barva okvirja zunaj in znotraj. Lahko sta različni.',
+    hGlass: 'Več slojev stekla pomeni boljšo toplotno izolacijo (nižji Ug). Prvo steklo je vključeno v ceno.', hHandle: 'Izberite kljuko. Standardna je vključena v ceno.',
+    hSills: 'Po želji dodajte notranjo in zunanjo polico.', hShading: 'Po želji dodajte roleto, žaluzije ali komarnik.', hExtras: 'Dodatna oprema po želji.',
+    pricesAfterSize: 'Ceno vidite, ko vpišete mere.', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepOf: (i: number, n: number) => `Korak ${i} od ${n}`, stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Montaža in ostale storitve veljajo za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani', removeAsk: (n: number) => `Odstranim pozicijo ${n}?`, removeHint: 'Okno in vse njegove izbire bodo odstranjeni iz povpraševanja.',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
@@ -111,7 +118,14 @@ const TXT = {
     openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services',
-    stepProduct: 'What would you like to buy?', stepProductHint: 'Choose the type of product you would like to buy.', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    stepProduct: 'What would you like to buy?', stepProductHint: 'Choose the type of product you would like to buy.',
+    hSashes: 'How many sashes should the window have? A sash is the part that opens.', hParts: 'How many panels should the sliding wall have?', hRoof: 'Choose the roof window model, material and size.',
+    hSize: 'Enter the width and height of the window in millimetres. We measure exactly before production, so sizes can be approximate.', hQty: 'How many identical roof windows do you need?',
+    hBands: 'Does the window have a part above (top light) or below the sashes?', hMaterial: 'Which material should the frame be made of?',
+    hProfile: 'The profile sets the insulation and the look of the frame. The price changes with each profile.', hColor: 'Frame colour outside and inside. They can differ.',
+    hGlass: 'More panes mean better insulation (lower Ug). The first glass is included in the price.', hHandle: 'Choose the handle. The standard one is included.',
+    hSills: 'Add an inside and outside sill if you like.', hShading: 'Add a shutter, blinds or an insect screen if you like.', hExtras: 'Extra equipment if you like.',
+    pricesAfterSize: 'You see the price once you enter the sizes.', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepOf: (i: number, n: number) => `Step ${i} of ${n}`, stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove', removeAsk: (n: number) => `Remove position ${n}?`, removeHint: 'The window and all its choices will be removed from the enquiry.',
@@ -223,8 +237,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const calc = !!data?.company.show_prices
   const priceMode: PriceMode = internal ? 'live' : (data?.company.price_mode ?? (calc ? 'live' : 'never'))
   const endMode: EndMode = internal ? 'enquiry' : (data?.company.end_mode ?? 'enquiry')
-  const show = calc && priceMode === 'live'
-  const showRange = calc && priceMode === 'range'
+  const showLive = calc && priceMode === 'live'
+  const showRangeLive = calc && priceMode === 'range'
   /** a from–to range around a price (−10 % … +10 %, rounded to 10) */
   const priceRange = (v: number) => `${money(Math.floor(v * 0.9 / 10) * 10, cur)} – ${money(Math.ceil(v * 1.1 / 10) * 10, cur)}`
 
@@ -618,12 +632,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const stepIds = [
     'product',
     ...(roofSel || (spec && spec.kind !== 'sliding') ? ['variant'] : []),
+    'size',
     ...(showBands ? ['bands'] : []),
     ...(spec && offer ? ['opening'] : []),
     ...(!roofSel && materials.length > 1 ? ['material'] : []),
     ...(!roofSel ? ['profile'] : []),
     ...(colorList.length >= 2 ? ['color'] : []),
-    'size',
     ...(spec && glassList.length > 1 ? ['glass'] : []),
     ...(spec && handleList.length > 1 ? ['handle'] : []),
     ...(spec && sillList.length > 0 ? ['sills'] : []),
@@ -634,11 +648,20 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const openStep = openMap[it.key] ?? 'product'
   const openIdx = stepIds.indexOf(openStep)
   const reached = openStep === 'none' ? 99 : Math.max(reachedMap[it.key] ?? 0, openIdx)
+  // a price only means something with the sizes: none before that step is done (in a quote always)
+  const unlockIdx = stepIds.indexOf(roofSel ? 'variant' : 'size')
+  const pricesOn = internal || stage !== 'config' || unlockIdx < 0 || reached > unlockIdx
+  const show = showLive && pricesOn
+  const showRange = showRangeLive && pricesOn
+  // the drawing shows how the sashes open only from the opening step on
+  const openingIdx = stepIds.indexOf('opening')
+  const drawPlain = !internal && stage === 'config' && openingIdx >= 0 && reached < openingIdx
+  const hiddenPriceText = (showLive || showRangeLive) && !pricesOn ? T.pricesAfterSize : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden
   function setOpen(id: string) {
     const i = id === 'none' ? 99 : stepIds.indexOf(id)
     setReachedMap(m => ({ ...m, [it.key]: Math.max(m[it.key] ?? 0, i) }))
     setOpenMap(m => ({ ...m, [it.key]: id }))
-    if (id !== 'none') setTimeout(() => document.getElementById('step-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+    if (id !== 'none') setTimeout(() => document.getElementById('step-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
   }
   const groupLabel = group === 'roof' ? T.grpRoof : group === 'sliding' ? T.grpSliding : group === 'door' ? T.grpDoors : group === 'wall' ? T.grpWalls : group === 'windows' ? T.grpWindows : type?.name ?? ''
   const roofSize = roofModel?.sizes.find(x => x.id === roofSel?.size)
@@ -686,39 +709,44 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{label}</div>
     </button>
   }
-  /** one step: open with its choices and "Naprej", or closed to one row with the choice and "Uredi" */
-  function renderStep(id: string, title: string, summary: string, body: React.ReactNode, hint?: string) {
+  /** what to do on each step, under its title */
+  const stepHints: Record<string, string> = {
+    product: T.stepProductHint,
+    variant: roofSel ? T.hRoof : spec?.kind === 'wall' ? T.hParts : T.hSashes,
+    size: roofSel ? T.hQty : T.hSize,
+    bands: T.hBands, opening: T.openHint, material: T.hMaterial, profile: T.hProfile, color: T.hColor,
+    glass: T.hGlass, handle: T.hHandle, sills: T.hSills, shading: T.hShading, extras: T.hExtras, services: T.servicesHint,
+  }
+  /**
+   * The steps show one after another: every step reached so far stays open with its choices
+   * (so the whole window can be seen and changed), the next one appears with "Naprej".
+   */
+  function renderStep(id: string, title: string, _summary: string, body: React.ReactNode, hint?: string) {
     const idx = stepIds.indexOf(id)
     if (idx < 0) return null
-    // a step is done once you went past it; the ones you have not reached yet stay locked
-    const done = openStep !== id && idx <= reached && (openIdx < 0 || idx < openIdx || idx < reached)
-    const locked = openStep !== id && idx > reached
+    hint = hint ?? stepHints[id]
+    const allDone = reached >= 99
+    const frontier = Math.min(reached, stepIds.length - 1)
+    if (idx > frontier) return null
+    const done = allDone || idx < frontier
     const nextId = stepIds[idx + 1]
     const num = done
       ? <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-4 h-4" strokeWidth={2.75} /></span>
-      : <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0"
-          style={openStep === id ? { backgroundColor: accent, color: '#fff' } : { backgroundColor: '#f1f1f1', color: '#8a8a8a' }}>{idx + 1}</span>
-    if (locked) return <div id={'step-' + id} key={id} aria-disabled="true"
-      className="w-full bg-[#fcfcfc] border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-3 cursor-not-allowed scroll-mt-4">
-      {num}
-      <span className="text-[15px] font-semibold text-[#8a8a8a] shrink-0">{title}</span>
-      <span className="flex-1" />
-      <Lock className="w-4 h-4 text-[#b5b5b5] shrink-0" />
-    </div>
-    if (openStep !== id) return <button id={'step-' + id} key={id} type="button" onClick={() => setOpen(id)}
-      className="w-full bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center gap-3 text-left hover:border-gray-400 transition-colors scroll-mt-4">
-      {num}
-      <span className="text-[15px] font-semibold text-gray-900 shrink-0">{title}</span>
-      <span className="flex-1 min-w-0 truncate text-right text-sm font-medium text-[#4f4f4f]">{summary}</span>
-      <span className="text-sm font-semibold shrink-0 underline-offset-2 hover:underline" style={{ color: accent }}>{T.stepEdit}</span>
-    </button>
-    return <section id={'step-' + id} key={id} className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-4">
-      <h2 className={cn("flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900", hint ? "mb-1" : "mb-4")}>{num}{title}</h2>
+      : <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: accent }}>{idx + 1}</span>
+    const last = !done && idx === frontier
+    return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-4', last && idx > 0 && 'cfg-step-in')}>
+      <div className={cn('flex items-center gap-3', hint ? 'mb-1' : 'mb-4')}>
+        {num}
+        <h2 className="flex-1 min-w-0 text-lg font-semibold tracking-[-0.01em] text-gray-900">{title}</h2>
+        {!internal && <span className="text-[13px] font-medium text-[#8a8a8a] whitespace-nowrap">{T.stepOf(idx + 1, stepIds.length)}</span>}
+      </div>
       {hint && <p className="text-sm font-medium text-[#4f4f4f] pl-10 mb-5">{hint}</p>}
       <div className="space-y-6">{body}</div>
-      <div className="flex justify-end mt-6">
-        <button type="button" onClick={() => setOpen(nextId ?? 'none')} className="h-10 px-5 rounded-[10px] text-sm font-semibold text-white" style={btn}>{nextId ? T.stepNext : T.stepDone}</button>
-      </div>
+      {/* only the newest step moves on; the last one goes to the review */}
+      {last && <div className="flex justify-end mt-6">
+        <button type="button" onClick={() => { if (nextId) setOpen(nextId); else if (internal) setOpen('none'); else { setOpen('none'); setStage('review'); window.scrollTo({ top: 0 }) } }}
+          className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : T.toReview}</button>
+      </div>}
     </section>
   }
 
@@ -777,7 +805,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
                   className={cn('group relative w-full rounded-xl border p-2.5 flex items-center gap-3.5 cursor-pointer transition-colors', on ? 'border-[#131313]' : 'border-gray-200 hover:border-gray-400')}>
                   <div className="w-[112px] h-[104px] flex items-center justify-center shrink-0">
-                    {x.roof ? <RoofWindowDrawing size={92} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
+                    {x.roof ? <RoofWindowDrawing size={92} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim plain /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
                     <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
@@ -801,7 +829,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </div> : showRange ? <div>
                 <div className="text-[15px] font-semibold text-gray-900">{T.rangeTitle}</div>
                 <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priceRange(totals.gross)}</div>
-              </div> : <p className="text-[13px] font-medium text-[#8a8a8a]">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
+              </div> : <p className="text-[13px] font-medium text-[#8a8a8a]">{hiddenPriceText}</p>}
             </div>
           </aside>
 
@@ -917,9 +945,61 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </>}
               </>)}
 
+              {renderStep('size', roofSel ? T.qtyTitle : T.sizeTitle, sizeSummary, <>
+<Sub>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v, ...(it.sashWidths && it.width && v ? { sashWidths: it.sashWidths.map(x => Math.round(x * v / it.width!)) } : {}) })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
+                  {!roofSel && <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />}
+                  {/* width of each sash: all but the last one, which takes what is left */}
+                  {spec && !slidingKind(spec) && spec.main.length > 1 && it.width ? (() => {
+                    const n = spec.main.length
+                    const ws = it.sashWidths && it.sashWidths.length === n ? it.sashWidths : Array.from({ length: n }, () => Math.round(it.width! / n))
+                    const bad = ws.some(x => x < 300)
+                    return <div className="sm:col-span-2">
+                      <div className="text-sm font-semibold text-gray-900 mb-1.5">{T.sashWidths}</div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {ws.map((x, j) => j < n - 1
+                          ? <MmInput key={j} label={T.sashN(j + 1)} value={x} onChange={v => setSashWidth(j, v)} min={300} max={Math.max(300, it.width! - 300 * (n - 1))} rangeLabel={T.range} />
+                          : <div key={j} className="flex flex-col gap-1">
+                              <label className="text-sm font-semibold text-gray-900">{T.sashN(j + 1)}</label>
+                              <div className={cn('flex items-center h-10 rounded-lg border bg-[#fafafa] px-3 text-sm text-gray-900', x < 300 ? 'border-red-400' : 'border-gray-200')}>{x}<span className="ml-auto text-[#4f4f4f]">mm</span></div>
+                              <span className="text-[13px] text-[#4f4f4f]">{T.sashRest}</span>
+                            </div>)}
+                      </div>
+                      {bad && <p className="text-[13px] text-red-600 mt-1">{T.sashTooNarrow}</p>}
+                      {it.sashWidths && <button type="button" onClick={() => update({ sashWidths: null })} className="mt-2 text-sm font-medium text-gray-900 hover:underline">{T.sashEqual}</button>}
+                    </div>
+                  })() : null}
+                  {!showBands && spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
+                  {!showBands && spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
+                  {type && hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
+                    <label className="text-sm font-semibold text-gray-900">{T.hinge}</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['left', 'right'] as Hinge[]).map(h => <button key={h} onClick={() => update({ hinge: h })}
+                        className={cn('h-10 rounded-lg border px-3 text-sm font-medium bg-white transition-colors', it.hinge === h ? 'text-white border-transparent' : 'border-gray-200 text-gray-900 hover:border-gray-400')}
+                        style={it.hinge === h ? btn : undefined}>{L.hinge[h]}</button>)}
+                    </div>
+                  </div>}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-semibold text-gray-900">{T.qty}</label>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => update({ quantity: Math.max(1, it.quantity - 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">−</button>
+                      <input type="number" min={1} max={100} value={it.quantity} onChange={e => update({ quantity: clamp(Number(e.target.value) || 1, 1, 100) })}
+                        className="w-16 h-10 text-center rounded-lg border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <button onClick={() => update({ quantity: Math.min(100, it.quantity + 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">+</button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <label className="text-sm font-semibold text-gray-900">{T.label}</label>
+                    <input value={it.label} onChange={e => update({ label: e.target.value.slice(0, 60) })} placeholder={T.labelPh}
+                      className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
+                  </div>
+                </div>
+              </Sub>
+              </>)}
+
               {renderStep('bands', T.stepBands, bandsSummary, <>
 {spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Sub>
-                <p className="text-sm font-medium text-[#4f4f4f] -mt-2 mb-3">{T.bandsTitle}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
                     const on = spec.top === top && spec.bottom === bottom
@@ -936,11 +1016,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   })}
                 </div>
               </Sub>}
+              {spec && (spec.top !== 'none' || spec.bottom !== 'none') && <div className="grid sm:grid-cols-2 gap-3">
+                  {spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
+                  {spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
+              </div>}
               </>)}
 
               {renderStep('opening', T.stepOpening, openingSummary, <>
 {spec && offer && <Sub>
-                <p className="text-sm font-medium text-[#4f4f4f] -mt-2 mb-3">{T.openHint}</p>
                 {(() => {
                   // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
                   // sliding windows: their combinations; windows: the ticked complete variants of the chosen top light / bottom panel
@@ -1050,58 +1133,6 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               })()}
               </>)}
 
-              {renderStep('size', roofSel ? T.qtyTitle : T.sizeTitle, sizeSummary, <>
-<Sub title={roofSel ? '' : T.sizeTitle}>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v, ...(it.sashWidths && it.width && v ? { sashWidths: it.sashWidths.map(x => Math.round(x * v / it.width!)) } : {}) })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
-                  {!roofSel && <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />}
-                  {/* width of each sash: all but the last one, which takes what is left */}
-                  {spec && !slidingKind(spec) && spec.main.length > 1 && it.width ? (() => {
-                    const n = spec.main.length
-                    const ws = it.sashWidths && it.sashWidths.length === n ? it.sashWidths : Array.from({ length: n }, () => Math.round(it.width! / n))
-                    const bad = ws.some(x => x < 300)
-                    return <div className="sm:col-span-2">
-                      <div className="text-sm font-semibold text-gray-900 mb-1.5">{T.sashWidths}</div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {ws.map((x, j) => j < n - 1
-                          ? <MmInput key={j} label={T.sashN(j + 1)} value={x} onChange={v => setSashWidth(j, v)} min={300} max={Math.max(300, it.width! - 300 * (n - 1))} rangeLabel={T.range} />
-                          : <div key={j} className="flex flex-col gap-1">
-                              <label className="text-sm font-semibold text-gray-900">{T.sashN(j + 1)}</label>
-                              <div className={cn('flex items-center h-10 rounded-lg border bg-[#fafafa] px-3 text-sm text-gray-900', x < 300 ? 'border-red-400' : 'border-gray-200')}>{x}<span className="ml-auto text-[#4f4f4f]">mm</span></div>
-                              <span className="text-[13px] text-[#4f4f4f]">{T.sashRest}</span>
-                            </div>)}
-                      </div>
-                      {bad && <p className="text-[13px] text-red-600 mt-1">{T.sashTooNarrow}</p>}
-                      {it.sashWidths && <button type="button" onClick={() => update({ sashWidths: null })} className="mt-2 text-sm font-medium text-gray-900 hover:underline">{T.sashEqual}</button>}
-                    </div>
-                  })() : null}
-                  {spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
-                  {spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
-                  {type && hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
-                    <label className="text-sm font-semibold text-gray-900">{T.hinge}</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(['left', 'right'] as Hinge[]).map(h => <button key={h} onClick={() => update({ hinge: h })}
-                        className={cn('h-10 rounded-lg border px-3 text-sm font-medium bg-white transition-colors', it.hinge === h ? 'text-white border-transparent' : 'border-gray-200 text-gray-900 hover:border-gray-400')}
-                        style={it.hinge === h ? btn : undefined}>{L.hinge[h]}</button>)}
-                    </div>
-                  </div>}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-semibold text-gray-900">{T.qty}</label>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => update({ quantity: Math.max(1, it.quantity - 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">−</button>
-                      <input type="number" min={1} max={100} value={it.quantity} onChange={e => update({ quantity: clamp(Number(e.target.value) || 1, 1, 100) })}
-                        className="w-16 h-10 text-center rounded-lg border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      <button onClick={() => update({ quantity: Math.min(100, it.quantity + 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">+</button>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1 sm:col-span-2">
-                    <label className="text-sm font-semibold text-gray-900">{T.label}</label>
-                    <input value={it.label} onChange={e => update({ label: e.target.value.slice(0, 60) })} placeholder={T.labelPh}
-                      className="h-10 rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
-                  </div>
-                </div>
-              </Sub>
-              </>)}
 
               {renderStep('glass', T.glassTitle, glassSummary, <>
 {/* glass package: cards with Ug; the first one is included */}
@@ -1262,7 +1293,6 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               {renderStep('services', T.step5, servicesSummary, <>
 {!internal && data.options.some(isService) && <Sub>
-                <p className="text-sm text-[#4f4f4f] -mt-2 mb-4">{T.servicesHint}</p>
                 <div className="space-y-4">
                   {items.some(x => x.roof) && data.options.some(o => o.per_item === 'roof') && <div>
                     <div className="text-sm font-semibold text-gray-900 mb-2">{T.roofServices}</div>
@@ -1384,7 +1414,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex justify-center py-2 overflow-hidden">
                 {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} />
-                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims frameColor={look.frame} extras={look.extras} />
+                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims frameColor={look.frame} extras={look.extras} plain={drawPlain} />
                   : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />}
               </div>
               {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}
@@ -1405,7 +1435,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     <span className="text-[15px] font-semibold text-gray-900">{T.positionPrice}</span>
                     <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priced ? txt(p != null ? p * it.quantity : null) : '—'}</span>
                   </div>
-                  <p className="text-[13px] text-[#4f4f4f] mt-1">{priced ? T.positionNote : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>
+                  <p className="text-[13px] text-[#4f4f4f] mt-1">{priced ? T.positionNote : hiddenPriceText}</p>
                   {/* wide screens: the whole order is on the left, so the way on is here */}
                   {!internal && <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
                     className="hidden xl:flex mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity items-center justify-center" style={btn}>{T.toReview}</button>}
@@ -1450,7 +1480,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <div className="text-[15px] font-semibold text-gray-900">{T.rangeTitle}</div>
                 <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums mt-1">{priceRange(totals.gross)}</div>
                 <p className="text-[13px] leading-5 text-[#4f4f4f] pt-1.5">{T.rangeNote}</p>
-              </div> : <p className="text-[13px] text-[#4f4f4f] border-t border-gray-200 mt-3 pt-3">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
+              </div> : <p className="text-[13px] text-[#4f4f4f] border-t border-gray-200 mt-3 pt-3">{hiddenPriceText}</p>}
 
               {internal ? (
                 <div className="mt-4 flex gap-2">
