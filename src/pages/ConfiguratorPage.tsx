@@ -152,6 +152,18 @@ const TXT = {
 let seq = 0
 const newKey = () => `i${++seq}`
 
+/** the customer's windows are kept in the browser while they configure, so a reload never loses them */
+const draftKey = (slug: string) => `fenestio-cfg-${slug}`
+function loadDraft(slug: string): any | null {
+  try {
+    const d = JSON.parse(localStorage.getItem(draftKey(slug)) || 'null')
+    if (!d || d.v !== 1 || !Array.isArray(d.items) || !d.items.length) return null
+    // new windows must not take a key a kept one already has
+    for (const x of d.items) { const n = Number(String(x.key).slice(1)); if (n > seq) seq = n }
+    return d
+  } catch { return null }
+}
+
 /** Public configurator /k/:slug: loads the supplier's data, then shows the same configurator the app uses inside quotes. */
 export default function ConfiguratorPage() {
   const { slug } = useParams()
@@ -203,11 +215,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const T = TXT[lang]
   const L = WL[lang]
   const internal = mode === 'internal'
-  const [items, setItems] = useState<ConfigItem[]>(initialItems ?? [])
-  const [active, setActive] = useState(0)
-  const [stage, setStage] = useState<'config' | 'review' | 'contact' | 'done'>('config')
-  const [contact, setContact] = useState({ customer_type: 'person' as 'person' | 'company', company_name: '', vat_number: '', first_name: '', last_name: '', email: '', phone: '', street: '', postal_code: '', city: '', country: 'SI', note: '' })
-  const [heard, setHeard] = useState('')
+  // public page: what the customer had before a reload
+  const [draft] = useState(() => internal || !slug ? null : loadDraft(slug))
+  const [items, setItems] = useState<ConfigItem[]>(initialItems ?? draft?.items ?? [])
+  const [active, setActive] = useState<number>(draft ? Math.min(draft.active ?? 0, draft.items.length - 1) : 0)
+  const [stage, setStage] = useState<'config' | 'review' | 'contact' | 'done'>(draft?.stage === 'review' || draft?.stage === 'contact' ? draft.stage : 'config')
+  const [contact, setContact] = useState({ customer_type: 'person' as 'person' | 'company', company_name: '', vat_number: '', first_name: '', last_name: '', email: '', phone: '', street: '', postal_code: '', city: '', country: 'SI', note: '', ...((draft?.contact ?? {}) as {}) })
+  const [heard, setHeard] = useState<string>(draft?.heard ?? '')
   const [consent, setConsent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
@@ -217,9 +231,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   // removing a position always asks first
   const [askRemove, setAskRemove] = useState<number | null>(null)
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
-  const [openMap, setOpenMap] = useState<Record<string, string>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
-  const [reachedMap, setReachedMap] = useState<Record<string, number>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 99])))
-  const [services, setServices] = useState<string[]>(() => data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
+  const [openMap, setOpenMap] = useState<Record<string, string>>(() => draft?.openMap ?? Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
+  const [reachedMap, setReachedMap] = useState<Record<string, number>>(() => draft?.reachedMap ?? Object.fromEntries((initialItems ?? []).map(x => [x.key, 99])))
+  const [services, setServices] = useState<string[]>(() => Array.isArray(draft?.services) ? draft.services.filter((id: string) => data.options.some(o => o.id === id)) : data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
+  // keep the draft on every change; once the enquiry is sent it is gone
+  useEffect(() => {
+    if (internal || !slug) return
+    try {
+      if (stage === 'done') localStorage.removeItem(draftKey(slug))
+      else if (items.length) localStorage.setItem(draftKey(slug), JSON.stringify({ v: 1, items, active, stage, contact, heard, openMap, reachedMap, services }))
+    } catch { /* storage off: nothing kept */ }
+  }, [items, active, stage, contact, heard, openMap, reachedMap, services])
   // start with one window (or the windows handed in when a quote position is edited)
   useEffect(() => { if (!items.length) setItems([defaultItem(data)]) }, [])
   // an installation address outside the supplier's area: the enquiry goes without installation
@@ -656,6 +678,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   // the drawing shows how the sashes open only from the opening step on
   const openingIdx = stepIds.indexOf('opening')
   const drawPlain = !internal && stage === 'config' && openingIdx >= 0 && reached < openingIdx
+  /** a window's sizes show once the customer reached the size step (not on the first steps, before they chose anything) */
+  const dimsOn = (x: ConfigItem) => internal || stage !== 'config' || (x.key === it.key ? (unlockIdx < 0 || reached >= unlockIdx) : (reachedMap[x.key] ?? 0) >= (x.roof ? 1 : 2))
   /** a window's own price can show once its sizes were entered (each window on its own) */
   const itemPriced = (x: ConfigItem) => internal || stage !== 'config' || (x.key === it.key ? pricesOn : (reachedMap[x.key] ?? 0) > (x.roof ? 1 : 2))
   const hiddenPriceText = (showLive || showRangeLive) && !pricesOn ? T.pricesAfterSize : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden
@@ -813,7 +837,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
                     <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
-                    <div className="text-[13px] font-medium text-[#8a8a8a] mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}</div>
+                    {dimsOn(x) && <div className="text-[13px] font-medium text-[#8a8a8a] mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}</div>}
                     {x.label && <div className="text-[13px] font-medium text-[#4f4f4f] break-words">{x.label}</div>}
                     <div className="text-[15px] font-semibold text-gray-900 tabular-nums mt-1.5">{xp == null || !itemPriced(x) ? '' : showLive ? money(xp * x.quantity, cur) : showRangeLive ? priceRange(xp * x.quantity) : ''}</div>
                   </div>
@@ -1114,14 +1138,16 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 const list = sy ? data.builder?.colors?.[sy.material] ?? [] : []
                 if (list.length < 2) return null
                 const cur2 = { out: list.find(c => c.id === it.colors?.out)?.id ?? list[0].id, in: list.find(c => c.id === it.colors?.in)?.id ?? list[0].id }
-                const now = specPriceWith(cur2)
+                // every colour shows its fixed surcharge against the base colour on that side, the chosen one too, so nothing moves
+                const base = { out: specPriceWith({ ...cur2, out: list[0].id }), in: specPriceWith({ ...cur2, in: list[0].id }) }
                 const row = (side: 'out' | 'in') => <div>
                   <div className="text-sm font-semibold text-gray-900 mb-2">{side === 'out' ? T.colorOut : T.colorIn}</div>
                   <div className="flex flex-wrap gap-2">
                     {list.map(c => {
                       const on = cur2[side] === c.id
                       const lookSpec = parseColor(c.look)
-                      const p = show && !on ? specPriceWith({ ...cur2, [side]: c.id }) : null
+                      const p = show ? specPriceWith({ ...cur2, [side]: c.id }) : null
+                      const now = base[side]
                       return <button key={c.id} onClick={() => update({ colors: { ...cur2, [side]: c.id } })}
                         className={cn('inline-flex items-center gap-2 h-10 pl-2 pr-3 rounded-[10px] border bg-white text-sm font-medium transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
@@ -1415,8 +1441,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex justify-center py-2 overflow-hidden">
                 {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} />
-                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims frameColor={look.frame} extras={look.extras} plain={drawPlain} />
-                  : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />}
+                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims={dimsOn(it)} frameColor={look.frame} extras={look.extras} plain={drawPlain} />
+                  : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims={dimsOn(it)} />}
               </div>
               {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}
               {(() => {

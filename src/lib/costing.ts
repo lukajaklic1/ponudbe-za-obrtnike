@@ -46,6 +46,9 @@ export interface PricingSettings {
   labour_frame_m?: number
   /** labour per metre of sash profile; 0 when not used */
   labour_sash_m?: number
+  /** labour per fixed field (glazing, beads), e.g. a top light; per transom / mullion bar (cutting, welding) */
+  labour_field?: number
+  labour_bar?: number
   waste_pct: number
   margin_pct: number
   /** margin on the labour; the material margin when not set */
@@ -296,7 +299,7 @@ export const DEFAULT_OFFER: Offer = {
 export const DEFAULT_PRICING: PricingSettings = {
   hw: { tilt_turn: 20, turn: 15, tilt: 18, passive: 10, slide_window: 40, slide: 120, lift_slide: 450 },
   hw_m: { tilt_turn: 1, turn: 1, tilt: 1, passive: 0.5, slide_window: 2, slide: 5, lift_slide: 20 },
-  glass_m2: 32, glass_rebate_mm: 13, labour_window: 30, labour_sash: 22, waste_pct: 6, margin_pct: 45, both_sides_pct: 10,
+  glass_m2: 32, glass_rebate_mm: 13, labour_window: 30, labour_sash: 22, labour_field: 12, labour_bar: 8, waste_pct: 6, margin_pct: 45, both_sides_pct: 10,
   offer: DEFAULT_OFFER,
 }
 
@@ -363,7 +366,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const botH = layout.bottom ? Math.round(H * layout.bottom.ratio) : 0
   const innerW = W - 2 * fw
 
-  let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, glassBill = 0, sashes = 0, handles = 0
+  let mullionLen = 0, sashLen = 0, beadLen = 0, glassArea = 0, glassBill = 0, sashes = 0, handles = 0, fixedFields = 0, bars = 0
   // every pane is billed at least the glazier's smallest area
   // the pane is larger than what you see: it reaches into the rebate on every side
   const reb = s.glass_rebate_mm ?? 13
@@ -380,6 +383,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   function field(f: Field, cw: number, ch: number) {
     if (cw <= 0 || ch <= 0) return
     if (f.opening === 'fixed') {
+      fixedFields++
       beadLen += 2 * (cw + ch)
       pane(cw, ch)
       return
@@ -407,11 +411,13 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const widthForFields = innerW - nMull * mw
   cols.forEach(c => field(c, widthForFields * (c.weight ?? 1) / totalWeight, mainH))
   mullionLen += nMull * mainH
+  bars += nMull
   // top light / bottom panel: transom bar across the window, then one field or one per column
   for (const band of [layout.top ? { b: layout.top, h: topH } : null, layout.bottom ? { b: layout.bottom, h: botH } : null]) {
     if (!band) continue
     const fh = band.h - fw - mw / 2, n = band.b.fields.length
     mullionLen += innerW + (n - 1) * Math.max(0, fh)
+    bars += 1 + (n - 1)
     const fwid = (innerW - (n - 1) * mw) / n
     band.b.fields.forEach(f => field(f, fwid, fh))
   }
@@ -465,7 +471,9 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     add('x_' + x.id, x.name, qty, unit, x.cost)
   }
   // labour: frame (fixed per window + per metre of frame and mullions) and sashes (fixed per sash + per metre of sash profile)
+  // a fixed field (top light, bottom panel, fixed glass) and every transom / mullion are work too, so they never make a window cheaper
   const labour = s.labour_window + (s.labour_frame_m ?? 0) * (frameLen + mullionLen) / 1000 + sashes * s.labour_sash + (s.labour_sash_m ?? 0) * sashLen / 1000
+    + fixedFields * (s.labour_field ?? 12) + bars * (s.labour_bar ?? 8)
   add('labour', L('labour', 'Delo'), 1, 'kos', labour)
 
   const cost = exact
