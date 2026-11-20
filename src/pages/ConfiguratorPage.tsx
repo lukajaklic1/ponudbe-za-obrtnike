@@ -714,7 +714,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     </button>
     return <section id={'step-' + id} key={id} className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-4">
       <h2 className={cn("flex items-center gap-3 text-lg font-semibold tracking-[-0.01em] text-gray-900", hint ? "mb-1" : "mb-4")}>{num}{title}</h2>
-      {hint && <p className="text-sm font-medium text-[#4f4f4f] pl-10 mb-4">{hint}</p>}
+      {hint && <p className="text-sm font-medium text-[#4f4f4f] pl-10 mb-5">{hint}</p>}
       <div className="space-y-6">{body}</div>
       <div className="flex justify-end mt-6">
         <button type="button" onClick={() => setOpen(nextId ?? 'none')} className="h-10 px-5 rounded-[10px] text-sm font-semibold text-white" style={btn}>{nextId ? T.stepNext : T.stepDone}</button>
@@ -821,7 +821,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => addItem(false)} className="shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border border-dashed border-gray-300 text-gray-900 hover:border-gray-500 flex items-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
               </div>
 
-              {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={makeSpec(2, 'none', 'none', 'fixed')} width={1300} height={1300} size={84} plain />,
                   () => pickSashes(spec && !spec.kind ? spec.sashes : (offer.sashes ?? []).includes(2) ? 2 : [...(offer.sashes ?? [])].sort()[0]), 'variant')}
                 {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={96} plain />, pickSliding, 'profile')}
@@ -837,7 +837,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </div>, T.stepProductHint)}
 
               {renderStep('variant', roofSel ? T.stepRoof : spec?.kind === 'wall' ? T.stepParts : T.stepSashes, variantSummary, <>
-                {(group === 'windows' || group === 'door' || group === 'wall') && <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {(group === 'windows' || group === 'door' || group === 'wall') && <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {group === 'windows' && (offer?.windows && [...(offer.sashes ?? [])].sort().map(n => {
                     const on = spec?.sashes === n && !spec.kind
                     return <button key={'w' + n} onClick={() => pickSashes(n)}
@@ -871,7 +871,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 </div>}
 {roofSel && roofCat && <>
                 <Sub title={T.roofModelTitle}>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {roofCat.models.map(m => {
                       const on = roofSel.model === m.id
                       const from = m.sizes.length ? Math.min(...m.sizes.map(x => Number(x.price))) : null
@@ -920,7 +920,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               {renderStep('bands', T.stepBands, bandsSummary, <>
 {spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Sub>
                 <p className="text-sm font-medium text-[#4f4f4f] -mt-2 mb-3">{T.bandsTitle}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
                     const on = spec.top === top && spec.bottom === bottom
                     const preview = reshapeSpec(spec, spec.sashes, top, bottom)
@@ -951,7 +951,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   const known = prices.filter((x): x is number => x != null)
                   const min = known.length ? Math.min(...known) : null
                   const curMode = bandModeOf(spec)
-                  return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {cards.map((sp, i) => {
                       const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
                       const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
@@ -968,7 +968,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>}
               </>)}
 
-              {renderStep('material', T.stepMaterial, materialSummary, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {renderStep('material', T.stepMaterial, materialSummary, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {materials.map(m => {
                   const on = m === matNow
                   const prices = allowedSystems.filter(x => x.material === m).map(x => sysPrice(x.id)).filter((v): v is number => v != null)
@@ -986,7 +986,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               {renderStep('profile', T.step2, profileSummary, <>
 {!roofSel && <Sub>
-                <div className="grid sm:grid-cols-2 gap-2">
+                <div className="grid sm:grid-cols-2 gap-3">
                   {(() => {
                     // price of the same window in every profile; the cheapest is the base
                     const bases = Object.fromEntries(matSystems.map(s => [s.id, spec ? specBase(it, s.id) : basePrice(data.prices.find(x => x.system_id === s.id && x.type_id === type!.id), it.width ?? 0, it.height ?? 0)]))
