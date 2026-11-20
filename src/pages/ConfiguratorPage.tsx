@@ -813,7 +813,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
                     <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
-                    <div className="text-[13px] font-medium text-[#8a8a8a] truncate mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
+                    <div className="text-[13px] font-medium text-[#8a8a8a] mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}</div>
+                    {x.label && <div className="text-[13px] font-medium text-[#4f4f4f] break-words">{x.label}</div>}
                     <div className="text-[15px] font-semibold text-gray-900 tabular-nums mt-1.5">{xp == null || !itemPriced(x) ? '' : showLive ? money(xp * x.quantity, cur) : showRangeLive ? priceRange(xp * x.quantity) : ''}</div>
                   </div>
                   {items.length > 1 && <button type="button" onClick={e => { e.stopPropagation(); setAskRemove(i) }} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
