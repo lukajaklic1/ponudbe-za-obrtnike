@@ -823,7 +823,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
           </aside>
 
           {/* Main column */}
-          <div className="space-y-4 min-w-0">
+          <div className="flex flex-col gap-4 min-w-0">
             {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
