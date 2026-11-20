@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, Lock } from 'lucide-react'
+import { Plus, Trash2, Copy, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, Lock, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -84,7 +84,7 @@ const TXT = {
     stepProduct: 'Izdelek', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
     grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Velja za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
-    none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani',
+    none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani', removeAsk: (n: number) => `Odstranim pozicijo ${n}?`, removeHint: 'Okno in vse njegove izbire bodo odstranjeni iz povpraševanja.',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
     basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.', pricesAtEnd: 'Ceno boste videli na koncu, ko vpišete svoje podatke.', rangeTitle: 'Okvirna cena z DDV', rangeNote: 'Okvirni razpon. Natančno ceno pripravimo po izmeri na terenu.',
     getOffer: 'Pridobi ponudbo', getOfferPdf: 'Prenesi ponudbo (PDF)', orEnquiry: 'Ali samo pošljite povpraševanje',
@@ -101,7 +101,7 @@ const TXT = {
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
     reviewTitle: 'Pregled povpraševanja', reviewHint: 'Preverite okna in izbire, preden vpišete svoje podatke.', toReview: 'Pregled povpraševanja', editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
-    subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije ponudbe se sestavljajo sproti, ko izbirate.',
+    subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
@@ -114,7 +114,7 @@ const TXT = {
     stepProduct: 'Product', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
-    none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove',
+    none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove', removeAsk: (n: number) => `Remove position ${n}?`, removeHint: 'The window and all its choices will be removed from the enquiry.',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
     basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.', pricesAtEnd: 'You will see the price at the end, after entering your details.', rangeTitle: 'Estimated price incl. VAT', rangeNote: 'An estimated range. We prepare the exact price after measuring on site.',
     getOffer: 'Get the quote', getOfferPdf: 'Download the quote (PDF)', orEnquiry: 'Or just send an enquiry',
@@ -131,7 +131,7 @@ const TXT = {
     heard: 'How did you hear about us?', heardPick: 'Choose',
     reviewTitle: 'Review your enquiry', reviewHint: 'Check the windows and choices before you enter your details.', toReview: 'Review enquiry', editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
-    subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'The positions of the quote build up as you choose.',
+    subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
 }
 
@@ -200,6 +200,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [result, setResult] = useState<{ quote_number: string; valid_until?: string; company?: Record<string, any> } | null>(null)
   // the informative offer the customer downloaded (kept to download it again)
   const [offerSnap, setOfferSnap] = useState<any>(null)
+  // removing a position always asks first
+  const [askRemove, setAskRemove] = useState<number | null>(null)
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
   const [openMap, setOpenMap] = useState<Record<string, string>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
   const [reachedMap, setReachedMap] = useState<Record<string, number>>(() => Object.fromEntries((initialItems ?? []).map(x => [x.key, 99])))
@@ -763,47 +765,60 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
         </div>
       ) : (
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[360px_minmax(0,1fr)_380px] gap-6 items-start">
-          {/* The offer as it grows: every position with its choices, sub-positions and prices (wide screens) */}
+          {/* The order at a glance (wide screens): each position with its drawing and key data, the services and the final price */}
           <aside className="hidden xl:block xl:sticky xl:top-4 bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-2rem)] overflow-y-auto">
-            <div className="text-base font-semibold text-gray-900">{T.offerPreview}</div>
-            <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-3">{T.offerPreviewHint}</p>
-            <div className="space-y-3">
+            <div className="text-base font-semibold text-gray-900">{T.yourOrder}</div>
+            <p className="text-[13px] font-medium text-[#4f4f4f] mt-0.5 mb-4">{T.offerPreviewHint}</p>
+            <div className="space-y-2.5">
               {items.map((x, i) => {
-                const d = describe(x), sp = split(x)
+                const d = describe(x)
                 const t = data.types.find(tt => tt.id === x.type_id)
-                const priceTxt = (v: number | null) => v == null ? '' : show ? money(v, cur) : showRange ? priceRange(v) : ''
-                return <div key={x.key} className={cn('rounded-lg border p-3 transition-colors', i === active && stage === 'config' ? 'border-[#c4c4c4] bg-[#fcfcfc]' : 'border-gray-100')}>
-                  <button type="button" onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-start gap-3 text-left">
-                    <div className="w-12 flex justify-center shrink-0 pt-0.5">{x.roof ? <RoofWindowDrawing size={44} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={44} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={44} />}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-sm font-semibold text-gray-900 truncate">{i + 1}. {d.title}</span>
-                        <span className="text-sm font-semibold text-gray-900 whitespace-nowrap tabular-nums">{priceTxt(sp.unitPrice != null ? sp.unitPrice * x.quantity : null)}</span>
-                      </div>
-                      <div className="text-[13px] font-medium text-[#4f4f4f]">{x.quantity} {T.pcs} · {x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{x.label ? ` · ${x.label}` : ''}</div>
+                const xp = priceOf(x)
+                const sy = data.systems.find(ss => ss.id === x.system_id)
+                const extras = [x.sills?.in || x.sills?.out ? T.sillTitle : '', x.shading?.shade ? T.shadeLabel : '', x.shading?.screen ? T.screenLabel : ''].filter(Boolean)
+                const on = i === active && stage === 'config'
+                return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
+                  className={cn('group relative w-full text-left rounded-xl border p-3 flex gap-3 transition-colors cursor-pointer', on ? 'border-[#131313] bg-[#fcfcfc]' : 'border-gray-200 hover:border-gray-400')}>
+                  {items.length > 1 && <button type="button" onClick={e => { e.stopPropagation(); setAskRemove(i) }} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
+                    className="absolute bottom-2 right-2 w-7 h-7 rounded-md flex items-center justify-center text-[#8a8a8a] hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 focus:opacity-100 transition"><Trash2 className="w-3.5 h-3.5" /></button>}
+                  <div className="w-[68px] h-[68px] rounded-lg bg-[#f5f5f6] flex items-center justify-center shrink-0">
+                    {x.roof ? <RoofWindowDrawing size={54} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={56} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={56} />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-[13px] font-semibold text-[#8a8a8a]">{T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}</span>
+                      <span className="text-sm font-semibold text-gray-900 whitespace-nowrap tabular-nums">{xp == null ? '' : show ? money(xp * x.quantity, cur) : showRange ? priceRange(xp * x.quantity) : ''}</span>
                     </div>
-                  </button>
-                  {/* what the customer chose, in words */}
-                  <dl className="mt-2 pl-[60px] space-y-0.5 text-[13px]">
-                    {d.rows.filter(([k]) => k !== T.sizeTitle && k !== T.room).map(([k, v]) => <div key={k} className="flex gap-2"><dt className="text-[#8a8a8a] shrink-0">{k}</dt><dd className="font-medium text-gray-900 min-w-0">{v}</dd></div>)}
-                  </dl>
-                  {/* sills, shading and screens: their own lines on the quote */}
-                  {sp.subs.length > 0 && <div className="mt-2 pl-[60px] space-y-1">
-                    {sp.subs.map(sb => <div key={sb.code} className="flex items-baseline justify-between gap-2 text-[13px]">
-                      <span className="min-w-0"><span className="text-[#8a8a8a]">{i + 1}-{sb.code}</span> <span className="font-medium text-gray-900">{sb.title}</span></span>
-                      <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{priceTxt(sb.unitPrice * x.quantity)}</span>
-                    </div>)}
-                  </div>}
+                    <div className="text-[15px] font-semibold text-gray-900 truncate">{d.title}</div>
+                    <div className="text-[13px] font-medium text-[#4f4f4f] truncate">{x.quantity} {T.pcs} · {x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}{sy && !x.roof ? ` · ${sy.name}` : ''}</div>
+                    {extras.length > 0 && <div className="flex flex-wrap gap-1 mt-1.5">{extras.map(e => <span key={e} className="px-1.5 py-[1px] rounded-md bg-[#f4f4f4] text-[#5f5f5f] text-xs font-medium">{e}</span>)}</div>}
+                  </div>
                 </div>
               })}
-              {serviceRows.length > 0 && <div className="rounded-lg border border-gray-100 p-3">
-                <div className="text-sm font-semibold text-gray-900 mb-1">{T.servicesTitle}</div>
-                {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-2 text-[13px] py-0.5">
-                  <span className="font-medium text-gray-900 min-w-0">{r.option.name}</span>
-                  <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{show ? money(r.total, cur) : showRange ? priceRange(r.total) : ''}</span>
-                </div>)}
-              </div>}
               <button type="button" onClick={() => addItem(false)} className="w-full h-10 rounded-lg border border-dashed border-gray-300 text-sm font-medium text-gray-900 hover:border-gray-500 flex items-center justify-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
+            </div>
+            {serviceRows.length > 0 && <div className="mt-4 pt-3 border-t border-gray-100">
+              <div className="text-[13px] font-semibold text-[#8a8a8a] mb-1">{T.servicesTitle} · {T.servicesForAll}</div>
+              {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-2 text-sm py-0.5">
+                <span className="text-gray-900 min-w-0 truncate">{r.option.name}</span>
+                <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{show ? money(r.total, cur) : showRange ? priceRange(r.total) : ''}</span>
+              </div>)}
+            </div>}
+            {/* the final price of the whole order */}
+            <div className="mt-4 pt-3 border-t border-gray-200 space-y-1.5 text-sm">
+              {show ? <>
+                <Row l={T.total} r={money(totals.net, cur)} />
+                {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate.toLocaleString('de-DE')}%`} r={money(totals.vat, cur)} muted />}
+                <div className="flex items-baseline justify-between pt-2 mt-1 border-t border-gray-200">
+                  <span className="text-[15px] font-semibold text-gray-900">{T.gross}</span>
+                  <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.gross, cur)}</span>
+                </div>
+                <p className="text-[13px] leading-5 text-gray-500 pt-1">{T.estimate}</p>
+              </> : showRange ? <>
+                <div className="text-[15px] font-semibold text-gray-900">{T.rangeTitle}</div>
+                <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priceRange(totals.gross)}</div>
+                <p className="text-[13px] leading-5 text-gray-500">{T.rangeNote}</p>
+              </> : <p className="text-[13px] text-gray-500">{priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>}
             </div>
           </aside>
 
@@ -812,13 +827,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-gray-500 whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
-              {/* Position tabs */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1">
-                {items.map((x, i) => <button key={x.key} onClick={() => setActive(i)}
-                  className={cn('shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border transition-colors', i === active ? 'text-white border-transparent' : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400')}
+              {/* Position tabs (wide screens: adding, picking and removing windows is in the summary on the left) */}
+              <div className="flex xl:hidden gap-1.5 overflow-x-auto pb-1">
+                {items.map((x, i) => <div key={x.key} className={cn('shrink-0 h-9 pl-3.5 rounded-[10px] text-sm font-medium border transition-colors flex items-center', items.length > 1 ? 'pr-1' : 'pr-3.5', i === active ? 'text-white border-transparent' : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400')}
                   style={i === active ? btn : undefined}>
-                  {T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}
-                </button>)}
+                  <button type="button" onClick={() => setActive(i)} className="h-full">{T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}</button>
+                  {items.length > 1 && <button type="button" onClick={() => setAskRemove(i)} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
+                    className={cn('ml-1 w-7 h-7 rounded-md flex items-center justify-center transition-colors', i === active ? 'hover:bg-white/15' : 'text-[#8a8a8a] hover:text-gray-900 hover:bg-[#f1f1f1]')}><X className="w-3.5 h-3.5" /></button>}
+                </div>)}
                 <button onClick={() => addItem(false)} className="shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border border-dashed border-gray-300 text-gray-900 hover:border-gray-500 flex items-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
               </div>
 
@@ -1287,7 +1303,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               <div className="flex gap-2">
                 <button onClick={() => addItem(true)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors"><Copy className="w-4 h-4" />{T.duplicate}</button>
-                {items.length > 1 && <button onClick={() => removeItem(active)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:text-red-600 hover:border-red-200 transition-colors"><Trash2 className="w-4 h-4" />{T.remove}</button>}
+                {items.length > 1 && <button onClick={() => setAskRemove(active)} className="flex items-center gap-1.5 h-10 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:text-red-600 hover:border-red-200 transition-colors"><Trash2 className="w-4 h-4" />{T.remove}</button>}
               </div>
             </> : stage === 'review' ? (
               /* Review: what the customer is about to send */
@@ -1389,13 +1405,32 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims />}
               </div>
               {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}
-              <div className="flex items-baseline justify-between mt-3">
-                <span className="text-sm font-medium text-gray-500">{T.unit}</span>
-                <span className="text-xl font-bold tracking-[-0.01em] text-gray-900">{show ? (p != null ? money(p, cur) : T.noPrice) : showRange && p != null ? priceRange(p) : '—'}</span>
-              </div>
+              {(() => {
+                // this position only: the window, its sub-positions, the price of one piece and of the position
+                const sp = split(it)
+                const txt = (v: number | null) => v == null ? T.noPrice : show ? money(v, cur) : showRange ? priceRange(v) : '—'
+                const priced = show || showRange
+                return <div className="mt-3 border-t border-gray-100 pt-3">
+                  <div className="text-sm font-semibold text-gray-900">{T.position} {active + 1}{it.label ? ` · ${it.label}` : ''}</div>
+                  {priced && <div className="mt-2 space-y-1.5 text-sm">
+                    <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.windowAlone}</span><span className="font-medium text-gray-900 tabular-nums">{txt(sp.unitPrice)}</span></div>
+                    {sp.subs.map(sb => <div key={sb.code} className="flex justify-between gap-3"><span className="text-[#4f4f4f] min-w-0 truncate">{sb.title}</span><span className="font-medium text-gray-900 tabular-nums">{txt(sb.unitPrice)}</span></div>)}
+                    {sp.subs.length > 0 && <div className="flex justify-between gap-3 border-t border-gray-100 pt-1.5"><span className="text-[#4f4f4f]">{T.unit}</span><span className="font-medium text-gray-900 tabular-nums">{txt(p)}</span></div>}
+                    <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.qty}</span><span className="font-medium text-gray-900 tabular-nums">× {it.quantity}</span></div>
+                  </div>}
+                  <div className="flex items-baseline justify-between gap-3 mt-3 pt-3 border-t border-gray-200">
+                    <span className="text-[15px] font-semibold text-gray-900">{T.positionPrice}</span>
+                    <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priced ? txt(p != null ? p * it.quantity : null) : '—'}</span>
+                  </div>
+                  <p className="text-[13px] text-gray-500 mt-1">{priced ? T.positionNote : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden}</p>
+                  {/* wide screens: the whole order is on the left, so the way on is here */}
+                  {!internal && <button disabled={!items.every(sizeOk)} onClick={() => { setStage('review'); window.scrollTo({ top: 0 }) }}
+                    className="hidden xl:flex mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity items-center justify-center" style={btn}>{T.toReview}</button>}
+                </div>
+              })()}
             </div>}
 
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className={cn('bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'xl:hidden')}>
               <div className="text-base font-semibold text-gray-900 mb-2">{internal ? T.inQuote : T.yourOrder}</div>
               <ul className="divide-y divide-gray-100 xl:hidden">
                 {items.map((x, i) => {
@@ -1466,6 +1501,17 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
           </aside>
         </div>
       )}
+
+      {askRemove != null && <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4" onClick={() => setAskRemove(null)}>
+        <div role="dialog" aria-modal="true" className="w-full max-w-sm bg-white rounded-xl shadow-xl p-5" onClick={e => e.stopPropagation()}>
+          <div className="text-[17px] font-semibold text-gray-900">{T.removeAsk(askRemove + 1)}</div>
+          <p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.removeHint}</p>
+          <div className="flex justify-end gap-2 mt-5">
+            <button type="button" onClick={() => setAskRemove(null)} className="h-10 px-4 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:border-gray-400">{T.cancel}</button>
+            <button type="button" autoFocus onClick={() => { removeItem(askRemove); setAskRemove(null) }} className="h-10 px-4 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700">{T.remove}</button>
+          </div>
+        </div>
+      </div>}
 
       {/* phones: the price stays in sight while configuring (the summary is far down under the steps) */}
       {!internal && stage === 'config' && <>
