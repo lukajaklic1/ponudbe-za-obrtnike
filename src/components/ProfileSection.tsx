@@ -24,12 +24,12 @@ const D: Pt = [26, -18]
 const C = {
   pvc:    { front: '#f2f4f7', top: '#ffffff', side: '#d8dde4' },
   alu:    { front: '#5b626d', top: '#7c838e', side: '#474d57' },
-  wood:   { front: '#d3a066', top: '#e7bf88', side: '#bf8a4f' },
+  wood:   { front: '#c9a77f', top: '#dcc3a1', side: '#b3906a' },
   gasket: { front: '#1d2026', top: '#3a3f47', side: '#14161a' },
   poly:   { front: '#26282c', top: '#3b3e44', side: '#1b1d20' },
   foam:   { front: '#e8e3d5', top: '#f3efe4', side: '#d6d0bf' },
   spacer: { front: '#8b939e', top: '#aab1ba', side: '#6f7782' },
-  glass:  { front: '#a7c7ea', top: '#dcecfb', side: '#c9dff6', stroke: 'rgba(59,110,170,0.45)' },
+  glass:  { front: '#dcebf7', top: '#f1f7fc', side: '#cfe2f2', stroke: 'rgba(127,147,166,0.6)' },
 } satisfies Record<string, Face>
 
 const EDGE = 'rgba(15,23,42,0.4)'
@@ -73,10 +73,10 @@ const steelU = (x: number, y: number, w: number, h: number) => (
   <path d={`M ${x} ${y} L ${x} ${y + h} L ${x + w} ${y + h} L ${x + w} ${y}`} fill="none" stroke="#6b7480" strokeWidth={1.3} strokeLinejoin="round" />
 )
 const lamellas = (xs: number[], y1: number, y2: number) => (
-  <g stroke="#a8743c" strokeWidth={0.5} opacity={0.9}>{xs.map(x => <line key={x} x1={x} y1={y1} x2={x} y2={y2} />)}</g>
+  <g stroke="#a38662" strokeWidth={0.5} opacity={0.9}>{xs.map(x => <line key={x} x1={x} y1={y1} x2={x} y2={y2} />)}</g>
 )
 const endGrain = (x: number, y: number, w: number, h: number) => (
-  <g fill="none" stroke="#b9854a" strokeWidth={0.35} opacity={0.75}>
+  <g fill="none" stroke="#ad8f6d" strokeWidth={0.35} opacity={0.75}>
     {[0.3, 0.55, 0.8].map(f => <ellipse key={f} cx={x + w / 2} cy={y + h * 1.1} rx={w * f * 0.55} ry={h * f * 0.9} />)}
   </g>
 )
@@ -88,7 +88,7 @@ const glazing = (x0: number, tops: [number, number, number]): Part[] => {
   const out: Part[] = []
   xs.forEach((x, i) => {
     out.push({ pts: rect(x, tops[i], 4, 100 - tops[i]), c: C.glass, opacity: 0.93,
-      overlay: <line x1={x + 4.6} y1={tops[i] + 12} x2={x + 4.6 + D[0] * 0.7} y2={tops[i] + 12 + D[1] * 0.7 + 30} stroke="#ffffff" strokeWidth={1.2} opacity={0.55} /> })
+      overlay: <line x1={x + 4.6} y1={tops[i] + 12} x2={x + 4.6 + D[0] * 0.7} y2={tops[i] + 12 + D[1] * 0.7 + 30} stroke="#ffffff" strokeWidth={1.2} opacity={0.3} /> })
     if (i < 2) out.push({ pts: rect(x + 4, 89, 13, 11), c: C.spacer })
   })
   return out

@@ -28,6 +28,7 @@ import ConfirmDialog from '../components/ui/ConfirmDialog'
 import ColorSwatch from '../components/ColorSwatch'
 import { WINDOW_COLORS, parseColor, encodeColor } from '../lib/colors'
 import { ralHex, ralName, ralCode, ralNearest } from '../lib/ral'
+import { SHADE_PRESETS, DEFAULT_SHADE_COLORS, shadeColorName, type ShadeColor } from '../lib/shadeColors'
 import {
   TEMPLATES, MATERIALS, STARTER, WL, isDoor, isOnRequest,
   type WindowSystem, type WindowType, type WindowOption, type WindowTemplate, type WindowMaterial,
@@ -161,6 +162,7 @@ const TXT = {
     shadeFixedSash: 'Fiksni znesek na krilo', shadePerWSash: 'Na meter širine krila', shadePerHSash: 'Na meter višine krila', shadeCostM2Sash: 'Na m² krila', shadeMin: 'Najnižja prodajna cena na okno',
     shadeUnits: { m2: 'Na okno', sash: 'Na krilo' } as Record<string, string>,
     shadeIcons: { blinds: 'Žaluzije', roller: 'Rolete', pleated: 'Plise senčilo', screen: 'Okvirni komarnik', screen_roll: 'Rolo komarnik', screen_pleated: 'Plise komarnik', none: 'Brez slike' } as Record<string, string>,
+    shadeColTitle: 'Barve senčil', shadeColHint: 'Barve, med katerimi izbira stranka. Brez doplačila. Če seznam pustite prazen, so ponujene privzete barve.', shadeColDefault: 'Zdaj so ponujene privzete barve. Dodajte svojo ali eno od predlaganih in seznam postane vaš.', shadeColName: 'Ime barve', shadeColCode: 'RAL oznaka (neobvezno)', shadeColAdd: 'Dodaj barvo', shadeColRemove: 'Odstrani barvo', shadeColNeedName: 'Vpišite ime barve.', shadeColReset: 'Vrni privzete barve',
     shadeDescPh: 'npr. Lamele 80 mm, ročni pogon z jermenom.', addShade: 'Dodaj senčilo', addScreen: 'Dodaj komarnik',
     shadePhotoRemoveMsg: (n: string) => `Fotografija »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`,
     sillPhotoRemoveMsg: (n: string) => `Fotografija police »${n}« bo odstranjena, ko naslednjič shranite cenik. Namesto nje se bo prikazala risba.`, customerSeesIncluded: 'Kupec vidi: Vključeno',
@@ -269,6 +271,7 @@ const TXT = {
     shadeFixedSash: 'Fixed amount per sash', shadePerWSash: 'Per metre of sash width', shadePerHSash: 'Per metre of sash height', shadeCostM2Sash: 'Per m² of sash', shadeMin: 'Lowest sale price per window',
     shadeUnits: { m2: 'Per window', sash: 'Per sash' } as Record<string, string>,
     shadeIcons: { blinds: 'Blinds', roller: 'Roller shutter', pleated: 'Pleated blind', screen: 'Framed screen', screen_roll: 'Roll-up screen', screen_pleated: 'Pleated screen', none: 'No picture' } as Record<string, string>,
+    shadeColTitle: 'Shading colours', shadeColHint: 'The colours the customer can choose from. No extra charge. If you leave the list empty, the default colours are offered.', shadeColDefault: 'The default colours are offered now. Add your own or one of the suggested ones and the list becomes yours.', shadeColName: 'Colour name', shadeColCode: 'RAL code (optional)', shadeColAdd: 'Add colour', shadeColRemove: 'Remove colour', shadeColNeedName: 'Enter a colour name.', shadeColReset: 'Back to the default colours',
     shadeDescPh: 'e.g. 80 mm slats, manual belt drive.', addShade: 'Add shading', addScreen: 'Add insect screen',
     shadePhotoRemoveMsg: (n: string) => `The photo of "${n}" is removed the next time you save the price list. The drawing is shown instead.`,
     sillPhotoRemoveMsg: (n: string) => `The photo of sill "${n}" is removed the next time you save the price list. The drawing is shown instead.`, customerSeesIncluded: 'Customer sees: Included',
@@ -375,6 +378,8 @@ export default function PriceListSetupPage() {
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [options, setOptions] = useState<OptionRow[]>([])
   const [pricing, setPricing] = useState<PricingSettings>(pricingFrom(null))
+  // a new shading colour being typed
+  const [newShade, setNewShade] = useState<{ name: string; hex: string; code: string }>({ name: '', hex: '#8b9094', code: '' })
   /** the price list was never saved: everything shown is a sample */
   const [isSample, setIsSample] = useState(false)
   const [openSash, setOpenSash] = useState<string | null>(null)
@@ -1685,6 +1690,49 @@ export default function PriceListSetupPage() {
                     })()}
                   </div>
                 })}
+                {/* colours of the shading: the customer picks one of these; no surcharge */}
+                {(() => {
+                  const own = pricing.shade_colors ?? []
+                  const setOwn = (next: ShadeColor[]) => { setPricing(x => ({ ...x, shade_colors: next })); touch() }
+                  const shown = own.length ? own : DEFAULT_SHADE_COLORS
+                  const unusedPresets = SHADE_PRESETS.filter(p => !own.some(c => c.id === p.id))
+                  // the first change turns the default list into the supplier's own list
+                  const base = own.length ? own : DEFAULT_SHADE_COLORS
+                  const ralFill = (code: string) => { const hex = ralHex(code); setNewShade(v => ({ ...v, code, ...(hex ? { hex, name: v.name.trim() ? v.name : (ralName(code) ?? v.name) } : {}) })) }
+                  return <div className="pt-5 border-t border-gray-100">
+                    <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{T.shadeColTitle}</div>
+                    <div className="text-sm text-[#4f4f4f] mt-1 mb-3 max-w-[640px]">{T.shadeColHint}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {shown.map(c => <span key={c.id} className="inline-flex items-center gap-2 h-10 pl-2 pr-2 rounded-[10px] border border-gray-200 bg-white text-sm font-medium text-gray-900">
+                        <span className="w-[22px] h-[22px] rounded-md border border-black/10" style={{ background: c.hex }} />{shadeColorName(c, lang)}
+                        <button type="button" aria-label={T.shadeColRemove} title={T.shadeColRemove} onClick={() => setOwn(base.filter(x => x.id !== c.id))} className="p-1 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </span>)}
+                    </div>
+                    {!own.length && <div className="text-[13px] text-[#4f4f4f] mt-2">{T.shadeColDefault}</div>}
+                    {unusedPresets.length > 0 && <div className="flex flex-wrap items-center gap-2 mt-3">
+                      <span className="text-[13px] font-medium text-[#4f4f4f]">{T.quickAdd}</span>
+                      {unusedPresets.map(p => <button key={p.id} type="button" onClick={() => setOwn([...base, p])}
+                        className="inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-[10px] border border-gray-200 bg-white text-[13px] font-medium text-gray-900 hover:bg-[#fafafa] hover:border-gray-300 transition-colors">
+                        <span className="w-4 h-4 rounded border border-black/10" style={{ background: p.hex }} />+ {shadeColorName(p, lang)}</button>)}
+                    </div>}
+                    <div className="flex flex-wrap items-end gap-3 mt-4">
+                      <label className="flex flex-col gap-1 text-sm font-semibold text-gray-900">{T.shadeColName}
+                        <input value={newShade.name} onChange={e => setNewShade(v => ({ ...v, name: e.target.value.slice(0, 40) }))} className="h-10 w-[200px] rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm font-normal focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </label>
+                      <label className="flex flex-col gap-1 text-sm font-semibold text-gray-900">{T.shadeColCode}
+                        <input value={newShade.code} onChange={e => ralFill(e.target.value)} placeholder="RAL 7016" className="h-10 w-[140px] rounded-lg border border-gray-200 hover:border-gray-400 bg-white px-3 text-sm font-normal focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </label>
+                      <input type="color" value={newShade.hex} onChange={e => setNewShade(v => ({ ...v, hex: e.target.value }))} aria-label={T.shadeColName} className="h-10 w-12 rounded border border-gray-200 bg-white p-1" />
+                      <button type="button" onClick={() => {
+                        const name = newShade.name.trim()
+                        if (!name) { toast.error(T.shadeColNeedName); return }
+                        setOwn([...base, { id: 'c' + Math.random().toString(36).slice(2, 9), name, hex: newShade.hex }])
+                        setNewShade({ name: '', hex: '#8b9094', code: '' })
+                      }} className="inline-flex items-center gap-1 h-10 px-3 rounded-[10px] text-[15px] font-medium text-gray-900 hover:underline"><Plus className="w-4 h-4" />{T.shadeColAdd}</button>
+                      {own.length > 0 && <button type="button" onClick={() => setOwn([])} className="h-10 px-2 text-[13px] font-medium text-[#4f4f4f] hover:text-gray-900 hover:underline">{T.shadeColReset}</button>}
+                    </div>
+                  </div>
+                })()}
               </div>
             })()}
           </Step>

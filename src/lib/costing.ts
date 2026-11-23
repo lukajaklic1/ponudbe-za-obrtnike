@@ -1,3 +1,4 @@
+import type { ShadeColor } from './shadeColors'
 import { WINDOW_COLORS, encodeColor } from './colors'
 import { ralHex } from './ral'
 // Window costing like a window maker does it: profile metres, glass area, hardware per
@@ -70,6 +71,8 @@ export interface PricingSettings {
   sills?: SillType[]
   /** shading (blinds, rollers …) and insect screens, purchase prices */
   shading?: ShadingType[]
+  /** colours of the shading the customer can pick (empty = the default list); no surcharge */
+  shade_colors?: ShadeColor[]
 }
 
 /** How an extra is counted on one window. */

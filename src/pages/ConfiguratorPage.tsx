@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X } from 'lucide-react'
+import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X, Ban } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
 import ColorSwatch from '../components/ColorSwatch'
 import { parseColor } from '../lib/colors'
+import { shadeColorsOf, shadeColorOf, shadeColorName, type ShadeColor } from '../lib/shadeColors'
 import SpecDrawing from '../components/SpecDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import type { RoofCatalog } from '../lib/costing'
@@ -41,7 +42,7 @@ export interface ConfigData {
   combos: { system_id: string; type_id: string }[]
   options: WindowOption[]
   /** windows built from sashes (null when the supplier did not set it up) */
-  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null; glass?: GlassType[] | null; handles?: HandleType[] | null; sills?: SillType[] | null; shading?: ShadingType[] | null } | null
+  builder?: { offer: Offer; pricing: PricingSettings | null; roof?: RoofCatalog | null; colors?: ColorCatalog | null; glass?: GlassType[] | null; handles?: HandleType[] | null; sills?: SillType[] | null; shading?: ShadingType[] | null; shade_colors?: ShadeColor[] | null } | null
 }
 
 export interface ConfigItem {
@@ -75,20 +76,22 @@ export interface ConfigItem {
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Ponudnik konfiguratorja še ni objavil.',
-    qtyTitle: 'Količina', sizeTitle: 'Mere', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
-    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeColor: 'Barva senčila in omarice', shadeColorHint: 'Brez doplačila. Končno barvo potrdimo pri izmeri.', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
+    qtyTitle: 'Količina', sizeTitle: 'Mere', forWindow: 'za okno', forDoor: 'za balkonska vrata', forWall: 'za drsno steno', forRoof: 'za strešno okno', ofWindow: 'vašega okna', ofDoor: 'vaših balkonskih vrat', ofWall: 'vaše drsne stene', ofRoof: 'vašega strešnega okna', cBands: 'Kakšna naj bo izvedba', cBandsEnd: '?', cProfile: 'Izberite profilni sistem', cGlass: 'Izberite steklo', cOpening: 'Kako naj se odpirajo krila?', cMaterial: 'Iz katerega materiala naj bo okvir?', cColorOut: 'V kateri barvi naj bo okvir zunaj?', cColorIn: 'V kateri barvi naj bo okvir znotraj?', cHandle: 'Katero kljuko želite?', cSillOut: 'Ali želite zunanjo polico?', cSillIn: 'Ali želite notranjo polico?', cShading: 'Ali želite senčila ali komarnik?', cExtras: 'Ali želite še kakšno dodatno opremo?', cServices: 'Katere storitve potrebujete?', stepSizeWindow: 'Vpišite mere vašega okna', stepSizeDoor: 'Vpišite mere vaših balkonskih vrat', stepSizeWall: 'Vpišite mere vaše drsne stene', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
+    nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeColor: 'Barva senčila in omarice', shadeColorHint: 'Brez doplačila. Končno barvo potrdimo pri izmeri.', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noShadeDesc: 'Okno ostane brez senčila.', noScreenDesc: 'Okno ostane brez komarnika.', noSillDesc: 'Okno ostane brez police.', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
     preset: { all_open: 'Vse odpiranje in kip', one_open: 'Eno krilo na odpiranje', outer_open: 'Zunanji krili na odpiranje', all_fixed: 'Vse fiksno' } as Record<string, string>,
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
     stepProduct: 'Kaj želite kupiti?', stepProductHint: 'Izberite vrsto izdelka, ki ga želite kupiti.',
-    hSashes: 'Koliko kril naj ima okno? Krilo je del okna, ki se odpira.', hParts: 'Iz koliko delov naj bo drsna stena?', hRoof: 'Izberite model strešnega okna, material in mero.',
-    hSize: 'Vpišite širino in višino okna v milimetrih. Natančno izmerimo pred izdelavo, zato so lahko mere približne.', hQty: 'Koliko enakih strešnih oken potrebujete?',
+    hSashes: 'Krilo je del okna ali vrat, ki se odpira.', hParts: 'Iz koliko delov naj bo drsna stena?', hRoof: 'Izberite model strešnega okna, material in mero.',
+    hSize: 'Natančno izmero opravimo pred izdelavo, zato lahko vnesete približne mere.', hQty: 'Koliko enakih strešnih oken potrebujete?',
     hBands: 'Ali ima okno nad krili (nadsvetloba) ali pod njimi še poseben del?', hMaterial: 'Iz katerega materiala naj bo okvir okna?',
-    hProfile: 'Profil določa toplotno izolacijo in videz okvirja. Cena se ob vsakem profilu spremeni.', hColor: 'Barva okvirja zunaj in znotraj. Lahko sta različni.',
+    hProfile: 'Profil določa toplotno izolacijo in videz okvirja. Cena se ob vsakem profilu spremeni.', hColor: 'Barva okvirja zunaj in znotraj. Lahko sta različni.', colorOutTitle: 'Barva okvirja zunaj', colorInTitle: 'Barva okvirja znotraj',
+    hColorOut: 'Barva, ki jo vidite s ceste (zunanja stran okna).', hColorIn: 'Barva, ki jo vidite v prostoru (notranja stran okna). Lahko je drugačna kot zunaj.',
+    hSillOut: 'Polica na zunanji strani okna, pod oknom na fasadi. Lahko je brez.', hSillIn: 'Polica na notranji strani okna, v prostoru. Lahko je brez.', naturalWood: 'Naravna barva lesa',
     hGlass: 'Več slojev stekla pomeni boljšo toplotno izolacijo (nižji Ug). Prvo steklo je vključeno v ceno.', hHandle: 'Izberite kljuko. Standardna je vključena v ceno.',
     hSills: 'Po želji dodajte notranjo in zunanjo polico.', hShading: 'Po želji dodajte roleto, žaluzije ali komarnik.', hExtras: 'Dodatna oprema po želji.',
-    pricesAfterSize: 'Ceno vidite, ko vpišete mere.', stepSashes: 'Število kril', stepParts: 'Število delov', stepRoof: 'Model in mera', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepOf: (i: number, n: number) => `Korak ${i} od ${n}`, editing: 'Urejate', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
+    pricesAfterSize: 'Ceno vidite, ko vpišete mere.', stepSashes: 'Koliko kril naj ima vaše okno?', stepDoorSashes: 'Koliko kril naj imajo vaša balkonska vrata?', stepParts: 'Iz koliko delov naj bo vaša drsna stena?', stepRoof: 'Kateri model strešnega okna želite?', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepOf: (i: number, n: number) => `Korak ${i} od ${n}`, editing: 'Urejate', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
     grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Montaža in ostale storitve veljajo za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani', removeAsk: (n: number) => `Odstranim pozicijo ${n}?`, removeHint: 'Okno in vse njegove izbire bodo odstranjeni iz povpraševanja.',
@@ -112,20 +115,22 @@ const TXT = {
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
-    qtyTitle: 'Quantity', sizeTitle: 'Size', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
-    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeColor: 'Colour of the shading and its box', shadeColorHint: 'No extra charge. We confirm the colour when measuring.', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
+    qtyTitle: 'Quantity', sizeTitle: 'Size', forWindow: 'for the window', forDoor: 'for the balcony door', forWall: 'for the sliding wall', forRoof: 'for the roof window', ofWindow: 'your window', ofDoor: 'your balcony door', ofWall: 'your sliding wall', ofRoof: 'your roof window', cBands: 'What version of', cBandsEnd: ' would you like?', cProfile: 'Choose the profile system of', cGlass: 'Choose the glass of', cOpening: 'How should the sashes open?', cMaterial: 'What material should the frame be?', cColorOut: 'What colour should the frame be outside?', cColorIn: 'What colour should the frame be inside?', cHandle: 'Which handle would you like?', cSillOut: 'Would you like an outside sill?', cSillIn: 'Would you like an inside sill?', cShading: 'Would you like shading or an insect screen?', cExtras: 'Would you like any extra equipment?', cServices: 'Which services do you need?', stepSizeWindow: 'Enter the size of your window', stepSizeDoor: 'Enter the size of your balcony door', stepSizeWall: 'Enter the size of your sliding wall', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
+    nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeColor: 'Colour of the shading and its box', shadeColorHint: 'No extra charge. We confirm the colour when measuring.', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noShadeDesc: 'The window stays without shading.', noScreenDesc: 'The window stays without an insect screen.', noSillDesc: 'The window stays without a sill.', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
     preset: { all_open: 'All tilt & turn', one_open: 'One opening sash', outer_open: 'Outer sashes open', all_fixed: 'All fixed' } as Record<string, string>,
     step1: 'Window type', step2: 'Profile system', step3: 'Size and opening', step4: 'Equipment', step5: 'Services',
     stepProduct: 'What would you like to buy?', stepProductHint: 'Choose the type of product you would like to buy.',
-    hSashes: 'How many sashes should the window have? A sash is the part that opens.', hParts: 'How many panels should the sliding wall have?', hRoof: 'Choose the roof window model, material and size.',
-    hSize: 'Enter the width and height of the window in millimetres. We measure exactly before production, so sizes can be approximate.', hQty: 'How many identical roof windows do you need?',
+    hSashes: 'A sash is the part of the window or door that opens.', hParts: 'How many panels should the sliding wall have?', hRoof: 'Choose the roof window model, material and size.',
+    hSize: 'We measure exactly before production, so sizes can be approximate.', hQty: 'How many identical roof windows do you need?',
     hBands: 'Does the window have a part above (top light) or below the sashes?', hMaterial: 'Which material should the frame be made of?',
-    hProfile: 'The profile sets the insulation and the look of the frame. The price changes with each profile.', hColor: 'Frame colour outside and inside. They can differ.',
+    hProfile: 'The profile sets the insulation and the look of the frame. The price changes with each profile.', hColor: 'Frame colour outside and inside. They can differ.', colorOutTitle: 'Frame colour outside', colorInTitle: 'Frame colour inside',
+    hColorOut: 'The colour you see from the street (outside of the window).', hColorIn: 'The colour you see in the room (inside of the window). It can differ from the outside.',
+    hSillOut: 'The sill on the outside, under the window on the facade. Can be left out.', hSillIn: 'The sill on the inside, in the room. Can be left out.', naturalWood: 'Natural wood',
     hGlass: 'More panes mean better insulation (lower Ug). The first glass is included in the price.', hHandle: 'Choose the handle. The standard one is included.',
     hSills: 'Add an inside and outside sill if you like.', hShading: 'Add a shutter, blinds or an insect screen if you like.', hExtras: 'Extra equipment if you like.',
-    pricesAfterSize: 'You see the price once you enter the sizes.', stepSashes: 'Number of sashes', stepParts: 'Number of panels', stepRoof: 'Model and size', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepOf: (i: number, n: number) => `Step ${i} of ${n}`, editing: 'Editing', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
+    pricesAfterSize: 'You see the price once you enter the sizes.', stepSashes: 'How many sashes should your window have?', stepDoorSashes: 'How many sashes should your balcony door have?', stepParts: 'How many panels should your sliding wall have?', stepRoof: 'Which roof window model would you like?', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepOf: (i: number, n: number) => `Step ${i} of ${n}`, editing: 'Editing', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
     grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove', removeAsk: (n: number) => `Remove position ${n}?`, removeHint: 'The window and all its choices will be removed from the enquiry.',
@@ -207,12 +212,19 @@ export interface ConfiguredWindow { item: ConfigItem; unitPrice: number | null; 
  * mode="internal": inside a quote in the app — no header, no contact step, no services (the quote has its own);
  * "Dodaj v ponudbo" hands the configured windows back with their prices and choices.
  */
-export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItems, onAdd, onCancel, addLabel }: {
+export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', initialItems, onAdd, onCancel, addLabel }: {
   data: ConfigData; slug?: string; mode?: 'public' | 'internal'; initialItems?: ConfigItem[]
   onAdd?: (windows: ConfiguredWindow[]) => void; onCancel?: () => void; addLabel?: string
 }) {
   const { lang, setLang } = useLanguage()
   const T = TXT[lang]
+  // wood always has its natural colour first (no surcharge, the default); the other profiles do not
+  const data = useMemo<ConfigData>(() => {
+    const cat = rawData.builder?.colors
+    if (!rawData.builder || !cat?.wood?.length || cat.wood.some(c => c.look === 'wood:natural')) return rawData
+    const natural = { id: NATURAL_WOOD_ID, name: T.naturalWood, look: 'wood:natural', one: 0, both: 0 }
+    return { ...rawData, builder: { ...rawData.builder, colors: { ...cat, wood: [natural, ...cat.wood] } } }
+  }, [rawData, T])
   const L = WL[lang]
   const internal = mode === 'internal'
   // public page: what the customer had before a reload
@@ -220,6 +232,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const [items, setItems] = useState<ConfigItem[]>(initialItems ?? draft?.items ?? [])
   const [active, setActive] = useState<number>(draft ? Math.min(draft.active ?? 0, draft.items.length - 1) : 0)
   const [stage, setStage] = useState<'config' | 'review' | 'contact' | 'done'>(draft?.stage === 'review' || draft?.stage === 'contact' ? draft.stage : 'config')
+  /** the customer was on the enquiry (review) at least once: only then the configurator offers a way back to it */
+  const [seenReview, setSeenReview] = useState<boolean>(() => !!draft && (draft.stage === 'review' || draft.stage === 'contact' || (draft.items?.length ?? 0) > 1))
+  useEffect(() => { if (stage === 'review' || stage === 'contact') setSeenReview(true); if (stage === 'done') setSeenReview(false) }, [stage])
   const [contact, setContact] = useState({ customer_type: 'person' as 'person' | 'company', company_name: '', vat_number: '', first_name: '', last_name: '', email: '', phone: '', street: '', postal_code: '', city: '', country: 'SI', note: '', ...((draft?.contact ?? {}) as {}) })
   const [heard, setHeard] = useState<string>(draft?.heard ?? '')
   const [consent, setConsent] = useState(false)
@@ -271,6 +286,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const builder = data?.builder ?? null
   const bPricing = builder?.pricing ? pricingFrom({ ...builder.pricing, glass: builder.glass ?? undefined, handles: builder.handles ?? undefined, sills: builder.sills ?? undefined, shading: builder.shading ?? undefined }) : null
   const glassList = builder?.glass ?? [], handleList = builder?.handles ?? [], sillList = builder?.sills ?? [], shadeList = builder?.shading ?? []
+  const shadeColors = shadeColorsOf(builder?.shade_colors)
   const sashWidth = (n: number) => (n === 1 ? 900 : n * 650)
   const doorWidth = (n: number) => (n === 1 ? 900 : n * 700)
   /** windows and balcony doors keep their offer apart */
@@ -282,12 +298,16 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
    * The opening most people buy: a double window opens on one sash and tilts and opens on the other
    * (no mullion between them), not two tilt-and-turn sashes; otherwise tilt and turn everywhere.
    */
+  /** the usual opening: a double window is a passive sash + a tilt & turn one (no mullion), otherwise all tilt & turn */
+  function usualVariant(vs: Variant[], n: number): Variant | undefined {
+    const ok = vs.filter(v => v.mode !== 'tilt')
+    const ops = (v: Variant) => v.combo.map(c => c.opening).join(',')
+    return (n === 2 ? ok.find(v => ops(v) === 'passive,tilt_turn') ?? ok.find(v => ops(v) === 'tilt_turn,passive') : undefined)
+      ?? ok.find(v => v.combo.every(c => c.opening === 'tilt_turn'))
+  }
   function popularSpec(sp: WindowSpec, offer: Offer | undefined): WindowSpec {
     if (!offer || slidingKind(sp)) return sp
-    const vs = allowedVariants(sp.sashes, offer, bk(sp)).filter(v => v.band === bandKeyOf(sp) && v.mode !== 'tilt')
-    const ops = (v: Variant) => v.combo.map(c => c.opening).join(',')
-    const pick = (sp.sashes === 2 ? vs.find(v => ops(v) === 'passive,tilt_turn') ?? vs.find(v => ops(v) === 'tilt_turn,passive') : undefined)
-      ?? vs.find(v => v.combo.every(c => c.opening === 'tilt_turn'))
+    const pick = usualVariant(allowedVariants(sp.sashes, offer, bk(sp)).filter(v => v.band === bandKeyOf(sp)), sp.sashes)
     return pick ? applyVariant(sp, pick) : sp
   }
   function defaultSpecItem(d: ConfigData, n: number): ConfigItem {
@@ -431,7 +451,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     }
     const vs = allowedVariants(next.sashes, offer, bk(next)).filter(v => v.band === bandKeyOf(next))
     if (vs.length && !vs.some(v => v.key === specVariantKey(next))) {
-      next = applyVariant(next, vs.find(v => v.combo.every(f => f.opening === 'tilt_turn') && v.mode !== 'tilt') ?? vs[0])
+      next = applyVariant(next, usualVariant(vs, next.sashes) ?? vs[0])
     }
     return next
   }
@@ -452,7 +472,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     const shaped = fitOffer(reshapeSpec(cur, n, cur.top, 'none'))
     update({ roof: null, spec: wasDoor && spec!.sashes === n ? shaped : popularSpec(shaped, offer), type_id: '', system_id: sysFor('door'), width: wasDoor && spec!.sashes === n ? it.width : doorWidth(n), height: wasDoor ? it.height : 2200 })
   }
-  function pickBand(top: Band, bottom: Band) { if (spec) setSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom))) }
+  // the opening is chosen after the version, so a new version starts with the usual opening again
+  function pickBand(top: Band, bottom: Band) { if (spec) setSpec(popularSpec(fitOffer(reshapeSpec(spec, spec.sashes, top, bottom)), offer)) }
   const specPrice = (sp: WindowSpec) => specBase({ ...it, spec: sp })
   const specPriceWith = (colors: ConfigItem['colors']) => specBase({ ...it, colors })
   /** extras groups shown for this window: built windows take colour / glass / handle from the builder's own catalogues */
@@ -605,7 +626,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       add(T.glassTitle, g ? [g.name, g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')} W/m²K` : null].filter(Boolean).join(', ') : null)
       const h = handleList.find(hh => hh.id === x.handle) ?? handleList[0]
       add(T.handleTitle, h ? `${h.name}${h.lockable ? ` · ${T.lockable}` : ''}` : null)
-      if (x.shading?.shade) add(T.shadeColor, SHADE_COLORS.find(c => c.key === (x.shading?.color ?? null))?.[lang] ?? null)
+      if (x.shading?.shade) add(T.shadeColor, shadeColorName(shadeColorOf(shadeColors, x.shading?.color), lang))
     } else if (t && hasHingeChoice(t.template)) add(T.hinge, L.hinge[x.hinge])
     const extras = data.options.filter(o => x.option_ids.includes(o.id) && !isService(o)).map(o => o.name)
     add(T.step4, extras.join(', '))
@@ -627,7 +648,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
     const steps: [keyof typeof pick, string | null | undefined, string, string, (id: string) => Found | undefined, [string, string][]][] = [
       ['sIn', x.sills?.in, 'P1', T.sillIn, id => sillList.find(s => s.id === id), [[T.subLength, `${x.width} mm`]]],
       ['sOut', x.sills?.out, 'P2', T.sillOut, id => sillList.find(s => s.id === id), [[T.subLength, `${x.width} mm`]]],
-      ['shade', x.shading?.shade, 'S', T.shadeLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size], [T.shadeColor, SHADE_COLORS.find(c => c.key === (x.shading?.color ?? null))?.[lang] ?? '']]],
+      ['shade', x.shading?.shade, 'S', T.shadeLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size], [T.shadeColor, shadeColorName(shadeColorOf(shadeColors, x.shading?.color), lang)]]],
       ['screen', x.shading?.screen, 'K', T.screenLabel, id => shadeList.find(s => s.id === id), [[T.subSize, size]]],
     ]
     for (const [k, id, code, kind, find, rows] of steps) {
@@ -673,15 +694,18 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const stepIds = [
     'product',
     ...(roofSel || (spec && spec.kind !== 'sliding') ? ['variant'] : []),
-    'size',
+    // a roof window has its size in the model; with no quantity on the public page nothing is left to ask
+    ...(roofSel && !internal ? [] : ['size']),
     ...(showBands ? ['bands'] : []),
     ...(spec && offer ? ['opening'] : []),
     ...(!roofSel && materials.length > 1 ? ['material'] : []),
     ...(!roofSel ? ['profile'] : []),
-    ...(colorList.length >= 2 ? ['color'] : []),
+    // outside and inside are steps of their own, so nobody mixes them up
+    ...(colorList.length >= 2 ? ['colorOut', 'colorIn'] : []),
     ...(spec && glassList.length > 1 ? ['glass'] : []),
     ...(spec && handleList.length > 1 ? ['handle'] : []),
-    ...(spec && sillList.length > 0 ? ['sills'] : []),
+    ...(spec && sillList.some(x => x.side === 'outer') ? ['sillOut'] : []),
+    ...(spec && sillList.some(x => x.side === 'inner') ? ['sillIn'] : []),
     ...(spec && shadeList.length > 0 ? ['shading'] : []),
     ...(!roofSel && extraGroups.length > 0 ? ['extras'] : []),
     ...(!internal && data.options.some(isService) ? ['services'] : []),
@@ -727,14 +751,15 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const profileSummary = sysNow?.name ?? ''
   // what the drawing shows of the choices: outside colour of the frame, handle colour, sills, shading, screen
   const look = (() => {
-    const out = colorList.find(c => c.id === it.colors?.out) ?? colorList[0]
+    // on the inside colour step the drawing shows the inside
+    const out = colorList.find(c => c.id === (openStep === 'colorIn' ? it.colors?.in : it.colors?.out)) ?? colorList[0]
     const hnd = handleList.find(h => h.id === it.handle) ?? handleList[0]
     const shadeX = shadeList.find(x => x.id === it.shading?.shade)
     return {
       frame: parseColor(out?.look)?.hex ?? '#fbfbfa',
       extras: {
         shade: it.shading?.shade ? (shadeX?.icon ?? 'roller') : null,
-        shadeColor: SHADE_COLORS.find(c => c.key === (it.shading?.color ?? null))?.hex ?? null,
+        shadeColor: shadeColorOf(shadeColors, it.shading?.color).hex,
         screen: !!it.shading?.screen,
         sillOut: it.sills?.out ? sillList.find(x => x.id === it.sills?.out)?.material ?? 'alu_silver' : null,
         sillIn: it.sills?.in ? sillList.find(x => x.id === it.sills?.in)?.material ?? 'pvc_white' : null,
@@ -744,7 +769,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   })()
   const materialSummary = matNow ? L.materials[matNow] : ''
   const colorSummary = colorList.length ? `${T.colorOut}: ${(colorList.find(c => c.id === it.colors?.out) ?? colorList[0]).name} · ${T.colorIn}: ${(colorList.find(c => c.id === it.colors?.in) ?? colorList[0]).name}` : ''
-  const sizeSummary = roofSel ? `${it.quantity} ${T.pcs}` : `${it.width ?? '—'} × ${it.height ?? '—'} mm · ${it.quantity} ${T.pcs}`
+  const sizeSummary = roofSel ? `${it.quantity} ${T.pcs}` : `${it.width ?? '—'} × ${it.height ?? '—'} mm${internal ? ` · ${it.quantity} ${T.pcs}` : ''}`
   const glassSummary = glassList.length ? (glassList.find(g => g.id === it.glass) ?? glassList[0]).name : ''
   const handleSummary = handleList.length ? (handleList.find(h => h.id === it.handle) ?? handleList[0]).name : ''
   const sillsSummary = [it.sills?.in, it.sills?.out].map(id => sillList.find(x => x.id === id)?.name ?? '').filter(Boolean).join(', ') || T.noSill
@@ -755,21 +780,20 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
   const prodCard = (key: string, label: string, drawing: React.ReactNode, onPick: () => void, _next?: string) => {
     const on = group === key
     return <button key={key} onClick={() => { if (!on) onPick() }}
-      className={cn('relative rounded-xl border p-4 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+      className={cn('relative rounded-xl border px-4 pt-5 pb-4 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
       style={on ? selStyle(accent) : undefined}>
       {on && <SelBadge accent={accent} />}
       {/* the first choice: big pictures, so the products are easy to tell apart */}
-      <div className="h-[150px] flex items-center justify-center">{drawing}</div>
-      <div className="text-[15px] font-medium text-gray-900 mt-3 leading-snug">{label}</div>
+      <div className="h-[140px] flex items-end justify-center">{drawing}</div>
+      <div className="text-[15px] leading-[22px] font-medium text-gray-900 mt-4">{label}</div>
     </button>
   }
-  /** what to do on each step, under its title */
+  /** a line under the title only where the title alone does not say enough: a term to explain, a size rule, what the price includes */
+  const forN = roofSel ? T.forRoof : spec?.kind === 'door' ? T.forDoor : spec?.kind === 'wall' ? T.forWall : T.forWindow
+  const ofN = roofSel ? T.ofRoof : spec?.kind === 'door' ? T.ofDoor : spec?.kind === 'wall' ? T.ofWall : T.ofWindow
   const stepHints: Record<string, string> = {
-    product: T.stepProductHint,
-    variant: roofSel ? T.hRoof : spec?.kind === 'wall' ? T.hParts : T.hSashes,
-    size: roofSel ? T.hQty : T.hSize,
-    bands: T.hBands, opening: T.openHint, material: T.hMaterial, profile: T.hProfile, color: T.hColor,
-    glass: T.hGlass, handle: T.hHandle, sills: T.hSills, shading: T.hShading, extras: T.hExtras, services: T.servicesHint,
+    opening: T.openHint,
+    services: T.servicesHint,
   }
   /**
    * The steps show one after another: every step reached so far stays open with its choices
@@ -788,14 +812,19 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
       ? <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-4 h-4" strokeWidth={2.75} /></span>
       : <span className="w-7 h-7 rounded-full text-[13px] font-semibold flex items-center justify-center shrink-0 bg-white text-gray-900 ring-1 ring-inset ring-[#d4d4d4]">{idx + 1}</span>
     const last = !done && idx === frontier
-    return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-xl p-5 sm:p-6 scroll-mt-[100px]', last && idx > 0 && 'cfg-step-in')}>
-      <div className={cn('flex items-center gap-3', hint ? 'mb-1' : 'mb-4')}>
+    // one rhythm for every step: title 18/28, hint 14/22 right under it (4px), 24px to the content
+    return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-2xl p-5 sm:p-7 scroll-mt-[100px]', last && idx > 0 && 'cfg-step-in')}>
+      <div className="flex items-start gap-3 mb-6">
         {num}
-        <h2 className="flex-1 min-w-0 text-lg font-semibold tracking-[-0.01em] text-gray-900">{title}</h2>
-        {!internal && <span className="text-[13px] font-medium text-[#8a8a8a] whitespace-nowrap">{T.stepOf(idx + 1, stepIds.length)}</span>}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="min-w-0 text-[18px] leading-7 font-semibold tracking-[-0.01em] text-gray-900">{title}</h2>
+            {!internal && <span className="text-[13px] leading-7 font-medium text-[#8a8a8a] whitespace-nowrap">{T.stepOf(idx + 1, stepIds.length)}</span>}
+          </div>
+                  </div>
       </div>
-      {hint && <p className="text-sm text-[#4f4f4f] pl-10 mb-5">{hint}</p>}
       <div className="space-y-6">{body}</div>
+      {hint && <div className="mt-6 rounded-lg bg-[#f4f4f4] px-3.5 py-2.5 text-[13px] leading-5 text-[#4f4f4f]">{hint}</div>}
       {/* only the newest step moves on; the last one goes to the review */}
       {last && <div className="flex justify-end mt-6">
         <button type="button" onClick={() => { if (nextId) setOpen(nextId); else { setOpen('none'); if (!internal) finish() } }}
@@ -817,12 +846,13 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
           </div>
           {/* contact as buttons (on a phone only the icons), then the language */}
           <div className="flex items-center gap-2">
-            {data.company.phone && <a href={`tel:${data.company.phone}`} title={data.company.phone}
-              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] hover:border-[#c4c4c4] hover:bg-[#fafafa] transition-colors">
-              <Phone className="w-4 h-4" /><span className="hidden sm:inline">{data.company.phone}</span></a>}
-            {data.company.email && <a href={`mailto:${data.company.email}`} title={data.company.email}
-              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] hover:border-[#c4c4c4] hover:bg-[#fafafa] transition-colors">
-              <Mail className="w-4 h-4" /><span className="hidden md:inline">{data.company.email}</span></a>}
+            {/* contact shown as information, not as buttons (no link, no hover) */}
+            {data.company.phone && <span title={data.company.phone}
+              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] cursor-default select-text">
+              <Phone className="w-4 h-4" /><span className="hidden sm:inline">{data.company.phone}</span></span>}
+            {data.company.email && <span title={data.company.email}
+              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] cursor-default select-text">
+              <Mail className="w-4 h-4" /><span className="hidden md:inline">{data.company.email}</span></span>}
             <div className="flex items-center h-10 p-1 rounded-[10px] border border-[#dfdfdf] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
               {(['sl', 'en'] as const).map(l => <button key={l} onClick={() => setLang(l)} className={cn('px-2.5 h-full rounded-md text-xs font-semibold uppercase transition-colors', lang === l ? 'bg-[#131313] text-white' : 'text-[#4f4f4f] hover:text-gray-900')}>{l}</button>)}
             </div>
@@ -862,7 +892,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   // the window being configured: a clear black outline (inline, so it wins over the soft card border)
                   style={on ? { borderColor: '#131313', boxShadow: '0 0 0 1px #131313, 0 1px 3px rgba(16,24,40,.08)' } : undefined}>
                   <div className="w-[112px] h-[104px] flex items-center justify-center shrink-0">
-                    {x.roof ? <RoofWindowDrawing size={92} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim plain /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
+                    {x.roof ? <RoofWindowDrawing size={92} photo /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim plain photo /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
                     <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
@@ -901,7 +931,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
             {stage === 'config' && !internal && data.company.intro && <p className="text-[15px] leading-6 text-[#4f4f4f] whitespace-pre-line">{data.company.intro}</p>}
 
             {stage === 'config' ? <>
-              {!internal && (items.length > 1 || isDone(it)) && <button type="button" onClick={finish}
+              {/* back to the enquiry only once there is one: after the first window was finished and the review was seen */}
+              {!internal && seenReview && <button type="button" onClick={finish}
                 className="self-start inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-[10px] border border-gray-200 bg-white text-sm font-semibold text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-gray-400 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToEnquiry}</button>}
               {/* Position tabs (wide screens: adding, picking and removing windows is in the summary on the left) */}
               <div className={cn('gap-1.5 overflow-x-auto pb-1', internal ? 'flex xl:hidden' : 'hidden')}>
@@ -914,22 +945,22 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 <button onClick={() => addItem(false)} className="shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border border-dashed border-gray-300 text-gray-900 hover:border-gray-500 flex items-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
               </div>
 
-              {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={makeSpec(2, 'none', 'none', 'fixed')} width={1300} height={1300} size={140} plain />,
+              {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={{ ...makeSpec(2), main: [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }] }} width={1300} height={1300} size={122} plain photo />,
                   () => pickSashes(spec && !spec.kind ? spec.sashes : (offer.sashes ?? []).includes(2) ? 2 : [...(offer.sashes ?? [])].sort()[0]), 'variant')}
-                {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={160} plain />, pickSliding, 'profile')}
-                {offer?.doors && prodCard('door', T.grpDoors, <SpecDrawing spec={makeSpec(1, 'none', 'none', 'fixed')} width={900} height={2200} size={140} plain />,
+                {offer?.slidingWindows && prodCard('sliding', T.grpSliding, <SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={160} plain photo />, pickSliding, 'profile')}
+                {offer?.doors && prodCard('door', T.grpDoors, <SpecDrawing spec={makeSpec(1, 'none', 'none', 'turn')} width={900} height={2200} size={128} plain photo />,
                   () => pickDoor(spec?.kind === 'door' ? spec.sashes : [...(offer.doorSashes ?? [1, 2, 3])].sort()[0]), 'variant')}
-                {offer?.sliding && firstWall != null && prodCard('wall', T.grpWalls, <SpecDrawing spec={makeSpec(firstWall, 'none', 'none', 'fixed')} width={wallWidth(firstWall)} height={2200} size={160} plain />,
+                {offer?.sliding && firstWall != null && prodCard('wall', T.grpWalls, <SpecDrawing spec={makeSpec(firstWall, 'none', 'none', 'fixed')} width={wallWidth(firstWall)} height={2200} size={Math.min(170, 128 * wallWidth(firstWall) / 2200)} plain photo />,
                   () => pickWall(spec?.kind === 'wall' ? spec.sashes : firstWall), 'variant')}
-                {offer?.roof && !!roofCat?.models.length && prodCard('roof', T.grpRoof, <RoofWindowDrawing size={130} />, () => { if (!roofSel) pickRoof() }, 'variant')}
+                {offer?.roof && !!roofCat?.models.length && prodCard('roof', T.grpRoof, <RoofWindowDrawing size={132} photo />, () => { if (!roofSel) pickRoof() }, 'variant')}
                 {visibleTypes.map(t => {
                   const door = t.template.startsWith('door') || t.template === 'lift_slide'
                   return prodCard('type:' + t.id, t.name, <WindowDrawing template={t.template} width={door ? 900 : 1200} height={door ? 2100 : 1300} size={130} plain />, () => pickType(t), 'profile')
                 })}
-              </div>, T.stepProductHint)}
+              </div>)}
 
-              {renderStep('variant', roofSel ? T.stepRoof : spec?.kind === 'wall' ? T.stepParts : T.stepSashes, variantSummary, <>
+              {renderStep('variant', roofSel ? T.stepRoof : spec?.kind === 'wall' ? T.stepParts : spec?.kind === 'door' ? T.stepDoorSashes : T.stepSashes, variantSummary, <>
                 {(group === 'windows' || group === 'door' || group === 'wall') && <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {group === 'windows' && (offer?.windows && [...(offer.sashes ?? [])].sort().map(n => {
                     const on = spec?.sashes === n && !spec.kind
@@ -937,7 +968,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
-                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={sashWidth(n)} height={1300} size={n > 2 ? 100 : 78} plain /></div>
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={sashWidth(n)} height={1300} size={n > 2 ? 100 : 78} plain photo /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nSash(n)}</div>
                     </button>
                   }))}
@@ -947,7 +978,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
-                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={doorWidth(n)} height={2200} size={84} plain /></div>
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={doorWidth(n)} height={2200} size={84} plain photo /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nDoor(n)}</div>
                     </button>
                   }))}
@@ -957,7 +988,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
-                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={wallWidth(n)} height={2200} size={n > 3 ? 110 : 96} plain /></div>
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={makeSpec(n, 'none', 'none', 'fixed')} width={wallWidth(n)} height={2200} size={n > 3 ? 110 : 96} plain photo /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.nWall(n)}</div>
                     </button>
                   }))}
@@ -972,7 +1003,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
-                        <div className="h-[84px] flex items-center justify-center">{m.image_url ? <img src={m.image_url} alt="" className="max-h-full max-w-full object-contain" /> : <RoofWindowDrawing size={80} opening={m.opening} />}</div>
+                        <div className="h-[84px] flex items-center justify-center">{m.image_url ? <img src={m.image_url} alt="" className="max-h-full max-w-full object-contain" /> : <RoofWindowDrawing size={80} opening={m.opening} photo />}</div>
                         {m.brand && <div className="text-[13px] font-medium text-[#4f4f4f] mt-2.5 leading-snug">{m.brand}</div>}
                         <div className={cn('text-sm font-medium text-gray-900 leading-snug', !m.brand && 'mt-2.5')}>{m.name}</div>
                         <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{m.opening === 'top' ? T.roofTop : T.roofCenter}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
@@ -1010,18 +1041,20 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </>}
               </>)}
 
-              {renderStep('size', roofSel ? T.qtyTitle : T.sizeTitle, sizeSummary, <>
+              {renderStep('size', roofSel ? T.qtyTitle : spec?.kind === 'door' ? T.stepSizeDoor : spec?.kind === 'wall' ? T.stepSizeWall : T.stepSizeWindow, sizeSummary, <>
 <Sub>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v, ...(it.sashWidths && it.width && v ? { sashWidths: it.sashWidths.map(x => Math.round(x * v / it.width!)) } : {}) })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
                   {!roofSel && <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />}
+                  {!roofSel && <div className="sm:col-span-2 rounded-lg bg-[#f4f4f4] px-3.5 py-2.5 text-[13px] leading-5 text-[#4f4f4f]">{T.hSize}</div>}
                   {/* width of each sash: all but the last one, which takes what is left */}
-                  {spec && !slidingKind(spec) && spec.main.length > 1 && it.width ? (() => {
+                  {/* sash widths only in a quote: customers get equal sashes */}
+                  {internal && spec && !slidingKind(spec) && spec.main.length > 1 && it.width ? (() => {
                     const n = spec.main.length
                     const ws = it.sashWidths && it.sashWidths.length === n ? it.sashWidths : Array.from({ length: n }, () => Math.round(it.width! / n))
                     const bad = ws.some(x => x < 300)
                     return <div className="sm:col-span-2">
-                      <div className="text-sm font-semibold text-gray-900 mb-1.5">{T.sashWidths}</div>
+                      <SubHead title={T.sashWidths} />
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {ws.map((x, j) => j < n - 1
                           ? <MmInput key={j} label={T.sashN(j + 1)} value={x} onChange={v => setSashWidth(j, v)} min={300} max={Math.max(300, it.width! - 300 * (n - 1))} rangeLabel={T.range} />
@@ -1045,7 +1078,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         style={it.hinge === h ? btn : undefined}>{L.hinge[h]}</button>)}
                     </div>
                   </div>}
-                  <div className="flex flex-col gap-1">
+                  {/* quantity only when the supplier makes a quote; customers configure window by window (and can duplicate one) */}
+                  {internal && <div className="flex flex-col gap-1">
                     <label className="text-sm font-semibold text-gray-900">{T.qty}</label>
                     <div className="flex items-center gap-2">
                       <button onClick={() => update({ quantity: Math.max(1, it.quantity - 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">−</button>
@@ -1053,7 +1087,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         className="w-16 h-10 text-center rounded-lg border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <button onClick={() => update({ quantity: Math.min(100, it.quantity + 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">+</button>
                     </div>
-                  </div>
+                  </div>}
                   <div className="flex flex-col gap-1 sm:col-span-2">
                     <label className="text-sm font-semibold text-gray-900">{T.label}</label>
                     <input value={it.label} onChange={e => update({ label: e.target.value.slice(0, 60) })} placeholder={T.labelPh}
@@ -1063,7 +1097,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>
               </>)}
 
-              {renderStep('bands', T.stepBands, bandsSummary, <>
+              {renderStep('bands', `${T.cBands} ${ofN}${T.cBandsEnd}`, bandsSummary, <>
 {spec && !slidingKind(spec) && offer && allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).length > 1 && <Sub>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {allowedBands(spec.sashes, offer, bk(spec)).filter(k => allowedVariants(spec.sashes, offer, bk(spec)).some(v => v.band === k)).map(k => [k, ...BAND_SHAPE[k]] as [string, Band, Band]).map(([k, top, bottom]) => {
@@ -1074,9 +1108,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                       style={on ? selStyle(accent) : undefined}>
                       {on && <SelBadge accent={accent} />}
-                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={preview} width={it.width ?? 1200} height={it.height ?? 1400} size={80} plain /></div>
+                      <div className="h-[84px] flex items-center justify-center"><SpecDrawing spec={preview} width={it.width ?? 1200} height={it.height ?? 1400} size={80} plain photo /></div>
                       <div className="text-sm font-medium text-gray-900 mt-2.5 leading-snug">{T.band[k]}</div>
-                      {pr != null && curP != null && Math.round(pr - curP) !== 0 && <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{pr > curP ? '+' : '−'} {money(Math.abs(Math.round(pr - curP)), cur)}</div>}
+                      {pr != null && curP != null && Math.round((pr - curP) * 100) / 100 !== 0 && <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{pr > curP ? '+' : '−'} {money(Math.abs(Math.round((pr - curP) * 100) / 100), cur)}</div>}
                     </button>
                   })}
                 </div>
@@ -1087,7 +1121,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </div>}
               </>)}
 
-              {renderStep('opening', T.stepOpening, openingSummary, <>
+              {renderStep('opening', T.cOpening, openingSummary, <>
 {spec && offer && <Sub>
                 {(() => {
                   // every sash combination the supplier ticked × top light / bottom panel fixed or tilt
@@ -1102,12 +1136,12 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                   return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {cards.map((sp, i) => {
                       const on = sp.main.every((f, j) => sameField(f, spec.main[j])) && bandModeOf(sp) === curMode
-                      const d = prices[i] != null && min != null ? Math.round(prices[i]! - min) : null
+                      const d = prices[i] != null && min != null ? Math.round((prices[i]! - min) * 100) / 100 : null
                       return <button key={i} onClick={() => setSpec(sp)}
                         className={cn('relative rounded-xl border p-3.5 bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
-                        <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} /></div>
+                        <div className="h-[104px] flex items-center justify-center"><SpecDrawing spec={sp} width={it.width ?? 1200} height={it.height ?? 1400} size={spec.sashes > 2 ? 110 : 92} photo /></div>
                         {d != null && <div className="text-[13px] font-medium text-[#4f4f4f] mt-1.5">{d > 0 ? `+ ${money(d, cur)}` : T.basePrice}</div>}
                       </button>
                     })}
@@ -1116,7 +1150,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>}
               </>)}
 
-              {renderStep('material', T.stepMaterial, materialSummary, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {renderStep('material', T.cMaterial, materialSummary, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {materials.map(m => {
                   const on = m === matNow
                   const prices = allowedSystems.filter(x => x.material === m).map(x => sysPrice(x.id)).filter((v): v is number => v != null)
@@ -1125,14 +1159,14 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                     style={on ? selStyle(accent) : undefined}>
                     {on && <SelBadge accent={accent} />}
-                    <div className="h-[96px] rounded-lg bg-[#fafafa] flex items-center justify-center overflow-hidden"><ProfileSection material={m} className="h-full p-2" /></div>
+                    <div className="h-[116px] rounded-lg bg-[#fafafa] flex items-center justify-center overflow-hidden"><ProfileSection material={m} className="h-full p-1" /></div>
                     <div className="text-[15px] font-semibold text-gray-900 mt-2.5">{L.materials[m]}</div>
                     <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{T.profilesN(allowedSystems.filter(x => x.material === m).length)}{show && from != null ? ` · ${T.from} ${money(from, cur)}` : ''}</div>
                   </button>
                 })}
               </div>)}
 
-              {renderStep('profile', T.step2, profileSummary, <>
+              {renderStep('profile', `${T.cProfile} ${ofN}`, profileSummary, <>
 {!roofSel && <Sub>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {(() => {
@@ -1142,7 +1176,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     const min = known.length > 1 ? Math.min(...known) : null
                     return matSystems.map(s => {
                     const b = bases[s.id]
-                    const diff = show && min != null && b != null ? Math.round(b - min) : null
+                    const diff = show && min != null && b != null ? Math.round((b - min) * 100) / 100 : null
                     return <button key={s.id} onClick={() => update({ system_id: s.id })}
                     className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors', it.system_id === s.id ? '' : 'border-gray-200 hover:border-gray-400')}
                     style={it.system_id === s.id ? selStyle(accent) : undefined}>
@@ -1159,7 +1193,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                           {diff > 0 ? `+ ${money(diff, cur)}` : T.basePrice}
                         </div>}
                         {/* the price of this window in this profile */}
-                        {show && b != null && <div className="mt-2"><span className="text-[15px] font-semibold text-gray-900">{money(b, cur)}</span><span className="text-[13px] font-medium text-[#4f4f4f]"> / {T.pcs}</span></div>}
+                        {show && b != null && <div className="mt-2"><span className="text-[15px] font-semibold text-gray-900">{money(b, cur)}</span><span className="text-[13px] font-medium text-[#4f4f4f]"> {forN}</span></div>}
                       </div>
                     </div>
                   </button>})
@@ -1168,7 +1202,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>}
               </>)}
 
-              {renderStep('color', T.colorTitle, colorSummary, <>
+              {(['out', 'in'] as const).map(side => renderStep(side === 'out' ? 'colorOut' : 'colorIn', side === 'out' ? T.cColorOut : T.cColorIn, colorSummary, <>
 {spec && (() => {
                 const sy = data.systems.find(x => x.id === it.system_id)
                 const list = sy ? data.builder?.colors?.[sy.material] ?? [] : []
@@ -1177,42 +1211,40 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                 // every colour shows its fixed surcharge against the base colour on that side, the chosen one too, so nothing moves
                 const base = { out: specPriceWith({ ...cur2, out: list[0].id }), in: specPriceWith({ ...cur2, in: list[0].id }) }
                 const row = (side: 'out' | 'in') => <div>
-                  <div className="text-sm font-semibold text-gray-900 mb-2">{side === 'out' ? T.colorOut : T.colorIn}</div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                     {list.map(c => {
                       const on = cur2[side] === c.id
                       const lookSpec = parseColor(c.look)
                       const p = show ? specPriceWith({ ...cur2, [side]: c.id }) : null
                       const now = base[side]
                       return <button key={c.id} onClick={() => update({ colors: { ...cur2, [side]: c.id } })}
-                        className={cn('inline-flex items-center gap-2 h-10 pl-2 pr-3 rounded-[10px] border bg-white text-sm font-medium transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                        className={cn('relative flex flex-col items-start gap-2 p-2.5 rounded-xl border bg-white text-left transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
-                        {lookSpec && <ColorSwatch spec={lookSpec} size={22} rounded={6} />}
-                        <span className="text-gray-900">{c.name}</span>
-                        {p != null && now != null && Math.round(p - now) !== 0 && <span className="text-[13px] font-medium text-[#4f4f4f]">{p > now ? '+' : '−'} {money(Math.abs(Math.round(p - now)), cur)}</span>}
+                        {on && <SelBadge accent={accent} />}
+                        {lookSpec && <ColorSwatch spec={lookSpec} size={64} rounded={8} className="w-full h-auto max-w-[64px]" />}
+                        <span className="text-sm font-medium leading-5 text-gray-900">{c.name}</span>
+                        {p != null && now != null && Math.round((p - now) * 100) / 100 !== 0 && <span className="text-[13px] font-medium text-[#4f4f4f] -mt-1.5">{p > now ? '+' : '−'} {money(Math.abs(Math.round((p - now) * 100) / 100), cur)}</span>}
                       </button>
                     })}
                   </div>
                 </div>
-                return <Sub>
-                  <div className="space-y-4">{row('out')}{row('in')}</div>
-                </Sub>
+                return <Sub>{row(side)}</Sub>
               })()}
-              </>)}
+              </>))}
 
 
-              {renderStep('glass', T.glassTitle, glassSummary, <>
+              {renderStep('glass', `${T.cGlass} ${ofN}`, glassSummary, <>
 {/* glass package: cards with Ug; the first one is included */}
               {spec && glassList.length > 1 && <Sub>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {glassList.map((g, i) => {
                     const sel = glassList.find(x => x.id === it.glass) ?? glassList[0]
                     const on = sel.id === g.id
-                    // price against the base glass, so every card keeps its own surcharge
+                    // how much more THIS window costs with this glass than with the base glass (follows the entered size)
                     const d = i === 0 ? null : (() => {
                       if (!show) return null
                       const base = specBase({ ...it, glass: glassList[0].id }), p = specBase({ ...it, glass: g.id })
-                      return base == null || p == null ? null : Math.round(p - base)
+                      return base == null || p == null ? null : Math.round((p - base) * 100) / 100
                     })()
                     return <button key={g.id} onClick={() => update({ glass: g.id })}
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
@@ -1221,7 +1253,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                       <div className="flex justify-center py-2"><GlassIcon layers={g.layers ?? 2} size={104} /></div>
                       <div className="text-[15px] font-semibold text-gray-900 mt-1">{g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')}` : g.name}</div>
                       <div className="text-[13px] leading-5 text-[#4f4f4f] mt-1 flex-1">{g.ug != null ? g.name : null}{g.description ? <>{g.ug != null ? ' ' : ''}{g.description}</> : null}</div>
-                      <div className="text-sm font-medium text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)}` : ''}</div>
+                      <div className="text-sm font-medium text-gray-900 mt-2">{i === 0 ? T.included : d != null && d !== 0 ? `${d > 0 ? '+' : '−'} ${money(Math.abs(d), cur)} ${forN}` : ''}</div>
                     </button>
                   })}
                 </div>
@@ -1229,7 +1261,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               </>)}
 
-              {renderStep('handle', T.handleTitle, handleSummary, <>
+              {renderStep('handle', T.cHandle, handleSummary, <>
               {/* handle: one per sash that opens with a handle */}
               {spec && handleList.length > 1 && <Sub>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -1238,7 +1270,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     // price against the standard handle, so every card keeps its own surcharge
                     const d = i === 0 || !show ? null : (() => {
                       const base = specBase({ ...it, handle: handleList[0].id }), p = specBase({ ...it, handle: h.id })
-                      return base == null || p == null ? null : Math.round(p - base)
+                      return base == null || p == null ? null : Math.round((p - base) * 100) / 100
                     })()
                     return <button key={h.id} onClick={() => update({ handle: h.id })}
                       className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
@@ -1257,11 +1289,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               </>)}
 
-              {renderStep('sills', T.sillTitle, sillsSummary, <>
-              {/* window sills: inside and outside, none by default */}
+              {/* window sills: outside and inside are steps of their own, none by default */}
+              {(['outer', 'inner'] as const).map(side => renderStep(side === 'outer' ? 'sillOut' : 'sillIn', side === 'outer' ? T.cSillOut : T.cSillIn, sillsSummary, <>
               {spec && sillList.length > 0 && <Sub>
-                <div className="space-y-4">
-                  {(['inner', 'outer'] as const).map(side => {
+                <div className="space-y-7 [&>*+*]:pt-7 [&>*+*]:border-t [&>*+*]:border-gray-100">
+                  {[side].map(side => {
                     const list = sillList.filter(x => x.side === side)
                     if (!list.length) return null
                     const key = side === 'inner' ? 'in' : 'out'
@@ -1270,34 +1302,31 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     const card = (id: string | null, title: string, desc?: string) => {
                       const on = (cur ?? null) === id
                       const p = id && show ? specBase({ ...it, sills: { ...(it.sills ?? {}), [key]: id } }) : null
-                      const d = p != null && none != null ? Math.round(p - none) : null
+                      const d = p != null && none != null ? Math.round((p - none) * 100) / 100 : null
                       return <button key={id ?? 'none'} onClick={() => update({ sills: { ...(it.sills ?? {}), [key]: id } })}
                         className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
-                        <div className="flex justify-center py-1 h-[64px] items-center">{(() => { const x = list.find(y => y.id === id); return !x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : sillMaterialOf(x.material) === 'none' ? null : <SillIcon material={x.material} size={56} /> })()}</div>
+                        <div className="flex justify-center py-1 h-[64px] items-center">{(() => { const x = list.find(y => y.id === id); return !x ? <NoneTile /> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : sillMaterialOf(x.material) === 'none' ? null : <SillIcon material={x.material} size={56} /> })()}</div>
                         <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{title}</div>
                         <div className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 flex-1">{desc}</div>
-                        <div className="text-sm font-medium text-gray-900 mt-2">{id ? (d != null && d !== 0 ? `+ ${money(d, currency)}` : '') : ''}</div>
+                        <div className="text-sm font-medium text-gray-900 mt-2">{id && d != null && d !== 0 ? `+ ${money(d, currency)}` : ''}</div>
                       </button>
                     }
-                    return <div key={side}>
-                      <div className="text-sm font-semibold text-gray-900 mb-2">{side === 'inner' ? T.sillIn : T.sillOut}</div>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        {card(null, T.noSill)}
-                        {list.map(x => card(x.id, x.name, x.description))}
-                      </div>
+                    return <div key={side} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {card(null, T.noSill, T.noSillDesc)}
+                      {list.map(x => card(x.id, x.name, x.description))}
                     </div>
                   })}
                 </div>
               </Sub>}
 
-              </>)}
+              </>))}
 
-              {renderStep('shading', T.shadeTitle, shadingSummary, <>
+              {renderStep('shading', T.cShading, shadingSummary, <>
               {/* shading and insect screen, none by default */}
               {spec && shadeList.length > 0 && <Sub>
-                <div className="space-y-4">
+                <div className="space-y-7 [&>*+*]:pt-7 [&>*+*]:border-t [&>*+*]:border-gray-100">
                   {(['shade', 'screen'] as const).map(kind => {
                     const list = shadeList.filter(x => x.kind === kind)
                     if (!list.length) return null
@@ -1306,21 +1335,21 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     const card = (x: ShadingType | null) => {
                       const on = chosen === (x?.id ?? null)
                       const p = x && show ? specBase({ ...it, shading: { ...(it.shading ?? {}), [kind]: x.id } }) : null
-                      const d = p != null && none != null ? Math.round(p - none) : null
+                      const d = p != null && none != null ? Math.round((p - none) * 100) / 100 : null
                       return <button key={x?.id ?? 'none'} onClick={() => update({ shading: { ...(it.shading ?? {}), [kind]: x?.id ?? null } })}
                         className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
                         style={on ? selStyle(accent) : undefined}>
                         {on && <SelBadge accent={accent} />}
                         <div className="flex justify-center py-1 h-[64px] items-center">
-                          {!x ? <span className="text-2xl text-gray-300">—</span> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : (x.icon ?? 'none') === 'none' ? null : <ShadingIcon kind={x.icon} size={56} />}
+                          {!x ? <NoneTile /> : x.image_url ? <img src={x.image_url} alt={x.name} className="max-h-full max-w-full object-contain" /> : (x.icon ?? 'none') === 'none' ? null : <ShadingIcon kind={x.icon} size={56} />}
                         </div>
                         <div className="text-sm font-medium text-gray-900 mt-1 pr-5">{x ? x.name : kind === 'shade' ? T.noShade : T.noScreen}</div>
-                        <div className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 flex-1">{x?.description}</div>
+                        <div className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 flex-1">{x ? x.description : kind === 'shade' ? T.noShadeDesc : T.noScreenDesc}</div>
                         <div className="text-sm font-medium text-gray-900 mt-2">{x && d != null && d !== 0 ? `+ ${money(d, currency)}` : ''}</div>
                       </button>
                     }
                     return <div key={kind}>
-                      <div className="text-sm font-semibold text-gray-900 mb-2">{kind === 'shade' ? T.shadeLabel : T.screenLabel}</div>
+                      <SubHead title={kind === 'shade' ? T.shadeLabel : T.screenLabel} />
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {card(null)}
                         {list.map(x => card(x))}
@@ -1328,16 +1357,16 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </div>
                   })}
                   {it.shading?.shade && <div>
-                    <div className="text-sm font-semibold text-gray-900">{T.shadeColor}</div>
-                    <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-2">{T.shadeColorHint}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {SHADE_COLORS.map(c => {
-                        const on = (it.shading?.color ?? null) === c.key
-                        return <button key={c.key ?? 'frame'} type="button" onClick={() => update({ shading: { ...(it.shading ?? {}), color: c.key } })}
-                          className={cn('inline-flex items-center gap-2 h-10 pl-2 pr-3 rounded-[10px] border bg-white text-sm font-medium transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                    <SubHead title={T.shadeColor} hint={T.shadeColorHint} />
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                      {shadeColors.map(c => {
+                        const on = shadeColorOf(shadeColors, it.shading?.color).id === c.id
+                        return <button key={c.id} type="button" onClick={() => update({ shading: { ...(it.shading ?? {}), color: c.id } })}
+                          className={cn('relative flex flex-col items-start gap-2 p-2.5 rounded-xl border bg-white text-left transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                           style={on ? selStyle(accent) : undefined}>
-                          <span className="w-[22px] h-[22px] rounded-md border border-black/10" style={{ background: c.hex ?? look.frame }} />
-                          <span className="text-gray-900">{c[lang]}</span>
+                          {on && <SelBadge accent={accent} />}
+                          <span className="w-16 h-16 rounded-lg border border-black/10" style={{ background: c.hex }} />
+                          <span className="text-sm font-medium leading-5 text-gray-900">{shadeColorName(c, lang)}</span>
                         </button>
                       })}
                     </div>
@@ -1347,9 +1376,9 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 
               </>)}
 
-              {renderStep('extras', T.extrasTitle, extrasSummary, <>
+              {renderStep('extras', T.cExtras, extrasSummary, <>
               {!roofSel && extraGroups.length > 0 && <Sub>
-                <div className="space-y-4">
+                <div className="space-y-7 [&>*+*]:pt-7 [&>*+*]:border-t [&>*+*]:border-gray-100">
                   {extraGroups.map(g => <OptionGroupPicker key={g} group={g} title={L.groups[g]}
                     options={data.options.filter(o => o.group_key === g)} selected={it.option_ids} onToggle={toggleOption}
                     onClear={() => update({ option_ids: it.option_ids.filter(id => !data.options.some(o => o.group_key === g && o.id === id)) })}
@@ -1358,11 +1387,11 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
               </Sub>}
               </>)}
 
-              {renderStep('services', T.step5, servicesSummary, <>
+              {renderStep('services', T.cServices, servicesSummary, <>
 {!internal && data.options.some(isService) && <Sub>
-                <div className="space-y-4">
+                <div className="space-y-7 [&>*+*]:pt-7 [&>*+*]:border-t [&>*+*]:border-gray-100">
                   {items.some(x => x.roof) && data.options.some(o => o.per_item === 'roof') && <div>
-                    <div className="text-sm font-semibold text-gray-900 mb-2">{T.roofServices}</div>
+                    <SubHead title={T.roofServices} />
                     <div className="flex flex-wrap gap-2">
                       {data.options.filter(o => o.per_item === 'roof').map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
                         {o.name}{show && Number(o.price_piece ?? 0) > 0 && <span className="ml-1.5 font-medium text-[#4f4f4f]">{money(Number(o.price_piece), cur)} {L.pricing.piece}</span>}
@@ -1370,7 +1399,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     </div>
                   </div>}
                   {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g && (!o.per_item || o.per_item === 'window'))).map(g => <div key={g}>
-                    <div className="text-sm font-semibold text-gray-900 mb-2">{L.groups[g]}</div>
+                    <SubHead title={L.groups[g]} />
                     <div className="flex flex-wrap gap-2">
                       {data.options.filter(o => o.group_key === g && (!o.per_item || o.per_item === 'window')).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
                         {o.name}{show && <span className="ml-1.5 font-medium text-[#4f4f4f]">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
@@ -1396,7 +1425,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     const xp = priceOf(x)
                     return <div key={x.key} className="py-5 grid grid-cols-1 sm:grid-cols-[150px_minmax(0,1fr)_auto] gap-5">
                       <div className="flex justify-center">
-                        {x.roof ? <RoofWindowDrawing size={110} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={130} showDims /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={130} showDims />}
+                        {x.roof ? <RoofWindowDrawing size={110} photo /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={130} showDims photo /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={130} showDims />}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-baseline gap-2 flex-wrap"><span className="text-[13px] font-medium text-[#4f4f4f]">{T.position} {i + 1}</span><span className="text-[15px] font-semibold text-gray-900">{d.title}</span>
@@ -1407,7 +1436,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                         </dl>
                       </div>
                       <div className="sm:text-right flex sm:flex-col justify-between gap-2">
-                        {show && <div><div className="text-sm font-medium text-[#4f4f4f]">{x.quantity} × {xp != null ? money(xp, cur) : T.noPrice}</div><div className="text-[17px] font-semibold text-gray-900">{xp != null ? money(xp * x.quantity, cur) : ''}</div></div>}
+                        {show && <div><div className="text-sm font-medium text-[#4f4f4f]">{x.quantity > 1 || internal ? `${x.quantity} × ` : ""}{xp != null ? money(xp, cur) : T.noPrice}</div><div className="text-[17px] font-semibold text-gray-900">{xp != null ? money(xp * x.quantity, cur) : ''}</div></div>}
                         <div className="flex items-center gap-2 self-start sm:self-end">
                           <button type="button" onClick={() => { setActive(i); setStage('config'); window.scrollTo({ top: 0 }) }}
                             className="h-9 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors">{isDone(x) ? T.editWindow : T.finishWindow}</button>
@@ -1488,8 +1517,8 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
           <aside className="lg:sticky lg:top-[100px] space-y-3">
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex justify-center py-2 overflow-hidden">
-                {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} />
-                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims={dimsOn(it)} frameColor={look.frame} extras={look.extras} plain={drawPlain} />
+                {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} photo />
+                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims={dimsOn(it)} frameColor={look.frame} extras={look.extras} plain={drawPlain} photo />
                   : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims={dimsOn(it)} />}
               </div>
               {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}
@@ -1504,7 +1533,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.windowAlone}</span><span className="font-medium text-gray-900 tabular-nums">{txt(sp.unitPrice)}</span></div>
                     {sp.subs.map(sb => <div key={sb.code} className="flex justify-between gap-3"><span className="text-[#4f4f4f] min-w-0 truncate">{sb.title}</span><span className="font-medium text-gray-900 tabular-nums">{txt(sb.unitPrice)}</span></div>)}
                     {sp.subs.length > 0 && <div className="flex justify-between gap-3 border-t border-gray-100 pt-1.5"><span className="text-[#4f4f4f]">{T.unit}</span><span className="font-medium text-gray-900 tabular-nums">{txt(p)}</span></div>}
-                    <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.qty}</span><span className="font-medium text-gray-900 tabular-nums">× {it.quantity}</span></div>
+                    {(internal || it.quantity > 1) && <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.qty}</span><span className="font-medium text-gray-900 tabular-nums">× {it.quantity}</span></div>}
                   </div>}
                   <div className="flex items-baseline justify-between gap-3 mt-3 pt-3 border-t border-gray-200">
                     <span className="text-[15px] font-semibold text-gray-900">{T.positionPrice}</span>
@@ -1526,7 +1555,7 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
                     <button onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-center gap-3 py-2 text-left">
                       <div className="w-10 flex justify-center shrink-0">{x.roof ? <RoofWindowDrawing size={36} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
                       <div className="flex-1 min-w-0">
-                        <div className={cn('text-sm font-medium truncate', i === active && stage === 'config' ? 'text-gray-900' : 'text-[#4f4f4f]')}>{x.quantity} × {x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
+                        <div className={cn('text-sm font-medium truncate', i === active && stage === 'config' ? 'text-gray-900' : 'text-[#4f4f4f]')}>{x.quantity > 1 || internal ? `${x.quantity} × ` : ''}{x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
                         <div className="text-[13px] text-[#4f4f4f]">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
                       </div>
                       {show && <div className="text-sm font-medium text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}
@@ -1622,21 +1651,28 @@ export function ConfiguratorCore({ data, slug = '', mode = 'public', initialItem
 export type PriceMode = 'live' | 'end' | 'range' | 'never'
 export type EndMode = 'enquiry' | 'pdf' | 'choose'
 
-/** colours of a shutter / blind and its box; the first follows the frame */
-const SHADE_COLORS: { key: string | null; sl: string; en: string; hex: string | null }[] = [
-  { key: null, sl: 'Enako kot okvir', en: 'Same as the frame', hex: null },
-  { key: 'white', sl: 'Bela', en: 'White', hex: '#f4f4f2' },
-  { key: 'silver', sl: 'Srebrna', en: 'Silver', hex: '#c3c6c8' },
-  { key: 'anthracite', sl: 'Antracit', en: 'Anthracite', hex: '#383e42' },
-  { key: 'brown', sl: 'Rjava', en: 'Brown', hex: '#5a3e2b' },
-]
+/** id of the natural wood colour the configurator adds to wooden profiles */
+const NATURAL_WOOD_ID = 'wood_natural'
+
+/**
+ * colours of a shutter / blind and its box. No "same as the frame": a wooden frame would give a
+ * wood-coloured box, which does not exist. White is the default (also for older choices without a colour).
+ */
 const OPEN_SL: Record<string, string> = { fixed: 'fiksno', tilt_turn: 'odpiranje in kip', turn: 'odpiranje', tilt: 'kip', passive: 'pasivno', slide_window: 'drsno', slide: 'drsno', lift_slide: 'dvižno-drsno' }
 const OPEN_EN: Record<string, string> = { fixed: 'fixed', tilt_turn: 'tilt & turn', turn: 'turn', tilt: 'tilt', passive: 'passive', slide_window: 'sliding', slide: 'sliding', lift_slide: 'lift & slide' }
 
 function clamp(v: number, min: number, max: number) { return Math.min(max, Math.max(min, v)) }
 
+/** heading of a part inside a step (shading / insect screen, box colour, service groups …) */
+function SubHead({ title, hint }: { title: string; hint?: string }) {
+  return <div className="mb-3">
+    <h3 className="text-[15px] leading-6 font-semibold text-gray-900">{title}</h3>
+    {hint && <p className="text-[13px] leading-5 text-[#5f5f5f] mt-0.5">{hint}</p>}
+  </div>
+}
+
 function Sub({ title, children }: { title?: string; children: React.ReactNode }) {
-  return <div>{title && <h3 className="text-[15px] font-semibold text-gray-900 mb-3">{title}</h3>}{children}</div>
+  return <div>{title && <SubHead title={title} />}{children}</div>
 }
 
 function MmInput({ label, value, onChange, min, max, rangeLabel }: { label: string; value: number | null; onChange: (v: number | null) => void; min: number; max: number; rangeLabel: string }) {
@@ -1718,7 +1754,7 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
   }
   const anySelected = options.some(o => selected.includes(o.id))
   return <div>
-    <div className="text-sm font-semibold text-gray-900 mb-2">{title}</div>
+    <SubHead title={title} />
     <div className="flex flex-wrap gap-2">
       {!single && <Chip on={!anySelected} onClick={onClear} accent={accent} single>{noneLabel}</Chip>}
       {options.map(o => <Chip key={o.id} on={selected.includes(o.id)} onClick={() => onToggle(o)} accent={accent} single={single}>
@@ -1732,6 +1768,10 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
 // Selected state, same as in the app: outline + light tint in the accent colour + check badge
 const tint = (hex: string, a: number) => /^#[0-9a-f]{6}$/i.test(hex) ? hex + Math.round(a * 255).toString(16).padStart(2, '0') : 'transparent'
 const selStyle = (accent: string): React.CSSProperties => ({ borderColor: accent, boxShadow: `inset 0 0 0 1px ${accent}`, backgroundColor: tint(accent, 0.04) })
+/** the "none" choice: an empty light-grey tile with a thin grey border, the size of the other samples (56 px), so every card looks the same */
+function NoneTile() {
+  return <span className="w-14 h-14 rounded-lg bg-[#fafafa] border border-gray-200 flex items-center justify-center text-gray-400"><Ban className="w-6 h-6" strokeWidth={1.5} /></span>
+}
 function SelBadge({ accent }: { accent: string }) {
   return <span className="absolute top-2 right-2 w-5 h-5 rounded-full text-white flex items-center justify-center shadow-sm" style={{ backgroundColor: accent }}><Check className="w-3 h-3" strokeWidth={3} /></span>
 }

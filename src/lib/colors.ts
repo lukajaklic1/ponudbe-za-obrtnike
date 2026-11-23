@@ -6,7 +6,7 @@
 // Plain "#rrggbb" stays valid, so older colours keep working.
 
 export type Finish = 'smooth' | 'struct' | 'metal' | 'wood'
-export type WoodKey = 'golden_oak' | 'walnut' | 'mahogany' | 'dark_oak' | 'winchester' | 'douglas' | 'light_oak'
+export type WoodKey = 'golden_oak' | 'walnut' | 'mahogany' | 'dark_oak' | 'winchester' | 'douglas' | 'light_oak' | 'natural'
 export interface ColorSpec { hex: string; finish: Finish; wood?: WoodKey }
 
 export const WOODS: Record<WoodKey, { hex: string; grain: string; sl: string; en: string }> = {
@@ -17,6 +17,8 @@ export const WOODS: Record<WoodKey, { hex: string; grain: string; sl: string; en
   winchester: { hex: '#a5683a', grain: '#7a4521', sl: 'Winchester', en: 'Winchester' },
   douglas:    { hex: '#c98d55', grain: '#9c6233', sl: 'Duglazija', en: 'Douglas fir' },
   light_oak:  { hex: '#d6b88e', grain: '#ab8a5e', sl: 'Svetli hrast', en: 'Light oak' },
+  // untreated wood (spruce / pine, clear varnish): the default colour of wooden windows
+  natural:    { hex: '#e1c38f', grain: '#c19a5e', sl: 'Naravna barva lesa', en: 'Natural wood' },
 }
 
 export function parseColor(desc: string | null | undefined): ColorSpec | null {

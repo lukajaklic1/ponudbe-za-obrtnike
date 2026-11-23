@@ -368,6 +368,7 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
           glass: (wp.glass ?? []).map((g: Row) => ({ ...g, cost_m2: Number(g.cost_m2 ?? 0) * mf })),
           handles: (wp.handles ?? []).map((h: Row) => ({ ...h, cost: Number(h.cost ?? 0) * mf })),
           sills: (wp.sills ?? []).map((x: Row) => ({ ...x, cost_m: Number(x.cost_m ?? 0) * mf })),
+          shade_colors: wp.shade_colors ?? [],
           shading: (wp.shading ?? []).map((x: Row) => ({ ...x, cost: Number(x.cost ?? 0) * mf, fixed: Number(x.fixed ?? 0) * mf, per_w: Number(x.per_w ?? 0) * mf, per_h: Number(x.per_h ?? 0) * mf, min: r2(Number(x.min ?? 0)),
             integrated: x.integrated ? Object.fromEntries(Object.entries(x.integrated).map(([k, v]) => [k, Number(v ?? 0) * mf])) : undefined })),
           roof: wp.offer?.roof !== false && wp.roof ? {
