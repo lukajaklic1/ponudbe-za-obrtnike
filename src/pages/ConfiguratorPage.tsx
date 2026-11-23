@@ -75,6 +75,21 @@ export interface ConfigItem {
   sashWidths?: number[] | null
 }
 
+const INTERNAL_TXT = {
+  sl: {
+    stepProduct: 'Izberite tip izdelka', stepProductHint: 'Izberite vrsto izdelka za ponudbo.', stepSashes: 'Izberite število kril', stepDoorSashes: 'Izberite število kril', stepParts: 'Izberite število delov', stepRoof: 'Izberite model strešnega okna',
+    stepSizeWindow: 'Vnesite mere okna', stepSizeDoor: 'Vnesite mere balkonskih vrat', stepSizeWall: 'Vnesite mere drsne stene',
+    cBands: 'Izberite izvedbo', cBandsEnd: '', cOpening: 'Izberite način odpiranja kril', cMaterial: 'Izberite material okvirja', cColorOut: 'Izberite barvo okvirja zunaj', cColorIn: 'Izberite barvo okvirja znotraj',
+    cHandle: 'Izberite kljuko', cSillOut: 'Zunanja polica', cSillIn: 'Notranja polica', cShading: 'Senčila in komarniki', cExtras: 'Dodatna oprema', cServices: 'Storitve',
+  },
+  en: {
+    stepProduct: 'Choose the product type', stepProductHint: 'Choose the type of product for the quote.', stepSashes: 'Choose the number of sashes', stepDoorSashes: 'Choose the number of sashes', stepParts: 'Choose the number of panels', stepRoof: 'Choose the roof window model',
+    stepSizeWindow: 'Enter the window size', stepSizeDoor: 'Enter the balcony door size', stepSizeWall: 'Enter the sliding wall size',
+    cBands: 'Choose the version', cBandsEnd: '', cOpening: 'Choose how the sashes open', cMaterial: 'Choose the frame material', cColorOut: 'Choose the frame colour outside', cColorIn: 'Choose the frame colour inside',
+    cHandle: 'Choose the handle', cSillOut: 'Outside sill', cSillIn: 'Inside sill', cShading: 'Shading and insect screens', cExtras: 'Extra equipment', cServices: 'Services',
+  },
+}
+
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Ponudnik konfiguratorja še ni objavil.',
@@ -232,7 +247,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   onAdd?: (windows: ConfiguredWindow[]) => void; onCancel?: () => void; addLabel?: string
 }) {
   const { lang, setLang } = useLanguage()
-  const T = TXT[lang]
+  const T = mode === 'internal' ? { ...TXT[lang], ...INTERNAL_TXT[lang] } : TXT[lang]
   // wood always has its natural colour first (no surcharge, the default); the other profiles do not
   const data = useMemo<ConfigData>(() => {
     const cat = rawData.builder?.colors
@@ -758,7 +773,9 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   const reached = openStep === 'none' ? 99 : Math.max(reachedMap[it.key] ?? 0, openIdx)
   // a price only means something with the sizes: none before that step is done (in a quote always)
   const unlockIdx = stepIds.indexOf(roofSel ? 'variant' : 'size')
-  const pricesOn = internal || stage !== 'config' || unlockIdx < 0 || reached > unlockIdx
+  // inside a quote a new window follows the same rule as for the customer (no price before the sizes); a window that is only being edited shows everything
+  const editingExisting = internal && (initialItems?.length ?? 0) > 0
+  const pricesOn = editingExisting || stage !== 'config' || unlockIdx < 0 || reached > unlockIdx
   const show = showLive && pricesOn
   const showRange = showRangeLive && pricesOn
   // the drawing shows how the sashes open only from the opening step on
@@ -772,9 +789,9 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   const finishNote = firstOpen >= 0 ? T.finishOpen(firstOpen + 1) : `${T.finishHint} ${!calc || endMode === 'enquiry' ? T.finishHintEnquiry : endMode === 'pdf' ? T.finishHintOffer : T.finishHintChoose}`
   const finish = () => { setStage('review'); window.scrollTo({ top: 0 }) }
   /** a window's sizes show once the customer reached the size step (not on the first steps, before they chose anything) */
-  const dimsOn = (x: ConfigItem) => internal || stage !== 'config' || (x.key === it.key ? (unlockIdx < 0 || reached >= unlockIdx) : (reachedMap[x.key] ?? 0) >= (x.roof ? 1 : 2))
+  const dimsOn = (x: ConfigItem) => editingExisting || stage !== 'config' || (x.key === it.key ? (unlockIdx < 0 || reached >= unlockIdx) : (reachedMap[x.key] ?? 0) >= (x.roof ? 1 : 2))
   /** a window's own price can show once its sizes were entered (each window on its own) */
-  const itemPriced = (x: ConfigItem) => internal || stage !== 'config' || (x.key === it.key ? pricesOn : (reachedMap[x.key] ?? 0) > (x.roof ? 1 : 2))
+  const itemPriced = (x: ConfigItem) => editingExisting || stage !== 'config' || (x.key === it.key ? pricesOn : (reachedMap[x.key] ?? 0) > (x.roof ? 1 : 2))
   const hiddenPriceText = (showLive || showRangeLive) && !pricesOn ? T.pricesAfterSize : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden
   function setOpen(id: string) {
     const i = id === 'none' ? 99 : stepIds.indexOf(id)
@@ -1818,7 +1835,7 @@ function MmInput({ label, value, onChange, min, max, rangeLabel }: { label: stri
  * Slovenian address: the postal code and the town in two fields. Each suggests from the list of
  * post offices; a full code fills in its town and a known town fills in its code.
  */
-function PostFields({ postalLabel, cityLabel, code, city, onChange }: { postalLabel: string; cityLabel: string; code: string; city: string; onChange: (code: string, city: string) => void }) {
+export function PostFields({ postalLabel, cityLabel, code, city, onChange }: { postalLabel: string; cityLabel: string; code: string; city: string; onChange: (code: string, city: string) => void }) {
   const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
   const byCode = code && !SI_POSTS.some(p => p.code === code) ? SI_POSTS.filter(p => p.code.startsWith(code)).slice(0, 8) : []
   const byCity = city.trim() && !SI_POSTS.some(p => norm(p.name) === norm(city)) ? SI_POSTS.filter(p => norm(p.name).includes(norm(city))).slice(0, 8) : []

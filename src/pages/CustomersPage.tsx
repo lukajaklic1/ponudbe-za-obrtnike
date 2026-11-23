@@ -11,6 +11,8 @@ import { toast } from '../components/ui/Toast'
 import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
+import Select from '../components/ui/Select'
+import { COUNTRIES } from '../lib/siPosts'
 import Checkbox from '../components/ui/Checkbox'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
@@ -26,12 +28,12 @@ interface Form {
   first_name: string; last_name: string
   name: string; vat_number: string
   email: string; phone: string
-  address_street: string; address_postal_code: string; address_city: string
+  address_street: string; address_postal_code: string; address_city: string; country: string
   notes: string; status: 'active' | 'inactive'
 }
 const empty: Form = {
   customer_type: 'person', first_name: '', last_name: '', name: '', vat_number: '',
-  email: '', phone: '', address_street: '', address_postal_code: '', address_city: '', notes: '', status: 'active',
+  email: '', phone: '', address_street: '', address_postal_code: '', address_city: '', country: 'SI', notes: '', status: 'active',
 }
 
 // Older rows may predate customer_type / first_name — derive sensibly.
@@ -101,7 +103,7 @@ export default function CustomersPage() {
       name: type === 'company' ? c.name : '',
       vat_number: c.vat_number ?? '',
       email: c.email ?? '', phone: c.phone ?? '',
-      address_street: c.address_street ?? '', address_postal_code: c.address_postal_code ?? '', address_city: c.address_city ?? '',
+      address_street: c.address_street ?? '', address_postal_code: c.address_postal_code ?? '', address_city: c.address_city ?? '', country: c.country ?? 'SI',
       notes: c.notes ?? '', status: c.status ?? 'active',
     })
     setOpen(true)
@@ -122,7 +124,7 @@ export default function CustomersPage() {
       vat_number: isPerson ? null : tr(form.vat_number),
       contact_person: isPerson ? null : tr(`${form.first_name.trim()} ${form.last_name.trim()}`),
       email: tr(form.email), phone: tr(form.phone),
-      address_street: tr(form.address_street), address_postal_code: tr(form.address_postal_code), address_city: tr(form.address_city),
+      address_street: tr(form.address_street), address_postal_code: tr(form.address_postal_code), address_city: tr(form.address_city), country: form.country || 'SI',
       notes: tr(form.notes), status: form.status,
     }
     const { error } = editing
@@ -290,6 +292,10 @@ export default function CustomersPage() {
             <div className="sm:col-span-2"><Input id="c-street" label={o.street} placeholder={ph.street} {...field('address_street')} /></div>
             <Input id="c-postal" label={t.common.postalCode} placeholder={ph.postal} {...field('address_postal_code')} />
             <Input id="c-city" label={o.city} placeholder={ph.city} {...field('address_city')} />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{lang === 'en' ? 'Country' : 'Država'}</label>
+              <Select value={form.country} onChange={v => setForm(f => ({ ...f, country: v }))} options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
+            </div>
             <div className="sm:col-span-2 flex flex-col gap-1">
               <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}

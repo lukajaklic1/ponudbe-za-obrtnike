@@ -17,7 +17,8 @@ import { buildSnapshot } from '../lib/offerSnapshot'
 import { advanceTotal, lineTotal, quoteTotals, roomAreas } from '../lib/quoteTotals'
 import { PRICE_UNITS, VAT_RATES } from '../lib/quoteTotals'
 import { isService, serviceLine, SERVICE_GROUPS, WL, type WindowOption } from '../lib/windows'
-import { ConfiguratorCore, isUsable, type ConfigData, type ConfigItem, type ConfiguredWindow } from './ConfiguratorPage'
+import { COUNTRIES } from '../lib/siPosts'
+import { ConfiguratorCore, PostFields, isUsable, type ConfigData, type ConfigItem, type ConfiguredWindow } from './ConfiguratorPage'
 import SpecDrawing from '../components/SpecDrawing'
 import WindowDrawing from '../components/WindowDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
@@ -163,6 +164,18 @@ export function CustomerSearch({ customers, value, onChange, placeholder, emptyT
   )
 }
 
+/** the stored address text (street, postal code town[, country]) back into fields */
+function parseSite(v: string) {
+  const parts = v.split(',').map(x => x.trim()).filter(Boolean)
+  let country = 'SI'
+  const last = parts[parts.length - 1]?.toLowerCase()
+  const hit = COUNTRIES.find(c => c.sl.toLowerCase() === last || c.en.toLowerCase() === last)
+  if (hit && parts.length > 1) { country = hit.code; parts.pop() }
+  const m = parts.length > 1 ? /^(\d{4,5})\s+(.+)$/.exec(parts[parts.length - 1]) : null
+  if (m) { parts.pop(); return { street: parts.join(', '), postal: m[1], city: m[2], country } }
+  return { street: parts.join(', '), postal: '', city: '', country }
+}
+
 export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean }) {
   const { id } = useParams()
   const editMode = !!id
@@ -192,7 +205,14 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [contactPerson, setContactPerson] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [contactPhone, setContactPhone] = useState('')
-  const [siteAddress, setSiteAddress] = useState('')
+  // address of the works: street, postal code, town, country, like the configurator; stored in one text the same way the enquiry does it
+  // edits of the customer's own data (name, VAT, address) are written back to the customer when the quote is saved
+  const [custDirty, setCustDirty] = useState(false)
+  // the customer's own data is always editable (the edit is written back to the customer on save)
+  const custEdit = true
+  const [site, setSite] = useState({ street: '', postal: '', city: '', country: 'SI' })
+  const siteAddress = [site.street.trim(), [site.postal.trim(), site.city.trim()].filter(Boolean).join(' '), site.country !== 'SI' ? (COUNTRIES.find(c => c.code === site.country)?.sl ?? site.country) : ''].filter(Boolean).join(', ')
+  const setSiteAddress = (v: string) => setSite(parseSite(v))
   const [paymentTerms, setPaymentTerms] = useState('')
   const [parity, setParity] = useState('')
   const [leadSource, setLeadSource] = useState('')
@@ -499,8 +519,34 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   }
 
   // ── Persistence ───────────────────────────────────────────
+  function editCust(patch: Partial<Customer>) {
+    setCustomers(list => list.map(c => {
+      if (c.id !== customerId) return c
+      const n = { ...c, ...patch }
+      // a person is named by first and last name
+      if (n.customer_type === 'person' && ('first_name' in patch || 'last_name' in patch)) {
+        n.name = [n.first_name, n.last_name].filter(Boolean).join(' ').trim() || n.name
+        setContactPerson(n.name)
+      }
+      return n
+    }))
+    setCustDirty(true)
+  }
+
   async function persist(): Promise<{ id: string; number: string } | null> {
     if (!company || !customerId) { toast.error(o.pickCustomer); return null }
+    if (custDirty) {
+      const c = customers.find(x => x.id === customerId)
+      if (c) {
+        const { error } = await supabase.from('customers').update({
+          name: c.name, first_name: c.first_name, last_name: c.last_name, vat_number: c.vat_number,
+          address_street: c.address_street, address_postal_code: c.address_postal_code, address_city: c.address_city, country: c.country ?? 'SI',
+          address: [c.address_street, [c.address_postal_code, c.address_city].filter(Boolean).join(' ')].filter(Boolean).join(', ') || null,
+        } as any).eq('id', c.id)
+        if (error) { toast.error(error.message); return null }
+        setCustDirty(false)
+      }
+    }
     if (!leadSource) { toast.error(lang === 'en' ? 'Choose the sales channel.' : 'Izberite prodajni kanal.'); return null }
     const fields = {
       // windows: no quote title in the UI; the required DB column gets the customer name
@@ -672,11 +718,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       {tab === 'overview' ? (<div className="xl:grid xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6 xl:items-start"><div className="min-w-0">
         {/* ── Quote details ─────────────────────────────── */}
         <div className={`bg-white rounded-xl border p-6 mb-5 ${border}`}>
-          <h2 className="text-base font-semibold text-gray-900 mb-4">{o.quoteDetails}</h2>
+          <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Customer details' : 'Podatki stranke'}</h2>
           <fieldset disabled={ro} className="contents">
           </fieldset>
           <fieldset disabled={ro} className="contents">
-            <h3 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[#4f4f4f] mb-3">{lang === 'en' ? 'Customer' : 'Stranka'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#4f4f4f]">{s.customer}</label>
@@ -693,38 +738,74 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                       }} />}
                 {!ro && customers.length === 0 && <button type="button" onClick={() => navigate('/customers')} className="text-xs text-gray-900 text-left hover:underline">{o.addCustomerFirst}</button>}
               </div>
-              <Input id="q-contact" label={s.contactPerson} value={contactPerson} onChange={e => setContactPerson(e.target.value)} />
+              {(selectedCustomer?.customer_type === 'company'
+                ? <>
+                  <Input id="q-cname" disabled={!custEdit} label={lang === 'en' ? 'Company name' : 'Naziv podjetja'} value={selectedCustomer.name} onChange={e => editCust({ name: e.target.value })} />
+                  <Input id="q-vat" disabled={!custEdit} label={s.vatNumber} value={selectedCustomer.vat_number ?? ''} onChange={e => editCust({ vat_number: e.target.value })} />
+                  <Input id="q-contact" label={s.contactPerson} value={contactPerson} onChange={e => setContactPerson(e.target.value)} />
+                </>
+                : <>
+                  <Input id="q-first" disabled={!selectedCustomer} label={lang === 'en' ? 'First name' : 'Ime'} value={selectedCustomer?.first_name ?? ''} onChange={e => editCust({ first_name: e.target.value })} />
+                  <Input id="q-last" disabled={!selectedCustomer} label={lang === 'en' ? 'Last name' : 'Priimek'} value={selectedCustomer?.last_name ?? ''} onChange={e => editCust({ last_name: e.target.value })} />
+                </>)}
               <Input id="q-email" label={t.common.email} type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
               <Input id="q-phone" label={t.common.phone} value={contactPhone} onChange={e => setContactPhone(e.target.value)} />
-              {selectedCustomer?.customer_type === 'company' && (
-                <Input id="q-vat" label={s.vatNumber} value={selectedCustomer.vat_number ?? ''} disabled readOnly />
-              )}
-              <div className={selectedCustomer?.customer_type === 'company' ? '' : 'lg:col-span-2'}>
-                <Input id="q-caddr" label={o.customerAddress} disabled readOnly
-                  value={selectedCustomer ? [selectedCustomer.address_street, [selectedCustomer.address_postal_code, selectedCustomer.address_city].filter(Boolean).join(' ')].filter(Boolean).join(', ') : ''} />
+              <div className="lg:col-span-3 text-[15px] font-semibold text-gray-900 pt-2 flex items-center justify-between gap-3">
+                <span>{lang === 'en' ? 'Customer address' : 'Naslov stranke'}</span>
               </div>
-              {/* sales channel: where the customer heard of the company */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
-                <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
-                  options={leadSourceOptions(lang === 'en' ? 'en' : 'sl')} />
+              <div className="lg:col-span-3"><Input id="q-cstreet" label={lang === 'en' ? 'Street and house number' : 'Ulica in hišna številka'} disabled={!selectedCustomer || !custEdit} value={selectedCustomer?.address_street ?? ''} onChange={e => editCust({ address_street: e.target.value })} /></div>
+              <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {!selectedCustomer || ro || !custEdit || (selectedCustomer.country ?? 'SI') !== 'SI'
+                  ? <>
+                    <Input id="q-cpostal" label={lang === 'en' ? 'Postal code' : 'Poštna številka'} disabled={!selectedCustomer || !custEdit} value={selectedCustomer?.address_postal_code ?? ''} onChange={e => editCust({ address_postal_code: e.target.value })} />
+                    <Input id="q-ccity" label={lang === 'en' ? 'Town' : 'Kraj'} disabled={!selectedCustomer || !custEdit} value={selectedCustomer?.address_city ?? ''} onChange={e => editCust({ address_city: e.target.value })} />
+                  </>
+                  : <PostFields postalLabel={lang === 'en' ? 'Postal code' : 'Poštna številka'} cityLabel={lang === 'en' ? 'Town' : 'Kraj'} code={selectedCustomer.address_postal_code ?? ''} city={selectedCustomer.address_city ?? ''}
+                      onChange={(address_postal_code, address_city) => editCust({ address_postal_code, address_city })} />}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Country' : 'Država'}</label>
+                  <Select value={selectedCustomer?.country ?? 'SI'} onChange={v => editCust({ country: v, address_postal_code: '', address_city: '' })} disabled={ro || !selectedCustomer || !custEdit}
+                    options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
+                </div>
+                {/* sales channel: where the customer heard of the company */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
+                  <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
+                    options={leadSourceOptions(lang === 'en' ? 'en' : 'sl')} />
+                </div>
               </div>
             </div>
-            <div className="border-t border-gray-100 my-5" />
-            <h3 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[#4f4f4f] mb-3">{lang === 'en' ? 'Delivery and payment' : 'Dobava in plačilo'}</h3>
+            <div className="border-t border-gray-100 mt-7 mb-6" />
+            <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Commercial terms' : 'Komercialni pogoji'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-3 text-[15px] font-semibold text-gray-900 pt-0 flex items-center justify-between gap-3">
+                <span>{lang === 'en' ? 'Address of the works' : 'Naslov del'}</span>
+                {!ro && selectedCustomer && <label className="flex items-center gap-2 text-[13px] font-normal normal-case tracking-normal text-[#4f4f4f] cursor-pointer"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
+              </div>
+              <div className="lg:col-span-3"><Input id="q-site" label={lang === 'en' ? 'Street and house number' : 'Ulica in hišna številka'} value={site.street} onChange={e => setSite(x => ({ ...x, street: e.target.value }))} /></div>
+              <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {ro || site.country !== 'SI'
+                  ? <>
+                    <Input id="q-postal" label={lang === 'en' ? 'Postal code' : 'Poštna številka'} value={site.postal} onChange={e => setSite(x => ({ ...x, postal: e.target.value }))} />
+                    <Input id="q-city" label={lang === 'en' ? 'Town' : 'Kraj'} value={site.city} onChange={e => setSite(x => ({ ...x, city: e.target.value }))} />
+                  </>
+                  : <PostFields postalLabel={lang === 'en' ? 'Postal code' : 'Poštna številka'} cityLabel={lang === 'en' ? 'Town' : 'Kraj'} code={site.postal} city={site.city}
+                      onChange={(postal, city) => setSite(x => ({ ...x, postal, city }))} />}
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Country' : 'Država'}</label>
+                  <Select value={site.country} onChange={v => setSite(x => ({ ...x, country: v, postal: '', city: '' }))} disabled={ro}
+                    options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
+                </div>
+              </div>
+              <div className="lg:col-span-3 text-[15px] font-semibold text-gray-900 pt-2">{lang === 'en' ? 'Terms' : 'Pogoji'}</div>
               <Input id="q-valid" label={s.validUntil} type={ro ? 'text' : 'date'}
                 value={ro ? (validUntil ? format(new Date(validUntil), 'd. M. yyyy') : '') : validUntil}
                 onChange={e => setValidUntil(e.target.value)} />
               <Input id="q-lead" label={o.executionTime} placeholder={ro ? '' : o.executionTimeHint} value={leadTime} onChange={e => setLeadTime(e.target.value)} />
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#4f4f4f]">{o.parity}</label>
-                <Select className="h-[37.6px]" value={parity} onChange={setParity}
+                <Select value={parity} onChange={setParity}
                   options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
-              </div>
-              <div className="lg:col-span-2 flex flex-col">
-                <Input id="q-site" label={o.siteAddress} placeholder={ro ? '' : o.siteAddressHint} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />
-                {!ro && selectedCustomer && <label className="flex items-center gap-2 text-[13px] text-[#4f4f4f] cursor-pointer mt-0.5"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
               </div>
               <div className="lg:col-span-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#4f4f4f]">{s.paymentTerms}</label>
@@ -732,11 +813,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#4f4f4f' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
                     ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-900 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
-                    : <Select className="h-[37.6px]" value={paymentTerms} onChange={setPaymentTerms}
+                    : <Select value={paymentTerms} onChange={setPaymentTerms}
                         options={[{ value: '', label: o.none }, ...termOptions.map(term => ({ value: term, label: term }))]} />}
               </div>
             </div>
-            <div className="flex flex-col gap-1 mt-4">
+            <div className="border-t border-gray-100 mt-7 mb-6" />
+            <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Notes and attachments' : 'Opombe in priloge'}</h2>
+            <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-[#4f4f4f]">{s.notes}</label>
               <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder={ro ? '' : o.notesHint}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:border-[#dfdfdf]" />

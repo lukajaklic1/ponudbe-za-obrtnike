@@ -257,3 +257,7 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .cfg-public .text-gray-900, .cfg-public .text-\[\#131313\] { color: var(--cfg-ink, #111827); }
 .cfg-public .text-\[\#4f4f4f\], .cfg-public .text-\[\#4a4a4a\] { color: var(--cfg-muted, #4f4f4f); }
 .cfg-public .border-\[\#dfdfdf\], .cfg-public .border-gray-200 { border-color: var(--cfg-border, #dfdfdf); }
+
+/* dropdowns and date fields look like the text fields: same weight, same height */
+.robust main button.field-control { font-weight: 500; }
+.robust main input[type=date].field-control, .robust main input[type=date] { height: 40px; }
