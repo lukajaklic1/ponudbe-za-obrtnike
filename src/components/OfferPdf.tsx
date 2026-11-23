@@ -140,7 +140,7 @@ const L = {
 }
 
 type WinCfg = { kind: 'window'; uid?: string; title?: string; rows?: [string, string][] }
-type SubCfg = { kind: 'sub'; parent: string; code: string; rows?: [string, string][] }
+type SubCfg = { kind: 'sub'; parent: string; code: string; rows?: [string, string][]; color?: string | null }
 const kindOf = (l: OfferSnapshotLine) => ((l.config as { kind?: string } | null | undefined)?.kind ?? null)
 
 export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: OfferSnapshot; lang?: 'sl' | 'en'; drawings?: Record<number, string> }) {
@@ -280,13 +280,17 @@ export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: O
                 {lines.filter(x => kindOf(x) === 'sub' && (x.config as unknown as SubCfg).parent === w.uid).map((x, j) => {
                   const sc = x.config as unknown as SubCfg
                   return (
-                    <View key={j} style={[s.winHead, { marginTop: 6, paddingTop: 5, borderTopWidth: 1, borderTopColor: c.border }]}>
+                    <View key={j} style={[s.winHead, { marginTop: 8, paddingTop: 7, borderTopWidth: 1, borderTopColor: c.border }]}>
                       <Text style={[s.cell, s.colPos, { color: c.muted }]}>{i + 1}-{sc.code}</Text>
-                      <View style={[s.colName, { flexDirection: 'row', alignItems: 'flex-start' }]}>
-                        {drawings[lines.indexOf(x)] ? <Image src={drawings[lines.indexOf(x)]} style={{ width: 40, height: 40, objectFit: 'contain', marginRight: 8 }} /> : null}
+                      <View style={[s.colName, { flexDirection: 'row', alignItems: 'flex-start', paddingLeft: 14 }]}>
+                        {drawings[lines.indexOf(x)] ? <Image src={drawings[lines.indexOf(x)]} style={{ width: 46, height: 46, objectFit: 'contain', marginRight: 10 }} /> : null}
                         <View style={{ flex: 1 }}>
                         <Text style={s.itemName}>{x.name}</Text>
-                        <Text style={s.itemDesc}>{(sc.rows ?? []).map(([k, v]) => `${k}: ${v}`).join(' · ')}</Text>
+                        {sc.color ? <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                          <View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: sc.color, borderWidth: 0.5, borderColor: c.border, marginRight: 4 }} />
+                          <Text style={s.itemDesc}>{(sc.rows ?? []).filter(([k]) => /barva|colour/i.test(k)).map(([k, v]) => `${k}: ${v}`).join(' · ')}</Text>
+                        </View> : null}
+                        <Text style={s.itemDesc}>{(sc.rows ?? []).filter(([k]) => !(sc.color && /barva|colour/i.test(k))).map(([k, v]) => `${k}: ${v}`).join(' · ')}</Text>
                         </View>
                       </View>
                       {amountCells(x)}

@@ -47,7 +47,7 @@ interface LineRow {
 /** a window from the configurator: the whole configuration + every choice in words (for the quote and its PDF) */
 interface WindowConfig { kind: 'window'; uid?: string; item: ConfigItem; title: string; rows: [string, string][]; template?: string | null }
 /** a sill / shading / insect screen of a window, its own priced line right after the window */
-interface SubConfig { kind: 'sub'; parent: string; code: string; title: string; rows: [string, string][]; image_url?: string | null; sill?: string | null; shade?: string | null }
+interface SubConfig { kind: 'sub'; parent: string; code: string; title: string; rows: [string, string][]; image_url?: string | null; sill?: string | null; shade?: string | null; color?: string | null }
 const subCfg = (l: { config: Record<string, unknown> | null }) => (l.config?.kind === 'sub' ? l.config as unknown as SubConfig : null)
 const uid = () => Math.random().toString(36).slice(2, 10)
 /** a service computed from the windows (installation, removal, finishing, transport, roof window work) */
@@ -319,7 +319,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       const subs: LineRow[] = (w.subs ?? []).map(sb => ({
         key: nk(), room: '', price_item_id: null, name: sb.title, description: sb.rows.map(([k, v]) => `${k}: ${v}`).join(' · '),
         unit: 'pcs', quantity: w.item.quantity, unit_price: sb.unitPrice, discount_pct: 0, vat_rate: vat,
-        config: { kind: 'sub', parent: u, code: sb.code, title: sb.title, rows: sb.rows, image_url: sb.image_url ?? null, sill: sb.sill ?? null, shade: sb.shade ?? null } as unknown as Record<string, unknown>,
+        config: { kind: 'sub', parent: u, code: sb.code, title: sb.title, rows: sb.rows, image_url: sb.image_url ?? null, sill: sb.sill ?? null, shade: sb.shade ?? null, color: sb.color ?? null } as unknown as Record<string, unknown>,
       }))
       return [win, ...subs]
     })

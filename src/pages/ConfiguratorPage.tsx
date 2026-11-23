@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X, Ban } from 'lucide-react'
+import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X, Ban, Pencil } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -76,7 +76,7 @@ export interface ConfigItem {
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Ponudnik konfiguratorja še ni objavil.',
-    qtyTitle: 'Količina', sizeTitle: 'Mere', forWindow: 'za okno', forDoor: 'za balkonska vrata', forWall: 'za drsno steno', forRoof: 'za strešno okno', ofWindow: 'vašega okna', ofDoor: 'vaših balkonskih vrat', ofWall: 'vaše drsne stene', ofRoof: 'vašega strešnega okna', cBands: 'Kakšna naj bo izvedba', cBandsEnd: '?', cProfile: 'Izberite profilni sistem', cGlass: 'Izberite steklo', cOpening: 'Kako naj se odpirajo krila?', cMaterial: 'Iz katerega materiala naj bo okvir?', cColorOut: 'V kateri barvi naj bo okvir zunaj?', cColorIn: 'V kateri barvi naj bo okvir znotraj?', cHandle: 'Katero kljuko želite?', cSillOut: 'Ali želite zunanjo polico?', cSillIn: 'Ali želite notranjo polico?', cShading: 'Ali želite senčila ali komarnik?', cExtras: 'Ali želite še kakšno dodatno opremo?', cServices: 'Katere storitve potrebujete?', stepSizeWindow: 'Vpišite mere vašega okna', stepSizeDoor: 'Vpišite mere vaših balkonskih vrat', stepSizeWall: 'Vpišite mere vaše drsne stene', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
+    notIncluded: 'Ni vključena', includedTitle: 'Vključeno', qtyTitle: 'Količina', sizeTitle: 'Mere', forWindow: 'za okno', forDoor: 'za balkonska vrata', forWall: 'za drsno steno', forRoof: 'za strešno okno', ofWindow: 'vašega okna', ofDoor: 'vaših balkonskih vrat', ofWall: 'vaše drsne stene', ofRoof: 'vašega strešnega okna', cBands: 'Kakšna naj bo izvedba', cBandsEnd: '?', cProfile: 'Izberite profilni sistem', cGlass: 'Izberite steklo', cOpening: 'Kako naj se odpirajo krila?', cMaterial: 'Iz katerega materiala naj bo okvir?', cColorOut: 'V kateri barvi naj bo okvir zunaj?', cColorIn: 'V kateri barvi naj bo okvir znotraj?', cHandle: 'Katero kljuko želite?', cSillOut: 'Ali želite zunanjo polico?', cSillIn: 'Ali želite notranjo polico?', cShading: 'Ali želite senčila ali komarnik?', cExtras: 'Ali želite še kakšno dodatno opremo?', cServices: 'Katere storitve potrebujete?', stepSizeWindow: 'Vpišite mere vašega okna', stepSizeDoor: 'Vpišite mere vaših balkonskih vrat', stepSizeWall: 'Vpišite mere vaše drsne stene', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
     nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeColor: 'Barva senčila in omarice', shadeColorHint: 'Brez doplačila. Končno barvo potrdimo pri izmeri.', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noShadeDesc: 'Okno ostane brez senčila.', noScreenDesc: 'Okno ostane brez komarnika.', noSillDesc: 'Okno ostane brez police.', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
@@ -109,13 +109,13 @@ const TXT = {
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
-    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Okna lahko uredite ali odstranite, dodate novo okno ali nadaljujete na oddajo.', addToEnquiry: 'Dodaj v povpraševanje', backToEnquiry: 'Nazaj na povpraševanje', summary: 'Povzetek', saveChanges: 'Shrani spremembe', addAnother: 'Dodaj še eno okno', notFinished: 'Ni dokončano', finishWindow: 'Dokončaj', toEnquiry: (n: number) => `Vaše povpraševanje (${n})`, toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
+    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Okna lahko uredite ali odstranite, dodate novo okno ali nadaljujete z oddajo povpraševanja.', addToEnquiry: 'Dodaj v povpraševanje', backToEnquiry: 'Nazaj na povpraševanje', summary: 'Povzetek', saveChanges: 'Shrani spremembe', addAnother: 'Dodaj še eno okno', notFinished: 'Ni dokončano', finishWindow: 'Dokončaj', toEnquiry: (n: number) => `Vaše povpraševanje (${n})`, toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
-    qtyTitle: 'Quantity', sizeTitle: 'Size', forWindow: 'for the window', forDoor: 'for the balcony door', forWall: 'for the sliding wall', forRoof: 'for the roof window', ofWindow: 'your window', ofDoor: 'your balcony door', ofWall: 'your sliding wall', ofRoof: 'your roof window', cBands: 'What version of', cBandsEnd: ' would you like?', cProfile: 'Choose the profile system of', cGlass: 'Choose the glass of', cOpening: 'How should the sashes open?', cMaterial: 'What material should the frame be?', cColorOut: 'What colour should the frame be outside?', cColorIn: 'What colour should the frame be inside?', cHandle: 'Which handle would you like?', cSillOut: 'Would you like an outside sill?', cSillIn: 'Would you like an inside sill?', cShading: 'Would you like shading or an insect screen?', cExtras: 'Would you like any extra equipment?', cServices: 'Which services do you need?', stepSizeWindow: 'Enter the size of your window', stepSizeDoor: 'Enter the size of your balcony door', stepSizeWall: 'Enter the size of your sliding wall', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
+    notIncluded: 'Not included', includedTitle: 'Included', qtyTitle: 'Quantity', sizeTitle: 'Size', forWindow: 'for the window', forDoor: 'for the balcony door', forWall: 'for the sliding wall', forRoof: 'for the roof window', ofWindow: 'your window', ofDoor: 'your balcony door', ofWall: 'your sliding wall', ofRoof: 'your roof window', cBands: 'What version of', cBandsEnd: ' would you like?', cProfile: 'Choose the profile system of', cGlass: 'Choose the glass of', cOpening: 'How should the sashes open?', cMaterial: 'What material should the frame be?', cColorOut: 'What colour should the frame be outside?', cColorIn: 'What colour should the frame be inside?', cHandle: 'Which handle would you like?', cSillOut: 'Would you like an outside sill?', cSillIn: 'Would you like an inside sill?', cShading: 'Would you like shading or an insect screen?', cExtras: 'Would you like any extra equipment?', cServices: 'Which services do you need?', stepSizeWindow: 'Enter the size of your window', stepSizeDoor: 'Enter the size of your balcony door', stepSizeWall: 'Enter the size of your sliding wall', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
     nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeColor: 'Colour of the shading and its box', shadeColorHint: 'No extra charge. We confirm the colour when measuring.', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noShadeDesc: 'The window stays without shading.', noScreenDesc: 'The window stays without an insect screen.', noSillDesc: 'The window stays without a sill.', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
@@ -148,7 +148,7 @@ const TXT = {
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
-    reviewTitle: 'Review your enquiry', reviewHint: 'Edit or remove windows, add another one or continue to send.', addToEnquiry: 'Add to enquiry', backToEnquiry: 'Back to the enquiry', summary: 'Summary', saveChanges: 'Save changes', addAnother: 'Add another window', notFinished: 'Not finished', finishWindow: 'Finish', toEnquiry: (n: number) => `Your enquiry (${n})`, toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
+    reviewTitle: 'Review your enquiry', reviewHint: 'Edit or remove windows, add another one or continue to send your enquiry.', addToEnquiry: 'Add to enquiry', backToEnquiry: 'Back to the enquiry', summary: 'Summary', saveChanges: 'Save changes', addAnother: 'Add another window', notFinished: 'Not finished', finishWindow: 'Finish', toEnquiry: (n: number) => `Your enquiry (${n})`, toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
@@ -204,6 +204,8 @@ export interface ConfiguredSub {
   code: string; title: string; rows: [string, string][]; unitPrice: number
   /** the supplier's photo of the sill / shading, or what to draw instead (sill material / shading kind) */
   image_url?: string | null; sill?: string | null; shade?: string | null
+  /** colour of the shading (hex), drawn as a swatch on the offer */
+  color?: string | null
 }
 export interface ConfiguredWindow { item: ConfigItem; unitPrice: number | null; title: string; rows: [string, string][]; subs?: ConfiguredSub[] }
 
@@ -572,7 +574,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
         config: { kind: 'window', uid, item: x, title: d.title, rows: d.rows, template: data.types.find(t => t.id === x.type_id)?.template ?? null } })
       for (const sb of sp.subs) lines.push({ room: x.label || null, name: sb.title, description: sb.rows.map(([k, v]) => `${k}: ${v}`).join(' · '),
         unit: 'pcs', quantity: x.quantity, unit_price: sb.unitPrice, discount_pct: 0, vat_rate: vat,
-        config: { kind: 'sub', parent: uid, code: sb.code, title: sb.title, rows: sb.rows, image_url: sb.image_url ?? null, sill: sb.sill ?? null, shade: sb.shade ?? null } })
+        config: { kind: 'sub', parent: uid, code: sb.code, title: sb.title, rows: sb.rows, image_url: sb.image_url ?? null, sill: sb.sill ?? null, shade: sb.shade ?? null, color: sb.color ?? null } })
     }
     for (const r of serviceRows) {
       const o = r.option
@@ -604,7 +606,8 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   }
 
   /** title + every choice of a window in words, in the order of the configurator */
-  function describe(x: ConfigItem): { title: string; rows: [string, string][] } {
+  /** full = the review: also says what was NOT chosen (sills, shading, screen) and which work is included */
+  function describe(x: ConfigItem, full = false): { title: string; rows: [string, string][] } {
     const rows: [string, string][] = []
     const add = (l: string, v: string | null | undefined) => { if (v) rows.push([l, v]) }
     if (x.roof) {
@@ -631,10 +634,26 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
       add(T.glassTitle, g ? [g.name, g.ug != null ? `Ug ${Number(g.ug).toFixed(1).replace('.', ',')} W/m²K` : null].filter(Boolean).join(', ') : null)
       const h = handleList.find(hh => hh.id === x.handle) ?? handleList[0]
       add(T.handleTitle, h ? `${h.name}${h.lockable ? ` · ${T.lockable}` : ''}` : null)
-      if (x.shading?.shade) add(T.shadeColor, shadeColorName(shadeColorOf(shadeColors, x.shading?.color), lang))
+      if (!full) { if (x.shading?.shade) add(T.shadeColor, shadeColorName(shadeColorOf(shadeColors, x.shading?.color), lang)) }
+      if (full) {
+        const nameOf = (list: { id: string; name: string }[], id?: string | null) => list.find(y => y.id === id)?.name
+        if (sillList.some(y => y.side === 'outer')) add(T.sillOut, nameOf(sillList, x.sills?.out) ?? T.none)
+        if (sillList.some(y => y.side === 'inner')) add(T.sillIn, nameOf(sillList, x.sills?.in) ?? T.none)
+        if (shadeList.some(y => y.kind === 'shade')) add(T.shadeLabel, nameOf(shadeList, x.shading?.shade) ?? T.none)
+        // the colour belongs to the shading, so it comes right after it
+        if (x.shading?.shade) add(T.shadeColor, shadeColorName(shadeColorOf(shadeColors, x.shading?.color), lang))
+        if (shadeList.some(y => y.kind === 'screen')) add(T.screenLabel, nameOf(shadeList, x.shading?.screen) ?? T.none)
+      }
     } else if (t && hasHingeChoice(t.template)) add(T.hinge, L.hinge[x.hinge])
     const extras = data.options.filter(o => x.option_ids.includes(o.id) && !isService(o)).map(o => o.name)
     add(T.step4, extras.join(', '))
+    if (full && !internal) {
+      // installation and removal are chosen once for the whole enquiry: say plainly whether they are in
+      for (const g of ['installation', 'removal'] as const) {
+        const offered = data.options.filter(o => o.group_key === g)
+        if (offered.length) add(L.groups[g], offered.filter(o => services.includes(o.id)).map(o => o.name).join(', ') || T.notIncluded)
+      }
+    }
     add(T.room, x.label)
     return { title: x.spec ? specName(x.spec) : t?.name ?? '', rows }
   }
@@ -666,6 +685,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
         code, title: o?.name ?? kind, rows: [[T.subKind, kind], ...rows, ...(o?.description ? [[T.subDesc, o.description] as [string, string]] : [])],
         unitPrice: Math.round((p - prev) * 100) / 100,
         image_url: o?.image_url ?? null, sill: isSill ? o?.material ?? null : null, shade: isSill ? null : o?.icon ?? (k === 'screen' ? 'screen_fixed' : 'roller'),
+        color: k === 'shade' ? shadeColorOf(shadeColors, x.shading?.color).hex : null,
       })
       prev = p
     }
@@ -1430,46 +1450,91 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
               </div>}
             </> : stage === 'review' ? (
               /* Review: what the customer is about to send */
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900">{T.yourOrder}</h2>
-                <p className="text-sm text-[#4f4f4f] mt-1 mb-5">{T.reviewHint}</p>
-                <div className="divide-y divide-gray-100 border-t border-gray-100">
-                  {items.map((x, i) => {
-                    const d = describe(x)
-                    const t = data.types.find(tt => tt.id === x.type_id)
-                    const xp = priceOf(x)
-                    return <div key={x.key} className="py-5 grid grid-cols-1 sm:grid-cols-[150px_minmax(0,1fr)_auto] gap-5">
-                      <div className="flex justify-center">
-                        {x.roof ? <RoofWindowDrawing size={110} photo /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={130} showDims photo /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={130} showDims />}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-baseline gap-2 flex-wrap"><span className="text-[13px] font-medium text-[#4f4f4f]">{T.position} {i + 1}</span><span className="text-[15px] font-semibold text-gray-900">{d.title}</span>
-                          {!isDone(x) && <span className="self-center inline-flex items-center h-6 px-2 rounded-md text-xs font-semibold bg-[#fef3cd] text-[#8a6100]">{T.notFinished}</span>}</div>
-                        <dl className="mt-2 grid grid-cols-[minmax(100px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
-                          {d.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
-                          {x.sashWidths && <div className="contents"><dt className="font-medium text-[#4f4f4f]">{T.sashWidths}</dt><dd className="font-medium text-gray-900">{x.sashWidths.map(w => `${w} mm`).join(' · ')}</dd></div>}
-                        </dl>
-                      </div>
-                      <div className="sm:text-right flex sm:flex-col justify-between gap-2">
-                        {show && <div><div className="text-sm font-medium text-[#4f4f4f]">{x.quantity > 1 || internal ? `${x.quantity} × ` : ""}{xp != null ? money(xp, cur) : T.noPrice}</div><div className="text-[17px] font-semibold text-gray-900">{xp != null ? money(xp * x.quantity, cur) : ''}</div></div>}
-                        <div className="flex items-center gap-2 self-start sm:self-end">
+              <div className="flex flex-col gap-4">
+                <div className="px-1">
+                  <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900">{T.yourOrder}</h2>
+                  <p className="text-sm text-[#4f4f4f] mt-1">{T.reviewHint}</p>
+                </div>
+                {items.map((x, i) => {
+                  const d = describe(x, true)
+                  const t = data.types.find(tt => tt.id === x.type_id)
+                  const xp = priceOf(x)
+                  return <div key={x.key} className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-[176px_minmax(0,1fr)] gap-5">
+                    <div className="flex items-center justify-center rounded-xl bg-[#f7f8fa] min-h-[168px] py-4">
+                      {x.roof ? <RoofWindowDrawing size={120} photo /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={140} showDims photo /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={140} showDims />}
+                    </div>
+                    <div className="min-w-0 flex flex-col">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-medium text-[#4f4f4f]">{T.position} {i + 1}</div>
+                          <div className="text-[17px] leading-6 font-semibold text-gray-900">{d.title}</div>
+                          {!isDone(x) && <span className="mt-1 inline-flex items-center h-6 px-2 rounded-md text-xs font-semibold bg-[#fef3cd] text-[#8a6100]">{T.notFinished}</span>}
+                        </div>
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                        <div className="flex items-center gap-2">
                           <button type="button" onClick={() => { setActive(i); setStage('config'); window.scrollTo({ top: 0 }) }}
-                            className="h-9 px-3.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors">{isDone(x) ? T.editWindow : T.finishWindow}</button>
+                            className="h-9 px-3 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-900 hover:border-gray-400 transition-colors inline-flex items-center gap-1.5"><Pencil className="w-3.5 h-3.5" />{isDone(x) ? T.editWindow : T.finishWindow}</button>
                           {items.length > 1 && <button type="button" onClick={() => setAskRemove(i)} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
                             className="w-9 h-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-[#5f5f5f] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>}
                         </div>
+                        </div>
                       </div>
+                      {(() => {
+                        // like on the offer: profile, size, colours, glass, handle as text; sills, shading and the insect screen as rows of their own
+                        const sp = split(x)
+                        // the window alone: sills and shading are priced in their own rows below
+                        const own = x.spec && !x.roof ? sp.unitPrice : xp
+                        const picked = new Set([T.sillOut, T.sillIn, T.shadeLabel, T.shadeColor, T.screenLabel])
+                        const rows = x.spec && !x.roof ? d.rows.filter(([k]) => !picked.has(k)) : d.rows
+                        const without = x.spec && !x.roof ? d.rows.filter(([k, v]) => picked.has(k) && v === T.none).map(([k]) => k) : []
+                        return <>
+                          <div className="mt-3 flex items-start justify-between gap-4">
+                          <dl className="grid grid-cols-[minmax(96px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm flex-1 min-w-0">
+                            {rows.map(([k, v]) => <div key={k} className="contents"><dt className="text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
+                            {x.sashWidths && <div className="contents"><dt className="text-[#4f4f4f]">{T.sashWidths}</dt><dd className="font-medium text-gray-900">{x.sashWidths.map(w => `${w} mm`).join(' · ')}</dd></div>}
+                          </dl>
+                          {show && own != null && <div className="text-right shrink-0">
+                            <div className="text-[17px] leading-5 font-semibold text-gray-900 tabular-nums">{money(own * x.quantity, cur)}</div>
+                            {x.quantity > 1 && <div className="text-[13px] leading-4 text-[#4f4f4f] mt-0.5">{x.quantity} × {money(own, cur)}</div>}
+                          </div>}
+                          </div>
+                          {sp.subs.length > 0 && <ul className="mt-4 space-y-2">
+                            {sp.subs.map(sb => <li key={sb.code} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-[#fafafa] p-2.5">
+                              <span className="w-12 h-12 shrink-0 rounded-lg bg-white border border-gray-100 flex items-center justify-center overflow-hidden">
+                                {sb.image_url ? <img src={sb.image_url} alt="" className="max-h-full max-w-full object-contain" />
+                                  : sb.sill != null ? <SillIcon material={sb.sill} size={44} />
+                                  : sb.shade ? <ShadingIcon kind={sb.shade} size={44} /> : null}
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm leading-5 font-medium text-gray-900">{(() => { const kind = sb.rows.find(([k]) => k === T.subKind)?.[1]; return kind ? `${kind}: ${sb.title}` : sb.title })()}</span>
+                                <span className="block text-[13px] leading-5 text-[#4f4f4f] truncate">{sb.rows.filter(([k]) => k !== T.subKind && !(sb.color && k === T.shadeColor)).map(([k, v]) => k === T.subDesc ? v : `${k}: ${v}`).join(' · ')}</span>
+                                {sb.color && <span className="flex items-center gap-1.5 text-[13px] leading-5 text-[#4f4f4f]"><span className="w-3 h-3 shrink-0 rounded-[3px] border border-black/10" style={{ background: sb.color }} />{sb.rows.filter(([k]) => k === T.shadeColor).map(([k, v]) => `${k}: ${v}`).join('')}</span>}
+                              </span>
+                              {show && <span className="text-sm font-medium text-gray-900 tabular-nums whitespace-nowrap">+ {money(sb.unitPrice * x.quantity, cur)}</span>}
+                            </li>)}
+                          </ul>}
+                          {without.length > 0 && <div className="mt-2 text-[13px] text-[#8a8a8a]">{without.map(k => `${k}: ${T.none}`).join(' · ')}</div>}
+                        </>
+                      })()}
+                      {show && <div className="mt-auto pt-4">
+                        <div className="mt-4 pt-3 border-t border-gray-100 flex items-baseline justify-between gap-3">
+                          <span className="text-sm text-[#4f4f4f]">{x.quantity > 1 || internal ? `${x.quantity} × ${xp != null ? money(xp, cur) : T.noPrice}` : T.positionPrice}</span>
+                          <span className="text-[20px] leading-7 font-semibold tracking-[-0.01em] text-gray-900 tabular-nums">{xp != null ? money(xp * x.quantity, cur) : ''}</span>
+                        </div>
+                      </div>}
                     </div>
-                  })}
-                </div>
+                  </div>
+                })}
                 <button type="button" onClick={() => { addItem(false); setStage('config'); window.scrollTo({ top: 0 }) }}
-                  className="mt-1 mb-5 w-full h-12 rounded-xl border border-dashed border-gray-300 text-[15px] font-semibold text-gray-900 flex items-center justify-center gap-2 hover:border-gray-500 transition-colors"><Plus className="w-4 h-4" strokeWidth={2.5} />{T.addAnother}</button>
-                {serviceRows.length > 0 && <div className="border-t border-gray-100 pt-4">
-                  <div className="text-sm font-semibold text-gray-900 mb-2">{T.servicesTitle}</div>
-                  {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm py-1">
-                    <span className="font-medium text-gray-900">{r.option.name}</span>
-                    {show && <span className="font-medium text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
-                  </div>)}
+                  className="w-full h-12 rounded-xl border border-dashed border-gray-300 bg-white text-[15px] font-semibold text-gray-900 flex items-center justify-center gap-2 hover:border-gray-500 transition-colors"><Plus className="w-4 h-4" strokeWidth={2.5} />{T.addAnother}</button>
+                {serviceRows.length > 0 && <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
+                  <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-2">{T.servicesTitle}</div>
+                  <div className="divide-y divide-gray-100">
+                    {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm py-2.5">
+                      <span className="font-medium text-gray-900">{r.option.name}</span>
+                      {show && <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(r.total, cur)}</span>}
+                    </div>)}
+                  </div>
                 </div>}
               </div>
             ) : (
@@ -1542,6 +1607,8 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                 const sp = split(it)
                 const txt = (v: number | null) => v == null ? T.noPrice : show ? money(v, cur) : showRange ? priceRange(v) : '—'
                 const priced = show || showRange
+                // services chosen for THIS position (the other windows come together on the review)
+                const svc = !internal && show && p != null ? serviceRowsOf([it]).reduce((acc, r) => acc + r.total, 0) : 0
                 return <div className="mt-3 border-t border-gray-100 pt-3">
                   <div className="text-sm font-semibold text-gray-900">{T.position} {active + 1}{it.label ? ` · ${it.label}` : ''}</div>
                   {priced && <div className="mt-2 space-y-1.5 text-sm">
@@ -1550,19 +1617,23 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                     {sp.subs.length > 0 && <div className="flex justify-between gap-3 border-t border-gray-100 pt-1.5"><span className="text-[#4f4f4f]">{T.unit}</span><span className="font-medium text-gray-900 tabular-nums">{txt(p)}</span></div>}
                     {(internal || it.quantity > 1) && <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.qty}</span><span className="font-medium text-gray-900 tabular-nums">× {it.quantity}</span></div>}
                   </div>}
-                  <div className="flex items-baseline justify-between gap-3 mt-3 pt-3 border-t border-gray-200">
-                    <span className="text-[15px] font-semibold text-gray-900">{T.positionPrice}</span>
-                    <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priced ? txt(p != null ? p * it.quantity : null) : '—'}</span>
-                  </div>
-                  <p className="text-[13px] text-[#4f4f4f] mt-1">{priced ? T.positionNote : hiddenPriceText}</p>
-                  {!internal && show && p != null && (() => {
-                    // only this position: its price and the services for it; the other windows come together on the review
-                    const svc = serviceRowsOf([it]).reduce((acc, r) => acc + r.total, 0)
-                    return svc > 0 ? <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5 text-sm">
+                  {svc > 0 ? <>
+                    {/* with services the final price is the big one; the price of the window alone becomes a row */}
+                    <div className="mt-3 pt-3 border-t border-gray-200 space-y-1.5 text-sm">
+                      <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.positionPrice}</span><span className="font-medium text-gray-900 tabular-nums">{txt(p != null ? p * it.quantity : null)}</span></div>
                       <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.servicesTitle}</span><span className="font-medium text-gray-900 tabular-nums">+ {money(svc, cur)}</span></div>
-                      <div className="flex justify-between gap-3"><span className="text-[15px] font-semibold text-gray-900">{T.total}</span><span className="text-[15px] font-semibold text-gray-900 tabular-nums">{money(p * it.quantity + svc, cur)}</span></div>
-                    </div> : null
-                  })()}
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3 mt-3 pt-3 border-t border-gray-200">
+                      <span className="text-[15px] font-semibold text-gray-900">{T.total}</span>
+                      <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money((p ?? 0) * it.quantity + svc, cur)}</span>
+                    </div>
+                  </> : <>
+                    <div className="flex items-baseline justify-between gap-3 mt-3 pt-3 border-t border-gray-200">
+                      <span className="text-[15px] font-semibold text-gray-900">{T.positionPrice}</span>
+                      <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priced ? txt(p != null ? p * it.quantity : null) : '—'}</span>
+                    </div>
+                    <p className="text-[13px] text-[#4f4f4f] mt-1">{priced ? T.positionNote : hiddenPriceText}</p>
+                  </>}
                 </div>
               })()}
             </div>}
