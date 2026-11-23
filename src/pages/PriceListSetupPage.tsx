@@ -11,7 +11,6 @@ import Button from '../components/ui/Button'
 import NumberInput from '../components/ui/NumberInput'
 import Checkbox from '../components/ui/Checkbox'
 import { PageHeader } from '../components/ui/PageHeader'
-import WindowDrawing from '../components/WindowDrawing'
 import ProfileSection from '../components/ProfileSection'
 import { costWindow, layoutFor, pricingFrom, makeSpec, makeSlidingSpec, allCombos, comboKey, bandKeysFor, BAND_SHAPE, allVariants, allowedVariants, offerKey, type BuilderKind, allowedCombos, makeWallSpec, applyVariant, SAMPLE_PROFILE_PRICES, type PricingSettings, type ProfilePrices, type Offer, type WindowSpec, type BandKey } from '../lib/costing'
 import SpecDrawing from '../components/SpecDrawing'
@@ -862,18 +861,18 @@ export default function PriceListSetupPage() {
             {/* product categories, like the start page of a window shop */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
               {([
-                ['windows', T.catWindows, <SpecDrawing key="w" spec={makeSpec(2)} width={1200} height={1300} size={104} plain />],
-                ['slidingWindows', T.catSlidingWindows, <SpecDrawing key="sw" spec={makeSlidingSpec()} width={1600} height={1200} size={110} plain />],
-                ['doors', T.catDoors, <WindowDrawing key="d" template="door" width={900} height={2100} size={104} plain />],
-                ['sliding', T.catSliding, <WindowDrawing key="s" template="lift_slide" width={2400} height={2100} size={110} plain />],
-                ['roof', T.catRoof, <RoofWindowDrawing key="r" size={104} />],
+                ['windows', T.catWindows, <SpecDrawing key="w" spec={{ ...makeSpec(2), main: [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }] }} width={1300} height={1300} size={122} plain photo />],
+                ['slidingWindows', T.catSlidingWindows, <SpecDrawing key="sw" spec={makeSlidingSpec()} width={1600} height={1200} size={160} plain photo />],
+                ['doors', T.catDoors, <SpecDrawing key="d" spec={makeSpec(1, 'none', 'none', 'turn')} width={900} height={2200} size={128} plain photo />],
+                ['sliding', T.catSliding, <SpecDrawing key="s" spec={makeSpec(2, 'none', 'none', 'fixed')} width={1800} height={2200} size={140} plain photo />],
+                ['roof', T.catRoof, <RoofWindowDrawing key="r" size={132} photo />],
               ] as [keyof Offer, string, React.ReactNode][]).map(([k, label, pic]) => {
                 const on = !!offer[k]
                 return <button key={k} type="button" disabled={!canEdit} onClick={() => setOffer({ [k]: !on } as Partial<Offer>)}
-                  className={cn('relative rounded-xl border p-3 text-left transition-colors', on ? SEL_ON : SEL_OFF)}>
+                  className={cn('relative rounded-xl border px-4 pt-5 pb-4 text-left transition-colors', on ? SEL_ON : SEL_OFF)}>
                   {on && <SelBadge />}
-                  <div className="h-[128px] flex items-center justify-center rounded-lg bg-gray-50">{pic}</div>
-                  <div className="mt-3 text-[15px] font-medium text-gray-900">{label}</div>
+                  <div className="h-[140px] flex items-end justify-center">{pic}</div>
+                  <div className="mt-4 text-[15px] leading-[22px] font-medium text-gray-900">{label}</div>
                 </button>
               })}
             </div>
@@ -1876,7 +1875,7 @@ function Fold({ open, onToggle, title, summary, pic, children }: { open: boolean
 }
 
 // Selected card: blue outline, light blue tint and a check badge in the corner (same everywhere)
-const SEL_ON = 'border-[#131313] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+const SEL_ON = 'border-[#131313] bg-[#f5f5f5] shadow-[inset_0_0_0_1px_#131313]'
 const SEL_OFF = 'border-gray-200 bg-white hover:border-gray-300'
 function SelBadge() {
   return <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center shadow-sm"><Check className="w-3 h-3" strokeWidth={3} /></span>
@@ -1884,11 +1883,11 @@ function SelBadge() {
 
 function Step({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-xl border border-gray-200 p-6">
-      <div className="flex items-start gap-3 mb-5">
-        <span className="w-7 h-7 mt-px rounded-full bg-[#131313] text-white text-[13px] font-semibold flex items-center justify-center shrink-0">{n}</span>
+    <section className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-7">
+      <div className="flex items-start gap-3 mb-6">
+        <span className="w-7 h-7 mt-0.5 rounded-full bg-white text-gray-900 ring-1 ring-inset ring-[#d4d4d4] text-[13px] font-semibold flex items-center justify-center shrink-0">{n}</span>
         <div>
-          <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 leading-7">{title}</h2>
+          <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900">{title}</h2>
           <p className="text-sm leading-[22px] text-[#4f4f4f] mt-0.5 max-w-3xl">{hint}</p>
         </div>
       </div>

@@ -234,6 +234,12 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   // Window configurator inside the quote: the same data and prices as the customer's configurator
   const [cfg, setCfg] = useState<ConfigData | null>(null)
   const [cfgOpen, setCfgOpen] = useState<null | { key?: string; items?: ConfigItem[] }>(null)
+  useEffect(() => {
+    if (!cfgOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCfgOpen(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [cfgOpen])
   // services the user picked (the rest — work on sills, shading … — follows the installation by itself)
   const [chosenServices, setChosenServices] = useState<string[]>([])
   // the profiles at their purchase prices: the open calculation of every window is worked out from them
@@ -426,7 +432,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       return [...sv.filter(x => !same.includes(x)), o.id]
     })
   }
-  const grouped = rooms.length > 1 || !!rooms[0]
+  // general items are one plain list: no rooms
+  const grouped = false
 
   function patchLine(key: string, patch: Partial<LineRow>) { setLines(ls => ls.map(l => l.key === key ? { ...l, ...patch } : l)) }
   function removeLine(key: string) {
@@ -452,11 +459,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
   const areas = roomAreas(room.length ?? 0, room.width ?? 0, room.height ?? 0, room.openings ?? 0)
   const m2Items = priceItems.filter(p => p.unit === 'm2')
-  // Windows: a room is just a named group of positions (no wall/ceiling calculator)
-  function addEmptyRoom() {
-    const name = `${o.room} ${rooms.filter(r => r).length + 1}`
-    setLines(ls => [...ls.filter(l => l.name.trim() || l.quantity || l.unit_price), blankLine(name, currentVat())])
-  }
   function addRoom() {
     const name = room.name.trim() || `${o.room} ${rooms.filter(r => r).length + 1}`
     const vat = currentVat()
@@ -945,6 +947,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 </div>
               </div>
             })}
+            <Button variant="secondary" size="sm" className="gap-1.5" onClick={() => { addLine(''); setTimeout(() => document.getElementById('general-lines')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }}><Plus className="w-3.5 h-3.5" />{lang === 'en' ? 'Add another service' : 'Dodaj drugo storitev'}</Button>
           </div>}
           {serviceLines.length > 0 && <div className="divide-y divide-gray-100">
             {serviceLines.map((l, i) => (
@@ -961,10 +964,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         </div> : null}
 
         {/* ── Lines ─────────────────────────────────────── */}
-        <div className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
+        <div id="general-lines" className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
           <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
             <h2 className="text-base font-semibold text-gray-900">{o.lines}</h2>
-            {!ro && <Button variant="secondary" size="sm" onClick={addEmptyRoom} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addRoom}</Button>}
+            {!ro && <Button variant="secondary" size="sm" onClick={() => addLine('')} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{lang === 'en' ? 'Add item' : 'Dodaj postavko'}</Button>}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[960px]">
@@ -1148,6 +1151,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               <span className="text-[15px] font-semibold text-gray-900">{sl ? 'Skupaj z DDV' : 'Total incl. VAT'}</span>
               <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.total_gross)}</span>
             </div>
+            {advanceGross != null && <div className="flex justify-between text-[#4f4f4f]"><span>{sl ? `Popust ob 100 % avansu (${(advancePct ?? 0).toLocaleString('de-DE')} %)` : `Discount for 100% advance (${(advancePct ?? 0).toLocaleString('de-DE')}%)`}</span><span className="tabular-nums">− {money(totals.total_gross - advanceGross)}</span></div>}
             {advanceGross != null && <div className="flex justify-between text-[#267a47] font-medium"><span>{sl ? 'Skupaj ob 100% avansu' : 'Total with 100% advance'}</span><span className="tabular-nums">{money(advanceGross)}</span></div>}
           </div>
         </div>
@@ -1178,9 +1182,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       {cfgOpen && cfg && (
         <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
           <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-            <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-              <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900">{cfgOpen.key ? o.editWindow : o.addWindow}</h2>
-              <button type="button" onClick={() => setCfgOpen(null)} className="p-1.5 rounded-lg text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100"><X className="w-5 h-5" /></button>
+            <div className="w-full px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+              <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900">{cfgOpen.key ? (lang === 'en' ? 'Editing the window' : 'Urejanje okna') : (lang === 'en' ? 'New window' : 'Novo okno')}</h2>
+              <button type="button" onClick={() => setCfgOpen(null)} className="h-9 px-4 rounded-[10px] border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:border-gray-400 transition-colors shrink-0">{lang === 'en' ? 'Back to the quote' : 'Nazaj na ponudbo'}</button>
             </div>
           </div>
           <ConfiguratorCore data={cfg} mode="internal" initialItems={cfgOpen.items} onCancel={() => setCfgOpen(null)}

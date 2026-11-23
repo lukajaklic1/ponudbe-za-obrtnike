@@ -2,7 +2,7 @@ import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { THEME_FONTS } from '../lib/configuratorTheme'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X, Ban, Pencil } from 'lucide-react'
+import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, Ban, Pencil } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -101,7 +101,7 @@ const TXT = {
     step1: 'Tip okna', step2: 'Profilni sistem', step3: 'Mere in odpiranje', step4: 'Oprema', step5: 'Storitve',
     stepProduct: 'Kaj želite kupiti?', stepProductHint: 'Izberite vrsto izdelka, ki ga želite kupiti.',
     hSashes: 'Krilo je del okna ali vrat, ki se odpira.', hParts: 'Iz koliko delov naj bo drsna stena?', hRoof: 'Izberite model strešnega okna, material in mero.',
-    hSize: 'Natančno izmero opravimo pred izdelavo, zato lahko vnesete približne mere.', hQty: 'Koliko enakih strešnih oken potrebujete?',
+    hSize: 'Natančna izmera bo opravljena pred izdelavo, zato lahko vnesete približne mere.', hQty: 'Koliko enakih strešnih oken potrebujete?',
     hBands: 'Ali ima okno nad krili (nadsvetloba) ali pod njimi še poseben del?', hMaterial: 'Iz katerega materiala naj bo okvir okna?',
     hProfile: 'Profil določa toplotno izolacijo in videz okvirja. Cena se ob vsakem profilu spremeni.', hColor: 'Barva okvirja zunaj in znotraj. Lahko sta različni.', colorOutTitle: 'Barva okvirja zunaj', colorInTitle: 'Barva okvirja znotraj',
     hColorOut: 'Barva, ki jo vidite s ceste (zunanja stran okna).', hColorIn: 'Barva, ki jo vidite v prostoru (notranja stran okna). Lahko je drugačna kot zunaj.',
@@ -524,16 +524,6 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     }
     return next
   }))
-  /** the customer types the sashes' widths: all but the last, which fills the rest */
-  function setSashWidth(j: number, v: number | null) {
-    if (!it.spec || !it.width) return
-    const n = it.spec.main.length
-    const cur = it.sashWidths && it.sashWidths.length === n ? [...it.sashWidths] : Array.from({ length: n }, () => Math.round(it.width! / n))
-    cur[j] = v ?? 0
-    cur[n - 1] = Math.max(0, it.width - cur.slice(0, n - 1).reduce((a, b) => a + b, 0))
-    update({ sashWidths: cur })
-  }
-
   function pickType(t: WindowType) {
     const keepSystem = data!.combos.some(c => c.system_id === it.system_id && c.type_id === t.id)
     const d = defaultItem(data!, t.id)
@@ -790,8 +780,6 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   const finish = () => { setStage('review'); window.scrollTo({ top: 0 }) }
   /** a window's sizes show once the customer reached the size step (not on the first steps, before they chose anything) */
   const dimsOn = (x: ConfigItem) => editingExisting || stage !== 'config' || (x.key === it.key ? (unlockIdx < 0 || reached >= unlockIdx) : (reachedMap[x.key] ?? 0) >= (x.roof ? 1 : 2))
-  /** a window's own price can show once its sizes were entered (each window on its own) */
-  const itemPriced = (x: ConfigItem) => editingExisting || stage !== 'config' || (x.key === it.key ? pricesOn : (reachedMap[x.key] ?? 0) > (x.roof ? 1 : 2))
   const hiddenPriceText = (showLive || showRangeLive) && !pricesOn ? T.pricesAfterSize : priceMode === 'end' ? T.pricesAtEnd : T.pricesHidden
   function setOpen(id: string) {
     const i = id === 'none' ? 99 : stepIds.indexOf(id)
@@ -936,54 +924,8 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
             className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
         </div>
       ) : (
-        <div className={cn('w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start', internal ? 'xl:grid-cols-[360px_minmax(0,1fr)_380px]' : 'max-w-[1480px] mx-auto')}>
+        <div className={cn('w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start', 'max-w-[1480px] mx-auto')}>
           {/* The order at a glance (wide screens): the windows, one line of services, the final price */}
-          {internal && <aside className="hidden xl:flex xl:flex-col xl:sticky xl:top-[100px] bg-white border border-gray-200 rounded-xl p-5 max-h-[calc(100vh-116px)] overflow-y-auto">
-            <div className="text-base font-semibold text-gray-900">{T.quoteWindows}</div>
-            <p className="text-[13px] leading-5 text-[#4f4f4f] mt-1 mb-5">{T.quoteWindowsHint}</p>
-            <div className="space-y-2">
-              {items.map((x, i) => {
-                const t = data.types.find(tt => tt.id === x.type_id)
-                const xp = priceOf(x)
-                const on = i === active && stage === 'config'
-                return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
-                  className={cn('group relative w-full rounded-xl border p-2.5 flex items-center gap-3.5 cursor-pointer transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
-                  // the window being configured: a clear black outline (inline, so it wins over the soft card border)
-                  style={on ? { borderColor: 'var(--cfg-button, #131313)', boxShadow: '0 0 0 1px var(--cfg-button, #131313), 0 1px 3px rgba(16,24,40,.08)' } : undefined}>
-                  <div className="w-[112px] h-[104px] flex items-center justify-center shrink-0">
-                    {x.roof ? <RoofWindowDrawing size={92} photo /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim plain photo /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
-                  </div>
-                  <div className="flex-1 min-w-0 pr-8">
-                    <div className="text-[15px] font-semibold text-gray-900 leading-snug">{x.quantity > 1 ? `${x.quantity} × ` : ''}{x.roof ? T.roofWindow : x.spec ? specName(x.spec) : t?.name}</div>
-                    {dimsOn(x) && <div className="text-[13px] font-medium text-[#8a8a8a] mt-0.5">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width ?? '—'} × ${x.height ?? '—'} mm`}</div>}
-                    {x.label && <div className="text-[13px] font-medium text-[#4f4f4f] break-words">{x.label}</div>}
-                    <div className="text-[15px] font-semibold text-gray-900 tabular-nums mt-1.5">{xp == null || !itemPriced(x) ? '' : showLive ? money(xp * x.quantity, cur) : showRangeLive ? priceRange(xp * x.quantity) : ''}</div>
-                  </div>
-                  {items.length > 1 && <button type="button" onClick={e => { e.stopPropagation(); setAskRemove(i) }} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-[#5f5f5f] hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>}
-                </div>
-              })}
-            </div>
-            <button type="button" onClick={() => addItem(false)} className="mt-3 w-full h-12 rounded-xl bg-[#131313] text-white text-[15px] font-semibold flex items-center justify-center gap-2 hover:bg-black transition-colors"><Plus className="w-4 h-4" strokeWidth={2.5} />{T.addWindow}</button>
-            {serviceRows.length > 0 && <div className="mt-4 text-[13px] font-medium text-[#8a8a8a]">
-              {T.servicesTitle}: <span className="text-gray-900">{serviceRows.map(r => r.option.name).join(', ')}</span>
-            </div>}
-            {/* the final price of the whole order */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              {show ? <div className="flex items-baseline justify-between gap-3">
-                <span className="text-[15px] font-semibold text-gray-900">{T.gross}</span>
-                <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.gross, cur)}</span>
-              </div> : showRange ? <div>
-                <div className="text-[15px] font-semibold text-gray-900">{T.rangeTitle}</div>
-                <div className="text-[22px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priceRange(totals.gross)}</div>
-              </div> : <p className="text-[13px] font-medium text-[#8a8a8a]">{hiddenPriceText}</p>}
-            </div>
-            {!internal && <>
-              <button type="button" disabled={!canFinish} onClick={finish}
-                className="mt-4 w-full h-12 rounded-xl text-[15px] font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{finishLabel}</button>
-              <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>
-            </>}
-          </aside>}
 
           {/* Main column */}
           <div className="flex flex-col gap-4 min-w-0">
@@ -993,17 +935,6 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
               {/* back to the enquiry only once there is one: after the first window was finished and the review was seen */}
               {!internal && seenReview && <button type="button" onClick={finish}
                 className="self-start inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-[10px] border border-gray-200 bg-white text-sm font-semibold text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-gray-400 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToEnquiry}</button>}
-              {/* Position tabs (wide screens: adding, picking and removing windows is in the summary on the left) */}
-              <div className={cn('gap-1.5 overflow-x-auto pb-1', internal ? 'flex xl:hidden' : 'hidden')}>
-                {items.map((x, i) => <div key={x.key} className={cn('shrink-0 h-9 pl-3.5 rounded-[10px] text-sm font-medium border transition-colors flex items-center', items.length > 1 ? 'pr-1' : 'pr-3.5', i === active ? 'text-white border-transparent' : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400')}
-                  style={i === active ? btn : undefined}>
-                  <button type="button" onClick={() => setActive(i)} className="h-full">{T.position} {i + 1}{x.label ? ` · ${x.label}` : ''}</button>
-                  {items.length > 1 && <button type="button" onClick={() => setAskRemove(i)} title={T.remove} aria-label={`${T.remove} ${T.position} ${i + 1}`}
-                    className={cn('ml-1 w-7 h-7 rounded-md flex items-center justify-center transition-colors', i === active ? 'hover:bg-white/15' : 'text-[#8a8a8a] hover:text-gray-900 hover:bg-[#f1f1f1]')}><X className="w-3.5 h-3.5" /></button>}
-                </div>)}
-                <button onClick={() => addItem(false)} className="shrink-0 h-9 px-3.5 rounded-[10px] text-sm font-medium border border-dashed border-gray-300 text-gray-900 hover:border-gray-500 flex items-center gap-1.5 transition-colors"><Plus className="w-3.5 h-3.5" />{T.addWindow}</button>
-              </div>
-
               {renderStep('product', T.stepProduct, groupLabel, <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {offer?.windows && !!(offer.sashes ?? []).length && prodCard('windows', T.grpWindows, <SpecDrawing spec={{ ...makeSpec(2), main: [{ opening: 'passive', hinge: 'left' }, { opening: 'tilt_turn', hinge: 'right' }] }} width={1300} height={1300} size={122} plain photo />,
                   () => pickSashes(spec && !spec.kind ? spec.sashes : (offer.sashes ?? []).includes(2) ? 2 : [...(offer.sashes ?? [])].sort()[0]), 'variant')}
@@ -1106,27 +1037,6 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                   {!roofSel && <MmInput label={T.width} value={it.width} onChange={v => update({ width: v, ...(it.sashWidths && it.width && v ? { sashWidths: it.sashWidths.map(x => Math.round(x * v / it.width!)) } : {}) })} min={range.min_width} max={range.max_width} rangeLabel={T.range} />}
                   {!roofSel && <MmInput label={T.height} value={it.height} onChange={v => update({ height: v })} min={range.min_height} max={range.max_height} rangeLabel={T.range} />}
                   {!roofSel && <div className="sm:col-span-2 rounded-lg bg-[#f4f4f4] px-3.5 py-2.5 text-[13px] leading-5 text-[#4f4f4f]">{T.hSize}</div>}
-                  {/* width of each sash: all but the last one, which takes what is left */}
-                  {/* sash widths only in a quote: customers get equal sashes */}
-                  {internal && spec && !slidingKind(spec) && spec.main.length > 1 && it.width ? (() => {
-                    const n = spec.main.length
-                    const ws = it.sashWidths && it.sashWidths.length === n ? it.sashWidths : Array.from({ length: n }, () => Math.round(it.width! / n))
-                    const bad = ws.some(x => x < 300)
-                    return <div className="sm:col-span-2">
-                      <SubHead title={T.sashWidths} />
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {ws.map((x, j) => j < n - 1
-                          ? <MmInput key={j} label={T.sashN(j + 1)} value={x} onChange={v => setSashWidth(j, v)} min={300} max={Math.max(300, it.width! - 300 * (n - 1))} rangeLabel={T.range} />
-                          : <div key={j} className="flex flex-col gap-1">
-                              <label className="text-sm font-semibold text-gray-900">{T.sashN(j + 1)}</label>
-                              <div className={cn('flex items-center h-10 rounded-lg border bg-[#fafafa] px-3 text-sm text-gray-900', x < 300 ? 'border-red-400' : 'border-gray-200')}>{x}<span className="ml-auto text-[#4f4f4f]">mm</span></div>
-                              <span className="text-[13px] text-[#4f4f4f]">{T.sashRest}</span>
-                            </div>)}
-                      </div>
-                      {bad && <p className="text-[13px] text-red-600 mt-1">{T.sashTooNarrow}</p>}
-                      {it.sashWidths && <button type="button" onClick={() => update({ sashWidths: null })} className="mt-2 text-sm font-medium text-gray-900 hover:underline">{T.sashEqual}</button>}
-                    </div>
-                  })() : null}
                   {!showBands && spec && spec.top !== 'none' && <MmInput label={T.topHeight} value={Math.round((it.height ?? 0) * spec.topRatio)} onChange={v => v && it.height && setSpec({ ...spec, topRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {!showBands && spec && spec.bottom !== 'none' && <MmInput label={T.bottomHeight} value={Math.round((it.height ?? 0) * spec.bottomRatio)} onChange={v => v && it.height && setSpec({ ...spec, bottomRatio: clamp(v / it.height, 0.1, 0.5) })} min={Math.round((it.height ?? 0) * 0.1)} max={Math.round((it.height ?? 0) * 0.5)} rangeLabel={T.range} />}
                   {type && hasHingeChoice(type.template) && <div className="flex flex-col gap-1">
@@ -1135,16 +1045,6 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                       {(['left', 'right'] as Hinge[]).map(h => <button key={h} onClick={() => update({ hinge: h })}
                         className={cn('h-10 rounded-lg border px-3 text-sm font-medium bg-white transition-colors', it.hinge === h ? 'text-white border-transparent' : 'border-gray-200 text-gray-900 hover:border-gray-400')}
                         style={it.hinge === h ? btn : undefined}>{L.hinge[h]}</button>)}
-                    </div>
-                  </div>}
-                  {/* quantity only when the supplier makes a quote; customers configure window by window (and can duplicate one) */}
-                  {internal && <div className="flex flex-col gap-1">
-                    <label className="text-sm font-semibold text-gray-900">{T.qty}</label>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => update({ quantity: Math.max(1, it.quantity - 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">−</button>
-                      <input type="number" min={1} max={100} value={it.quantity} onChange={e => update({ quantity: clamp(Number(e.target.value) || 1, 1, 100) })}
-                        className="w-16 h-10 text-center rounded-lg border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      <button onClick={() => update({ quantity: Math.min(100, it.quantity + 1) })} className="w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-900 text-base hover:border-gray-400 transition-colors">+</button>
                     </div>
                   </div>}
                   <div className="flex flex-col gap-1 sm:col-span-2">
@@ -1674,25 +1574,9 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
               })()}
             </div>}
 
-            <div className={cn('bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'hidden')}>
-              <div className={cn('text-base font-semibold text-gray-900', internal || stage !== 'config' ? 'mb-2' : '')}>{internal ? T.inQuote : T.summary}</div>
+            <div className={cn(internal ? '' : 'bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'hidden')}>
+              {!internal && <div className={cn('text-base font-semibold text-gray-900', stage !== 'config' ? 'mb-2' : '')}>{T.summary}</div>}
               {!internal && stage === 'config' && <p className="text-[13px] leading-5 text-[#4f4f4f] mt-1 mb-4">{T.yourOrderHint}</p>}
-              <ul className={cn('divide-y divide-gray-100', internal ? 'xl:hidden' : 'hidden')}>
-                {items.map((x, i) => {
-                  const t = data.types.find(tt => tt.id === x.type_id)
-                  const xp = priceOf(x)
-                  return <li key={x.key}>
-                    <button onClick={() => { setActive(i); setStage('config') }} className="w-full flex items-center gap-3 py-2 text-left">
-                      <div className="w-10 flex justify-center shrink-0">{x.roof ? <RoofWindowDrawing size={36} /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={36} /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={36} />}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className={cn('text-sm font-medium truncate', i === active && stage === 'config' ? 'text-gray-900' : 'text-[#4f4f4f]')}>{x.quantity > 1 || internal ? `${x.quantity} × ` : ''}{x.roof ? (() => { const m = roofCat?.models.find(mm => mm.id === x.roof!.model); const v = m?.variants?.find(vv => vv.id === x.roof!.variant); return `${T.roofWindow} · ${[m?.brand, m?.name].filter(Boolean).join(' ')}${v ? ` · ${v.name}` : ''}` })() : x.spec ? specName(x.spec) : t?.name}</div>
-                        <div className="text-[13px] text-[#4f4f4f]">{x.roof ? `${(x.width ?? 0) / 10} × ${(x.height ?? 0) / 10} cm` : `${x.width} × ${x.height} mm`}{x.label ? ` · ${x.label}` : ''}</div>
-                      </div>
-                      {show && <div className="text-sm font-medium text-gray-900 whitespace-nowrap">{xp != null ? money(xp * x.quantity, cur) : '—'}</div>}
-                    </button>
-                  </li>
-                })}
-              </ul>
               {!internal && show && <ul className="border-t border-gray-100 pt-3 space-y-1.5">
                 {items.map((x, i) => {
                   const xp = priceOf(x)
@@ -1713,7 +1597,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                   {show && <span className="font-medium text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
                 </li>)}
               </ul>}
-              {show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
+              {internal ? null : show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
                 {totals.vatRate > 0 && <Row l={`${T.vat} ${totals.vatRate.toLocaleString('de-DE')}%`} r={money(totals.vat, cur)} muted />}
                 <div className="flex items-baseline justify-between pt-2 mt-1 border-t border-gray-200">
