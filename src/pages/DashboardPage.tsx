@@ -13,6 +13,7 @@ import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { SortIcon } from '../components/ui/SortIcon'
 import Pagination from '../components/ui/Pagination'
 import { isDraftLike } from '../lib/quoteStatus'
+import { CATEGORIES, categoryLabel, categoryOfLine } from '../lib/quoteCategories'
 import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSources'
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
@@ -132,13 +133,15 @@ export default function DashboardPage() {
   const [quotes, setQuotes] = useState<Q[]>([])
 
   // lines of all quotes (the services chart picks those of the period)
-  const [serviceLines, setServiceLines] = useState<{ quote_id: string; name: string; value: number }[]>([])
+  const [serviceLines, setServiceLines] = useState<{ quote_id: string; name: string; value: number; cat: string }[]>([])
+  // the category of what the quotes contain (windows, doors, roof windows …); a click on a bar filters by it
+  const [categoryFilter, setCategoryFilter] = useState('')
 
   async function loadStatusStats() {
     if (!company) return
     const [{ data }, { data: lineData }] = await Promise.all([
       supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at, closed_at, source, lead_source').eq('company_id', company.id),
-      supabase.from('quote_lines').select('quote_id, name, total_net').eq('company_id', company.id),
+      supabase.from('quote_lines').select('quote_id, name, total_net, config').eq('company_id', company.id),
     ])
     const acc: Record<StatusKey, { value: number; count: number }> = {
       all: { value: 0, count: 0 }, sent: { value: 0, count: 0 }, won: { value: 0, count: 0 }, lost: { value: 0, count: 0 },
@@ -157,8 +160,8 @@ export default function DashboardPage() {
     }
     setStatusStats(acc)
 
-    setServiceLines(((lineData as { quote_id: string; name: string; total_net: number }[]) ?? [])
-      .map(l => ({ quote_id: l.quote_id, name: l.name.trim(), value: Number(l.total_net) || 0 })))
+    setServiceLines(((lineData as { quote_id: string; name: string; total_net: number; config: unknown }[]) ?? [])
+      .map(l => ({ quote_id: l.quote_id, name: (l.name ?? '').trim(), value: Number(l.total_net) || 0, cat: categoryOfLine(l.config) })))
   }
 
   useEffect(() => { if (company) loadStatusStats() }, [company, filterCustomerId, assigneeFilter])
@@ -224,7 +227,10 @@ export default function DashboardPage() {
 
   // every filter except the dates (customer and assignee are applied when loading)
   const statusKey = (q: Q) => q.status === 'enquiry' ? 'draft' : q.status === 'downloaded' ? 'sent' : q.status
+  const quoteCats = new Map<string, Set<string>>()
+  for (const l of serviceLines) { const set = quoteCats.get(l.quote_id) ?? new Set<string>(); set.add(l.cat); quoteCats.set(l.quote_id, set) }
   const base = quotes.filter(q => (!statusFilter || statusKey(q) === statusFilter)
+    && (!categoryFilter || quoteCats.get(q.id)?.has(categoryFilter))
     && (!sourceFilter || (sourceFilter === 'configurator' ? q.source === 'configurator' : q.source !== 'configurator'))
     && (!typeFilter || (customerTypes[q.customer_id] ?? 'person') === typeFilter)
     && (!channelFilter || (q.lead_source ?? 'none') === channelFilter))
@@ -297,7 +303,7 @@ export default function DashboardPage() {
 
       {/* Subtitle + filter bar */}
       <div className="px-6 pt-5 flex flex-wrap items-center gap-3">
-        {(() => { const n = [statusFilter, sourceFilter, typeFilter, channelFilter, assigneeFilter, filterCustomerId].filter(Boolean).length
+        {(() => { const n = [statusFilter, categoryFilter, sourceFilter, typeFilter, channelFilter, assigneeFilter, filterCustomerId].filter(Boolean).length
           return <button type="button" onClick={() => setFiltersOpen(x => !x)}
             className="sm:hidden h-9 px-3.5 rounded-[10px] border border-gray-200 bg-white text-sm font-medium text-gray-900 inline-flex items-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
             {sl ? 'Filtri' : 'Filters'}{n > 0 && <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-[#131313] text-white text-xs font-semibold">{n}</span>}
@@ -315,6 +321,9 @@ export default function DashboardPage() {
 
           <FilterSelect label={sl ? 'Prodajni kanal' : 'Sales channel'} value={channelFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setChannelFilter}
             options={leadSourceOptions(sl ? 'sl' : 'en')} />
+
+          <FilterSelect label={sl ? 'Kategorija' : 'Category'} value={categoryFilter} allLabel={sl ? 'Vse' : 'All'} onChange={setCategoryFilter}
+            options={CATEGORIES.map(c => ({ value: c.key, label: sl ? c.sl : c.en }))} />
 
           <FilterSelect label={sl ? 'Tip stranke' : 'Customer type'} value={typeFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setTypeFilter}
             options={[{ value: 'person', label: sl ? 'Fizične osebe' : 'Private persons' }, { value: 'company', label: sl ? 'Podjetja' : 'Companies' }]} />
@@ -365,7 +374,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {(statusFilter || sourceFilter || typeFilter || channelFilter || assigneeFilter || filterCustomerId || dateTo) && (
+          {(statusFilter || categoryFilter || sourceFilter || typeFilter || channelFilter || assigneeFilter || filterCustomerId || dateTo) && (
             <button type="button" onClick={() => { setStatusFilter(''); setSourceFilter(''); setTypeFilter(''); setChannelFilter(''); setAssigneeFilter(''); setFilterCustomerId(null); setSearchText(''); setDateTo(''); const d = new Date(); d.setDate(d.getDate() - 90); setDateFrom(d.toISOString().slice(0, 10)) }}
               className="h-8 px-2.5 rounded-[10px] text-sm font-medium text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100 transition-colors">{sl ? 'Počisti filtre' : 'Clear filters'}</button>
           )}
@@ -427,17 +436,17 @@ export default function DashboardPage() {
             { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: TEAL.grey },
           ].map(x => ({ ...x, count: inPeriod.filter(q => statusKey(q) === x.key).length }))
           const total = inPeriod.length
-          // every service of the sent quotes: all of it (light) with the won part (dark) in one bar
+          // the value of the sent quotes by category (windows, doors, roof windows, services …): all of it (light) with the won part (dark) in one bar
           const statusOfQ = new Map(inPeriod.filter(q => !isDraftLike(q.status)).map(q => [q.id, q.status]))
-          const byName = new Map<string, { name: string; total: number; won: number }>()
+          const byCat = new Map<string, { key: string; name: string; total: number; won: number }>()
           for (const l of serviceLines) {
             const stq = statusOfQ.get(l.quote_id)
-            if (!stq || !l.name) continue
-            const row = byName.get(l.name.toLowerCase()) ?? { name: l.name, total: 0, won: 0 }
+            if (!stq) continue
+            const row = byCat.get(l.cat) ?? { key: l.cat, name: categoryLabel(l.cat, sl ? 'sl' : 'en'), total: 0, won: 0 }
             row.total += l.value; if (stq === 'won') row.won += l.value
-            byName.set(l.name.toLowerCase(), row)
+            byCat.set(l.cat, row)
           }
-          const topServices = [...byName.values()].sort((a, b) => b.total - a.total).slice(0, 6)
+          const topServices = [...byCat.values()].sort((a, b) => b.total - a.total)
             .map(x => ({ ...x, rest: Math.max(0, x.total - x.won), label: `${moneyK(x.total)} · ${x.total ? Math.round(x.won / x.total * 100) : 0}% ${sl ? 'dobljeno' : 'won'}` }))
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -478,7 +487,7 @@ export default function DashboardPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
                 <div className="flex items-center justify-between gap-3 mb-5 -mt-1">
                   <h2 className="text-[15px] font-semibold text-gray-900">
-                    {sl ? 'Storitve po vrednosti' : 'Services by value'}
+                    {sl ? 'Vrednost po kategorijah' : 'Value by category'}
                   </h2>
                 </div>
                 {/* Same look as the other charts: dashed grid, grey axis labels, rounded bars, shared tooltip; empty: the axes and grid with "Ni podatkov" */}
@@ -492,12 +501,12 @@ export default function DashboardPage() {
                         tickFormatter={(n: string) => { const max = narrow ? 16 : 26; return n.length > max ? n.slice(0, max - 1) + '…' : n }} />
                       {topServices.length > 0 && <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #dfdfdf', fontSize: 13, fontWeight: 500 }} />}
                       <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                      <Bar isAnimationActive={false} dataKey="won" stackId="s" name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : TEAL.line} maxBarSize={22}
+                      <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : TEAL.line} maxBarSize={22}
                         // fully won (nothing light after it): the dark part gets the rounded end
                         shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
                         {topServices.length > 0 && <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />}
                       </Bar>
-                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
+                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
                         <LabelList dataKey="total" position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />
                       </Bar>
                     </BarChart>

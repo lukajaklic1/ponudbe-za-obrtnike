@@ -2,6 +2,7 @@
 // project is configured in .env.local. Data lives in localStorage and is seeded
 // with a sample painting company so every screen can be clicked through.
 import { STARTER } from './starterPriceList'
+import { sampleColors, sampleGlass, sampleHandles, sampleSills, sampleShading, sampleRoofCatalog, DEFAULT_PRICING, SAMPLE_PROFILE_PRICES } from './costing'
 import { buildSnapshot } from './offerSnapshot'
 import { lineTotal, quoteTotals } from './quoteTotals'
 
@@ -9,7 +10,7 @@ type Row = Record<string, any>
 type DB = Record<string, Row[]>
 interface AuthUser { id: string; email: string; password: string }
 
-const DB_KEY = 'obrtdesk-demo-db-windows'
+const DB_KEY = 'obrtdesk-demo-db-windows-2'
 const AUTH_KEY = 'obrtdesk-demo-auth'
 const SESSION_KEY = 'obrtdesk-demo-session'
 
@@ -130,7 +131,33 @@ function seed(): DB {
     lines.forEach(({ priceItemId, ...l }, i) => quote_lines.push({ id: `${id}-l${i + 1}`, quote_id: id, company_id: companyId, position: i + 1, price_item_id: priceItemId, ...l, total_net: lineTotal(l), created_at: created }))
   })
 
-  return { companies: [company], users: [user], user_permissions: [], user_invitations: [], customers, price_items, quotes, quote_lines, quote_attachments: [] }
+  // ─── a sample window price list, so the configurator and the window parts of a quote can be tried ───
+  const sys = (id: string, name: string, material: string, description: string, w: [number, number, number], min: number, i: number): Row => ({
+    id, company_id: companyId, name, material, description, sort_order: i, is_active: true, price_per_m2: 0, min_price: min, image_url: null,
+    ...(SAMPLE_PROFILE_PRICES[material] ?? SAMPLE_PROFILE_PRICES.pvc), frame_w: w[0], sash_w: w[1], mullion_w: w[2], applies_to: null,
+  })
+  const window_systems: Row[] = [
+    sys('demo-sys-1', 'PVC 76 mm Classic', 'pvc', '6 komor, 2 tesnili, jekleno ojačanje. Uw do 1,0 W/m²K. Ugodna izbira za prenove.', [70, 78, 86], 150, 1),
+    sys('demo-sys-2', 'PVC 82 mm Comfort', 'pvc', '7 komor, srednje tesnilo, troslojno steklo. Uw do 0,78 W/m²K.', [70, 78, 86], 190, 2),
+    sys('demo-sys-3', 'ALU 70 mm', 'alu', 'Aluminijast profil s termičnim prekinitvijo.', [62, 72, 80], 320, 3),
+    sys('demo-sys-4', 'Les 78 mm', 'wood', 'Lepljen les, troslojno steklo.', [78, 78, 90], 300, 4),
+  ]
+  const colors = Object.fromEntries(['pvc', 'alu', 'wood'].map(m => [m, sampleColors()]))
+  company.window_pricing = {
+    ...DEFAULT_PRICING, margin_pct: 45, labour_margin_pct: 45, services_seeded: true,
+    colors, glass: sampleGlass(), handles: sampleHandles(), sills: sampleSills(), shading: sampleShading(), roof: sampleRoofCatalog(), shade_colors: [],
+  }
+  const svc = (id: string, group_key: string, name: string, description: string, pricing: string, price: number, price_piece: number, per_item: string): Row => ({
+    id, company_id: companyId, group_key, name, description, pricing, price, price_piece, per_item, is_default: false, sort_order: 0, is_active: true,
+  })
+  const window_options: Row[] = [
+    svc('demo-opt-1', 'installation', 'Klasična montaža', 'Montaža z obdelavo špalet.', 'perimeter', 6, 20, 'window'),
+    svc('demo-opt-2', 'installation', 'RAL montaža', 'Montaža s trakovi po RAL.', 'perimeter', 12, 25, 'window'),
+    svc('demo-opt-3', 'removal', 'Demontaža starih oken', 'Odstranitev obstoječih oken.', 'perimeter', 3, 10, 'window'),
+    svc('demo-opt-4', 'removal', 'Demontaža starih senčil', 'Odstranitev obstoječih senčil.', 'piece', 0, 15, 'shade'),
+    svc('demo-opt-5', 'transport', 'Prevoz in odvoz odpadka', 'Prevoz do kupca in odvoz starih oken.', 'flat', 60, 0, 'window'),
+  ]
+  return { companies: [company], users: [user], user_permissions: [], user_invitations: [], customers, price_items, quotes, quote_lines, quote_attachments: [], window_systems, window_types: [], window_prices: [], window_options }
 }
 
 // ─── Select parsing (supports "*, customers(name), alias:users!fk(cols)") ──

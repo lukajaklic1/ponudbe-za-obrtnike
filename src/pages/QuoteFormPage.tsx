@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Select from '../components/ui/Select'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { ChevronLeft, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud, Send } from 'lucide-react'
+import { ChevronLeft, ChevronDown, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud, Send } from 'lucide-react'
 import OfferPdfPreview, { downloadOfferPdf } from '../components/OfferPdfPreview'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
@@ -23,6 +23,8 @@ import WindowDrawing from '../components/WindowDrawing'
 import RoofWindowDrawing from '../components/RoofWindowDrawing'
 import SillIcon from '../components/SillIcon'
 import ShadingIcon from '../components/ShadingIcon'
+import WindowCalcTable from '../components/WindowCalcTable'
+import { calcWindowItem, type RawSystem } from '../lib/windowCalc'
 import type { Customer, Quote, QuoteLine, QuoteAttachment, QuoteStatus, OfferSnapshot, PriceItem, PriceUnit } from '../types/database'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import { isNewEnquiry, notifyQuotesChanged } from '../lib/newEnquiry'
@@ -214,6 +216,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [cfgOpen, setCfgOpen] = useState<null | { key?: string; items?: ConfigItem[] }>(null)
   // services the user picked (the rest — work on sills, shading … — follows the installation by itself)
   const [chosenServices, setChosenServices] = useState<string[]>([])
+  // the profiles at their purchase prices: the open calculation of every window is worked out from them
+  const [rawSystems, setRawSystems] = useState<RawSystem[]>([])
 
   // Room calculator
   const [roomOpen, setRoomOpen] = useState(false)
@@ -234,6 +238,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     ])
     setCustomers((cust as Customer[]) ?? [])
     ;(supabase as any).rpc('get_configurator_internal').then(({ data: cd }: { data: ConfigData | null }) => setCfg(isUsable(cd) ? cd : null))
+    ;(supabase as any).from('window_systems').select('*').eq('company_id', company.id).then(({ data: sy }: { data: RawSystem[] | null }) => setRawSystems(sy ?? []))
     const unitOf: Record<string, PriceUnit> = { piece: 'pcs', m2: 'm2', perimeter: 'm', width: 'm', flat: 'lump' }
     const opts = ((pis ?? []) as unknown as { id: string; name: string; description: string | null; pricing: string; price: number; group_key: string }[])
     // services first, then window extras
@@ -297,9 +302,15 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const currentVat = () => vatTarget
   const windowLines = lines.filter(l => windowCfg(l))
   const serviceLines = lines.filter(l => serviceCfg(l))
+  const sl = lang !== 'en'
   const subLines = lines.filter(l => subCfg(l))
   const subsOf = (l: LineRow) => { const u = windowCfg(l)?.uid; return u ? subLines.filter(x => subCfg(x)!.parent === u) : [] }
   const freeLines = lines.filter(l => !windowCfg(l) && !serviceCfg(l) && !subCfg(l))
+  // the open calculation of every window (purchase prices, margins, how the price per piece comes out)
+  const calcs = useMemo(() => Object.fromEntries(lines.filter(l => windowCfg(l)).map(l => [l.key, calcWindowItem(windowCfg(l)!.item, company?.window_pricing ?? null, rawSystems, lang === 'en' ? 'en' : 'sl')])),
+    [lines, rawSystems, company?.window_pricing, lang])
+  /** a window with the sills / shading that are priced as lines of their own */
+  const positionTotal = (l: LineRow) => lineTotal(num(l)) + subsOf(l).reduce((a, x) => a + lineTotal(num(x)), 0)
   const rooms = useMemo(() => {
     const order: string[] = []
     for (const l of lines) if (!windowCfg(l) && !serviceCfg(l) && !subCfg(l) && !order.includes(l.room)) order.push(l.room)
@@ -344,6 +355,12 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
   // ── Services: computed from the windows, like in the customer's configurator ──
   const svcOptions = useMemo(() => (cfg?.options ?? []).filter(o => isService(o)), [cfg])
+  /** what a service costs for all the windows of the quote, so every choice shows its amount before it is picked */
+  const svcAmount = (o: WindowOption) => serviceLine(o, windowLines.map(l => {
+    const it = windowCfg(l)!.item
+    return { width: it.width ?? 0, height: it.height ?? 0, quantity: l.quantity ?? 0, base: l.unit_price ?? 0, roof: !!it.roof,
+      sills: (it.sills?.in ? 1 : 0) + (it.sills?.out ? 1 : 0), shades: it.shading?.shade ? 1 : 0, screens: it.shading?.screen ? 1 : 0 }
+  })).total
   const computedServices = useMemo((): LineRow[] => {
     if (!cfg) return []
     const wins = windowLines.map(l => {
@@ -651,7 +668,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         </div>
       )}
 
-      {tab === 'overview' ? (<>
+      {tab === 'overview' ? (<div className="xl:grid xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6 xl:items-start"><div className="min-w-0">
         {/* ── Quote details ─────────────────────────────── */}
         <div className={`bg-white rounded-xl border p-6 mb-5 ${border}`}>
           <h2 className="text-base font-semibold text-gray-900 mb-4">{o.quoteDetails}</h2>
@@ -762,18 +779,30 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               {windowLines.map((l, i) => {
                 const w = windowCfg(l)!
                 const it = w.item
-                return <div key={l.key} className="px-6 py-5 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)_220px] gap-6">
+                return <div key={l.key} className="px-6 py-5 grid grid-cols-1 md:grid-cols-[160px_minmax(0,1fr)] gap-6">
                   {/* drawing with the sizes */}
-                  <div className="flex items-start justify-center">
+                  <div className={`flex items-start justify-center ${!ro && cfg ? 'cursor-pointer' : ''}`} onClick={() => { if (!ro && cfg) setCfgOpen({ key: l.key, items: [it] }) }} title={!ro && cfg ? o.editWindow : undefined}>
                     {it.roof ? <RoofWindowDrawing size={130} />
                       : it.spec ? <SpecDrawing spec={it.spec} width={it.width ?? 0} height={it.height ?? 0} size={160} showDims />
                       : w.template ? <WindowDrawing template={w.template as never} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={160} showDims /> : null}
                   </div>
                   {/* every choice */}
                   <div className="min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[13px] font-medium text-[#4f4f4f]">{o.position} {i + 1}</span>
-                      <span className="text-[15px] font-semibold text-gray-900">{w.title}</span>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-medium text-[#4f4f4f]">{o.position} {i + 1}</div>
+                        <div className="text-[17px] leading-6 font-semibold text-gray-900">{w.title}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        {!ro && <div className="flex items-center gap-1">
+                          <Button variant="secondary" size="sm" className="gap-1.5" disabled={!cfg} onClick={() => setCfgOpen({ key: l.key, items: [it] })}><Pencil className="w-3.5 h-3.5" />{o.editWindow}</Button>
+                          <button type="button" onClick={() => removeLine(l.key)} title={t.common.delete} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        </div>}
+                        <div className="text-right">
+                          <div className="text-[13px] text-[#4f4f4f]">{(l.quantity ?? 0).toLocaleString('de-DE')} × {money(l.unit_price ?? 0)}</div>
+                          <div className="text-[17px] leading-6 font-semibold text-gray-900 tabular-nums">{money(lineTotal(num(l)))}</div>
+                        </div>
+                      </div>
                     </div>
                     <dl className="mt-2 grid grid-cols-[minmax(110px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
                       {w.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
@@ -792,17 +821,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                         </div>
                       })}
                     </div>}
-                  </div>
-                  {/* quantity, price, actions */}
-                  <div className="flex md:flex-col md:items-end justify-between gap-2">
-                    <div className="md:text-right">
-                      <div className="text-sm font-medium text-[#4f4f4f]">{(l.quantity ?? 0).toLocaleString('de-DE')} × {money(l.unit_price ?? 0)}</div>
-                      <div className="text-[17px] font-semibold text-gray-900 mt-0.5">{money(lineTotal(num(l)))}</div>
-                    </div>
-                    {!ro && <div className="flex items-center gap-1">
-                      <Button variant="secondary" size="sm" className="gap-1.5" disabled={!cfg} onClick={() => setCfgOpen({ key: l.key, items: [it] })}><Pencil className="w-3.5 h-3.5" />{o.editWindow}</Button>
-                      <button type="button" onClick={() => removeLine(l.key)} title={t.common.delete} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                    </div>}
+                    {calcs[l.key] && <details open className="mt-3 group">
+                      <summary className="cursor-pointer select-none text-[13px] font-medium text-[#4f4f4f] hover:text-gray-900 mb-2 list-none flex items-center gap-1.5"><ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" />{sl ? 'Kalkulacija pozicije' : 'Position calculation'}</summary>
+                      <WindowCalcTable calc={calcs[l.key]!} lang={sl ? 'sl' : 'en'} saved={l.unit_price != null ? l.unit_price + subsOf(l).reduce((a, x) => a + (x.unit_price ?? 0), 0) : null} />
+                    </details>}
                   </div>
                 </div>
               })}
@@ -826,7 +848,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                     const on = chosenServices.includes(x.id)
                     return <button key={x.id} type="button" onClick={() => toggleService(x)}
                       className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors ${on ? 'border-[#131313] bg-white text-gray-900 shadow-[inset_0_0_0_1px_#131313]' : 'border-gray-200 bg-white text-gray-900 hover:border-gray-400'}`}>
-                      {on && <Check className="w-3.5 h-3.5" />}{x.name}
+                      {on && <Check className="w-3.5 h-3.5" />}{x.name}{svcAmount(x) > 0 && <span className="font-normal text-[#4f4f4f]">{money(svcAmount(x))}</span>}
                     </button>
                   })}
                 </div>
@@ -1001,7 +1023,61 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             {advanceGross != null && <div className="flex justify-between font-semibold text-gray-900"><span>{lang === 'en' ? 'Total with 100% advance' : 'Skupaj ob 100% avansu'}</span><span className="text-[#26897a]">{money(advanceGross)}</span></div>}
           </div>
         </div>
-      </>) : (
+      </div>
+      <aside className="mt-5 xl:mt-0 xl:sticky xl:top-6 space-y-4">
+        <div className={`bg-white rounded-xl border p-5 ${border}`}>
+          <div className="text-base font-semibold text-gray-900 mb-3">{sl ? 'Skupaj' : 'Total'}</div>
+          {windowLines.length > 0 && <ul className="space-y-1.5 text-sm">
+            {windowLines.map((l, i) => <li key={l.key} className="flex items-baseline justify-between gap-3">
+              <span className="min-w-0 truncate text-gray-900">{o.position} {i + 1} · {windowCfg(l)!.title}{(l.quantity ?? 0) > 1 && <span className="text-[13px] text-[#4f4f4f]"> {(l.quantity ?? 0)} ×</span>}</span>
+              <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(positionTotal(l))}</span>
+            </li>)}
+            <li className="flex items-baseline justify-between gap-3 pt-1.5 mt-1 border-t border-gray-100">
+              <span className="font-semibold text-gray-900">{sl ? 'Okna skupaj' : 'Windows total'}</span>
+              <span className="font-semibold text-gray-900 whitespace-nowrap tabular-nums">{money(windowLines.reduce((a, l) => a + positionTotal(l), 0))}</span>
+            </li>
+          </ul>}
+          {serviceLines.length > 0 && <ul className="space-y-1 text-sm mt-3 pt-3 border-t border-gray-100">
+            <li className="text-[13px] font-medium text-[#4f4f4f]">{o.servicesTitle}</li>
+            {serviceLines.map(l => <li key={l.key} className="flex items-baseline justify-between gap-3">
+              <span className="min-w-0 text-gray-900">{l.name} <span className="text-[13px] text-[#4f4f4f]">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]}</span></span>
+              <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(lineTotal(num(l)))}</span>
+            </li>)}
+          </ul>}
+          {freeLines.some(l => lineTotal(num(l)) !== 0) && <div className="flex items-baseline justify-between gap-3 text-sm mt-3 pt-3 border-t border-gray-100">
+            <span className="text-gray-900">{o.lines}</span>
+            <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(freeLines.reduce((a, l) => a + lineTotal(num(l)), 0))}</span>
+          </div>}
+          <div className="mt-3 pt-3 border-t border-gray-200 space-y-1.5 text-sm">
+            <div className="flex justify-between"><span className="text-[#4f4f4f]">{sl ? 'Skupaj postavke' : 'Subtotal'}</span><span className="tabular-nums">{money(totals.subtotal)}</span></div>
+            {totals.discount_amount > 0 && <div className="flex justify-between"><span className="text-[#4f4f4f]">{sl ? `Popust ${discountPct ?? 0} %` : `Discount ${discountPct ?? 0}%`}</span><span className="tabular-nums">− {money(totals.discount_amount)}</span></div>}
+            <div className="flex justify-between font-medium text-gray-900"><span>{sl ? 'Skupaj brez DDV' : 'Total excl. VAT'}</span><span className="tabular-nums">{money(totals.total_net)}</span></div>
+            {totals.vat.map(v => <div key={v.rate} className="flex justify-between text-[#4f4f4f]"><span>DDV {v.rate.toLocaleString('de-DE')} %</span><span className="tabular-nums">{money(v.amount)}</span></div>)}
+            <div className="flex items-baseline justify-between pt-2 mt-1 border-t border-gray-200">
+              <span className="text-[15px] font-semibold text-gray-900">{sl ? 'Skupaj z DDV' : 'Total incl. VAT'}</span>
+              <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.total_gross)}</span>
+            </div>
+            {advanceGross != null && <div className="flex justify-between text-[#267a47] font-medium"><span>{sl ? 'Skupaj ob 100% avansu' : 'Total with 100% advance'}</span><span className="tabular-nums">{money(advanceGross)}</span></div>}
+          </div>
+        </div>
+        {(() => {
+          // what the windows of this quote cost and what is left: the supplier's own view, never on the offer
+          const rows = windowLines.map(l => ({ l, c: calcs[l.key] })).filter(x => x.c && x.c.kind === 'window') as { l: LineRow; c: NonNullable<typeof calcs[string]> }[]
+          if (!rows.length) return null
+          const cost = rows.reduce((a, x) => a + x.c.cost * (x.l.quantity ?? 0), 0)
+          const sale = rows.reduce((a, x) => a + positionTotal(x.l), 0)
+          const margin = sale - cost
+          return <div className={`bg-white rounded-xl border p-5 ${border}`}>
+            <div className="text-base font-semibold text-gray-900">{sl ? 'Kalkulacija oken' : 'Windows calculation'}</div>
+            <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-3">{sl ? 'Interno: nabavna vrednost, marža in prodajna cena vseh oken. Ni na ponudbi.' : 'Internal: purchase value, margin and sale price of all windows. Not on the offer.'}</p>
+            <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1.5 text-sm tabular-nums">
+              <dt className="text-[#4f4f4f]">{sl ? 'Nabavna vrednost' : 'Purchase value'}</dt><dd className="text-right text-gray-900">{money(cost)}</dd>
+              <dt className="text-[#4f4f4f]">{sl ? 'Marža' : 'Margin'}</dt><dd className="text-right text-[#267a47]">{money(margin)}{sale > 0 && <span className="text-[#4f4f4f]"> ({(Math.round(margin / sale * 1000) / 10).toLocaleString('de-DE')} %)</span>}</dd>
+              <dt className="font-semibold text-gray-900">{sl ? 'Prodajna vrednost oken' : 'Sale value of windows'}</dt><dd className="text-right font-semibold text-gray-900">{money(sale)}</dd>
+            </dl>
+          </div>
+        })()}
+      </aside></div>) : (
         snapshot?.lines ? (
           <OfferPdfPreview snap={pdfSnap ?? snapshot} lang={lang} errorLabel={o.pdfError} />
         ) : <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400">{s.saveQuoteFirst}</div>
