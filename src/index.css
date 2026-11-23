@@ -243,3 +243,9 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 @keyframes cfg-step-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .cfg-step-in { animation: cfg-step-in .45s cubic-bezier(.2, .7, .2, 1) both; }
 @media (prefers-reduced-motion: reduce) { .cfg-step-in { animation: none; } }
+
+/* configurator, public page: a clearer hierarchy (bigger, tighter step titles; readable card labels, descriptions and prices) */
+.cfg-public h2 { font-size: 22px; line-height: 30px; letter-spacing: -0.02em; font-weight: 600; }
+.cfg-public button.rounded-xl .text-sm.font-medium { font-size: 15px; line-height: 22px; }
+.cfg-public button.rounded-xl .text-sm.font-medium.mt-2 { font-weight: 600; }
+.cfg-public button.rounded-xl .text-\[13px\] { font-size: 14px; line-height: 20px; color: #4a4a4a; }

@@ -834,7 +834,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   }
 
   return (
-    <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'min-h-screen bg-[#f5f5f6] text-gray-900')}>
+    <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'cfg-public min-h-screen bg-[#f5f5f6] text-gray-900')}>
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] sticky top-0 z-30">
         <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[72px] sm:h-20' : data.company.logo_size === 's' ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]')}>
