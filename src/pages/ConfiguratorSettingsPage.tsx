@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { THEME_FONTS, THEME_DEFAULTS } from '../lib/configuratorTheme'
+import { themeVars } from './ConfiguratorPage'
 import { Navigate } from 'react-router-dom'
 import { Globe, ExternalLink, Copy } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -110,8 +112,11 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     accent: company.configurator_accent ?? '#2563eb',
     intro: company.configurator_intro ?? '',
     area: ((company as any).configurator_area as InstallArea | null) ?? DEFAULT_AREA,
+    theme: ((company as any).configurator_theme as Record<string, string> | null) ?? {},
   })
   const [saving, setSaving] = useState(false)
+  // a value equal to null/default is removed so only real changes are stored
+  const setThemeValue = (k: string, v: string | null) => setForm(f => { const t = { ...f.theme }; if (v === null || (k === 'font' ? v === 'default' : v.toLowerCase() === (THEME_DEFAULTS as Record<string, string>)[k])) delete t[k]; else t[k] = v; return { ...f, theme: t } })
   const slugOk = /^[a-z0-9]([a-z0-9-]{1,38})[a-z0-9]$/.test(form.slug)
   const url = `${window.location.origin}/k/${form.slug}`
   const embed = `<iframe src="${url}" style="width:100%;height:900px;border:0" title="Konfigurator oken"></iframe>`
@@ -125,6 +130,8 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       // the page needs the prices unless they are never shown and only an enquiry is sent
       configurator_show_prices: !(form.priceMode === 'never' && form.endMode === 'enquiry'),
       configurator_accent: form.accent, configurator_intro: form.intro.trim() || null, configurator_area: form.area,
+      // only what differs from the default is stored; nothing changed = null
+      configurator_theme: Object.keys(form.theme).length ? form.theme : null,
     } as any).eq('id', company.id)
     setSaving(false)
     if (error) { toast.error(error.code === '23505' ? T.slugTaken : error.message); return }
@@ -189,6 +196,36 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
           {(['s', 'm', 'l'] as const).map(k => <button key={k} type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, logoSize: k }))}
             className={cn('h-9 px-4 rounded-lg text-sm font-semibold transition-colors', form.logoSize === k ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.1)]' : 'text-[#4f4f4f] hover:text-gray-900')}>
             {T.logoSizes[k]}</button>)}
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <label>Izgled konfiguratorja</label>
+          {Object.keys(form.theme).length > 0 && <button type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, theme: {} }))} className="text-sm font-medium text-[#4f4f4f] hover:text-gray-900 underline">Ponastavi na privzeto</button>}
+        </div>
+        <p className="text-sm font-medium text-[#4f4f4f]">Pisava in barve vaše strani. Kar ne spremenite, ostane privzeto.</p>
+        <div className="grid sm:grid-cols-2 gap-3 mt-1">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-900">Pisava</span>
+            <select disabled={!canEdit} value={form.theme.font ?? 'default'} onChange={e => setThemeValue('font', e.target.value)} className="h-9 rounded-lg border border-gray-200 bg-white px-2 text-sm">
+              {THEME_FONTS.map(f => <option key={f.key} value={f.key}>{f.label}</option>)}
+            </select>
+          </div>
+          {([['bg', 'Ozadje strani'], ['button', 'Gumbi in izbrane možnosti'], ['ink', 'Naslovi in glavno besedilo'], ['muted', 'Sivo besedilo'], ['border', 'Obrobe']] as const).map(([k, label]) => (
+            <div key={k} className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-gray-900">{label}</span>
+              <div className="flex items-center gap-2">
+                <input type="color" disabled={!canEdit} value={form.theme[k] ?? THEME_DEFAULTS[k]} onChange={e => setThemeValue(k, e.target.value)} className="h-9 w-12 rounded border border-gray-200 bg-white p-1" />
+                <span className="text-sm font-medium text-[#4f4f4f]">{form.theme[k] ?? 'privzeto'}</span>
+                {form.theme[k] && <button type="button" disabled={!canEdit} onClick={() => setThemeValue(k, null)} className="text-sm text-[#4f4f4f] hover:text-gray-900 underline">ponastavi</button>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={themeVars(form.theme)} className="cfg-public rounded-xl border p-4 mt-1 min-h-0">
+          <div className="text-[17px] font-semibold text-gray-900">Kaj želite kupiti?</div>
+          <div className="text-sm text-[#4f4f4f] mt-1">Tako bo videti vaš konfigurator.</div>
+          <div className="mt-3 flex gap-2"><span className="inline-flex h-10 items-center rounded-xl bg-[#131313] px-4 text-sm font-semibold text-white">Naprej</span><span className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-900">Nazaj</span></div>
         </div>
       </div>
       <div className="flex flex-col gap-1">

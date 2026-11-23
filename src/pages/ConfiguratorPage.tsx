@@ -1,4 +1,6 @@
+import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { THEME_FONTS } from '../lib/configuratorTheme'
 import { useParams } from 'react-router-dom'
 import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, X, Ban, Pencil } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -35,7 +37,7 @@ export interface ConfigData {
     /** how the configurator works: prices live / at the end / as a range / never; the end: enquiry / offer PDF / the customer picks */
     price_mode?: PriceMode | null; end_mode?: EndMode | null
     /** size of the logo in the top bar: s / m / l */
-    logo_size?: 's' | 'm' | 'l' | null }
+    logo_size?: 's' | 'm' | 'l' | null; theme?: Record<string, string> | null }
   systems: WindowSystem[]
   types: WindowType[]
   prices: WindowPrice[]
@@ -197,6 +199,15 @@ export default function ConfiguratorPage() {
   return <ConfiguratorCore data={data} slug={slug ?? ''} />
 }
 
+/** the supplier's own look as CSS variables (only what they changed; the rest stays default) */
+export function themeVars(t?: Record<string, string> | null): React.CSSProperties | undefined {
+  if (!t) return undefined
+  const v: Record<string, string> = {}
+  const font = THEME_FONTS.find(f => f.key === t.font); if (font?.stack) v['--cfg-font'] = font.stack
+  for (const k of ['bg', 'button', 'ink', 'muted', 'border']) if (/^#[0-9a-f]{6}$/i.test(t[k] ?? '')) v['--cfg-' + k] = t[k]
+  return v as React.CSSProperties
+}
+
 /** the supplier set up enough for a configurator (types or a builder, and at least one profile) */
 export const isUsable = (d: ConfigData | null): d is ConfigData => !!d && (!!d.types.length || !!d.builder) && !!d.systems.length
 
@@ -273,7 +284,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     setServices(sv => sv.filter(id => !inst.includes(id)))
   }, [outOfArea])
 
-  const accent = data?.company.accent || '#131313'
+  const accent = (/^#[0-9a-f]{6}$/i.test(data?.company.theme?.button ?? '') ? data?.company.theme?.button : null) || data?.company.accent || '#131313'
   const cur = data?.company.currency || 'EUR'
   const currency = cur
   // prices are worked out whenever the supplier sends them; how they are shown depends on the mode (in a quote always)
@@ -865,7 +876,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   }
 
   return (
-    <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'cfg-public min-h-screen bg-[#f5f5f6] text-gray-900')}>
+    <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'cfg-public min-h-screen bg-[#f5f5f6] text-gray-900')} style={internal ? undefined : themeVars(data.company.theme)}>
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] sticky top-0 z-30">
         <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[72px] sm:h-20' : data.company.logo_size === 's' ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]')}>
@@ -921,7 +932,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                 return <div key={x.key} role="button" tabIndex={0} onClick={() => { setActive(i); setStage('config') }} onKeyDown={e => { if (e.key === 'Enter') { setActive(i); setStage('config') } }}
                   className={cn('group relative w-full rounded-xl border p-2.5 flex items-center gap-3.5 cursor-pointer transition-colors', on ? '' : 'border-gray-200 hover:border-gray-400')}
                   // the window being configured: a clear black outline (inline, so it wins over the soft card border)
-                  style={on ? { borderColor: '#131313', boxShadow: '0 0 0 1px #131313, 0 1px 3px rgba(16,24,40,.08)' } : undefined}>
+                  style={on ? { borderColor: 'var(--cfg-button, #131313)', boxShadow: '0 0 0 1px var(--cfg-button, #131313), 0 1px 3px rgba(16,24,40,.08)' } : undefined}>
                   <div className="w-[112px] h-[104px] flex items-center justify-center shrink-0">
                     {x.roof ? <RoofWindowDrawing size={92} photo /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={100} slim plain photo /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={100} />}
                   </div>

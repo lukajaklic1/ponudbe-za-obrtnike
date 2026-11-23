@@ -385,7 +385,7 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
       const r2 = (n: number) => Math.round(n * 100) / 100
       const active = (t: string) => (db[t] ?? []).filter((x: Row) => x.company_id === c.id && x.is_active !== false)
       return { data: {
-        company: { name: c.name, logo_url: c.logo_url, email: c.email, phone: c.phone, currency: c.currency || 'EUR', accent: c.configurator_accent || '#131313', intro: c.configurator_intro ?? null, show_prices: !(c.configurator_price_mode === 'never' && (c.configurator_end_mode ?? 'enquiry') === 'enquiry'), vat_rate: c.vat_payer === false ? 0 : 22, area: c.configurator_area ?? null, price_mode: c.configurator_price_mode ?? 'live', end_mode: c.configurator_end_mode ?? 'enquiry', logo_size: c.configurator_logo_size ?? 'm' },
+        company: { name: c.name, logo_url: c.logo_url, email: c.email, phone: c.phone, currency: c.currency || 'EUR', accent: c.configurator_accent || '#131313', intro: c.configurator_intro ?? null, show_prices: !(c.configurator_price_mode === 'never' && (c.configurator_end_mode ?? 'enquiry') === 'enquiry'), vat_rate: c.vat_payer === false ? 0 : 22, area: c.configurator_area ?? null, price_mode: c.configurator_price_mode ?? 'live', end_mode: c.configurator_end_mode ?? 'enquiry', logo_size: c.configurator_logo_size ?? 'm', theme: c.configurator_theme ?? null },
         systems: active('window_systems').map((s: Row) => ({ ...s, frame_m: Number(s.frame_m ?? 0) * mf, sash_m: Number(s.sash_m ?? 0) * mf, mullion_m: Number(s.mullion_m ?? 0) * mf, bead_m: Number(s.bead_m ?? 0) * mf })),
         types: active('window_types'),
         prices: (db.window_prices ?? []).filter((p: Row) => p.company_id === c.id),

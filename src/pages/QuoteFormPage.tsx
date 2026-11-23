@@ -613,6 +613,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const ro = readOnly
   const border = ro ? 'border-[#dfdfdf]' : 'border-gray-200'
   const selectedCustomer = customers.find(c => c.id === customerId)
+  const custAddr = selectedCustomer ? [selectedCustomer.address_street, [selectedCustomer.address_postal_code, selectedCustomer.address_city].filter(Boolean).join(' ')].filter(Boolean).join(', ') : ''
   const companyTerms = (company?.payment_terms_list ?? []) as string[]
   const termOptions = paymentTerms && !companyTerms.includes(paymentTerms) ? [...companyTerms, paymentTerms] : companyTerms
   const colCount = ro ? 8 : 10
@@ -675,6 +676,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           <fieldset disabled={ro} className="contents">
           </fieldset>
           <fieldset disabled={ro} className="contents">
+            <h3 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[#4f4f4f] mb-3">{lang === 'en' ? 'Customer' : 'Stranka'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#4f4f4f]">{s.customer}</label>
@@ -691,7 +693,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                       }} />}
                 {!ro && customers.length === 0 && <button type="button" onClick={() => navigate('/customers')} className="text-xs text-gray-900 text-left hover:underline">{o.addCustomerFirst}</button>}
               </div>
-              {/* Customer details — contact fields editable per quote, VAT / address belong to the customer */}
               <Input id="q-contact" label={s.contactPerson} value={contactPerson} onChange={e => setContactPerson(e.target.value)} />
               <Input id="q-email" label={t.common.email} type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
               <Input id="q-phone" label={t.common.phone} value={contactPhone} onChange={e => setContactPhone(e.target.value)} />
@@ -702,11 +703,29 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 <Input id="q-caddr" label={o.customerAddress} disabled readOnly
                   value={selectedCustomer ? [selectedCustomer.address_street, [selectedCustomer.address_postal_code, selectedCustomer.address_city].filter(Boolean).join(' ')].filter(Boolean).join(', ') : ''} />
               </div>
-              <Input id="q-site" label={o.siteAddress} placeholder={ro ? '' : o.siteAddressHint} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />
+              {/* sales channel: where the customer heard of the company */}
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
+                <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
+                  options={leadSourceOptions(lang === 'en' ? 'en' : 'sl')} />
+              </div>
+            </div>
+            <div className="border-t border-gray-100 my-5" />
+            <h3 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-[#4f4f4f] mb-3">{lang === 'en' ? 'Delivery and payment' : 'Dobava in plačilo'}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Input id="q-valid" label={s.validUntil} type={ro ? 'text' : 'date'}
                 value={ro ? (validUntil ? format(new Date(validUntil), 'd. M. yyyy') : '') : validUntil}
                 onChange={e => setValidUntil(e.target.value)} />
               <Input id="q-lead" label={o.executionTime} placeholder={ro ? '' : o.executionTimeHint} value={leadTime} onChange={e => setLeadTime(e.target.value)} />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-[#4f4f4f]">{o.parity}</label>
+                <Select className="h-[37.6px]" value={parity} onChange={setParity}
+                  options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
+              </div>
+              <div className="lg:col-span-2 flex flex-col">
+                <Input id="q-site" label={o.siteAddress} placeholder={ro ? '' : o.siteAddressHint} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />
+                {!ro && selectedCustomer && <label className="flex items-center gap-2 text-[13px] text-[#4f4f4f] cursor-pointer mt-0.5"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
+              </div>
               <div className="lg:col-span-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#4f4f4f]">{s.paymentTerms}</label>
                 {ro
@@ -715,17 +734,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                     ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-900 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
                     : <Select className="h-[37.6px]" value={paymentTerms} onChange={setPaymentTerms}
                         options={[{ value: '', label: o.none }, ...termOptions.map(term => ({ value: term, label: term }))]} />}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#4f4f4f]">{o.parity}</label>
-                <Select className="h-[37.6px]" value={parity} onChange={setParity}
-                  options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
-              </div>
-              {/* sales channel: where the customer heard of the company */}
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
-                <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
-                  options={leadSourceOptions(lang === 'en' ? 'en' : 'sl')} />
               </div>
             </div>
             <div className="flex flex-col gap-1 mt-4">
