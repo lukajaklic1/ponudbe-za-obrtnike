@@ -26,6 +26,7 @@ import ShadingIcon from '../components/ShadingIcon'
 import type { Customer, Quote, QuoteLine, QuoteAttachment, QuoteStatus, OfferSnapshot, PriceItem, PriceUnit } from '../types/database'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import { isNewEnquiry, notifyQuotesChanged } from '../lib/newEnquiry'
+import { isDraftLike, isOpenOffer } from '../lib/quoteStatus'
 import { INCOTERMS } from '../lib/incoterms'
 import { leadSourceOptions } from '../lib/leadSources'
 
@@ -249,20 +250,20 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         if (isNewEnquiry(quote)) {
           supabase.from('quotes').update({ viewed_at: new Date().toISOString() } as any).eq('id', quote.id).then(() => notifyQuotesChanged())
         }
-        if (!readOnly && !['draft', 'issued', 'sent'].includes(quote.status)) { navigate(`/quotes/${id}`, { replace: true }); return }
-        setAlreadySent(['sent', 'won', 'lost'].includes(quote.status))
+        if (!readOnly && !['enquiry', 'draft', 'issued', 'sent', 'downloaded'].includes(quote.status)) { navigate(`/quotes/${id}`, { replace: true }); return }
+        setAlreadySent(['sent', 'downloaded', 'won', 'lost'].includes(quote.status))
         setQuoteNumber(quote.quote_number ?? '')
         setCustomerId(quote.customer_id)
         setContactPerson(quote.contact_person ?? ''); setContactEmail(quote.contact_email ?? ''); setContactPhone(quote.contact_phone ?? '')
         setSiteAddress(quote.site_address ?? '')
         // a draft without payment terms picks up the company default
-        setPaymentTerms(quote.payment_terms || (quote.status === 'draft' && !readOnly ? company.default_payment_terms ?? '' : ''))
-        setParity(quote.parity || (quote.status === 'draft' && !readOnly ? company.default_parity ?? '' : ''))
+        setPaymentTerms(quote.payment_terms || (isDraftLike(quote.status) && !readOnly ? company.default_payment_terms ?? '' : ''))
+        setParity(quote.parity || (isDraftLike(quote.status) && !readOnly ? company.default_parity ?? '' : ''))
         setLeadSource(quote.lead_source ?? '')
         setValidUntil(quote.valid_until ?? ''); setLeadTime(quote.lead_time ?? ''); setNotes(quote.notes ?? '')
         setDiscountPct(Number(quote.discount_pct ?? 0))
         // a draft without it picks up the company default
-        setAdvancePct(quote.advance_discount_pct != null ? Number(quote.advance_discount_pct) : quote.status === 'draft' && !readOnly ? Number(company.advance_discount_pct ?? 3) : null)
+        setAdvancePct(quote.advance_discount_pct != null ? Number(quote.advance_discount_pct) : isDraftLike(quote.status) && !readOnly ? Number(company.advance_discount_pct ?? 3) : null)
       }
       const { data: ls } = await supabase.from('quote_lines').select('*').eq('quote_id', id).order('position')
       const loaded = ((ls as QuoteLine[]) ?? []).map(l => ({
@@ -554,7 +555,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l), config: l.config })))
     // issuing locks the offer (Izdano); "Označi kot poslano" then marks it as sent to the customer.
     // An offer that was already sent and is issued again stays sent.
-    const newStatus: QuoteStatus = status === 'sent' ? 'sent' : 'issued'
+    const newStatus: QuoteStatus = status === 'sent' || status === 'downloaded' ? status : 'issued'
     const now = new Date().toISOString()
     const { error } = await supabase.from('quotes').update({ snapshot: snap, status: newStatus, issued_at: now, updated_at: now } as any).eq('id', res.id)
     setSaving(false)
@@ -578,7 +579,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (next === 'sent') patch.sent_at = new Date().toISOString()
     const { error } = await supabase.from('quotes').update(patch).eq('id', id)
     if (error) { toast.error(error.message); return }
-    setStatusState(next); setAlreadySent(['sent', 'won', 'lost'].includes(next)); toast.success(t.common.saved); notifyQuotesChanged()
+    setStatusState(next); setAlreadySent(['sent', 'downloaded', 'won', 'lost'].includes(next)); toast.success(t.common.saved); notifyQuotesChanged()
   }
 
   async function deleteQuote() {
@@ -612,23 +613,23 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         </div>
         <div className="flex flex-wrap gap-2">
           {!ro && <>
-            {isSaved && isAdmin && status === 'draft' && <Button variant="secondary" onClick={() => setDeleteQuoteOpen(true)} disabled={saving} className="text-red-600"><Trash2 className="w-4 h-4" /></Button>}
-            {status !== 'draft' && <Button variant="secondary" onClick={() => navigate(`/quotes/${id}`)} disabled={saving}>{t.common.cancel}</Button>}
-            {status === 'draft'
+            {isSaved && isAdmin && isDraftLike(status) && <Button variant="secondary" onClick={() => setDeleteQuoteOpen(true)} disabled={saving} className="text-red-600"><Trash2 className="w-4 h-4" /></Button>}
+            {!isDraftLike(status) && <Button variant="secondary" onClick={() => navigate(`/quotes/${id}`)} disabled={saving}>{t.common.cancel}</Button>}
+            {isDraftLike(status)
               ? <><Button variant="secondary" loading={saving} onClick={save} disabled={!customerId}>{o.saveAsDraft}</Button>
                   <Button loading={saving} onClick={issue} disabled={!customerId}>{s.issueOffer}</Button></>
               : <Button loading={saving} onClick={issue} disabled={!customerId}>{s.saveChanges}</Button>}
           </>}
           {ro && <>
-            {hasPerm('quotes', 'create') && ['draft', 'issued', 'sent'].includes(status) &&
+            {hasPerm('quotes', 'create') && ['enquiry', 'draft', 'issued', 'sent', 'downloaded'].includes(status) &&
               <Button variant="secondary" onClick={() => navigate(`/quotes/${id}/edit`)} className="gap-1.5"><Pencil className="w-3.5 h-3.5" />{s.editOffer}</Button>}
-            {hasPerm('quotes', 'create') && status === 'draft' &&
+            {hasPerm('quotes', 'create') && isDraftLike(status) &&
               <Button loading={saving} onClick={issue} disabled={!customerId}>{s.issueOffer}</Button>}
-            {status !== 'draft' && snapshot?.lines &&
+            {!isDraftLike(status) && snapshot?.lines &&
               <Button variant="secondary" className="gap-1.5" loading={downloading} onClick={downloadPdf}><Download className="w-3.5 h-3.5" />{s.downloadPdf}</Button>}
             {hasPerm('quotes', 'create') && status === 'issued' &&
               <Button onClick={() => changeStatus('sent')} className="gap-1.5"><Send className="w-3.5 h-3.5" />{s.markSentLabel}</Button>}
-            {hasPerm('quotes', 'create') && status === 'sent' && <>
+            {hasPerm('quotes', 'create') && isOpenOffer(status) && <>
               <Button onClick={() => setConfirm('won')} className="gap-1.5"><Check className="w-3.5 h-3.5" />{s.markAccepted}</Button>
               <Button variant="secondary" onClick={() => setConfirm('lost')} className="gap-1.5"><X className="w-3.5 h-3.5" />{s.markRejected}</Button>
             </>}
@@ -641,7 +642,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       {!ro && alreadySent && <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">{s.alreadySent}</div>}
 
       {/* PDF tab only once the offer is issued (a draft has no PDF yet) */}
-      {ro && status !== 'draft' && snapshot?.lines && (
+      {ro && !isDraftLike(status) && snapshot?.lines && (
         <div className="flex items-center gap-1 border-b border-gray-200 mb-5">
           {([['overview', s.tabOverview], ['pdf', s.tabPdf]] as const).map(([k, label]) => (
             <button key={k} onClick={() => setTab(k)}

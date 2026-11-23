@@ -148,7 +148,7 @@ export interface Customer {
   updated_at: string
 }
 
-export type QuoteStatus = 'draft' | 'issued' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'won' | 'lost' | 'frozen'
+export type QuoteStatus = 'enquiry' | 'downloaded' | 'draft' | 'issued' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'won' | 'lost' | 'frozen'
 export type LostReason = 'price' | 'time' | 'quality' | 'competitor' | 'other'
 
 export interface Quote {

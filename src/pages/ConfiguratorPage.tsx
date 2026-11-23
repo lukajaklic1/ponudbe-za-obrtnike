@@ -76,7 +76,7 @@ export interface ConfigItem {
 const TXT = {
   sl: {
     title: 'Konfigurator oken', notFound: 'Konfigurator ni na voljo.', notFoundHint: 'Ponudnik konfiguratorja še ni objavil.',
-    notIncluded: 'Ni vključena', includedTitle: 'Vključeno', qtyTitle: 'Količina', sizeTitle: 'Mere', forWindow: 'za okno', forDoor: 'za balkonska vrata', forWall: 'za drsno steno', forRoof: 'za strešno okno', ofWindow: 'vašega okna', ofDoor: 'vaših balkonskih vrat', ofWall: 'vaše drsne stene', ofRoof: 'vašega strešnega okna', cBands: 'Kakšna naj bo izvedba', cBandsEnd: '?', cProfile: 'Izberite profilni sistem', cGlass: 'Izberite steklo', cOpening: 'Kako naj se odpirajo krila?', cMaterial: 'Iz katerega materiala naj bo okvir?', cColorOut: 'V kateri barvi naj bo okvir zunaj?', cColorIn: 'V kateri barvi naj bo okvir znotraj?', cHandle: 'Katero kljuko želite?', cSillOut: 'Ali želite zunanjo polico?', cSillIn: 'Ali želite notranjo polico?', cShading: 'Ali želite senčila ali komarnik?', cExtras: 'Ali želite še kakšno dodatno opremo?', cServices: 'Katere storitve potrebujete?', stepSizeWindow: 'Vpišite mere vašega okna', stepSizeDoor: 'Vpišite mere vaših balkonskih vrat', stepSizeWall: 'Vpišite mere vaše drsne stene', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
+    notIncluded: 'Ni vključena', includedTitle: 'Vključeno', windowsTotal: 'Okna skupaj', qtyTitle: 'Količina', sizeTitle: 'Mere', forWindow: 'za okno', forDoor: 'za balkonska vrata', forWall: 'za drsno steno', forRoof: 'za strešno okno', ofWindow: 'vašega okna', ofDoor: 'vaših balkonskih vrat', ofWall: 'vaše drsne stene', ofRoof: 'vašega strešnega okna', cBands: 'Kakšna naj bo izvedba', cBandsEnd: '?', cProfile: 'Izberite profilni sistem', cGlass: 'Izberite steklo', cOpening: 'Kako naj se odpirajo krila?', cMaterial: 'Iz katerega materiala naj bo okvir?', cColorOut: 'V kateri barvi naj bo okvir zunaj?', cColorIn: 'V kateri barvi naj bo okvir znotraj?', cHandle: 'Katero kljuko želite?', cSillOut: 'Ali želite zunanjo polico?', cSillIn: 'Ali želite notranjo polico?', cShading: 'Ali želite senčila ali komarnik?', cExtras: 'Ali želite še kakšno dodatno opremo?', cServices: 'Katere storitve potrebujete?', stepSizeWindow: 'Vpišite mere vašega okna', stepSizeDoor: 'Vpišite mere vaših balkonskih vrat', stepSizeWall: 'Vpišite mere vaše drsne stene', roofWindow: 'Strešno okno', roofModelTitle: 'Model strešnega okna', roofVariant: 'Material in barva', roofDatasheet: 'Tehnični list (PDF)', roofSize: 'Mera', roofFlashing: 'Obroba za kritino', roofCenter: 'Vrtljivo', roofTop: 'Zgornje vrtišče', from: 'od',
     nSash: (n: number) => n === 1 ? 'Enokrilno okno' : n === 2 ? 'Dvokrilno okno' : n === 3 ? 'Trokrilno okno' : 'Štirikrilno okno', slidingWindow: 'Drsno okno', sillTitle: 'Police', shadeTitle: 'Senčila in komarniki', shadeColor: 'Barva senčila in omarice', shadeColorHint: 'Brez doplačila. Končno barvo potrdimo pri izmeri.', shadeLabel: 'Senčilo', screenLabel: 'Komarnik', noShade: 'Brez senčila', noShadeDesc: 'Okno ostane brez senčila.', noScreenDesc: 'Okno ostane brez komarnika.', noSillDesc: 'Okno ostane brez police.', noScreen: 'Brez komarnika', sillIn: 'Notranja polica', sillOut: 'Zunanja polica', noSill: 'Brez police', glassTitle: 'Steklo', handleTitle: 'Kljuka', lockable: 'Zaklepanje s ključem', included: 'Vključeno', layers: (n: number) => n === 3 ? 'troslojno' : n === 2 ? 'dvoslojno' : `${n}-slojno`, colorTitle: 'Barva', colorOut: 'Zunaj', colorIn: 'Znotraj', nWall: (n: number) => `${n === 2 ? 'Dvodelna' : n === 3 ? 'Tridelna' : 'Štiridelna'} drsna stena`, nDoor: (n: number) => n === 1 ? 'Enokrilna balkonska vrata' : n === 2 ? 'Dvokrilna balkonska vrata' : 'Trokrilna balkonska vrata',
     bandsTitle: 'Nadsvetloba / ločen spodnji del', band: { none: 'Brez', top: 'Z nadsvetlobo', topSplit: 'Z nadsvetlobo, deljeno po krilih', bottom: 'Z ločenim spodnjim delom', bottomSplit: 'Z ločenim spodnjim delom, deljenim po krilih' } as Record<string, string>,
     openTitle: 'Odpiranje', openHint: 'Izberite, kako se odpira vsako krilo. Cena je razlika do najcenejše izvedbe.', topLight: 'Nadsvetloba', bottomPanel: 'Ločen spodnji del', bandFixed: 'Fiksna', bandTilt: 'Na kip', topHeight: 'Višina nadsvetlobe', bottomHeight: 'Višina ločenega spodnjega dela',
@@ -97,8 +97,8 @@ const TXT = {
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani', removeAsk: (n: number) => `Odstranim pozicijo ${n}?`, removeHint: 'Okno in vse njegove izbire bodo odstranjeni iz povpraševanja.',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
     basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.', pricesAtEnd: 'Ceno boste videli na koncu, ko vpišete svoje podatke.', rangeTitle: 'Okvirna cena z DDV', rangeNote: 'Okvirni razpon. Natančno ceno pripravimo po izmeri na terenu.',
-    getOffer: 'Pridobi ponudbo', getOfferPdf: 'Prenesi ponudbo (PDF)', orEnquiry: 'Ali samo pošljite povpraševanje',
-    pdfDoneTitle: 'Vaša ponudba je pripravljena', pdfDoneText: 'Informativna ponudba se je prenesla na vašo napravo. Ponudnik je prejel tudi vaše povpraševanje. Številka:', pdfAgain: 'Prenesi ponudbo znova', yourTotal: 'Skupaj z DDV',
+    getOffer: 'Prenesi ponudbo', getOfferPdf: 'Prenesi ponudbo (PDF)', orEnquiry: 'Ali samo pošljite povpraševanje',
+    pdfDoneTitle: 'Vaša ponudba je prenesena', pdfDoneText: 'Informativna ponudba se je prenesla na vašo napravo. Ponudnik je o tem obveščen in vas bo po potrebi kontaktiral. Številka ponudbe:', pdfAgain: 'Prenesi ponudbo znova', yourTotal: 'Skupaj z DDV',
     pdfNote: 'Informativna ponudba, izračunana v spletnem konfiguratorju. Končno ponudbo pripravimo po izmeri na terenu.', pdfTaken: 'Stranka je prenesla informativno ponudbo (PDF).',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
     contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov montaže', street: 'Ulica in hišna številka', postal: 'Poštna številka', city: 'Kraj', country: 'Država', postalPick: 'Vpišite številko ali kraj', outOfArea: 'Na tem naslovu montaže ne izvajamo. Povpraševanje lahko pošljete brez montaže.', note: 'Opomba',
@@ -109,13 +109,13 @@ const TXT = {
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
     heard: 'Kje ste izvedeli za nas?', heardPick: 'Izberite',
-    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Okna lahko uredite ali odstranite, dodate novo okno ali nadaljujete z oddajo povpraševanja.', addToEnquiry: 'Dodaj v povpraševanje', backToEnquiry: 'Nazaj na povpraševanje', summary: 'Povzetek', saveChanges: 'Shrani spremembe', addAnother: 'Dodaj še eno okno', notFinished: 'Ni dokončano', finishWindow: 'Dokončaj', toEnquiry: (n: number) => `Vaše povpraševanje (${n})`, toReview: 'Naprej na oddajo povpraševanja', toOffer: 'Naprej do ponudbe', toSend: 'Naprej na oddajo', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna, vpišete svoje podatke in pošljete.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
+    reviewTitle: 'Pregled povpraševanja', reviewHint: 'Okna lahko uredite ali odstranite, dodate novo okno ali nadaljujete na vpis podatkov.', addToEnquiry: 'Dodaj v povpraševanje', backToEnquiry: 'Nazaj na povpraševanje', summary: 'Povzetek', saveChanges: 'Shrani spremembe', addAnother: 'Dodaj še eno okno', notFinished: 'Ni dokončano', finishWindow: 'Dokončaj', toEnquiry: (n: number) => `Vaše povpraševanje (${n})`, toReview: 'Naprej na pregled', toContact: 'Naprej na vaše podatke', yourOrderHint: 'Spodaj so prikazana okna, ki ste jih izbrali. Kliknite na posamezno okno za urejanje.', finishHint: 'Pregledate okna in vpišete svoje podatke.', finishHintEnquiry: 'V zadnjem koraku pošljete povpraševanje.', finishHintOffer: 'V zadnjem koraku prenesete ponudbo.', finishHintChoose: 'V zadnjem koraku prenesete ponudbo ali pošljete povpraševanje.', finishOpen: (n: number) => `Najprej izberite vse korake za pozicijo ${n}.`, toPosition: (n: number) => `Naprej na pozicijo ${n}`, editWindow: 'Uredi', backToReview: 'Nazaj na pregled',
     sashWidths: 'Širina kril', sashN: (n: number) => `Krilo ${n}`, sashRest: 'izračuna se samo', sashTooNarrow: 'Krilo mora biti široko vsaj 300 mm.', sashEqual: 'Enako široka krila',
     subKind: 'Vrsta', subLength: 'Dolžina', subSize: 'Mere', subDesc: 'Opis', offerPreview: 'Predogled ponudbe', offerPreviewHint: 'Pozicije se dodajajo sproti, ko izbirate.', windowAlone: 'Okno', positionPrice: 'Cena pozicije', positionNote: 'Cena tega okna z izbrano opremo, brez storitev.', servicesForAll: 'za vsa okna',
   },
   en: {
     title: 'Window configurator', notFound: 'Configurator not available.', notFoundHint: 'The supplier has not published the configurator yet.',
-    notIncluded: 'Not included', includedTitle: 'Included', qtyTitle: 'Quantity', sizeTitle: 'Size', forWindow: 'for the window', forDoor: 'for the balcony door', forWall: 'for the sliding wall', forRoof: 'for the roof window', ofWindow: 'your window', ofDoor: 'your balcony door', ofWall: 'your sliding wall', ofRoof: 'your roof window', cBands: 'What version of', cBandsEnd: ' would you like?', cProfile: 'Choose the profile system of', cGlass: 'Choose the glass of', cOpening: 'How should the sashes open?', cMaterial: 'What material should the frame be?', cColorOut: 'What colour should the frame be outside?', cColorIn: 'What colour should the frame be inside?', cHandle: 'Which handle would you like?', cSillOut: 'Would you like an outside sill?', cSillIn: 'Would you like an inside sill?', cShading: 'Would you like shading or an insect screen?', cExtras: 'Would you like any extra equipment?', cServices: 'Which services do you need?', stepSizeWindow: 'Enter the size of your window', stepSizeDoor: 'Enter the size of your balcony door', stepSizeWall: 'Enter the size of your sliding wall', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
+    notIncluded: 'Not included', includedTitle: 'Included', windowsTotal: 'Windows total', qtyTitle: 'Quantity', sizeTitle: 'Size', forWindow: 'for the window', forDoor: 'for the balcony door', forWall: 'for the sliding wall', forRoof: 'for the roof window', ofWindow: 'your window', ofDoor: 'your balcony door', ofWall: 'your sliding wall', ofRoof: 'your roof window', cBands: 'What version of', cBandsEnd: ' would you like?', cProfile: 'Choose the profile system of', cGlass: 'Choose the glass of', cOpening: 'How should the sashes open?', cMaterial: 'What material should the frame be?', cColorOut: 'What colour should the frame be outside?', cColorIn: 'What colour should the frame be inside?', cHandle: 'Which handle would you like?', cSillOut: 'Would you like an outside sill?', cSillIn: 'Would you like an inside sill?', cShading: 'Would you like shading or an insect screen?', cExtras: 'Would you like any extra equipment?', cServices: 'Which services do you need?', stepSizeWindow: 'Enter the size of your window', stepSizeDoor: 'Enter the size of your balcony door', stepSizeWall: 'Enter the size of your sliding wall', roofWindow: 'Roof window', roofModelTitle: 'Roof window model', roofVariant: 'Material and colour', roofDatasheet: 'Technical sheet (PDF)', roofSize: 'Size', roofFlashing: 'Roof flashing', roofCenter: 'Centre pivot', roofTop: 'Top hung', from: 'from',
     nSash: (n: number) => n === 1 ? 'Single sash' : n === 2 ? 'Double sash' : n === 3 ? 'Triple sash' : 'Four sashes', slidingWindow: 'Sliding window', sillTitle: 'Window sills', shadeTitle: 'Shading and insect screens', shadeColor: 'Colour of the shading and its box', shadeColorHint: 'No extra charge. We confirm the colour when measuring.', shadeLabel: 'Shading', screenLabel: 'Insect screen', noShade: 'No shading', noShadeDesc: 'The window stays without shading.', noScreenDesc: 'The window stays without an insect screen.', noSillDesc: 'The window stays without a sill.', noScreen: 'No insect screen', sillIn: 'Inside sill', sillOut: 'Outside sill', noSill: 'No sill', glassTitle: 'Glass', handleTitle: 'Handle', lockable: 'Locks with a key', included: 'Included', layers: (n: number) => n === 3 ? 'triple glazed' : n === 2 ? 'double glazed' : `${n} panes`, colorTitle: 'Colour', colorOut: 'Outside', colorIn: 'Inside', nWall: (n: number) => `${n}-panel sliding wall`, nDoor: (n: number) => n === 1 ? 'Single balcony door' : n === 2 ? 'Double balcony door' : 'Triple balcony door',
     bandsTitle: 'Top light / bottom panel', band: { none: 'None', top: 'With top light', topSplit: 'With split top light', bottom: 'With bottom panel', bottomSplit: 'With split bottom panel' } as Record<string, string>,
     openTitle: 'Opening', openHint: 'Choose how each sash opens. The price is the difference to the cheapest one.', topLight: 'Top light', bottomPanel: 'Bottom panel', bandFixed: 'Fixed', bandTilt: 'Tilt', topHeight: 'Top light height', bottomHeight: 'Bottom panel height',
@@ -136,8 +136,8 @@ const TXT = {
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove', removeAsk: (n: number) => `Remove position ${n}?`, removeHint: 'The window and all its choices will be removed from the enquiry.',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
     basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.', pricesAtEnd: 'You will see the price at the end, after entering your details.', rangeTitle: 'Estimated price incl. VAT', rangeNote: 'An estimated range. We prepare the exact price after measuring on site.',
-    getOffer: 'Get the quote', getOfferPdf: 'Download the quote (PDF)', orEnquiry: 'Or just send an enquiry',
-    pdfDoneTitle: 'Your quote is ready', pdfDoneText: 'The informative quote was downloaded to your device. The supplier received your enquiry too. Number:', pdfAgain: 'Download the quote again', yourTotal: 'Total incl. VAT',
+    getOffer: 'Download the quote', getOfferPdf: 'Download the quote (PDF)', orEnquiry: 'Or just send an enquiry',
+    pdfDoneTitle: 'Your quote has been downloaded', pdfDoneText: 'The informative quote was downloaded to your device. The supplier has been notified and will contact you if needed. Quote number:', pdfAgain: 'Download the quote again', yourTotal: 'Total incl. VAT',
     pdfNote: 'Informative quote, calculated in the online configurator. We prepare the final quote after measuring on site.', pdfTaken: 'The customer downloaded the informative quote (PDF).',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
     contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Installation address', street: 'Street and house number', postal: 'Postal code', city: 'Town', country: 'Country', postalPick: 'Type the code or the town', outOfArea: 'We do not install at this address. You can still send the enquiry without installation.', note: 'Note',
@@ -148,7 +148,7 @@ const TXT = {
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
     heard: 'How did you hear about us?', heardPick: 'Choose',
-    reviewTitle: 'Review your enquiry', reviewHint: 'Edit or remove windows, add another one or continue to send your enquiry.', addToEnquiry: 'Add to enquiry', backToEnquiry: 'Back to the enquiry', summary: 'Summary', saveChanges: 'Save changes', addAnother: 'Add another window', notFinished: 'Not finished', finishWindow: 'Finish', toEnquiry: (n: number) => `Your enquiry (${n})`, toReview: 'Continue to send the enquiry', toOffer: 'Continue to your offer', toSend: 'Continue to send', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows, enter your details and send.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
+    reviewTitle: 'Review your enquiry', reviewHint: 'Edit or remove windows, add another one or continue to your details.', addToEnquiry: 'Add to enquiry', backToEnquiry: 'Back to the enquiry', summary: 'Summary', saveChanges: 'Save changes', addAnother: 'Add another window', notFinished: 'Not finished', finishWindow: 'Finish', toEnquiry: (n: number) => `Your enquiry (${n})`, toReview: 'Continue to the review', toContact: 'Continue to your details', yourOrderHint: 'Below are the windows you chose. Click a window to edit it.', finishHint: 'You check the windows and enter your details.', finishHintEnquiry: 'In the last step you send the enquiry.', finishHintOffer: 'In the last step you download the quote.', finishHintChoose: 'In the last step you download the quote or send an enquiry.', finishOpen: (n: number) => `First go through every step for position ${n}.`, toPosition: (n: number) => `On to position ${n}`, editWindow: 'Edit', backToReview: 'Back to the review',
     sashWidths: 'Sash widths', sashN: (n: number) => `Sash ${n}`, sashRest: 'worked out for you', sashTooNarrow: 'A sash must be at least 300 mm wide.', sashEqual: 'Equal sashes',
     subKind: 'Type', subLength: 'Length', subSize: 'Size', subDesc: 'Description', offerPreview: 'Quote preview', offerPreviewHint: 'Positions are added as you choose.', windowAlone: 'Window', positionPrice: 'Position price', positionNote: 'This window with the chosen equipment, without services.', servicesForAll: 'for all windows',
   },
@@ -164,7 +164,9 @@ function loadDraft(slug: string): any | null {
     const d = JSON.parse(localStorage.getItem(draftKey(slug)) || 'null')
     if (!d || d.v !== 1 || !Array.isArray(d.items) || !d.items.length) return null
     // new windows must not take a key a kept one already has
-    for (const x of d.items) { const n = Number(String(x.key).slice(1)); if (n > seq) seq = n }
+    // also the keys of windows that were removed: their step progress is still in the maps, a new window must not inherit it
+    const keys = [...d.items.map((x: { key: string }) => x.key), ...Object.keys(d.openMap ?? {}), ...Object.keys(d.reachedMap ?? {}), ...Object.keys(d.doneKeys ?? {})]
+    for (const k of keys) { const n = Number(String(k).slice(1)); if (n > seq) seq = n }
     return d
   } catch { return null }
 }
@@ -279,7 +281,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   const priceMode: PriceMode = internal ? 'live' : (data?.company.price_mode ?? (calc ? 'live' : 'never'))
   const endMode: EndMode = internal ? 'enquiry' : (data?.company.end_mode ?? 'enquiry')
   /** the way on names where it leads: sending an enquiry, getting the offer, or either */
-  const finishLabel = endMode === 'pdf' ? T.toOffer : endMode === 'choose' ? T.toSend : T.toReview
+  const finishLabel = T.toReview
   const showLive = calc && priceMode === 'live'
   const showRangeLive = calc && priceMode === 'range'
   /** a from–to range around a price (−10 % … +10 %, rounded to 10) */
@@ -521,6 +523,11 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     const next = copy ? { ...it, key: newKey(), option_ids: [...it.option_ids] } : defaultItem(data!)
     // a copy keeps its choices, so its steps start closed
     if (copy) { setOpenMap(m => ({ ...m, [next.key]: 'none' })); setReachedMap(m => ({ ...m, [next.key]: 99 })) }
+    else {
+      // a new window starts at the first step, whatever an earlier window with this key left behind
+      const clean = <T,>(m: Record<string, T>) => { const { [next.key]: _gone, ...rest } = m; return rest }
+      setOpenMap(clean); setReachedMap(clean); setDoneKeys(clean)
+    }
     setItems(xs => [...xs, next]); setActive(items.length)
   }
   function removeItem(i: number) {
@@ -536,7 +543,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     const offerLines = withPdf ? offerLinesNow() : null
     const { data: res, error } = await (supabase as any).rpc('submit_configuration', {
       p_slug: slug,
-      p_customer: { ...contact, lead_source: heard || null },
+      p_customer: { ...contact, lead_source: heard || null, outcome: withPdf ? 'offer' : 'enquiry' },
       p_items: items.map(x => x.roof
         ? { roof: x.roof, quantity: x.quantity, option_ids: [], label: x.label }
         : x.spec
@@ -751,7 +758,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   const isDone = (x: ConfigItem) => !!doneKeys[x.key] || (reachedMap[x.key] ?? 0) >= 99 || (x.key === it.key && atLast)
   const firstOpen = items.findIndex(x => !isDone(x))
   const canFinish = items.every(sizeOk) && firstOpen < 0
-  const finishNote = firstOpen >= 0 ? T.finishOpen(firstOpen + 1) : T.finishHint
+  const finishNote = firstOpen >= 0 ? T.finishOpen(firstOpen + 1) : `${T.finishHint} ${!calc || endMode === 'enquiry' ? T.finishHintEnquiry : endMode === 'pdf' ? T.finishHintOffer : T.finishHintChoose}`
   const finish = () => { setStage('review'); window.scrollTo({ top: 0 }) }
   /** a window's sizes show once the customer reached the size step (not on the first steps, before they chose anything) */
   const dimsOn = (x: ConfigItem) => internal || stage !== 'config' || (x.key === it.key ? (unlockIdx < 0 || reached >= unlockIdx) : (reachedMap[x.key] ?? 0) >= (x.roof ? 1 : 2))
@@ -1459,8 +1466,8 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                   const d = describe(x, true)
                   const t = data.types.find(tt => tt.id === x.type_id)
                   const xp = priceOf(x)
-                  return <div key={x.key} className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-[176px_minmax(0,1fr)] gap-5">
-                    <div className="flex items-center justify-center rounded-xl bg-[#f7f8fa] min-h-[168px] py-4">
+                  return <div key={x.key} className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-[160px_minmax(0,1fr)] gap-6 items-start">
+                    <div className="flex items-center justify-center rounded-xl bg-[#f7f8fa] h-[200px]">
                       {x.roof ? <RoofWindowDrawing size={120} photo /> : x.spec ? <SpecDrawing spec={x.spec} width={x.width ?? 0} height={x.height ?? 0} size={140} showDims photo /> : t && <WindowDrawing template={t.template} width={x.width ?? 0} height={x.height ?? 0} hinge={x.hinge} size={140} showDims />}
                     </div>
                     <div className="min-w-0 flex flex-col">
@@ -1485,7 +1492,8 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                         // the window alone: sills and shading are priced in their own rows below
                         const own = x.spec && !x.roof ? sp.unitPrice : xp
                         const picked = new Set([T.sillOut, T.sillIn, T.shadeLabel, T.shadeColor, T.screenLabel])
-                        const rows = x.spec && !x.roof ? d.rows.filter(([k]) => !picked.has(k)) : d.rows
+                        const once = new Set([L.groups.installation, L.groups.removal])
+                        const rows = (x.spec && !x.roof ? d.rows.filter(([k]) => !picked.has(k)) : d.rows).filter(([k]) => !once.has(k))
                         const without = x.spec && !x.roof ? d.rows.filter(([k, v]) => picked.has(k) && v === T.none).map(([k]) => k) : []
                         return <>
                           <div className="mt-3 flex items-start justify-between gap-4">
@@ -1498,17 +1506,16 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                             {x.quantity > 1 && <div className="text-[13px] leading-4 text-[#4f4f4f] mt-0.5">{x.quantity} × {money(own, cur)}</div>}
                           </div>}
                           </div>
-                          {sp.subs.length > 0 && <ul className="mt-4 space-y-2">
-                            {sp.subs.map(sb => <li key={sb.code} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-[#fafafa] p-2.5">
-                              <span className="w-12 h-12 shrink-0 rounded-lg bg-white border border-gray-100 flex items-center justify-center overflow-hidden">
+                          {sp.subs.length > 0 && <ul className="mt-4 border-t border-gray-100 divide-y divide-gray-100">
+                            {sp.subs.map(sb => <li key={sb.code} className="flex items-center gap-3.5 py-3">
+                              <span className="w-12 h-12 shrink-0 rounded-lg bg-[#f7f8fa] flex items-center justify-center overflow-hidden">
                                 {sb.image_url ? <img src={sb.image_url} alt="" className="max-h-full max-w-full object-contain" />
                                   : sb.sill != null ? <SillIcon material={sb.sill} size={44} />
                                   : sb.shade ? <ShadingIcon kind={sb.shade} size={44} /> : null}
                               </span>
                               <span className="min-w-0 flex-1">
                                 <span className="block text-sm leading-5 font-medium text-gray-900">{(() => { const kind = sb.rows.find(([k]) => k === T.subKind)?.[1]; return kind ? `${kind}: ${sb.title}` : sb.title })()}</span>
-                                <span className="block text-[13px] leading-5 text-[#4f4f4f] truncate">{sb.rows.filter(([k]) => k !== T.subKind && !(sb.color && k === T.shadeColor)).map(([k, v]) => k === T.subDesc ? v : `${k}: ${v}`).join(' · ')}</span>
-                                {sb.color && <span className="flex items-center gap-1.5 text-[13px] leading-5 text-[#4f4f4f]"><span className="w-3 h-3 shrink-0 rounded-[3px] border border-black/10" style={{ background: sb.color }} />{sb.rows.filter(([k]) => k === T.shadeColor).map(([k, v]) => `${k}: ${v}`).join('')}</span>}
+                                {sb.color && <span className="flex items-center gap-1.5 text-[13px] leading-5 text-[#4f4f4f]"><span className="w-3 h-3 shrink-0 rounded-[3px] border border-black/20" style={{ background: sb.color }} />{sb.rows.filter(([k]) => k === T.shadeColor).map(([, v]) => v).join('')}</span>}
                               </span>
                               {show && <span className="text-sm font-medium text-gray-900 tabular-nums whitespace-nowrap">+ {money(sb.unitPrice * x.quantity, cur)}</span>}
                             </li>)}
@@ -1527,20 +1534,21 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                 })}
                 <button type="button" onClick={() => { addItem(false); setStage('config'); window.scrollTo({ top: 0 }) }}
                   className="w-full h-12 rounded-xl border border-dashed border-gray-300 bg-white text-[15px] font-semibold text-gray-900 flex items-center justify-center gap-2 hover:border-gray-500 transition-colors"><Plus className="w-4 h-4" strokeWidth={2.5} />{T.addAnother}</button>
-                {serviceRows.length > 0 && <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
-                  <div className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900 mb-2">{T.servicesTitle}</div>
-                  <div className="divide-y divide-gray-100">
-                    {serviceRows.map(r => <div key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm py-2.5">
-                      <span className="font-medium text-gray-900">{r.option.name}</span>
+                {/* installation and the other services chosen for the whole enquiry, listed under the windows */}
+                {serviceRows.length > 0 && <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+                  <div className="text-[17px] leading-6 font-semibold tracking-[-0.01em] text-gray-900">{T.servicesTitle}</div>
+                  <ul className="mt-2 divide-y divide-gray-100">
+                    {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 py-2.5 text-sm">
+                      <span className="min-w-0 text-gray-900">{r.option.name}<span className="text-[13px] text-[#4f4f4f]"> · {r.qty.toLocaleString('de-DE')} {Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') || r.option.pricing === 'piece' ? L.pricing.piece.replace('na ', '') : r.option.pricing === 'm2' ? 'm²' : 'm'}</span></span>
                       {show && <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(r.total, cur)}</span>}
-                    </div>)}
-                  </div>
+                    </li>)}
+                  </ul>
                 </div>}
               </div>
             ) : (
               /* Contact stage */
               <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <button onClick={() => setStage('review')} className="flex items-center gap-1.5 text-sm font-medium text-[#4f4f4f] hover:text-gray-900 mb-4 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
+                <button type="button" onClick={() => setStage('review')} className="self-start inline-flex items-center gap-2 h-10 pl-3 pr-4 mb-4 rounded-[10px] border border-gray-200 bg-white text-sm font-semibold text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-gray-400 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
                 <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-5">{T.contact}</h2>
                 <div className="inline-flex p-1 rounded-[10px] bg-[#f1f1f1] mb-5">
                   {(['person', 'company'] as const).map(k => <button key={k} type="button" onClick={() => setContact({ ...contact, customer_type: k })}
@@ -1657,7 +1665,20 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                   </li>
                 })}
               </ul>
-              {!internal && serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 space-y-1">
+              {!internal && show && <ul className="border-t border-gray-100 pt-3 space-y-1.5">
+                {items.map((x, i) => {
+                  const xp = priceOf(x)
+                  return <li key={x.key} className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="min-w-0 truncate text-gray-900">{T.position} {i + 1} · {describe(x).title}{x.quantity > 1 && <span className="text-[13px] text-[#4f4f4f]"> {x.quantity} ×</span>}</span>
+                    <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{xp != null ? money(xp * x.quantity, cur) : '—'}</span>
+                  </li>
+                })}
+                <li className="flex items-baseline justify-between gap-3 text-sm pt-1.5 mt-1 border-t border-gray-100">
+                  <span className="font-semibold text-gray-900">{T.windowsTotal}</span>
+                  <span className="font-semibold text-gray-900 whitespace-nowrap tabular-nums">{money(items.reduce((a, x) => a + (priceOf(x) ?? 0) * x.quantity, 0), cur)}</span>
+                </li>
+              </ul>}
+              {!internal && serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 mt-3 space-y-1">
                 <li className="text-[13px] font-medium text-[#4f4f4f]">{T.servicesTitle}</li>
                 {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="text-gray-900 min-w-0 truncate">{r.option.name} <span className="text-[13px] text-[#4f4f4f]">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
@@ -1691,7 +1712,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
               </>
               ) : stage === 'review' ? (<>
                 <button disabled={!canFinish} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
-                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{finishLabel}</button>
+                  className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toContact}</button>
                 {!canFinish && <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>}
               </>
               ) : (

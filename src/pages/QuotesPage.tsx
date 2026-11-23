@@ -19,11 +19,12 @@ import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
 import { isNewEnquiry } from '../lib/newEnquiry'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
+import { isDraftLike, isOpenOffer } from '../lib/quoteStatus'
 
 interface CompanyUser { id: string; first_name: string; last_name: string; is_active?: boolean }
 
 
-const STATUSES: QuoteStatus[] = ['draft', 'issued', 'sent', 'won', 'lost']
+const STATUSES: QuoteStatus[] = ['enquiry', 'draft', 'issued', 'sent', 'downloaded', 'won', 'lost']
 
 const VIEW_KEY = 'obrtdesk-quotes-view'
 
@@ -38,7 +39,7 @@ export default function QuotesPage() {
   const sl = lang === 'sl'
   // Days an open quote has been in its current status (null = final status: won / lost)
   const waitingDays = (q: Quote) => {
-    const from = q.status === 'draft' ? q.created_at
+    const from = isDraftLike(q.status) || q.status === 'downloaded' ? q.created_at
       : q.status === 'issued' ? (q.issued_at ?? q.updated_at)
       : q.status === 'sent' ? (q.sent_at ?? q.issued_at ?? q.updated_at)
       : null
@@ -139,7 +140,7 @@ export default function QuotesPage() {
   })
   const paged = sortedFiltered.slice((page - 1) * pageSize, page * pageSize)
   const money = (n: number) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })
-  const openQuote = (q: Quote) => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)
+  const openQuote = (q: Quote) => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)
 
 
   // Dropped on another column. Won / lost lock the offer, so ask first (same as the buttons on the offer).
@@ -216,7 +217,7 @@ export default function QuotesPage() {
           {/* phones: one card per quote instead of the wide table */}
           <div className="sm:hidden divide-y divide-gray-200">
             {paged.map(q => (
-              <button key={q.id} type="button" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
+              <button key={q.id} type="button" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
                 className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold text-gray-900">{q.quote_number}{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}</span>
@@ -242,7 +243,7 @@ export default function QuotesPage() {
             </tr></thead>
             <tbody className="divide-y divide-gray-200">
               {paged.map(q => (
-                <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
+                <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
                     <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}
                   </td>
@@ -256,7 +257,7 @@ export default function QuotesPage() {
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
-                      {q.status === 'sent' && (() => {
+                      {isOpenOffer(q.status) && (() => {
                         const n = waitingDays(q) ?? 0
                         return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
                           className="text-[13px] whitespace-nowrap" style={{ color: '#4f4f4f' }}>{sentAgo(n)}</span>
@@ -278,7 +279,7 @@ export default function QuotesPage() {
                   </td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <div className="flex justify-end">
-                      <button onClick={() => navigate(canEdit && q.status === 'draft' ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                      <button onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>

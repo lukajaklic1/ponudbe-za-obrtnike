@@ -105,7 +105,7 @@ export const translations = {
       markFrozen: 'Freeze',
       lostReason: 'Lost reason',
       status: {
-        draft: 'Draft', issued: 'Issued', sent: 'Sent', accepted: 'Accepted', rejected: 'Rejected', expired: 'Expired', won: 'Won', lost: 'Lost', frozen: 'Frozen',
+        enquiry: 'Enquiry', downloaded: 'Offer downloaded', draft: 'Draft', issued: 'Issued', sent: 'Sent', accepted: 'Accepted', rejected: 'Rejected', expired: 'Expired', won: 'Won', lost: 'Lost', frozen: 'Frozen',
       },
       reviewOffer: 'Review offer', backToEdit: 'Back to editing', issueOffer: 'Issue offer', saveChanges: 'Save changes',
       newVersion: 'Create new version', markAccepted: 'Mark as won', markRejected: 'Mark as lost', markSentLabel: 'Mark as sent', sendOffer: 'Send offer', downloadPdf: 'Download PDF',
@@ -696,7 +696,7 @@ export const translations = {
       markFrozen: 'Zamrzni',
       lostReason: 'Razlog izgube',
       status: {
-        draft: 'Osnutek', issued: 'Izdano', sent: 'Poslano', accepted: 'Pridobljeno', rejected: 'Izgubljeno', expired: 'Poteklo', won: 'Pridobljeno', lost: 'Izgubljeno', frozen: 'Zamrznjeno',
+        enquiry: 'Povpraševanje', downloaded: 'Ponudba prenesena', draft: 'Osnutek', issued: 'Izdano', sent: 'Poslano', accepted: 'Pridobljeno', rejected: 'Izgubljeno', expired: 'Poteklo', won: 'Pridobljeno', lost: 'Izgubljeno', frozen: 'Zamrznjeno',
       },
       reviewOffer: 'Pregled ponudbe', backToEdit: 'Nazaj na urejanje', issueOffer: 'Izdaj ponudbo', saveChanges: 'Shrani spremembe',
       newVersion: 'Ustvari novo verzijo', markAccepted: 'Označi kot pridobljeno', markRejected: 'Označi kot izgubljeno', markSentLabel: 'Označi kot poslano', sendOffer: 'Pošlji ponudbo', downloadPdf: 'Prenesi PDF',

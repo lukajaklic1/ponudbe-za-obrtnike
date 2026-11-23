@@ -12,6 +12,7 @@ import { cn } from '../lib/cn'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { SortIcon } from '../components/ui/SortIcon'
 import Pagination from '../components/ui/Pagination'
+import { isDraftLike } from '../lib/quoteStatus'
 import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSources'
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
@@ -147,11 +148,11 @@ export default function DashboardPage() {
     for (const q of (data as Q[]) ?? []) {
       if (filterCustomerId && q.customer_id !== filterCustomerId) continue
       if (assigneeFilter && q.assignee_id !== assigneeFilter) continue
-      if (q.status === 'draft') continue          // drafts are work in progress, not offers
+      if (isDraftLike(q.status)) continue          // drafts and enquiries are work in progress, not offers
       statusOf.set(q.id, q.status)
       const v = Number(q.total_net) || 0
       acc.all.value += v; acc.all.count++
-      const key = q.status === 'issued' ? 'sent' : q.status   // older quotes: Izdano counts as Poslano
+      const key = q.status === 'issued' || q.status === 'downloaded' ? 'sent' : q.status   // Izdano and a downloaded offer count as Poslano
       if (key in acc) { acc[key as StatusKey].value += v; acc[key as StatusKey].count++ }
     }
     setStatusStats(acc)
@@ -222,7 +223,7 @@ export default function DashboardPage() {
   const sl = lang === 'sl'
 
   // every filter except the dates (customer and assignee are applied when loading)
-  const statusKey = (q: Q) => q.status
+  const statusKey = (q: Q) => q.status === 'enquiry' ? 'draft' : q.status === 'downloaded' ? 'sent' : q.status
   const base = quotes.filter(q => (!statusFilter || statusKey(q) === statusFilter)
     && (!sourceFilter || (sourceFilter === 'configurator' ? q.source === 'configurator' : q.source !== 'configurator'))
     && (!typeFilter || (customerTypes[q.customer_id] ?? 'person') === typeFilter)
@@ -239,7 +240,7 @@ export default function DashboardPage() {
     const all = sum(() => true)
     const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
     const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), tone, sub })
-    const draft = sum(q => q.status === 'draft'), issued = sum(q => q.status === 'issued'), sent = sum(q => q.status === 'sent'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
+    const draft = sum(q => isDraftLike(q.status)), issued = sum(q => q.status === 'issued'), sent = sum(q => q.status === 'sent' || q.status === 'downloaded'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
     return [
       row(sl ? 'Skupna vrednost ponudb' : 'Total value of quotes', all, 'grey', all.value ? share(all.value) : ''),
       row(sl ? 'Osnutki' : 'Drafts', draft, 'grey', share(draft.value)),
@@ -262,7 +263,7 @@ export default function DashboardPage() {
     const rows = keys.map(k => ({ period: k, sent_value: 0, won_value: 0, sent_count: 0, won_count: 0 }))
     const at = (d: string | null | undefined) => (d && inRange(d) ? rows.find(r => r.period === d.slice(0, 7)) : undefined)
     for (const q of base) {
-      if (q.status === 'draft') continue
+      if (isDraftLike(q.status)) continue
       const v = Number(q.total_net) || 0
       const sentRow = at(q.sent_at ?? q.created_at)
       if (sentRow) { sentRow.sent_value += v; sentRow.sent_count++ }
@@ -427,7 +428,7 @@ export default function DashboardPage() {
           ].map(x => ({ ...x, count: inPeriod.filter(q => statusKey(q) === x.key).length }))
           const total = inPeriod.length
           // every service of the sent quotes: all of it (light) with the won part (dark) in one bar
-          const statusOfQ = new Map(inPeriod.filter(q => q.status !== 'draft').map(q => [q.id, q.status]))
+          const statusOfQ = new Map(inPeriod.filter(q => !isDraftLike(q.status)).map(q => [q.id, q.status]))
           const byName = new Map<string, { name: string; total: number; won: number }>()
           for (const l of serviceLines) {
             const stq = statusOfQ.get(l.quote_id)

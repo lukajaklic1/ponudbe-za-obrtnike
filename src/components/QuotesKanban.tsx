@@ -11,6 +11,7 @@ export interface KanbanQuote extends Quote {
 export const ALLOWED_MOVES: Partial<Record<QuoteStatus, QuoteStatus[]>> = {
   issued: ['sent'],
   sent: ['won', 'lost'],
+  downloaded: ['won', 'lost'],
 }
 
 interface Props {

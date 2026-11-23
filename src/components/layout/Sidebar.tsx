@@ -61,9 +61,9 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   }, [])
   useEffect(() => {
     if (!company?.id) return
-    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).in('status', ['issued', 'sent'])
+    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).in('status', ['issued', 'sent', 'downloaded'])
       .then(({ count }) => setOpenQuotes(count ?? 0))
-    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).eq('source', 'configurator').eq('status', 'draft').is('viewed_at', null)
+    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).eq('source', 'configurator').in('status', ['enquiry', 'draft']).is('viewed_at', null)
       .then(({ count }) => setNewQuotes(count ?? 0))
   }, [company?.id, location.pathname, tick])
   const openLabel = lang === 'sl' ? `Odprte ponudbe (izdane in poslane): ${openQuotes}` : `Open quotes (issued and sent): ${openQuotes}`

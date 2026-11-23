@@ -16,7 +16,7 @@ const TXT = {
   sl: {
     title: 'Objava', save: 'Shrani', saved: 'Shranjeno.',
     logoSize: 'Velikost logotipa', logoSizeHint: 'Logotip naložite v Nastavitvah; prazen rob okoli njega se obreže sam.', logoSizes: { s: 'Majhen', m: 'Srednji', l: 'Velik' } as Record<string, string>,
-    modeTitle: 'Kako deluje konfigurator za stranke', modeHint: 'Izberite, ali stranka vidi cene in kaj dobi na koncu. Povpraševanje z vsemi izbirami dobite vedno, ponudbo iz njega izdate z enim klikom.',
+    modeTitle: 'Kako deluje konfigurator za stranke', modeHint: 'Izberite, ali stranka vidi cene in kaj dobi na koncu. Stranko dobite vedno na seznamu ponudb: kot Povpraševanje (ponudbo izdate vi) ali kot Ponudba prenesena (stranka že ima ponudbo).',
     priceModeLabel: 'Cene',
     priceModes: [
       ['live', 'Sproti', 'Stranka vidi ceno okna in vsakega doplačila med izbiranjem.'],
@@ -26,9 +26,9 @@ const TXT = {
     ] as [string, string, string][],
     endModeLabel: 'Na koncu',
     endModes: [
-      ['enquiry', 'Pošlje povpraševanje', 'Stranka pošlje povpraševanje, vi pripravite in pošljete ponudbo.'],
-      ['pdf', 'Takoj prenese ponudbo', 'Stranka prenese informativno ponudbo (PDF), vi dobite povpraševanje.'],
-      ['choose', 'Stranka izbere', 'Stranka izbere: prenese ponudbo ali samo pošlje povpraševanje.'],
+      ['enquiry', 'Pošlje povpraševanje', 'Status Povpraševanje: stranka pošlje povpraševanje, vi izdate in pošljete ponudbo.'],
+      ['pdf', 'Takoj prenese ponudbo', 'Status Ponudba prenesena: stranka vpiše podatke in prenese ponudbo (PDF), vas pa obvestimo.'],
+      ['choose', 'Stranka izbere', 'Stranka izbere: prenese ponudbo (Ponudba prenesena) ali pošlje povpraševanje (Povpraševanje).'],
     ] as [string, string, string][],
     modeResult: (p: string, e: string) => e !== 'enquiry' && p === 'never'
       ? 'Stranka cen med izbiranjem ne vidi, na koncu pa prenese ponudbo s cenami.'
@@ -47,7 +47,7 @@ const TXT = {
   en: {
     title: 'Publishing', save: 'Save', saved: 'Saved.',
     logoSize: 'Logo size', logoSizeHint: 'Upload the logo in Settings; the empty margin around it is cut away.', logoSizes: { s: 'Small', m: 'Medium', l: 'Large' } as Record<string, string>,
-    modeTitle: 'How the configurator works for customers', modeHint: 'Choose whether the customer sees prices and what they get at the end. You always receive the enquiry with every choice, and issue the quote from it in one click.',
+    modeTitle: 'How the configurator works for customers', modeHint: 'Choose whether the customer sees prices and what they get at the end. The customer always appears in your quotes list: as an Enquiry (you issue the quote) or as an Offer downloaded (the customer already has the quote).',
     priceModeLabel: 'Prices',
     priceModes: [
       ['live', 'Live', 'The customer sees the price of the window and every extra while choosing.'],
@@ -57,9 +57,9 @@ const TXT = {
     ] as [string, string, string][],
     endModeLabel: 'At the end',
     endModes: [
-      ['enquiry', 'Sends an enquiry', 'The customer sends an enquiry, you prepare and send the quote.'],
-      ['pdf', 'Downloads the quote', 'The customer downloads an informative quote (PDF), you get the enquiry.'],
-      ['choose', 'The customer chooses', 'The customer chooses: download the quote or only send an enquiry.'],
+      ['enquiry', 'Sends an enquiry', 'Status Enquiry: the customer sends an enquiry, you issue and send the quote.'],
+      ['pdf', 'Downloads the quote', 'Status Offer downloaded: the customer enters their details and downloads the quote (PDF), you are notified.'],
+      ['choose', 'The customer chooses', 'The customer chooses: download the quote (Offer downloaded) or send an enquiry (Enquiry).'],
     ] as [string, string, string][],
     modeResult: (p: string, e: string) => e !== 'enquiry' && p === 'never'
       ? 'The customer sees no prices while choosing and downloads a quote with prices at the end.'

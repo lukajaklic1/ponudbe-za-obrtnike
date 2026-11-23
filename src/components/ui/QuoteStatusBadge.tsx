@@ -7,6 +7,8 @@ export const YELLOW: React.CSSProperties = { color: '#8a6100', backgroundColor: 
 export const GREEN: React.CSSProperties  = { color: '#267a47', backgroundColor: '#dbfce7' }
 
 const STATUS_COLORS: Record<QuoteStatus, React.CSSProperties> = {
+  enquiry:  YELLOW,   // Povpraševanje: a customer is waiting for an offer
+  downloaded: YELLOW, // Ponudba prenesena: the customer already has the offer
   draft:    GREY,
   issued:   YELLOW,   // Izdano: the offer is locked, not sent yet
   sent:     YELLOW,
