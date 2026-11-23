@@ -29,7 +29,7 @@ const C = {
   poly:   { front: '#26282c', top: '#3b3e44', side: '#1b1d20' },
   foam:   { front: '#e8e3d5', top: '#f3efe4', side: '#d6d0bf' },
   spacer: { front: '#8b939e', top: '#aab1ba', side: '#6f7782' },
-  glass:  { front: '#dcebf7', top: '#f1f7fc', side: '#cfe2f2', stroke: 'rgba(127,147,166,0.6)' },
+  glass:  { front: '#cfe3f5', top: '#e6f1fb', side: '#bdd6ec', stroke: 'rgba(106,138,166,0.7)' },
 } satisfies Record<string, Face>
 
 const EDGE = 'rgba(15,23,42,0.4)'

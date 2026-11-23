@@ -92,7 +92,7 @@ const TXT = {
     hGlass: 'Več slojev stekla pomeni boljšo toplotno izolacijo (nižji Ug). Prvo steklo je vključeno v ceno.', hHandle: 'Izberite kljuko. Standardna je vključena v ceno.',
     hSills: 'Po želji dodajte notranjo in zunanjo polico.', hShading: 'Po želji dodajte roleto, žaluzije ali komarnik.', hExtras: 'Dodatna oprema po želji.',
     pricesAfterSize: 'Ceno vidite, ko vpišete mere.', stepSashes: 'Koliko kril naj ima vaše okno?', stepDoorSashes: 'Koliko kril naj imajo vaša balkonska vrata?', stepParts: 'Iz koliko delov naj bo vaša drsna stena?', stepRoof: 'Kateri model strešnega okna želite?', stepSize: 'Mere in odpiranje', stepLayout: 'Postavitev in odpiranje', stepBands: 'Izvedba', extrasTitle: 'Dodatna oprema', stepOpening: 'Tip odpiranja', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profil' : n === 2 ? 'profila' : n < 5 ? 'profili' : 'profilov'}`, stepNext: 'Naprej', stepOf: (i: number, n: number) => `Korak ${i} od ${n}`, editing: 'Urejate', stepDone: 'Končano', stepEdit: 'Uredi', stdEquip: 'Standardna oprema',
-    grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Montaža in ostale storitve veljajo za vsa okna v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
+    grpWindows: 'Okna', grpSliding: 'Drsna okna', grpDoors: 'Balkonska vrata', grpWalls: 'Drsne stene', grpRoof: 'Strešna okna', servicesHint: 'Izbrane storitve bodo dodane vsem oknom v povpraševanju.', servicesTitle: 'Storitve', roofServices: 'Strešna okna',
     width: 'Širina', height: 'Višina', range: 'dovoljeno', hinge: 'Stran nasadil (gledano od znotraj)', qty: 'Količina', label: 'Prostor (neobvezno)', labelPh: 'npr. dnevna soba',
     none: 'Brez', yourOrder: 'Vaše povpraševanje', inQuote: 'Okna za ponudbo', position: 'Pozicija', addWindow: 'Dodaj okno', duplicate: 'Podvoji', remove: 'Odstrani', removeAsk: (n: number) => `Odstranim pozicijo ${n}?`, removeHint: 'Okno in vse njegove izbire bodo odstranjeni iz povpraševanja.',
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
@@ -131,7 +131,7 @@ const TXT = {
     hGlass: 'More panes mean better insulation (lower Ug). The first glass is included in the price.', hHandle: 'Choose the handle. The standard one is included.',
     hSills: 'Add an inside and outside sill if you like.', hShading: 'Add a shutter, blinds or an insect screen if you like.', hExtras: 'Extra equipment if you like.',
     pricesAfterSize: 'You see the price once you enter the sizes.', stepSashes: 'How many sashes should your window have?', stepDoorSashes: 'How many sashes should your balcony door have?', stepParts: 'How many panels should your sliding wall have?', stepRoof: 'Which roof window model would you like?', stepSize: 'Size and opening', stepLayout: 'Layout and opening', stepBands: 'Version', extrasTitle: 'Other extras', stepOpening: 'Opening type', stepMaterial: 'Material', profilesN: (n: number) => `${n} ${n === 1 ? 'profile' : 'profiles'}`, stepNext: 'Next', stepOf: (i: number, n: number) => `Step ${i} of ${n}`, editing: 'Editing', stepDone: 'Done', stepEdit: 'Edit', stdEquip: 'Standard equipment',
-    grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'Applies to all windows in this enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
+    grpWindows: 'Windows', grpSliding: 'Sliding windows', grpDoors: 'Balcony doors', grpWalls: 'Sliding walls', grpRoof: 'Roof windows', servicesHint: 'The chosen services will be selected on all windows in the enquiry.', servicesTitle: 'Services', roofServices: 'Roof windows',
     width: 'Width', height: 'Height', range: 'allowed', hinge: 'Hinge side (seen from inside)', qty: 'Quantity', label: 'Room (optional)', labelPh: 'e.g. living room',
     none: 'None', yourOrder: 'Your enquiry', inQuote: 'Windows for the quote', position: 'Position', addWindow: 'Add window', duplicate: 'Duplicate', remove: 'Remove', removeAsk: (n: number) => `Remove position ${n}?`, removeHint: 'The window and all its choices will be removed from the enquiry.',
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
@@ -372,16 +372,21 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     if (it.spec) return specBase(it)
     return basePrice(data.prices.find(x => x.system_id === it.system_id && x.type_id === it.type_id), it.width, it.height)
   }
-  const serviceRows = useMemo(() => {
+  function serviceRowsOf(xs: ConfigItem[]) {
     if (!data) return []
-    const wins = items.map(x => ({ width: x.width ?? 0, height: x.height ?? 0, quantity: x.quantity, base: baseOf(x), roof: !!x.roof,
+    const wins = xs.map(x => ({ width: x.width ?? 0, height: x.height ?? 0, quantity: x.quantity, base: baseOf(x), roof: !!x.roof,
       sills: (x.sills?.in ? 1 : 0) + (x.sills?.out ? 1 : 0), shades: x.shading?.shade ? 1 : 0, screens: x.shading?.screen ? 1 : 0 }))
     // work on chosen sills / shadings / insect screens comes automatically with the chosen installation
     const installing = data.options.some(o => o.group_key === 'installation' && services.includes(o.id))
     const auto = (o: WindowOption) => !!o.per_item && o.per_item !== 'window' && o.per_item !== 'roof'
     return data.options.filter(o => auto(o) ? installing : services.includes(o.id)).map(o => ({ option: o, ...serviceLine(o, wins) }))
       .filter(r => r.qty > 0 || r.option.pricing === 'flat' || r.option.pricing === 'percent')
-  }, [data, items, services])
+  }
+  const serviceRows = useMemo(() => serviceRowsOf(items), [data, items, services])
+  /** what a service costs for the position being configured (the whole enquiry is added up on the review) */
+  function serviceTotalOf(o: WindowOption): number {
+    return serviceRowsOf([it]).find(r => r.option.id === o.id)?.total ?? serviceLine(o, [{ width: it.width ?? 0, height: it.height ?? 0, quantity: it.quantity, base: baseOf(it), roof: !!it.roof }]).total
+  }
   function toggleService(o: WindowOption) {
     // one way of installation at a time; everything else is an on/off add-on
     if (o.group_key === 'installation') {
@@ -792,7 +797,6 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   const forN = roofSel ? T.forRoof : spec?.kind === 'door' ? T.forDoor : spec?.kind === 'wall' ? T.forWall : T.forWindow
   const ofN = roofSel ? T.ofRoof : spec?.kind === 'door' ? T.ofDoor : spec?.kind === 'wall' ? T.ofWall : T.ofWindow
   const stepHints: Record<string, string> = {
-    opening: T.openHint,
     services: T.servicesHint,
   }
   /**
@@ -1400,10 +1404,21 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                   </div>}
                   {SERVICE_GROUPS.filter(g => data.options.some(o => o.group_key === g && (!o.per_item || o.per_item === 'window'))).map(g => <div key={g}>
                     <SubHead title={L.groups[g]} />
-                    <div className="flex flex-wrap gap-2">
-                      {data.options.filter(o => o.group_key === g && (!o.per_item || o.per_item === 'window')).map(o => <Chip key={o.id} on={services.includes(o.id)} onClick={() => toggleService(o)} accent={accent}>
-                        {o.name}{show && <span className="ml-1.5 font-medium text-[#4f4f4f]">{[Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')}</span>}
-                      </Chip>)}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {data.options.filter(o => o.group_key === g && (!o.per_item || o.per_item === 'window')).map(o => {
+                        const on = services.includes(o.id)
+                        const total = show ? serviceTotalOf(o) : 0
+                        // how it is counted, in words: "20,00 € na kos + 6,00 € na tekoči meter obsega okna"
+                        const how = [Number(o.price_piece ?? 0) > 0 ? `${money(Number(o.price_piece), cur)} ${L.pricing.piece}` : '', o.price != null && Number(o.price) > 0 ? `${money(Number(o.price), cur)} ${L.pricing[o.pricing]}` : ''].filter(Boolean).join(' + ')
+                        return <button key={o.id} type="button" onClick={() => toggleService(o)}
+                          className={cn('relative rounded-xl border p-3.5 text-left bg-white transition-colors flex flex-col', on ? '' : 'border-gray-200 hover:border-gray-400')}
+                          style={on ? selStyle(accent) : undefined}>
+                          {on && <SelBadge accent={accent} />}
+                          <div className="text-sm font-medium text-gray-900 pr-6">{o.name}</div>
+                          {show && how && <div className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 flex-1">{how}</div>}
+                          {show && total > 0 && <div className="text-sm font-medium text-gray-900 mt-2">+ {money(total, cur)}</div>}
+                        </button>
+                      })}
                     </div>
                   </div>)}
                 </div>
@@ -1517,9 +1532,9 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
           <aside className="lg:sticky lg:top-[100px] space-y-3">
             {stage === 'config' && <div className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex justify-center py-2 overflow-hidden">
-                {roofSel ? <RoofWindowDrawing size={200} opening={roofModel?.opening} photo />
-                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={220} showDims={dimsOn(it)} frameColor={look.frame} extras={look.extras} plain={drawPlain} photo />
-                  : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={220} showDims={dimsOn(it)} />}
+                {roofSel ? <RoofWindowDrawing size={internal ? 200 : 270} opening={roofModel?.opening} photo />
+                  : spec ? <SpecDrawing spec={spec} width={it.width ?? 0} height={it.height ?? 0} size={internal ? 220 : 290} showDims={dimsOn(it)} frameColor={look.frame} extras={look.extras} plain={drawPlain} photo />
+                  : type && <WindowDrawing template={type.template} width={it.width ?? 0} height={it.height ?? 0} hinge={it.hinge} size={internal ? 220 : 290} showDims={dimsOn(it)} />}
               </div>
               {!sizeOk(it) && <p className="text-[13px] text-red-600 text-center mt-1">{T.invalidSize}</p>}
               {(() => {
@@ -1540,6 +1555,14 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                     <span className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{priced ? txt(p != null ? p * it.quantity : null) : '—'}</span>
                   </div>
                   <p className="text-[13px] text-[#4f4f4f] mt-1">{priced ? T.positionNote : hiddenPriceText}</p>
+                  {!internal && show && p != null && (() => {
+                    // only this position: its price and the services for it; the other windows come together on the review
+                    const svc = serviceRowsOf([it]).reduce((acc, r) => acc + r.total, 0)
+                    return svc > 0 ? <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5 text-sm">
+                      <div className="flex justify-between gap-3"><span className="text-[#4f4f4f]">{T.servicesTitle}</span><span className="font-medium text-gray-900 tabular-nums">+ {money(svc, cur)}</span></div>
+                      <div className="flex justify-between gap-3"><span className="text-[15px] font-semibold text-gray-900">{T.total}</span><span className="text-[15px] font-semibold text-gray-900 tabular-nums">{money(p * it.quantity + svc, cur)}</span></div>
+                    </div> : null
+                  })()}
                 </div>
               })()}
             </div>}

@@ -78,8 +78,8 @@ export function Ring({ x, y, w, h, t, color, sunk = false }: { x: number; y: num
       <polygon points={f[k]} fill={color} />
       <polygon points={f[k]} fill={light[k][0]} fillOpacity={light[k][1]} />
     </g>)}
-    <rect x={x} y={y} width={w} height={h} fill="none" stroke="#8a97a3" strokeOpacity={0.55} strokeWidth={0.5} />
-    <rect x={x + t} y={y + t} width={w - 2 * t} height={h - 2 * t} fill="none" stroke="#8a97a3" strokeOpacity={0.45} strokeWidth={0.5} />
+    <rect x={x} y={y} width={w} height={h} fill="none" stroke="#7b8a98" strokeOpacity={0.7} strokeWidth={0.55} />
+    <rect x={x + t} y={y + t} width={w - 2 * t} height={h - 2 * t} fill="none" stroke="#7b8a98" strokeOpacity={0.6} strokeWidth={0.55} />
   </g>
 }
 
@@ -107,7 +107,7 @@ export function PhotoGlass({ x, y, w, h }: { x: number; y: number; w: number; h:
   if (w <= 0 || h <= 0) return null
   // flat pale glass: no reflections, no gradients (they look dirty)
   return <g>
-    <rect x={x} y={y} width={w} height={h} fill="#e4f0fa" />
-    <rect x={x} y={y} width={w} height={h} fill="none" stroke="#7f93a6" strokeOpacity={0.55} strokeWidth={0.6} />
+    <rect x={x} y={y} width={w} height={h} fill="#cfe3f5" />
+    <rect x={x} y={y} width={w} height={h} fill="none" stroke="#6a8aa6" strokeOpacity={0.7} strokeWidth={0.7} />
   </g>
 }
