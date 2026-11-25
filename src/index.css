@@ -162,7 +162,7 @@ fieldset:disabled textarea:focus {
 @media (prefers-reduced-motion: reduce) { .cfg-step-in { animation: none; } }
 
 /* configurator, public page: a clearer hierarchy (bigger, tighter step titles; readable card labels, descriptions and prices) */
-.cfg-public h2 { font-size: 19px; line-height: 27px; letter-spacing: -0.02em; font-weight: 600; }
+.cfg-public h2 { font-size: 15px; line-height: 24px; letter-spacing: 0; font-weight: 600; }
 .cfg-public button.rounded-xl .text-sm.font-medium { font-size: 14px; line-height: 20px; }
 .cfg-public button.rounded-xl .text-sm.font-medium.mt-2 { font-weight: 600; }
 .cfg-public button.rounded-xl .text-\[13px\] { font-size: 13px; line-height: 18px; color: var(--cfg-muted, #3f3f46); }

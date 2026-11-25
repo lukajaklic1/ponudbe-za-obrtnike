@@ -246,7 +246,9 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   data: ConfigData; slug?: string; mode?: 'public' | 'internal'; initialItems?: ConfigItem[]
   onAdd?: (windows: ConfiguredWindow[]) => void; onCancel?: () => void; addLabel?: string
 }) {
-  const { lang, setLang } = useLanguage()
+  // the customer's page is in Slovene only (no language switch); inside the app it follows the app's language
+  const { lang: appLang } = useLanguage()
+  const lang = mode === 'internal' ? appLang : 'sl'
   const T = mode === 'internal' ? { ...TXT[lang], ...INTERNAL_TXT[lang] } : TXT[lang]
   // wood always has its natural colour first (no surcharge, the default); the other profiles do not
   const data = useMemo<ConfigData>(() => {
@@ -860,23 +862,23 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     const done = allDone || idx < frontier
     const nextId = stepIds[idx + 1]
     const num = done
-      ? <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-4 h-4" strokeWidth={2.75} /></span>
-      : <span className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center shrink-0 bg-white text-gray-900 ring-1 ring-inset ring-[#d4d4d8]">{idx + 1}</span>
+      ? <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-3.5 h-3.5" strokeWidth={2.75} /></span>
+      : <span className="w-6 h-6 rounded-full text-xs font-semibold flex items-center justify-center shrink-0 text-white" style={{ backgroundColor: internal ? '#101112' : accent }}>{idx + 1}</span>
     const last = !done && idx === frontier
-    // one rhythm for every step: title 18/28, hint 14/22 right under it (4px), 24px to the content
-    return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-2xl p-5 sm:p-7 scroll-mt-[100px]', last && idx > 0 && 'cfg-step-in')}>
-      <div className="flex items-start gap-3 mb-6">
+    // one rhythm for every step: title 15 px semibold, the subtitle (12 px, light grey) right under it, 16px to the content
+    return <section id={'step-' + id} key={id} className={cn('bg-white border border-gray-200 rounded-xl p-5 scroll-mt-[100px]', last && idx > 0 && 'cfg-step-in')}>
+      <div className="flex items-start gap-3 mb-4">
         {num}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 className="min-w-0 text-[18px] leading-7 font-semibold tracking-[-0.01em] text-gray-900">{title}</h2>
-            {!internal && <span className="text-xs leading-7 font-medium text-[#7f7f7f] whitespace-nowrap">{T.stepOf(idx + 1, stepIds.length)}</span>}
+            <h2 className="min-w-0 text-[15px] leading-6 font-semibold text-gray-900">{title}</h2>
+            {!internal && <span className="text-xs leading-6 font-medium text-[#7f7f7f] whitespace-nowrap">{T.stepOf(idx + 1, stepIds.length)}</span>}
           </div>
+          {hint && <p className="text-xs font-medium text-[#7f7f7f] mt-1 max-w-3xl">{hint}</p>}
                   </div>
       </div>
       <div className="space-y-6">{body}</div>
-      {hint && <div className="mt-6 rounded-lg bg-[#f4f4f5] px-3.5 py-2.5 text-xs leading-5 text-[#5e5e5e]">{hint}</div>}
-      {/* only the newest step moves on; the last one goes to the review */}
+            {/* only the newest step moves on; the last one goes to the review */}
       {last && <div className="flex justify-end mt-6">
         <button type="button" onClick={() => { if (nextId) setOpen(nextId); else { setOpen('none'); if (!internal) finish() } }}
           className="h-11 px-6 rounded-[10px] text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}>{nextId ? T.stepNext : internal ? T.stepDone : T.addToEnquiry}</button>
@@ -905,9 +907,6 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
             {data.company.email && <span title={data.company.email}
               className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#eeeff1] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] cursor-default select-text">
               <Mail className="w-4 h-4" /><span className="hidden md:inline">{data.company.email}</span></span>}
-            <div className="flex items-center h-10 p-1 rounded-[10px] border border-[#eeeff1] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
-              {(['sl', 'en'] as const).map(l => <button key={l} onClick={() => setLang(l)} className={cn('px-2.5 h-full rounded-md text-xs font-semibold uppercase transition-colors', lang === l ? 'bg-[#101112] text-white' : 'text-[#5e5e5e] hover:text-gray-900')}>{l}</button>)}
-            </div>
           </div>
         </div>
       </header>}
