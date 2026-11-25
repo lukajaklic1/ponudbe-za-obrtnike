@@ -71,10 +71,10 @@ export default function Select<V extends string | number>({ value, options, onCh
   const button = (
     <button ref={btnRef} type="button" disabled={disabled} onClick={toggle}
       className={cn('field-control w-full flex items-center gap-2 rounded-lg border border-gray-200 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
-        'hover:border-gray-400 disabled:hover:border-gray-200 disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:cursor-default', open && 'border-gray-400', h, className)}>
+        'hover:border-gray-400 disabled:hover:border-gray-200 disabled:bg-gray-50 disabled:text-[#5e5e5e] disabled:cursor-default', open && 'border-gray-400', h, className)}>
       <span className="flex-1 min-w-0 truncate">
-        {current ? <span className="text-gray-900">{current.label}</span> : <span className="text-[#4f4f4f]">{placeholder ?? ''}</span>}
-        {current?.hint && <span className="text-[#4f4f4f]"> {current.hint}</span>}
+        {current ? <span className="text-gray-900">{current.label}</span> : <span className="text-[#5e5e5e]">{placeholder ?? ''}</span>}
+        {current?.hint && <span className="text-[#5e5e5e]"> {current.hint}</span>}
       </span>
       {!disabled && <ChevronDown className={cn('w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform', open && 'rotate-180')} />}
     </button>
@@ -82,7 +82,7 @@ export default function Select<V extends string | number>({ value, options, onCh
 
   return (
     <>
-      {label ? <div className="flex flex-col gap-1"><span className="field-label text-xs font-medium text-[#4f4f4f]">{label}</span>{button}</div> : button}
+      {label ? <div className="flex flex-col gap-1"><span className="field-label text-xs font-medium text-[#5e5e5e]">{label}</span>{button}</div> : button}
       {open && createPortal(
         <div ref={menuRef} role="listbox"
           className="fixed z-[100] bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-max max-h-[320px] overflow-y-auto"
@@ -91,9 +91,9 @@ export default function Select<V extends string | number>({ value, options, onCh
             const on = String(o.value) === String(value ?? '')
             return <button key={String(o.value)} type="button" role="option" aria-selected={on}
               onClick={() => { onChange(o.value); setOpen(false) }}
-              className={cn('flex w-full items-center gap-2.5 px-3 py-1.5 text-sm whitespace-nowrap text-left hover:bg-[#f6f6f6] transition-colors', on ? 'text-gray-900 font-medium' : 'text-gray-700')}>
+              className={cn('flex w-full items-center gap-2.5 px-3 py-1.5 text-sm whitespace-nowrap text-left hover:bg-[#f4f4f5] transition-colors', on ? 'text-gray-900 font-medium' : 'text-gray-700')}>
               <span className="flex-1">{o.label}</span>
-              {o.hint && <span className="text-xs font-normal text-[#4f4f4f]">{o.hint}</span>}
+              {o.hint && <span className="text-xs font-normal text-[#5e5e5e]">{o.hint}</span>}
               <Check className={cn('w-3.5 h-3.5 shrink-0', on ? 'text-gray-900' : 'invisible')} />
             </button>
           })}

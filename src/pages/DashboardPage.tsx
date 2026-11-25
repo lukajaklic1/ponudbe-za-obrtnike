@@ -19,11 +19,11 @@ import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSou
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
 const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won', 'rest']
 /** teal family for every chart */
-const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e4' }
+const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e7' }
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
-const TONES = { grey: { color: '#5f5f5f', backgroundColor: '#f4f4f4' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
+const TONES = { grey: { color: '#5e5e5e', backgroundColor: '#f4f4f5' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
 function StatCard({ label, value, badge, tone }: { label: string; value: string; badge: string; tone: keyof typeof TONES; sub?: string }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 px-4 py-4 h-full">
@@ -48,11 +48,11 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               {total === 0
-                ? <Pie isAnimationActive={false} data={[{ name: '', value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#ececec" /></Pie>
+                ? <Pie isAnimationActive={false} data={[{ name: '', value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#eeeff1" /></Pie>
                 : <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
                     {shown.map(p => <Cell key={p.key} fill={p.color} />)}
                   </Pie>}
-              {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #f0f0f0', fontSize: 13, fontWeight: 500 }} />}
+              {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -64,8 +64,8 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
           {[...parts].sort((x, y) => y.value - x.value).map(p => (
             <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-              <span className="text-[#4f4f4f] flex-1 min-w-0 truncate" title={p.name}>{p.name}</span>
-              <span className="text-[#4f4f4f] tabular-nums">{p.count}</span>
+              <span className="text-[#5e5e5e] flex-1 min-w-0 truncate" title={p.name}>{p.name}</span>
+              <span className="text-[#5e5e5e] tabular-nums">{p.count}</span>
               <span className={`tabular-nums w-[92px] text-right text-gray-900`}>{money(p.value)}</span>
             </div>
           ))}
@@ -282,7 +282,7 @@ export default function DashboardPage() {
   const hasCounts = months.some(t => t.sent_count > 0 || t.won_count > 0)
   const GHOST = [0.45, 0.7, 0.55, 0.85, 0.6, 0.75, 0.5, 0.9, 0.65, 0.8, 0.4, 0.7]
   const ghostMonths = months.map((m, i) => ({ ...m, sent_value: GHOST[i % 12] * 3000, won_value: GHOST[(i + 5) % 12] * 1600, sent_count: GHOST[i % 12] * 3, won_count: GHOST[(i + 5) % 12] * 1.6 }))
-  const GREY = { light: '#ececec', dark: '#dcdcdc' }
+  const GREY = { light: '#eeeff1', dark: '#d4d4d8' }
   const narrow = typeof window !== 'undefined' && window.innerWidth < 640
   // Same look as the other empty states in the app: light icon + short grey sentence
   const emptyOverlay = (
@@ -306,7 +306,7 @@ export default function DashboardPage() {
         {(() => { const n = [statusFilter, categoryFilter, sourceFilter, typeFilter, channelFilter, assigneeFilter, filterCustomerId].filter(Boolean).length
           return <button type="button" onClick={() => setFiltersOpen(x => !x)}
             className="sm:hidden h-9 px-3.5 rounded-[10px] border border-gray-200 bg-white text-sm font-medium text-gray-900 inline-flex items-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-            {sl ? 'Filtri' : 'Filters'}{n > 0 && <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-[#131313] text-white text-xs font-semibold">{n}</span>}
+            {sl ? 'Filtri' : 'Filters'}{n > 0 && <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-[#101112] text-white text-xs font-semibold">{n}</span>}
           </button> })()}
         <div className={cn('flex-wrap items-center gap-2', filtersOpen ? 'flex' : 'hidden sm:flex')}>
 
@@ -359,13 +359,13 @@ export default function DashboardPage() {
             )}
             {showDropdown && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-56 overflow-y-auto min-w-[200px]">
-                <div className="px-3 py-2 text-sm text-gray-600 hover:bg-[#fafafa] cursor-pointer"
+                <div className="px-3 py-2 text-sm text-gray-600 hover:bg-[#fbfbfb] cursor-pointer"
                   onClick={() => { setFilterCustomerId(null); setSearchText(''); setShowDropdown(false) }}>
                   {sl ? 'Vse stranke' : 'All customers'}
                 </div>
                 {customers.filter(c => c.customer_name.toLowerCase().includes(searchText.toLowerCase())).map(c => (
                   <div key={c.customer_id}
-                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fafafa] ${filterCustomerId === c.customer_id ? 'text-gray-900 font-medium' : 'text-gray-700'}`}
+                    className={`px-3 py-2 text-sm cursor-pointer border-t border-gray-100 hover:bg-[#fbfbfb] ${filterCustomerId === c.customer_id ? 'text-gray-900 font-medium' : 'text-gray-700'}`}
                     onClick={() => { setFilterCustomerId(c.customer_id); setSearchText(c.customer_name); setShowDropdown(false) }}>
                     {c.customer_name}
                   </div>
@@ -376,7 +376,7 @@ export default function DashboardPage() {
 
           {(statusFilter || categoryFilter || sourceFilter || typeFilter || channelFilter || assigneeFilter || filterCustomerId || dateTo) && (
             <button type="button" onClick={() => { setStatusFilter(''); setSourceFilter(''); setTypeFilter(''); setChannelFilter(''); setAssigneeFilter(''); setFilterCustomerId(null); setSearchText(''); setDateTo(''); const d = new Date(); d.setDate(d.getDate() - 90); setDateFrom(d.toISOString().slice(0, 10)) }}
-              className="h-8 px-2.5 rounded-[10px] text-sm font-medium text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100 transition-colors">{sl ? 'Počisti filtre' : 'Clear filters'}</button>
+              className="h-8 px-2.5 rounded-[10px] text-sm font-medium text-[#5e5e5e] hover:text-gray-900 hover:bg-gray-100 transition-colors">{sl ? 'Počisti filtre' : 'Clear filters'}</button>
           )}
         </div>
       </div>
@@ -397,13 +397,13 @@ export default function DashboardPage() {
               <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Vrednost ponudb po času' : 'Quote value over time'}</h2>
               <div className="relative"><ResponsiveContainer width="100%" height={260}>
                 <BarChart data={hasValues ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={hasValues ? { fontSize: 13, fill: '#4f4f4f', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
-                  {hasValues && <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #f0f0f0', fontSize: 13, fontWeight: 500 }} />}
-                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={hasValues ? { fontSize: 13, fill: '#5e5e5e', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
+                  {hasValues && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
+                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#5e5e5e', paddingTop: 8 }} />
+                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasValues && emptyOverlay}</div>
             </div>
@@ -413,13 +413,13 @@ export default function DashboardPage() {
               <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Število ponudb po času' : 'Quotes over time'}</h2>
               <div className="relative"><ResponsiveContainer width="100%" height={260}>
                 <BarChart data={hasCounts ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ececec" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 13, fill: '#4f4f4f', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
-                  {hasCounts && <Tooltip cursor={{ fill: '#f6f6f6' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #f0f0f0', fontSize: 13, fontWeight: 500 }} />}
-                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />}</Bar>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 13, fill: '#5e5e5e', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
+                  {hasCounts && <Tooltip cursor={{ fill: '#f4f4f5' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
+                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#5e5e5e', paddingTop: 8 }} />
+                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasCounts && emptyOverlay}</div>
             </div>
@@ -458,24 +458,24 @@ export default function DashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         {total === 0
-                          ? <Pie isAnimationActive={false} data={[{ value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#ececec" /></Pie>
+                          ? <Pie isAnimationActive={false} data={[{ value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#eeeff1" /></Pie>
                           : <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
                               {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                             </Pie>}
-                        {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #f0f0f0', fontSize: 13 }} />}
+                        {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #eeeff1', fontSize: 13 }} />}
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       {total === 0 ? <span className="text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span> : <>
                       <span className="text-[26px] font-bold tracking-[-0.02em] text-gray-900">{total}</span>
-                      <span className="text-[13px] font-medium text-[#4f4f4f]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
+                      <span className="text-[13px] font-medium text-[#5e5e5e]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-2">
                     {slices.map(x => (
                       <div key={x.key} className="flex items-center gap-2 text-sm font-medium">
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: x.color }} />
-                        <span className="text-[#4f4f4f] flex-1">{x.name}</span>
+                        <span className="text-[#5e5e5e] flex-1">{x.name}</span>
                         <span className="text-gray-900 font-medium tabular-nums">{x.count}</span>
                       </div>
                     ))}
@@ -495,19 +495,19 @@ export default function DashboardPage() {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={topServices.length ? topServices : [[1300, 2300], [900, 2100], [0, 2500], [700, 1300], [0, 1500], [400, 500]].map(([w, r], i) => ({ name: ' '.repeat(i + 1), won: w, rest: r, total: 0 }))}
                       layout="vertical" margin={{ top: 0, right: narrow ? 40 : 56, left: 0, bottom: 0 }} barCategoryGap={10}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ececec" horizontal={false} verticalCoordinatesGenerator={({ offset }: any) => [0, 1, 2, 3, 4].map(i => offset.left + offset.width * i / 4)} />
-                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000] })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={narrow ? 120 : 210} tick={{ fontSize: narrow ? 12 : 13, fill: '#4f4f4f', fontWeight: 500 }} axisLine={false} tickLine={false}
+                      <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" horizontal={false} verticalCoordinatesGenerator={({ offset }: any) => [0, 1, 2, 3, 4].map(i => offset.left + offset.width * i / 4)} />
+                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000] })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={narrow ? 120 : 210} tick={{ fontSize: narrow ? 12 : 13, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => { const max = narrow ? 16 : 26; return n.length > max ? n.slice(0, max - 1) + '…' : n }} />
-                      {topServices.length > 0 && <Tooltip cursor={{ fill: '#f6f6f6' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #f0f0f0', fontSize: 13, fontWeight: 500 }} />}
-                      <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#4f4f4f', paddingTop: 8 }} />
+                      {topServices.length > 0 && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
+                      <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#5e5e5e', paddingTop: 8 }} />
                       <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : TEAL.line} maxBarSize={22}
                         // fully won (nothing light after it): the dark part gets the rounded end
                         shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
                         {topServices.length > 0 && <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />}
                       </Bar>
                       <Bar isAnimationActive={false} dataKey="rest" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
-                        <LabelList dataKey="total" position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#4f4f4f' }} />
+                        <LabelList dataKey="total" position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -541,7 +541,7 @@ export default function DashboardPage() {
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
           )
-          const CH_COLORS = ['#2fa596', '#4fb8a9', '#7ccabe', '#a8ded6', '#cdeee9', '#7d7d7d', '#b5b5b5', '#dcdcdc']
+          const CH_COLORS = ['#2fa596', '#4fb8a9', '#7ccabe', '#a8ded6', '#cdeee9', '#7d7d7d', '#b5b5b5', '#d4d4d8']
           // every quote has a channel; older ones without it are left out here
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
@@ -554,7 +554,7 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 flex flex-col">
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
                 <h2 className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
-                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f4] text-[#5f5f5f] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
+                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#5e5e5e] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
                 <div className="overflow-x-auto"><table className="w-full table-fixed keep-last-line">
                   <colgroup><col /><col className="w-[84px] sm:w-[110px]" /><col className="w-[110px] sm:w-[130px]" /><col className="hidden sm:table-column w-[130px]" /><col className="hidden sm:table-column w-[120px]" /></colgroup>
                   <thead><tr>
@@ -567,10 +567,10 @@ export default function DashboardPage() {
                   <tbody>
                     {top.map(c => <tr key={c.id}>
                       <td className="px-4"><div className="truncate" title={c.name}>{c.name}</div></td>
-                      <td className="px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.count}</td>
+                      <td className="px-4 text-right whitespace-nowrap text-[#5e5e5e]">{c.count}</td>
                       <td className="px-4 text-right whitespace-nowrap">{money(c.value)}</td>
                       <td className="hidden sm:table-cell px-4 text-right whitespace-nowrap">{c.won ? money(c.won) : '—'}</td>
-                      <td className="hidden sm:table-cell px-4 text-right whitespace-nowrap text-[#4f4f4f]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
+                      <td className="hidden sm:table-cell px-4 text-right whitespace-nowrap text-[#5e5e5e]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
                     </tr>)}
                   </tbody>
                 </table></div>

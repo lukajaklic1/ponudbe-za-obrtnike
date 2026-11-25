@@ -21,7 +21,7 @@ export function PageTabs({ tabs, active, onChange }: { tabs: PageTab[]; active: 
               on ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-600 hover:text-gray-900')}>
             {t.label}
             {t.count !== undefined && (
-              <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#e8e8e8] text-[#4a4a4a]">{t.count}</span>
+              <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#eeeff1] text-[#52525b]">{t.count}</span>
             )}
           </button>
         )

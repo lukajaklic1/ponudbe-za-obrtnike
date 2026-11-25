@@ -2,7 +2,7 @@ import type { QuoteStatus } from '../../types/database'
 
 // Pridobljeno = green, Poslano = yellow, everything else (Osnutek, Izgubljeno) = grey
 // The only badge colours in the app: yellow, green and grey (soft background, darker text, no border)
-export const GREY: React.CSSProperties   = { color: '#4a4a4a', backgroundColor: '#ececec' }
+export const GREY: React.CSSProperties   = { color: '#52525b', backgroundColor: '#eeeff1' }
 export const YELLOW: React.CSSProperties = { color: '#8a6100', backgroundColor: '#fef3cd' }
 export const GREEN: React.CSSProperties  = { color: '#267a47', backgroundColor: '#dbfce7' }
 

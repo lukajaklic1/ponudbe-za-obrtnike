@@ -17,7 +17,7 @@ export function PageHeader({ title, count, action, flush }: PageHeaderProps) {
       <div className="flex items-center gap-2">
         <h1 className="text-2xl leading-8 font-bold tracking-[-0.02em] text-gray-900">{title}</h1>
         {count !== undefined && (
-          <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#e8e8e8] text-[#4a4a4a]">{count}</span>
+          <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#eeeff1] text-[#52525b]">{count}</span>
         )}
       </div>
       {action && <div className="flex flex-wrap items-center gap-2 [&_button]:whitespace-nowrap">{action}</div>}

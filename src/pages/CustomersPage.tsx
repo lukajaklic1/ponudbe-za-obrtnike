@@ -205,10 +205,10 @@ export default function CustomersPage() {
               <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[15px] font-semibold text-gray-900 truncate">{c.name}</span>
-                  <span className="shrink-0 text-[13px] font-medium text-[#4f4f4f]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
+                  <span className="shrink-0 text-[13px] font-medium text-[#5e5e5e]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
                 </div>
-                <div className="text-[13px] font-medium text-[#4f4f4f] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
-                <div className="flex items-center justify-between gap-2 mt-1 text-[13px] font-medium text-[#4f4f4f]">
+                <div className="text-[13px] font-medium text-[#5e5e5e] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
+                <div className="flex items-center justify-between gap-2 mt-1 text-[13px] font-medium text-[#5e5e5e]">
                   <span>{c.address_city ?? ''}</span>
                   <span>{s.quotesCount}: {counts[c.id] ?? 0}</span>
                 </div>
@@ -242,7 +242,7 @@ export default function CustomersPage() {
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.address_city ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{counts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
+                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#eeeff1', color: '#52525b' }}>
                         {(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}
                       </span>
                     </td>
@@ -271,7 +271,7 @@ export default function CustomersPage() {
           <div className="inline-flex self-start h-10 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
             {([['person', o.typePerson], ['company', o.typeCompany]] as [CustomerType, string][]).map(([v, label]) => (
               <button key={v} type="button" onClick={() => setForm(f => ({ ...f, customer_type: v }))}
-                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#4f4f4f] hover:text-gray-900'}`}>
+                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#5e5e5e] hover:text-gray-900'}`}>
                 {label}
               </button>
             ))}
@@ -293,11 +293,11 @@ export default function CustomersPage() {
             <Input id="c-postal" label={t.common.postalCode} placeholder={ph.postal} {...field('address_postal_code')} />
             <Input id="c-city" label={o.city} placeholder={ph.city} {...field('address_city')} />
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{lang === 'en' ? 'Country' : 'Država'}</label>
+              <label className="text-xs font-medium" style={{ color: '#5e5e5e' }}>{lang === 'en' ? 'Country' : 'Država'}</label>
               <Select value={form.country} onChange={v => setForm(f => ({ ...f, country: v }))} options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
             </div>
             <div className="sm:col-span-2 flex flex-col gap-1">
-              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#4f4f4f' }}>{o.customerNotes}</label>
+              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#5e5e5e' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>
