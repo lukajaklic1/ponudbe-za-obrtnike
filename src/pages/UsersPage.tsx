@@ -13,7 +13,6 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageTabs } from '../components/ui/PageTabs'
 import { Avatar } from '../components/ui/PersonBadge'
 import type { User as AppUser, UserPermission, UserInvitation } from '../types/database'
 
@@ -170,19 +169,18 @@ export default function UsersPage() {
   const allRows = [...sortedUsers, ...invites]
   const paginated = allRows.slice((page - 1) * pageSize, page * pageSize)
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
   if (!loading && !isAdmin) return <Navigate to="/dashboard" replace />
 
   return (
     <div>
-      <PageHeader title={t.nav.users} icon={UserCog} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
-      <PageTabs tabs={[{ key: 'users', label: t.nav.users, count: users.length + invites.length }]} active="users" />
+      <PageHeader title={t.nav.users} icon={UserCog} count={users.length + invites.length} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
       <div className="px-6 py-5">
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative">
           <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={t.common.search}
-            className="h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-56" />
+            className="h-9 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56" />
         </div>
         <FilterSelect label={s.role} value={roleFilter === 'all' ? '' : roleFilter} allLabel={t.common.all}
           options={[{ value: 'admin', label: s.admin }, { value: 'member', label: s.member }]}
@@ -193,14 +191,14 @@ export default function UsersPage() {
       </div>
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {dataLoading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
         ) : users.length === 0 && invites.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <Users className="w-10 h-10 text-gray-200 mb-3" />
             <p className="text-sm text-gray-400">{s.noUsers}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto"><table className="w-full text-sm font-medium min-w-[700px]">
+          <div className="overflow-x-auto"><table className="w-full text-sm font-[450] min-w-[700px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {([['name', t.common.name], ['', t.common.email], ['role', s.role], ['status', t.common.status], ['', '']] as [string, string][]).map(([key, h], i) => (
@@ -252,7 +250,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{invite.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${invite.is_admin ? 'bg-[#dbfce7] text-[#267a47]' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${invite.is_admin ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
                         {invite.is_admin ? s.admin : s.member}
                       </span>
                     </td>
@@ -279,7 +277,7 @@ export default function UsersPage() {
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={s.addUser} size="lg">
         {sentTo ? (
           <div>
-            <p className="text-[15px] leading-6 text-[#5e5e5e]">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
+            <p className="text-sm leading-6 text-[#5e5e5e]">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
             <div className="flex justify-end -mx-6 px-6 border-t border-gray-200">
               <Button onClick={() => setInviteOpen(false)}>{t.common.close}</Button>
             </div>

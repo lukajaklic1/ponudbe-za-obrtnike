@@ -106,7 +106,7 @@ export default function SuperAdminUsersPage() {
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
@@ -115,7 +115,7 @@ export default function SuperAdminUsersPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm font-medium min-w-[760px]">
+              <table className="w-full text-sm font-[450] min-w-[760px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Uporabnik</th>
@@ -145,7 +145,7 @@ export default function SuperAdminUsersPage() {
                         ) : u.is_admin ? (
                           <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>Admin</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500">Uporabnik</span>
+                          <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500">Uporabnik</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -153,7 +153,7 @@ export default function SuperAdminUsersPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-lg text-xs font-semibold"
+                        <span className="px-2 py-0.5 rounded-md text-xs font-medium"
                           style={u.is_active
                             ? { backgroundColor: '#dbfce7', color: '#267a47' }
                             : { backgroundColor: '#eeeff1', color: '#52525b' }}>
@@ -225,12 +225,12 @@ function ComboFilter({ options, value, onChange, placeholder, allLabel }: {
           <div className="max-h-60 overflow-y-auto py-1">
             <button onClick={() => pick('all')} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-gray-50">
               <span className="flex-1 text-gray-500">{allLabel}</span>
-              {value === 'all' && <Check className="w-4 h-4 text-gray-900" />}
+              {value === 'all' && <Check className="w-4 h-4 text-blue-600" />}
             </button>
             {filteredOpts.map(([id, name]) => (
               <button key={id} onClick={() => pick(id)} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-gray-50">
                 <span className="flex-1 text-gray-900 truncate">{name}</span>
-                {value === id && <Check className="w-4 h-4 text-gray-900 shrink-0" />}
+                {value === id && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
               </button>
             ))}
             {filteredOpts.length === 0 && <p className="px-3 py-2 text-sm text-gray-400">Ni rezultatov</p>}

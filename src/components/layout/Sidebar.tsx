@@ -93,18 +93,18 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       title={rail ? [label, fresh ? newLabel : '', count ? countTitle : ''].filter(Boolean).join(' · ') : undefined}
       aria-label={label}
       className={({ isActive }) => cn(
-        'group flex items-center rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
-        rail ? 'relative justify-center w-10 h-9 mx-auto' : 'gap-3 px-3 py-[7px]',
-        isActive ? 'nav-active bg-[#eeeff1] text-gray-900' : 'text-[#101112] hover:bg-[#eeeff1]',
+        'group flex items-center rounded-lg mb-0.5 text-sm font-medium transition-colors',
+        rail ? 'relative justify-center w-10 h-9 mx-auto' : 'gap-2.5 px-3 py-1.5',
+        isActive ? 'nav-active bg-[#f1f1f1] text-gray-900' : 'text-gray-900 hover:bg-[#f6f6f6]',
       )}
     >
-      <Icon className="w-[18px] h-[18px] shrink-0 text-[#101112]" strokeWidth={2} />
+      <Icon className="w-4 h-4 shrink-0 text-gray-500" />
       {!rail && label}
       {rail
-        ? (fresh > 0 || count > 0) && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', fresh > 0 ? 'bg-[#267a47] text-white' : 'bg-[#101112] text-white')}>{fresh > 0 ? fresh : count}</span>
+        ? count > 0 && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', 'bg-[#101112] text-white')}>{count}</span>
         : <span className="ml-auto flex items-center gap-1.5">
-            {fresh > 0 && <span title={newLabel} className="inline-flex items-center h-[20px] px-1.5 rounded-md bg-[#dbfce7] text-[#267a47] text-xs font-semibold tabular-nums whitespace-nowrap">{lang === 'sl' ? 'Nova' : 'New'} {fresh}</span>}
-            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f4f4f5] border border-[#e6e6e6] text-[#5e5e5e] text-xs font-semibold tabular-nums">{count}</span>}
+            
+            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-white border border-gray-200 text-gray-600 text-xs font-medium tabular-nums">{count}</span>}
           </span>}
     </NavLink>
   )
@@ -140,10 +140,10 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   )
 
   return (
-    <aside className="w-72 bg-[#fbfbfb] border-r border-gray-200 flex flex-col h-screen shrink-0">
+    <aside className="w-72 bg-gray-50 border-r border-gray-200 flex flex-col h-screen shrink-0">
       {/* App logo — same height as PageHeader (h-[57px]) */}
-      <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
-        <AppLogo size="md" />
+      <div className="h-[57px] px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+        <AppLogo size="sm" />
         <div className="flex items-center gap-1">
           <button onClick={toggle} className="hidden lg:flex p-1.5 text-gray-400 hover:text-gray-700 hover:bg-[#f4f4f5] rounded-md transition-colors" title="Hide sidebar">
             <PanelLeft className="w-[18px] h-[18px]" />
@@ -159,15 +159,15 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       {/* Company pill */}
       {company && (
         <div className="px-3 pt-3 pb-1">
-          <div className="flex items-center gap-2.5 px-3 py-2">
-            <Building2 className="w-4 h-4 text-[#5e5e5e] shrink-0" strokeWidth={2} />
-            <p className="text-[15px] font-semibold text-gray-900 truncate">{company.name}</p>
+          <div className="flex items-center gap-2 px-2.5 py-1 bg-white rounded-md border border-gray-200">
+            <Building2 className="w-4 h-4 text-gray-400 shrink-0" />
+            <p className="text-sm font-medium text-gray-900 truncate">{company.name}</p>
           </div>
         </div>
       )}
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-3">
+      <nav className="flex-1 overflow-y-auto py-2 px-2">
         {TOP.filter(visible).map(navLink)}
 
         {SECTIONS.map(sec => {
@@ -177,8 +177,8 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
           return (
             <div key={sec.id} className="mt-4">
               <button type="button" onClick={() => toggleSection(sec.id)}
-                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-semibold text-[#101112] rounded-md">
-                <ChevronDown className={cn('w-3 h-3 transition-transform order-last opacity-0 group-hover/sec:opacity-100', !open && '-rotate-90')} />
+                className="flex items-center gap-1 w-full px-2 py-1 mb-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 rounded-md">
+                <ChevronDown className={cn('w-3 h-3 transition-transform', !open && '-rotate-90')} />
                 {t.nav.sections[sec.id]}
               </button>
               {open && items.map(navLink)}
@@ -188,7 +188,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-gray-200 p-3">
+      <div className="border-t border-gray-200 p-2">
         {profile?.is_admin && linkTo('/users', UserCog, t.nav.users)}
         {profile?.is_admin && linkTo('/settings', Settings, t.nav.settings)}
 
@@ -202,7 +202,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
                 onClick={() => setLang(l)}
                 className={cn(
                   'px-2 py-0.5 rounded text-xs font-medium transition-colors',
-                  lang === l ? 'bg-[#101112] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-[#f4f4f5]',
+                  lang === l ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-[#f6f6f6]',
                 )}
               >
                 {l === 'en' ? 'EN' : 'SL'}
@@ -214,7 +214,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
         <div className="flex items-center gap-3 px-3 py-2">
           <Avatar tone="brand" name={profile ? `${profile.first_name} ${profile.last_name}` : '?'} size={28} />
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-gray-900 truncate">
               {profile ? `${profile.first_name} ${profile.last_name}` : '—'}
             </p>
           </div>

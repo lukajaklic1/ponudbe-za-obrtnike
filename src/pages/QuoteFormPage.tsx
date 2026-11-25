@@ -720,7 +720,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       {tab === 'overview' ? (<div className="xl:grid xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6 xl:items-start"><div className="min-w-0">
         {/* ── Quote details ─────────────────────────────── */}
         <div className={`bg-white rounded-xl border p-6 mb-5 ${border}`}>
-          <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Customer details' : 'Podatki stranke'}</h2>
+          <h2 className="text-[22px] leading-7 tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Customer details' : 'Podatki stranke'}</h2>
           <fieldset disabled={ro} className="contents">
           </fieldset>
           <fieldset disabled={ro} className="contents">
@@ -752,7 +752,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 </>)}
               <Input id="q-email" label={t.common.email} type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
               <Input id="q-phone" label={t.common.phone} value={contactPhone} onChange={e => setContactPhone(e.target.value)} />
-              <div className="lg:col-span-3 text-[15px] font-semibold text-gray-900 pt-2 flex items-center justify-between gap-3">
+              <div className="lg:col-span-3 text-sm font-semibold text-gray-900 pt-2 flex items-center justify-between gap-3">
                 <span>{lang === 'en' ? 'Customer address' : 'Naslov stranke'}</span>
               </div>
               <div className="lg:col-span-3"><Input id="q-cstreet" label={lang === 'en' ? 'Street and house number' : 'Ulica in hišna številka'} disabled={!selectedCustomer || !custEdit} value={selectedCustomer?.address_street ?? ''} onChange={e => editCust({ address_street: e.target.value })} /></div>
@@ -778,11 +778,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               </div>
             </div>
             <div className="border-t border-gray-100 mt-7 mb-6" />
-            <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Commercial terms' : 'Komercialni pogoji'}</h2>
+            <h2 className="text-[22px] leading-7 tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Commercial terms' : 'Komercialni pogoji'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-3 text-[15px] font-semibold text-gray-900 pt-0 flex items-center justify-between gap-3">
+              <div className="lg:col-span-3 text-sm font-semibold text-gray-900 pt-0 flex items-center justify-between gap-3">
                 <span>{lang === 'en' ? 'Address of the works' : 'Naslov del'}</span>
-                {!ro && selectedCustomer && <label className="flex items-center gap-2 text-[13px] font-normal normal-case tracking-normal text-[#5e5e5e] cursor-pointer"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
+                {!ro && selectedCustomer && <label className="flex items-center gap-2 text-xs font-normal normal-case tracking-normal text-[#5e5e5e] cursor-pointer"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
               </div>
               <div className="lg:col-span-3"><Input id="q-site" label={lang === 'en' ? 'Street and house number' : 'Ulica in hišna številka'} value={site.street} onChange={e => setSite(x => ({ ...x, street: e.target.value }))} /></div>
               <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -799,7 +799,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                     options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
                 </div>
               </div>
-              <div className="lg:col-span-3 text-[15px] font-semibold text-gray-900 pt-2">{lang === 'en' ? 'Terms' : 'Pogoji'}</div>
+              <div className="lg:col-span-3 text-sm font-semibold text-gray-900 pt-2">{lang === 'en' ? 'Terms' : 'Pogoji'}</div>
               <Input id="q-valid" label={s.validUntil} type={ro ? 'text' : 'date'}
                 value={ro ? (validUntil ? format(new Date(validUntil), 'd. M. yyyy') : '') : validUntil}
                 onChange={e => setValidUntil(e.target.value)} />
@@ -820,7 +820,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               </div>
             </div>
             <div className="border-t border-gray-100 mt-7 mb-6" />
-            <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Notes and attachments' : 'Opombe in priloge'}</h2>
+            <h2 className="text-[22px] leading-7 tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Notes and attachments' : 'Opombe in priloge'}</h2>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-[#5e5e5e]">{s.notes}</label>
               <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder={ro ? '' : o.notesHint}
@@ -863,11 +863,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         {/* ── Windows (configurator) ───────────────────── */}
         {(cfg || windowLines.length > 0) && <div className={`bg-white rounded-xl border mb-5 ${border}`}>
           <div className={`flex items-center justify-between gap-2 px-6 py-3.5 border-b ${ro ? 'border-[#eeeff1]' : 'border-gray-100'}`}>
-            <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{o.windowsTitle}</h2>
+            <h2 className="text-base font-semibold tracking-[-0.01em] text-gray-900">{o.windowsTitle}</h2>
             {!ro && cfg && <Button size="sm" onClick={() => setCfgOpen({})} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addWindow}</Button>}
           </div>
           {windowLines.length === 0
-            ? <p className="px-6 py-8 text-center text-[15px] text-[#5e5e5e]">{o.noWindows}</p>
+            ? <p className="px-6 py-8 text-center text-sm text-[#5e5e5e]">{o.noWindows}</p>
             : <div className="divide-y divide-gray-100">
               {windowLines.map((l, i) => {
                 const w = windowCfg(l)!
@@ -883,8 +883,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <div className="text-[13px] font-medium text-[#5e5e5e]">{o.position} {i + 1}</div>
-                        <div className="text-[17px] leading-6 font-semibold text-gray-900">{w.title}</div>
+                        <div className="text-xs font-medium text-[#5e5e5e]">{o.position} {i + 1}</div>
+                        <div className="text-base leading-6 font-semibold text-gray-900">{w.title}</div>
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         {!ro && <div className="flex items-center gap-1">
@@ -892,8 +892,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                           <button type="button" onClick={() => removeLine(l.key)} title={t.common.delete} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>}
                         <div className="text-right">
-                          <div className="text-[13px] text-[#5e5e5e]">{(l.quantity ?? 0).toLocaleString('de-DE')} × {money(l.unit_price ?? 0)}</div>
-                          <div className="text-[17px] leading-6 font-semibold text-gray-900 tabular-nums">{money(lineTotal(num(l)))}</div>
+                          <div className="text-xs text-[#5e5e5e]">{(l.quantity ?? 0).toLocaleString('de-DE')} × {money(l.unit_price ?? 0)}</div>
+                          <div className="text-base leading-6 font-semibold text-gray-900 tabular-nums">{money(lineTotal(num(l)))}</div>
                         </div>
                       </div>
                     </div>
@@ -909,13 +909,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                             {sc.image_url ? <img src={sc.image_url} alt="" className="max-w-full max-h-full object-contain" />
                               : sc.sill != null || !sc.shade ? <SillIcon material={sc.sill} size={44} /> : <ShadingIcon kind={sc.shade} size={44} />}
                           </div>
-                          <div className="min-w-0"><div className="font-medium text-gray-900">{sc.title}</div><div className="text-[13px] text-[#5e5e5e]">{sc.rows.map(([k, v]) => `${k}: ${v}`).join(' · ')}</div></div>
+                          <div className="min-w-0"><div className="font-medium text-gray-900">{sc.title}</div><div className="text-xs text-[#5e5e5e]">{sc.rows.map(([k, v]) => `${k}: ${v}`).join(' · ')}</div></div>
                           <div className="text-right whitespace-nowrap"><span className="font-medium text-[#5e5e5e] mr-3">{(sl.quantity ?? 0).toLocaleString('de-DE')} × {money(sl.unit_price ?? 0)}</span><span className="font-semibold text-gray-900">{money(lineTotal(num(sl)))}</span></div>
                         </div>
                       })}
                     </div>}
                     {calcs[l.key] && <details open className="mt-3 group">
-                      <summary className="cursor-pointer select-none text-[13px] font-medium text-[#5e5e5e] hover:text-gray-900 mb-2 list-none flex items-center gap-1.5"><ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" />{sl ? 'Kalkulacija pozicije' : 'Position calculation'}</summary>
+                      <summary className="cursor-pointer select-none text-xs font-medium text-[#5e5e5e] hover:text-gray-900 mb-2 list-none flex items-center gap-1.5"><ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" />{sl ? 'Kalkulacija pozicije' : 'Position calculation'}</summary>
                       <WindowCalcTable calc={calcs[l.key]!} lang={sl ? 'sl' : 'en'} saved={l.unit_price != null ? l.unit_price + subsOf(l).reduce((a, x) => a + (x.unit_price ?? 0), 0) : null} />
                     </details>}
                   </div>
@@ -927,8 +927,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         {/* ── Services, computed from the windows ─────── */}
         {(cfg && svcOptions.length > 0 && !ro) || serviceLines.length > 0 ? <div className={`bg-white rounded-xl border mb-5 ${border}`}>
           <div className={`px-6 py-3.5 border-b ${ro ? 'border-[#eeeff1]' : 'border-gray-100'}`}>
-            <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{o.servicesTitle}</h2>
-            {!ro && <p className="text-[13px] text-[#5e5e5e] mt-0.5">{o.servicesHint}</p>}
+            <h2 className="text-base font-semibold tracking-[-0.01em] text-gray-900">{o.servicesTitle}</h2>
+            {!ro && <p className="text-xs text-[#5e5e5e] mt-0.5">{o.servicesHint}</p>}
           </div>
           {!ro && cfg && <div className="px-6 py-4 space-y-4 border-b border-gray-100">
             {([...SERVICE_GROUPS, 'roof'] as const).map(g => {
@@ -953,7 +953,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             {serviceLines.map((l, i) => (
               <div key={l.key} className="px-6 py-3 grid grid-cols-[48px_minmax(0,1fr)_auto] items-baseline gap-4 text-sm">
                 <span className="font-medium text-[#5e5e5e]">M{i + 1}</span>
-                <div className="min-w-0"><div className="font-medium text-gray-900">{l.name}</div>{l.description && <div className="text-[13px] text-[#5e5e5e]">{l.description}</div>}</div>
+                <div className="min-w-0"><div className="font-medium text-gray-900">{l.name}</div>{l.description && <div className="text-xs text-[#5e5e5e]">{l.description}</div>}</div>
                 <div className="text-right whitespace-nowrap">
                   <span className="font-medium text-[#5e5e5e] mr-4">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]} × {money(l.unit_price ?? 0)}</span>
                   <span className="font-semibold text-gray-900">{money(lineTotal(num(l)))}</span>
@@ -1123,7 +1123,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           <div className="text-base font-semibold text-gray-900 mb-3">{sl ? 'Skupaj' : 'Total'}</div>
           {windowLines.length > 0 && <ul className="space-y-1.5 text-sm">
             {windowLines.map((l, i) => <li key={l.key} className="flex items-baseline justify-between gap-3">
-              <span className="min-w-0 truncate text-gray-900">{o.position} {i + 1} · {windowCfg(l)!.title}{(l.quantity ?? 0) > 1 && <span className="text-[13px] text-[#5e5e5e]"> {(l.quantity ?? 0)} ×</span>}</span>
+              <span className="min-w-0 truncate text-gray-900">{o.position} {i + 1} · {windowCfg(l)!.title}{(l.quantity ?? 0) > 1 && <span className="text-xs text-[#5e5e5e]"> {(l.quantity ?? 0)} ×</span>}</span>
               <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(positionTotal(l))}</span>
             </li>)}
             <li className="flex items-baseline justify-between gap-3 pt-1.5 mt-1 border-t border-gray-100">
@@ -1132,9 +1132,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             </li>
           </ul>}
           {serviceLines.length > 0 && <ul className="space-y-1 text-sm mt-3 pt-3 border-t border-gray-100">
-            <li className="text-[13px] font-medium text-[#5e5e5e]">{o.servicesTitle}</li>
+            <li className="text-xs font-medium text-[#5e5e5e]">{o.servicesTitle}</li>
             {serviceLines.map(l => <li key={l.key} className="flex items-baseline justify-between gap-3">
-              <span className="min-w-0 text-gray-900">{l.name} <span className="text-[13px] text-[#5e5e5e]">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]}</span></span>
+              <span className="min-w-0 text-gray-900">{l.name} <span className="text-xs text-[#5e5e5e]">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]}</span></span>
               <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(lineTotal(num(l)))}</span>
             </li>)}
           </ul>}
@@ -1148,7 +1148,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             <div className="flex justify-between font-medium text-gray-900"><span>{sl ? 'Skupaj brez DDV' : 'Total excl. VAT'}</span><span className="tabular-nums">{money(totals.total_net)}</span></div>
             {totals.vat.map(v => <div key={v.rate} className="flex justify-between text-[#5e5e5e]"><span>DDV {v.rate.toLocaleString('de-DE')} %</span><span className="tabular-nums">{money(v.amount)}</span></div>)}
             <div className="flex items-baseline justify-between pt-2 mt-1 border-t border-gray-200">
-              <span className="text-[15px] font-semibold text-gray-900">{sl ? 'Skupaj z DDV' : 'Total incl. VAT'}</span>
+              <span className="text-sm font-semibold text-gray-900">{sl ? 'Skupaj z DDV' : 'Total incl. VAT'}</span>
               <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.total_gross)}</span>
             </div>
             {advanceGross != null && <div className="flex justify-between text-[#5e5e5e]"><span>{sl ? `Popust ob 100 % avansu (${(advancePct ?? 0).toLocaleString('de-DE')} %)` : `Discount for 100% advance (${(advancePct ?? 0).toLocaleString('de-DE')}%)`}</span><span className="tabular-nums">− {money(totals.total_gross - advanceGross)}</span></div>}
@@ -1164,7 +1164,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           const margin = sale - cost
           return <div className={`bg-white rounded-xl border p-5 ${border}`}>
             <div className="text-base font-semibold text-gray-900">{sl ? 'Kalkulacija oken' : 'Windows calculation'}</div>
-            <p className="text-[13px] text-[#5e5e5e] mt-0.5 mb-3">{sl ? 'Interno: nabavna vrednost, marža in prodajna cena vseh oken. Ni na ponudbi.' : 'Internal: purchase value, margin and sale price of all windows. Not on the offer.'}</p>
+            <p className="text-xs text-[#5e5e5e] mt-0.5 mb-3">{sl ? 'Interno: nabavna vrednost, marža in prodajna cena vseh oken. Ni na ponudbi.' : 'Internal: purchase value, margin and sale price of all windows. Not on the offer.'}</p>
             <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1.5 text-sm tabular-nums">
               <dt className="text-[#5e5e5e]">{sl ? 'Nabavna vrednost' : 'Purchase value'}</dt><dd className="text-right text-gray-900">{money(cost)}</dd>
               <dt className="text-[#5e5e5e]">{sl ? 'Marža' : 'Margin'}</dt><dd className="text-right text-[#267a47]">{money(margin)}{sale > 0 && <span className="text-[#5e5e5e]"> ({(Math.round(margin / sale * 1000) / 10).toLocaleString('de-DE')} %)</span>}</dd>
@@ -1204,7 +1204,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className="grid grid-cols-3 gap-3 mt-4">
           {([[o.wallsArea, areas.walls, 'm²'], [o.ceilingArea, areas.ceiling, 'm²'], [o.perimeter, areas.perimeter, 'm']] as [string, number, string][]).map(([lbl, v, u]) => (
             <div key={lbl} className="rounded-[10px] bg-[#fbfbfb] border border-gray-200 px-3 py-2.5">
-              <div className="text-[13px] font-medium text-[#5e5e5e]">{lbl}</div>
+              <div className="text-xs font-medium text-[#5e5e5e]">{lbl}</div>
               <div className="text-base font-semibold text-gray-900">{v.toLocaleString('de-DE', { maximumFractionDigits: 2 })} {u}</div>
             </div>
           ))}

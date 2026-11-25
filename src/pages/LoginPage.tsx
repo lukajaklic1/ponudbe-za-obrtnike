@@ -46,7 +46,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-900">{a.email}</label>
+              <label className="text-xs font-medium text-label">{a.email}</label>
               <input
                 type="email" required autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)}
@@ -55,7 +55,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-900">{a.password}</label>
+              <label className="text-xs font-medium text-label">{a.password}</label>
               <input
                 type="password" required autoComplete="current-password"
                 value={password} onChange={e => setPassword(e.target.value)}
@@ -71,14 +71,14 @@ export default function LoginPage() {
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>}
 
             <button type="submit" disabled={loading}
-              className="w-full bg-[#101112] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1">
+              className="w-full bg-blue-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1">
               {loading ? a.signingIn : a.signIn}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
             {a.noAccount}{' '}
-            <Link to="/register" className="text-gray-900 hover:underline font-medium">{a.createOne}</Link>
+            <Link to="/register" className="text-blue-600 hover:underline font-medium">{a.createOne}</Link>
           </p>
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function LoginPage() {
           <div className="flex gap-1">
             {(['en', 'sl'] as const).map(l => (
               <button key={l} onClick={() => setLang(l)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${lang === l ? 'bg-[#101112] text-white' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${lang === l ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
                 {l.toUpperCase()}
               </button>
             ))}

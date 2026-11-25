@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.text-label { color: #5e5e5e; }
+.text-label { color: #7f7f7f; }
 
 /* ── Landing page animations ── */
 @keyframes fadeUp {
@@ -101,7 +101,7 @@ html {
 
 * {
   font-family: 'Inter', sans-serif;
-  font-feature-settings: normal;
+  font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04', 'cv09', 'cv10';
 }
 
 /* Browsers dim disabled selects (opacity .7) and keep the arrow — read-only selects

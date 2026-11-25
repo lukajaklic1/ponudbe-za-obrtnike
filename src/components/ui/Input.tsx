@@ -3,10 +3,10 @@ import { cn } from '../../lib/cn'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
+  /** shows a red star after the label (the field must be filled in) */
+  requiredMark?: boolean
   error?: string
   unit?: string
-  /** shows a dark red star after the label (the field must be filled in) */
-  requiredMark?: boolean
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -14,13 +14,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-1">
         {label && (
-          <label htmlFor={id} className="field-label text-xs font-medium" style={{ color: '#5e5e5e' }}>
-            {label}{requiredMark && <span className="req-star" aria-hidden> *</span>}
+          <label htmlFor={id} className="text-xs font-medium" style={{ color: '#7f7f7f' }}>
+            {label}{requiredMark && <span style={{ color: '#b42318' }} aria-hidden> *</span>}
           </label>
         )}
         {unit ? (
           <div className={cn(
-            'field-control flex items-center rounded-lg border bg-white transition-colors focus-within:ring-2 focus-within:ring-blue-500',
+            'flex items-center rounded-lg border bg-white transition-colors focus-within:ring-2 focus-within:ring-blue-500',
             error ? 'border-red-400 bg-red-50 focus-within:ring-red-400' : 'border-gray-200 hover:border-gray-400',
           )}>
             <input
@@ -36,7 +36,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={id}
             className={cn(
-              'field-control block w-full rounded-lg border px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-[#5e5e5e] disabled:border-[#eeeff1] disabled:cursor-not-allowed',
+              'block w-full rounded-lg border px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-[#52525b] disabled:border-[#eeeff1] disabled:cursor-not-allowed',
               error
                 ? 'border-red-400 bg-red-50 focus:ring-red-400'
                 : 'border-gray-200 bg-white hover:border-gray-400',

@@ -31,41 +31,41 @@ export default function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl border border-gray-200 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] w-full max-w-md overflow-hidden">
+      <div className="absolute inset-0 bg-black/25 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-[14px] right-[18px] p-1.5 rounded-lg text-[#5e5e5e] hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          className="absolute top-4 right-4 text-gray-300 hover:text-gray-500 transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Content */}
-        <div className="px-6 pt-[18px] pb-6">
-          <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900 pr-8">{title}</h2>
-          <p className="mt-3 text-[15px] leading-6 text-[#5e5e5e]">{message}</p>
+        <div className="px-6 pt-6 pb-5">
+          <h2 className="text-xl font-bold text-gray-900 pr-6">{title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-gray-500">{message}</p>
         </div>
 
         {/* Divider + buttons */}
-        <div className="border-t border-[#eeeff1] bg-white px-6 py-[18px] flex justify-end gap-3">
+        <div className="border-t border-gray-100 px-6 py-4 flex justify-end gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="h-10 px-4 text-[15px] font-medium text-gray-900 bg-white border border-gray-200 rounded-[10px] hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-[#7f7f7f] bg-white border border-gray-200 rounded-lg hover:bg-[#f6f6f6] transition-colors disabled:opacity-50"
           >
             {cancelLabel ?? t.common.cancel}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="inline-flex items-center gap-2 h-10 px-4 text-[15px] font-medium text-white rounded-[10px] transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
             style={{
-              backgroundColor: danger ? '#ff5454' : '#101112',
+              backgroundColor: danger ? '#ff5454' : '#2563eb',
               border: danger ? '1px solid #f04f4f' : 'none',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#000000' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#101112' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#1d4ed8' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#2563eb' }}
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

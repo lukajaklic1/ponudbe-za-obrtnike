@@ -1,6 +1,6 @@
 // Avatars: quiet grey circle with the initials everywhere in lists (Levelpath style),
 // the black one only for the signed-in person at the bottom of the sidebar.
-const BRAND_COLOR = '#101112'
+const BRAND_COLOR = '#266df0'
 
 export function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)

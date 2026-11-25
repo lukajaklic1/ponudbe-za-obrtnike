@@ -34,18 +34,18 @@ export function FilterSelect({ label, value, options, allLabel, onChange, icon: 
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-3 h-8 rounded-[10px] border border-gray-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)] text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-400 transition-colors"
+        className="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-gray-200 bg-white text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-gray-300 transition-colors"
       >
-        {Icon ? <Icon className="w-3.5 h-3.5 text-gray-500" /> : <span className="text-gray-600">{label}:</span>}
+        {Icon ? <Icon className="w-3.5 h-3.5 text-gray-500" /> : <span className="text-gray-500">{label}:</span>}
         <span className="text-gray-900 font-medium">{selectedLabel}</span>
         <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-0.5" />
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[180px] w-max">
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-full w-max">
           <button
             onClick={() => { onChange(''); setOpen(false) }}
-            className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f4f4f5] transition-colors ${value === '' ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
+            className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f6f6f6] transition-colors ${value === '' ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
           >
             {allLabel}
           </button>
@@ -53,7 +53,7 @@ export function FilterSelect({ label, value, options, allLabel, onChange, icon: 
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false) }}
-              className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f4f4f5] transition-colors ${value === opt.value ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
+              className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f6f6f6] transition-colors ${value === opt.value ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
             >
               {opt.label}
             </button>

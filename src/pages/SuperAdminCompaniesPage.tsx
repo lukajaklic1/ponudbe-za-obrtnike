@@ -90,7 +90,7 @@ export default function SuperAdminCompaniesPage() {
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
@@ -99,7 +99,7 @@ export default function SuperAdminCompaniesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm font-medium min-w-[640px]">
+              <table className="w-full text-sm font-[450] min-w-[640px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Podjetje</th>
@@ -125,7 +125,7 @@ export default function SuperAdminCompaniesPage() {
                         <span className="text-gray-600 whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-lg text-xs font-semibold"
+                        <span className="px-2 py-0.5 rounded-md text-xs font-medium"
                           style={c.is_active
                             ? { backgroundColor: '#dbfce7', color: '#267a47' }
                             : { backgroundColor: '#eeeff1', color: '#52525b' }}>

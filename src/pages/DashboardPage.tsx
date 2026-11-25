@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Search, X } from 'lucide-react'
+import { LayoutDashboard, Search, X, Layers, FileText, FileCheck, Send, Trophy, XCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
@@ -19,19 +19,31 @@ import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSou
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
 const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won', 'rest']
 /** teal family for every chart */
-const TEAL = { line: '#2fa596', fill: '#3fb8a8', light: '#a8ded6', faint: '#e3f4f1', grey: '#e4e4e7' }
+const TEAL = { line: '#00d17e', fill: '#00d17e', light: '#ffe5a0', faint: '#dbe7fb', grey: '#e4e4e7' }
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
 const TONES = { grey: { color: '#5e5e5e', backgroundColor: '#f4f4f5' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
-function StatCard({ label, value, badge, tone }: { label: string; value: string; badge: string; tone: keyof typeof TONES; sub?: string }) {
+const KPI_STYLE = [
+  { icon: Layers, bg: '#e5eeff', color: '#215bcf' },
+  { icon: FileText, bg: '#f4f4f5', color: '#52525b' },
+  { icon: FileCheck, bg: '#e5eeff', color: '#215bcf' },
+  { icon: Send, bg: '#fff3cc', color: '#874d00' },
+  { icon: Trophy, bg: '#e0fced', color: '#007d53' },
+  { icon: XCircle, bg: '#f4f4f5', color: '#52525b' },
+]
+function StatCard({ label, value, badge, count, index }: { label: string; value: string; badge: string; count: number; index: number; tone?: keyof typeof TONES; sub?: string }) {
+  const k = KPI_STYLE[index] ?? KPI_STYLE[0]
   return (
-    <div className="bg-white rounded-xl border border-gray-200 px-4 py-4 h-full">
-      <p className="text-[15px] font-medium text-gray-900 truncate" title={label}>{label}</p>
-      <div className="flex items-center gap-2 mt-1.5 flex-wrap xl:flex-nowrap">
-        <p className="text-[24px] leading-8 font-bold text-gray-900 tracking-[-0.02em] whitespace-nowrap">{value}</p>
-        <span className="inline-flex text-xs font-semibold px-[7px] py-[3px] rounded-lg whitespace-nowrap" style={TONES[tone]}>{badge}</span>
+    <div className="bg-white rounded-xl border border-gray-200 p-5 h-full">
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: k.bg }}>
+          <k.icon className="w-4 h-4" style={{ color: k.color }} />
+        </div>
+        <span className="text-xs font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }} title={badge}>{count}</span>
       </div>
+      <p className="text-xs font-medium text-label truncate" title={label}>{label}</p>
+      <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight whitespace-nowrap">{value}</p>
     </div>
   )
 }
@@ -42,7 +54,7 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
   const total = parts.reduce((a, p) => a + p.value, 0)
   return (
     <div className={`bg-white rounded-xl border border-gray-200 p-6 flex flex-col${grow ? " flex-1" : ""}`}>
-      <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{title}</h2>
+      <h2 className="text-sm font-semibold text-gray-900 mb-4">{title}</h2>
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-[200px] h-[200px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
@@ -70,7 +82,7 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
             </div>
           ))}
         </div>
-        {total === 0 && empty && <p className="text-[13px] text-gray-400 text-center">{empty}</p>}
+        {total === 0 && empty && <p className="text-xs text-gray-400 text-center">{empty}</p>}
       </div>
     </div>
   )
@@ -245,7 +257,7 @@ export default function DashboardPage() {
     const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((acc, q) => ({ value: acc.value + (Number(q.total_net) || 0), count: acc.count + 1 }), { value: 0, count: 0 })
     const all = sum(() => true)
     const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
-    const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), tone, sub })
+    const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), count: x.count, tone, sub })
     const draft = sum(q => isDraftLike(q.status)), issued = sum(q => q.status === 'issued'), sent = sum(q => q.status === 'sent' || q.status === 'downloaded'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
     return [
       row(sl ? 'Skupna vrednost ponudb' : 'Total value of quotes', all, 'grey', all.value ? share(all.value) : ''),
@@ -385,7 +397,7 @@ export default function DashboardPage() {
 
         {/* five value cards: total, then drafts / sent / won / lost of the quotes made in the period */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-          {cards.map((c, i) => <div key={c.label} className={i === 0 ? 'col-span-2 lg:col-span-1' : ''}><StatCard {...c} /></div>)}
+          {cards.map((c, i) => <div key={c.label} className={i === 0 ? 'col-span-2 lg:col-span-1' : ''}><StatCard {...c} index={i} /></div>)}
         </div>
 
 
@@ -394,14 +406,14 @@ export default function DashboardPage() {
 
             {/* Values chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Vrednost ponudb po času' : 'Quote value over time'}</h2>
+              <h2 className="text-sm font-semibold text-gray-900 mb-4">{sl ? 'Vrednost ponudb po času' : 'Quote value over time'}</h2>
               <div className="relative"><ResponsiveContainer width="100%" height={260}>
                 <BarChart data={hasValues ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={hasValues ? { fontSize: 13, fill: '#5e5e5e', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={hasValues ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
                   {hasValues && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
-                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#5e5e5e', paddingTop: 8 }} />
+                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
                   <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                   <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
@@ -410,14 +422,14 @@ export default function DashboardPage() {
 
             {/* Count chart */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Število ponudb po času' : 'Quotes over time'}</h2>
+              <h2 className="text-sm font-semibold text-gray-900 mb-4">{sl ? 'Število ponudb po času' : 'Quotes over time'}</h2>
               <div className="relative"><ResponsiveContainer width="100%" height={260}>
                 <BarChart data={hasCounts ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 13, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 13, fill: '#5e5e5e', fontWeight: 500 } : false} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
                   {hasCounts && <Tooltip cursor={{ fill: '#f4f4f5' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
-                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#5e5e5e', paddingTop: 8 }} />
+                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
                   <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                   <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
@@ -451,7 +463,7 @@ export default function DashboardPage() {
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-[15px] font-semibold text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
+                <h2 className="text-sm font-semibold text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
                 {(<>
                   <div className="flex flex-col items-center gap-4">
                   <div className="relative w-[200px] h-[200px] shrink-0">
@@ -468,7 +480,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       {total === 0 ? <span className="text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span> : <>
                       <span className="text-[26px] font-bold tracking-[-0.02em] text-gray-900">{total}</span>
-                      <span className="text-[13px] font-medium text-[#5e5e5e]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
+                      <span className="text-xs font-medium text-[#5e5e5e]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-2">
@@ -486,7 +498,7 @@ export default function DashboardPage() {
 
               <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
                 <div className="flex items-center justify-between gap-3 mb-5 -mt-1">
-                  <h2 className="text-[15px] font-semibold text-gray-900">
+                  <h2 className="text-sm font-semibold text-gray-900">
                     {sl ? 'Vrednost po kategorijah' : 'Value by category'}
                   </h2>
                 </div>
@@ -496,11 +508,11 @@ export default function DashboardPage() {
                     <BarChart data={topServices.length ? topServices : [[1300, 2300], [900, 2100], [0, 2500], [700, 1300], [0, 1500], [400, 500]].map(([w, r], i) => ({ name: ' '.repeat(i + 1), won: w, rest: r, total: 0 }))}
                       layout="vertical" margin={{ top: 0, right: narrow ? 40 : 56, left: 0, bottom: 0 }} barCategoryGap={10}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" horizontal={false} verticalCoordinatesGenerator={({ offset }: any) => [0, 1, 2, 3, 4].map(i => offset.left + offset.width * i / 4)} />
-                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000] })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={narrow ? 120 : 210} tick={{ fontSize: narrow ? 12 : 13, fill: '#5e5e5e', fontWeight: 500 }} axisLine={false} tickLine={false}
+                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000] })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={narrow ? 120 : 210} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false}
                         tickFormatter={(n: string) => { const max = narrow ? 16 : 26; return n.length > max ? n.slice(0, max - 1) + '…' : n }} />
                       {topServices.length > 0 && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
-                      <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 13, fontWeight: 500, color: '#5e5e5e', paddingTop: 8 }} />
+                      <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
                       <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : TEAL.line} maxBarSize={22}
                         // fully won (nothing light after it): the dark part gets the rounded end
                         shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
@@ -541,7 +553,7 @@ export default function DashboardPage() {
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
           )
-          const CH_COLORS = ['#2fa596', '#4fb8a9', '#7ccabe', '#a8ded6', '#cdeee9', '#7d7d7d', '#b5b5b5', '#d4d4d8']
+          const CH_COLORS = ['#215bcf', '#3b82f6', '#6ea0f5', '#9bbcf8', '#c5d8fb', '#7d7d7d', '#b5b5b5', '#d4d4d8']
           // every quote has a channel; older ones without it are left out here
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
@@ -553,8 +565,8 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 flex flex-col">
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
-                <h2 className="flex items-center gap-2 text-[15px] font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
-                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#5e5e5e] text-[13px] font-medium tabular-nums">{sorted.length}</span></h2>
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
+                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#5e5e5e] text-xs font-medium tabular-nums">{sorted.length}</span></h2>
                 <div className="overflow-x-auto"><table className="w-full table-fixed keep-last-line">
                   <colgroup><col /><col className="w-[84px] sm:w-[110px]" /><col className="w-[110px] sm:w-[130px]" /><col className="hidden sm:table-column w-[130px]" /><col className="hidden sm:table-column w-[120px]" /></colgroup>
                   <thead><tr>

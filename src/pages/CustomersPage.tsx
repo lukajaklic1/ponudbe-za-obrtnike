@@ -17,7 +17,6 @@ import Checkbox from '../components/ui/Checkbox'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageTabs } from '../components/ui/PageTabs'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import type { Customer } from '../types/database'
 
@@ -168,18 +167,17 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <PageHeader title={s.customers} icon={Users} action={canEdit && <div className="flex gap-2">
+      <PageHeader title={s.customers} icon={Users} count={rows.length} action={canEdit && <div className="flex gap-2">
         <Button variant="secondary" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />{o.importServices}</Button>
         <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{s.newCustomer}</Button>
       </div>} />
-      <PageTabs tabs={[{ key: 'customers', label: s.customers, count: rows.length }]} active="customers" />
       <div className="px-6 py-5">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <div className="relative max-w-xs w-full">
           <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={t.common.search}
-            className="w-full h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <FilterSelect label={o.customerType} value={typeFilter} allLabel={t.common.all}
           options={[{ value: 'person', label: o.typePerson }, { value: 'company', label: o.typeCompany }]}
@@ -191,7 +189,7 @@ export default function CustomersPage() {
 
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <Users className="w-10 h-10 text-gray-200 mb-3" />
@@ -204,11 +202,11 @@ export default function CustomersPage() {
             {paginated.map(c => (
               <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[15px] font-semibold text-gray-900 truncate">{c.name}</span>
-                  <span className="shrink-0 text-[13px] font-medium text-[#5e5e5e]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
+                  <span className="text-sm font-semibold text-gray-900 truncate">{c.name}</span>
+                  <span className="shrink-0 text-xs font-medium text-[#5e5e5e]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
                 </div>
-                <div className="text-[13px] font-medium text-[#5e5e5e] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
-                <div className="flex items-center justify-between gap-2 mt-1 text-[13px] font-medium text-[#5e5e5e]">
+                <div className="text-xs font-medium text-[#5e5e5e] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
+                <div className="flex items-center justify-between gap-2 mt-1 text-xs font-medium text-[#5e5e5e]">
                   <span>{c.address_city ?? ''}</span>
                   <span>{s.quotesCount}: {counts[c.id] ?? 0}</span>
                 </div>
@@ -268,10 +266,10 @@ export default function CustomersPage() {
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? s.editCustomer : s.newCustomer} size="lg">
         <div className="flex flex-col gap-4">
           {/* Person / company switch */}
-          <div className="inline-flex self-start h-10 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
+          <div className="inline-flex self-start rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             {([['person', o.typePerson], ['company', o.typeCompany]] as [CustomerType, string][]).map(([v, label]) => (
               <button key={v} type="button" onClick={() => setForm(f => ({ ...f, customer_type: v }))}
-                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#5e5e5e] hover:text-gray-900'}`}>
+                className={`px-4 rounded-[8px] text-sm font-medium transition-colors ${form.customer_type === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#5e5e5e] hover:text-gray-900'}`}>
                 {label}
               </button>
             ))}
@@ -297,7 +295,7 @@ export default function CustomersPage() {
               <Select value={form.country} onChange={v => setForm(f => ({ ...f, country: v }))} options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
             </div>
             <div className="sm:col-span-2 flex flex-col gap-1">
-              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#5e5e5e' }}>{o.customerNotes}</label>
+              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#7f7f7f' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>

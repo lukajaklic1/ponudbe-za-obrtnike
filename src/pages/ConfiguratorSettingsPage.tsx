@@ -166,7 +166,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       <div className="flex-1 min-w-[240px]">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-semibold text-gray-900">{T.status}</h2>
-          <span className={form.enabled ? 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#dbfce7] text-[#267a47]' : 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#eeeff1] text-[#52525b]'}>{form.enabled ? T.published : T.notPublished}</span>
+          <span className={form.enabled ? 'inline-flex items-center h-[22px] px-2 rounded-md text-xs font-medium bg-[#dbfce7] text-[#267a47]' : 'inline-flex items-center h-[22px] px-2 rounded-md text-xs font-medium bg-[#eeeff1] text-[#52525b]'}>{form.enabled ? T.published : T.notPublished}</span>
         </div>
         <p className="text-sm font-medium text-[#5e5e5e] mt-1">{form.enabled ? T.publishedHint : T.notPublishedHint}</p>
       </div>
@@ -188,10 +188,10 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       <div className="grid gap-2">
         {T.combos.map(([pm, em, , hint]) => { const on = form.priceMode === pm && form.endMode === em
           return <button key={pm + em} type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, priceMode: pm, endMode: em }))}
-            className={cn('text-left rounded-xl border px-4 py-3 transition-colors', on ? 'border-[#26897a] bg-[#eef8f6]' : 'border-gray-200 bg-white hover:border-gray-400')}>
+            className={cn('text-left rounded-xl border px-4 py-3 transition-colors', on ? 'border-[#266df0] bg-[#eff5fe]' : 'border-gray-200 bg-white hover:border-gray-400')}>
             <div className="flex items-start gap-3">
-              <span className={cn('w-4 h-4 mt-1 rounded-full border-2 shrink-0', on ? 'border-[#26897a] bg-[#26897a] shadow-[inset_0_0_0_2px_#fff]' : 'border-gray-300')} />
-              <span className="text-[15px] leading-6 font-medium text-gray-900">{hint}</span>
+              <span className={cn('w-4 h-4 mt-1 rounded-full border-2 shrink-0', on ? 'border-[#266df0] bg-[#266df0] shadow-[inset_0_0_0_2px_#fff]' : 'border-gray-300')} />
+              <span className="text-sm leading-6 font-medium text-gray-900">{hint}</span>
             </div>
           </button> })}
       </div>
@@ -234,7 +234,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
           ))}
         </div>
         <div style={themeVars(form.theme)} className="cfg-public rounded-xl border p-4 mt-1 min-h-0">
-          <div className="text-[17px] font-semibold text-gray-900">Kaj želite kupiti?</div>
+          <div className="text-base font-semibold text-gray-900">Kaj želite kupiti?</div>
           <div className="text-sm text-[#5e5e5e] mt-1">Tako bo videti vaš konfigurator.</div>
           <div className="mt-3 flex gap-2"><span className="inline-flex h-10 items-center rounded-xl bg-[#101112] px-4 text-sm font-semibold text-white">Naprej</span><span className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-900">Nazaj</span></div>
         </div>
@@ -258,7 +258,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
           {COUNTRIES.map(c => { const on = form.area.countries.includes(c.code)
             return <button key={c.code} type="button" disabled={!canEdit}
               onClick={() => setForm(f => ({ ...f, area: { ...f.area, countries: on ? f.area.countries.filter(x => x !== c.code) : [...f.area.countries, c.code] } }))}
-              className={cn('h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors', on ? 'border-[#26897a] bg-[#eef8f6] text-gray-900' : 'border-gray-200 bg-white text-[#5e5e5e] hover:border-gray-400')}>{c.sl}</button> })}
+              className={cn('h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors', on ? 'border-[#266df0] bg-[#eff5fe] text-gray-900' : 'border-gray-200 bg-white text-[#5e5e5e] hover:border-gray-400')}>{c.sl}</button> })}
         </div>
         {form.area.countries.includes('SI') && <div className="mt-4">
           <p className="text-sm font-medium text-[#5e5e5e] mb-2">{T.areaSi}</p>

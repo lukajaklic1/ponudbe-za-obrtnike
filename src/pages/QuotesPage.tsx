@@ -10,7 +10,6 @@ import { useLanguage } from '../hooks/useLanguage'
 import Button from '../components/ui/Button'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageTabs } from '../components/ui/PageTabs'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
@@ -163,8 +162,7 @@ export default function QuotesPage() {
 
   return (
     <div>
-      <PageHeader title={s.quotes} icon={FileText} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
-      <PageTabs tabs={[{ key: 'quotes', label: s.quotes, count: rows.length }]} active="quotes" />
+      <PageHeader title={s.quotes} icon={FileText} count={rows.length} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
       <div className="px-6 py-5">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -220,11 +218,11 @@ export default function QuotesPage() {
               <button key={q.id} type="button" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
                 className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}</span>
+                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}{isNewEnquiry(q) && <span title={sl ? 'Novo povpraševanje' : 'New enquiry'} className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-[#267a47] align-middle" />}</span>
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
-                <div className="text-[15px] font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
-                {q.site_address && <div className="text-[13px] font-medium text-[#5e5e5e] truncate">{q.site_address}</div>}
+                <div className="text-sm font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
+                {q.site_address && <div className="text-xs font-medium text-[#5e5e5e] truncate">{q.site_address}</div>}
                 <div className="flex items-center justify-between gap-2 mt-1.5 text-sm font-medium">
                   <span className="text-[#5e5e5e]">{format(new Date(q.created_at), 'd. M. yyyy')}</span>
                   <span className="text-gray-900 tabular-nums">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</span>
@@ -245,11 +243,11 @@ export default function QuotesPage() {
               {paged.map(q => (
                 <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}
+                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>{isNewEnquiry(q) && <span title={sl ? 'Novo povpraševanje' : 'New enquiry'} className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-[#267a47] align-middle" />}
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 truncate">{q.customers?.name ?? '—'}</div>
-                    {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
+                    {q.site_address && <div className="text-xs text-gray-600 truncate mt-0.5">{q.site_address}</div>}
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-[#5e5e5e] truncate">{q.contact_email || q.customers?.email || '—'}</div>
@@ -260,7 +258,7 @@ export default function QuotesPage() {
                       {isOpenOffer(q.status) && (() => {
                         const n = waitingDays(q) ?? 0
                         return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
-                          className="text-[13px] whitespace-nowrap" style={{ color: '#5e5e5e' }}>{sentAgo(n)}</span>
+                          className="text-xs whitespace-nowrap" style={{ color: '#5e5e5e' }}>{sentAgo(n)}</span>
                       })()}
                     </div>
                   </td>
@@ -336,7 +334,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
   const label = assignee ? `${assignee.first_name} ${assignee.last_name}` : null
 
   if (!canEdit) {
-    return label ? <span className="text-[15px] text-[#5e5e5e] whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
+    return label ? <span className="text-sm text-[#5e5e5e] whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
   }
 
   return (
@@ -344,7 +342,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
       <button
         onClick={() => setOpen(o => !o)}
         disabled={saving}
-        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[15px] text-[#5e5e5e] hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap">
+        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-sm text-[#5e5e5e] hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap">
         {saving
           ? <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           : label
