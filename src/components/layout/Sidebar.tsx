@@ -96,7 +96,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       <Icon className="w-4 h-4 shrink-0 text-gray-500" />
       {!rail && label}
       {rail
-        ? count > 0 && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', 'bg-[#101112] text-white')}>{count}</span>
+        ? count > 0 && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', 'bg-blue-600 text-white')}>{count}</span>
         : <span className="ml-auto flex items-center gap-1.5">
             
             {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#e5eeff] text-[#215bcf] text-xs font-medium tabular-nums">{count}</span>}

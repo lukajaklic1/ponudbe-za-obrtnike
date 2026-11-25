@@ -228,7 +228,7 @@ export default function QuotesPage() {
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
                 <div className="text-sm font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
-                {q.site_address && <div className="text-xs font-medium text-[#5e5e5e] truncate">{q.site_address}</div>}
+                {q.site_address && <div className="text-xs font-medium text-[#7f7f7f] truncate">{q.site_address}</div>}
                 <div className="flex items-center justify-between gap-2 mt-1.5 text-sm font-medium">
                   <span className="text-[#5e5e5e]">{format(new Date(q.created_at), 'd. M. yyyy')}</span>
                   <span className="text-gray-900 tabular-nums">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</span>

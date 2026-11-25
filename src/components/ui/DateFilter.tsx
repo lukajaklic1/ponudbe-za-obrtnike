@@ -97,7 +97,7 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
                 <button key={toKey(d)} type="button" disabled={off} onClick={() => pick(d)}
                   className={cn(
                     'h-9 w-9 mx-auto flex items-center justify-center rounded-md text-sm transition-colors',
-                    sel ? 'bg-[#101112] text-white font-medium'
+                    sel ? 'bg-blue-600 text-white font-medium'
                       : off ? 'text-[#c9ccd1] cursor-not-allowed'
                       : isSameMonth(d, month) ? 'text-[#111827] hover:bg-[#f3f4f6]' : 'text-[#c4c7cc] hover:bg-[#f3f4f6]',
                     !sel && isToday(d) && 'ring-1 ring-inset ring-[#e5e7eb] font-medium',

@@ -85,7 +85,7 @@ export default function Pagination({ total, page, pageSize, onChange, onPageSize
               className={cn(
                 'w-8 h-8 rounded-lg text-xs font-medium transition-colors',
                 p === page
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'text-gray-600 hover:bg-[#f6f6f6]',
               )}
             >

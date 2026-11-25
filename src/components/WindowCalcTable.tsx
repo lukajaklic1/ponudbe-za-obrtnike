@@ -24,7 +24,7 @@ export default function WindowCalcTable({ calc, lang, saved }: { calc: WindowCal
     <div className="rounded-xl border border-gray-200 bg-[#fbfbfb] p-4">
       <div className="flex items-baseline justify-between gap-3 mb-2">
         <div className="text-sm font-semibold text-gray-900">{T.title}{calc.system ? <span className="font-normal text-[#5e5e5e]"> · {calc.system}</span> : null}</div>
-        {calc.colorPct > 0 && <div className="text-xs text-[#5e5e5e]">{T.colour}: +{num(calc.colorPct)} %</div>}
+        {calc.colorPct > 0 && <div className="text-xs text-[#7f7f7f]">{T.colour}: +{num(calc.colorPct)} %</div>}
       </div>
       {/* plain grid, not a table: the app's table styles would make the rows tall */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-x-4 text-xs leading-5 tabular-nums">

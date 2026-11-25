@@ -203,10 +203,10 @@ export default function CustomersPage() {
               <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold text-gray-900 truncate">{c.name}</span>
-                  <span className="shrink-0 text-xs font-medium text-[#5e5e5e]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
+                  <span className="shrink-0 text-xs font-medium text-[#7f7f7f]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
                 </div>
-                <div className="text-xs font-medium text-[#5e5e5e] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
-                <div className="flex items-center justify-between gap-2 mt-1 text-xs font-medium text-[#5e5e5e]">
+                <div className="text-xs font-medium text-[#7f7f7f] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
+                <div className="flex items-center justify-between gap-2 mt-1 text-xs font-medium text-[#7f7f7f]">
                   <span>{c.address_city ?? ''}</span>
                   <span>{s.quotesCount}: {counts[c.id] ?? 0}</span>
                 </div>

@@ -320,7 +320,7 @@ export default function DashboardPage() {
         {(() => { const n = [statusFilter, categoryFilter, sourceFilter, typeFilter, channelFilter, assigneeFilter, filterCustomerId].filter(Boolean).length
           return <button type="button" onClick={() => setFiltersOpen(x => !x)}
             className="sm:hidden h-9 px-3.5 rounded-[10px] border border-gray-200 bg-white text-sm font-medium text-gray-900 inline-flex items-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-            {sl ? 'Filtri' : 'Filters'}{n > 0 && <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-[#101112] text-white text-xs font-semibold">{n}</span>}
+            {sl ? 'Filtri' : 'Filters'}{n > 0 && <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-blue-600 text-white text-xs font-semibold">{n}</span>}
           </button> })()}
         <div className={cn('flex-wrap items-center gap-2', filtersOpen ? 'flex' : 'hidden sm:flex')}>
 
@@ -482,7 +482,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       {total === 0 ? <span className="text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span> : <>
                       <span className="text-[26px] font-bold tracking-[-0.02em] text-gray-900">{total}</span>
-                      <span className="text-xs font-medium text-[#5e5e5e]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
+                      <span className="text-xs font-medium text-[#7f7f7f]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-2">
@@ -568,7 +568,7 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 flex flex-col">
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
-                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#5e5e5e] text-xs font-medium tabular-nums">{sorted.length}</span></h2>
+                  <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#7f7f7f] text-xs font-medium tabular-nums">{sorted.length}</span></h2>
                 <div className="overflow-x-auto"><table className="w-full table-fixed keep-last-line">
                   <colgroup><col /><col className="w-[84px] sm:w-[110px]" /><col className="w-[110px] sm:w-[130px]" /><col className="hidden sm:table-column w-[130px]" /><col className="hidden sm:table-column w-[120px]" /></colgroup>
                   <thead><tr>

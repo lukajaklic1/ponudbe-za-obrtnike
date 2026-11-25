@@ -101,7 +101,7 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
         <p className="text-sm leading-6 text-[#5e5e5e]">{T.intro}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="secondary" size="sm" onClick={downloadTemplate} className="gap-1.5"><Download className="w-3.5 h-3.5" />{T.template}</Button>
-          <span className="text-xs text-[#5e5e5e]">{T.columns}</span>
+          <span className="text-xs text-[#7f7f7f]">{T.columns}</span>
         </div>
 
         <label className="flex items-center gap-2.5 px-4 py-4 border border-dashed border-gray-300 rounded-[10px] cursor-pointer hover:border-gray-500 hover:bg-[#fbfbfb] transition-colors">

@@ -236,7 +236,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
         <div style={themeVars(form.theme)} className="cfg-public rounded-xl border p-4 mt-1 min-h-0">
           <div className="text-base font-semibold text-gray-900">Kaj želite kupiti?</div>
           <div className="text-sm text-[#5e5e5e] mt-1">Tako bo videti vaš konfigurator.</div>
-          <div className="mt-3 flex gap-2"><span className="inline-flex h-10 items-center rounded-xl bg-[#101112] px-4 text-sm font-semibold text-white">Naprej</span><span className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-900">Nazaj</span></div>
+          <div className="mt-3 flex gap-2"><span className="inline-flex h-10 items-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Naprej</span><span className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-900">Nazaj</span></div>
         </div>
       </div>
       <div className="flex flex-col gap-1">

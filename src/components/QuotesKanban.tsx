@@ -57,7 +57,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             <div className="flex items-center gap-2 px-3 pt-3 pb-2.5">
               <QuoteStatusBadge status={st} label={statusLabels[st]} />
               <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#eeeff1] text-[#52525b]">{cards.length}</span>
-              <span className="ml-auto text-xs font-medium text-[#5e5e5e] tabular-nums" title={labels.total}>{money(total)}</span>
+              <span className="ml-auto text-xs font-medium text-[#7f7f7f] tabular-nums" title={labels.total}>{money(total)}</span>
             </div>
 
             {/* Cards */}
@@ -74,22 +74,22 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                     className={`rounded-[10px] border border-gray-200 bg-white px-3.5 py-3 hover:border-gray-300 transition-colors
                       ${movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragging?.id === q.id ? 'opacity-40' : ''}`}>
                     {/* number + days in status */}
-                    <div className="flex items-center gap-2 text-xs font-medium text-[#5e5e5e]">
+                    <div className="flex items-center gap-2 text-xs font-medium text-[#7f7f7f]">
                       <span>{q.quote_number}</span>
                       {days != null && <span className="ml-auto whitespace-nowrap" title={labels.inStatus}>{days} d</span>}
                     </div>
                     {/* customer + site */}
                     <div className="mt-1.5 text-sm font-medium text-gray-900 line-clamp-2">{q.customers?.name ?? '—'}</div>
-                    {q.site_address && <div className="mt-0.5 text-xs font-medium text-[#5e5e5e] truncate">{q.site_address}</div>}
+                    {q.site_address && <div className="mt-0.5 text-xs font-medium text-[#7f7f7f] truncate">{q.site_address}</div>}
                     {/* value + assignee */}
                     <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-gray-100">
                       <span className="text-sm font-medium text-gray-900 tabular-nums">{money(Number(q.total_net))}</span>
-                      <span className="ml-auto text-xs font-medium text-[#5e5e5e] truncate" title={labels.assignee}>{assignee ?? labels.noAssignee}</span>
+                      <span className="ml-auto text-xs font-medium text-[#7f7f7f] truncate" title={labels.assignee}>{assignee ?? labels.noAssignee}</span>
                     </div>
                   </div>
                 )
               })}
-              {cards.length === 0 && <p className="text-xs font-medium text-[#5e5e5e] text-center py-8">{labels.empty}</p>}
+              {cards.length === 0 && <p className="text-xs font-medium text-[#7f7f7f] text-center py-8">{labels.empty}</p>}
             </div>
           </div>
         )
