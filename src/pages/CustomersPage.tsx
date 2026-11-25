@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Plus, Users, Search, MoreVertical, Upload } from 'lucide-react'
+import { Plus, Users, MoreVertical, Upload } from 'lucide-react'
 import CustomerImportModal from '../components/CustomerImportModal'
 import { SortIcon } from '../components/ui/SortIcon'
 import { format } from 'date-fns'
@@ -17,7 +17,7 @@ import Checkbox from '../components/ui/Checkbox'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageTabs } from '../components/ui/PageTabs'
+import { SearchBar, FilterTabs } from '../components/ui/ListToolbar'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import type { Customer } from '../types/database'
 
@@ -172,39 +172,38 @@ export default function CustomersPage() {
         <Button variant="secondary" onClick={() => setImportOpen(true)} className="gap-2"><Upload className="w-4 h-4" />{o.importServices}</Button>
         <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" />{s.newCustomer}</Button>
       </div>} />
-      <PageTabs tabs={[{ key: 'customers', label: s.customers, count: rows.length }]} active="customers" />
       <div className="px-6 py-5">
 
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="relative max-w-xs w-full">
-          <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={t.common.search}
-            className="w-full h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
+      <SearchBar value={search} onChange={v => { setSearch(v); setPage(1) }} placeholder={t.common.search} />
+      <FilterTabs<typeof statusFilter>
+        tabs={[
+          { key: 'all', label: t.common.all, count: rows.length },
+          { key: 'active', label: t.common.activeFPl, count: rows.filter(c => (c.status ?? 'active') === 'active').length },
+          { key: 'inactive', label: t.common.inactiveFPl, count: rows.filter(c => (c.status ?? 'active') === 'inactive').length },
+        ]}
+        active={statusFilter}
+        onChange={k => { setStatusFilter(k); setPage(1) }}
+        right={
         <FilterSelect label={o.customerType} value={typeFilter} allLabel={t.common.all}
           options={[{ value: 'person', label: o.typePerson }, { value: 'company', label: o.typeCompany }]}
-          onChange={v => { setTypeFilter(v as '' | CustomerType); setPage(1) }} />
-        <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
-          options={[{ value: 'active', label: t.common.activeFPl }, { value: 'inactive', label: t.common.inactiveFPl }]}
-          onChange={v => { setStatusFilter((v || 'all') as typeof statusFilter); setPage(1) }} />
-      </div>
+          onChange={v => { setTypeFilter(v as '' | CustomerType); setPage(1) }} />} />
 
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="table-frame">
         {loading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <Users className="w-10 h-10 text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400">{s.noCustomers}</p>
+            <Users className="w-10 h-10 text-[#e9e8e3] mb-3" />
+            <p className="text-sm text-[#6a6a6a]">{s.noCustomers}</p>
           </div>
         ) : (
           <>
           {/* phones: one card per customer instead of the wide table */}
-          <div className="sm:hidden divide-y divide-gray-200">
+          <div className="sm:hidden divide-y divide-[#ece9e3]">
             {paginated.map(c => (
-              <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
+              <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-[#f5f3ef] transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[15px] font-semibold text-gray-900 truncate">{c.name}</span>
+                  <span className="text-[15px] font-semibold text-black truncate">{c.name}</span>
                   <span className="shrink-0 text-[13px] font-medium text-[#6a6a6a]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
                 </div>
                 <div className="text-[13px] font-medium text-[#6a6a6a] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
@@ -216,42 +215,42 @@ export default function CustomersPage() {
             ))}
           </div>
           <div className="hidden sm:block overflow-x-auto"><table className="w-full text-sm font-medium min-w-[820px]">
-            <thead className="bg-gray-50 border-b border-gray-200"><tr>
+            <thead><tr>
               {([['name', o.customer], ['type', o.customerType], ['', t.common.email], ['', t.common.phone], ['city', o.city], ['quotes', s.quotesCount], ['status', t.common.status], ['', s.updatedAt], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-black' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                 </th>
               ))}
             </tr></thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
               {paginated.map(c => {
                 const company = typeOf(c) === 'company'
                 return (
-                  <tr key={c.id} className={`hover:bg-gray-50 transition-colors ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && openEdit(c)}>
+                  <tr key={c.id} className={`hover:bg-[#f5f3ef] transition-colors ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && openEdit(c)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="min-w-0">
-                          <div className="font-medium text-gray-900">{c.name}</div>
+                          <div className="font-medium text-black">{c.name}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{company ? o.typeCompany : o.typePerson}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.email ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.phone ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{c.address_city ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{counts[c.id] ?? 0}</td>
+                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{company ? o.typeCompany : o.typePerson}</td>
+                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{c.email ?? '—'}</td>
+                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{c.phone ?? '—'}</td>
+                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{c.address_city ?? '—'}</td>
+                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{counts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#ececec', color: '#464646' }}>
+                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#e9e8e3', color: '#000000' } : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
                         {(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-gray-600 whitespace-nowrap">{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
+                      <span className="text-[#6a6a6a] whitespace-nowrap">{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
                     </td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex justify-end">
-                        {canEdit && <button onClick={() => openEdit(c)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"><MoreVertical className="w-4 h-4" /></button>}
+                        {canEdit && <button onClick={() => openEdit(c)} className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg"><MoreVertical className="w-4 h-4" /></button>}
                       </div>
                     </td>
                   </tr>
@@ -271,7 +270,7 @@ export default function CustomersPage() {
           <div className="inline-flex self-start h-10 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
             {([['person', o.typePerson], ['company', o.typeCompany]] as [CustomerType, string][]).map(([v, label]) => (
               <button key={v} type="button" onClick={() => setForm(f => ({ ...f, customer_type: v }))}
-                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#6a6a6a] hover:text-gray-900'}`}>
+                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-black shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#6a6a6a] hover:text-black'}`}>
                 {label}
               </button>
             ))}
@@ -299,15 +298,15 @@ export default function CustomersPage() {
             <div className="sm:col-span-2 flex flex-col gap-1">
               <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#6a6a6a' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                className="rounded-lg border border-[#ece9e3] px-3 py-2 text-sm text-black placeholder-[#6a6a6a] hover:border-[#6a6a6a] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>
           </div>
 
           <Checkbox checked={form.status === 'active'} onChange={v => setForm(f => ({ ...f, status: v ? 'active' : 'inactive' }))} label={t.common.activeF} />
         </div>
 
-        {editing && (counts[editing.id] ?? 0) > 0 && <p className="text-sm text-gray-400 mt-5">{s.cannotDeleteLinkedCustomer}</p>}
-        <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-gray-200">
+        {editing && (counts[editing.id] ?? 0) > 0 && <p className="text-sm text-[#6a6a6a] mt-5">{s.cannotDeleteLinkedCustomer}</p>}
+        <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-[#ece9e3]">
           <div>
             {editing && isAdmin && (counts[editing.id] ?? 0) === 0 && (
               <Button variant="danger" onClick={() => { setOpen(false); setToDelete(editing) }}>{t.common.delete}</Button>

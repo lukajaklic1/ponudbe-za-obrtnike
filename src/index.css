@@ -182,19 +182,33 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
   border-color: #26897a !important;
 }
 :is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 3px rgba(38, 137, 122, .16) !important; }
-/* tables: light grey header with dividers between columns, rows split by hairlines */
+/* ── Tables (every table in the app): clean and modern ──
+   white header with small grey labels and chevrons after them, no vertical lines,
+   tall rows split only by a very light hairline, warm grey hover */
+:root { --table-line: #ece9e3; }
 .robust main table { border-collapse: separate; border-spacing: 0; }
-.robust main thead tr, .robust main thead { background: #f5f3ef; }
-.robust main thead th { font-size: 15px; font-weight: 500; color: #6a6a6a; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
-/* sort arrows in front of the column name, like Levelpath */
-.robust main th > span.inline-flex { flex-direction: row-reverse; justify-content: flex-end; }
-.robust main th > span.inline-flex > span.ml-1 { margin-left: 0; margin-right: 6px; }
-.robust main th.text-right > span.inline-flex { justify-content: flex-start; }
-.robust main tbody td { border-bottom: 1px solid #efefef; color: #000000; }
-.robust main tbody tr:not(:has(input, textarea)) > td { padding-top: 11px; padding-bottom: 11px; }
-.robust main tbody tr:last-child td { border-bottom: 0; }
-.robust main table.keep-last-line tbody tr:last-child td { border-bottom: 1px solid #efefef; }
-.robust main tbody tr:hover td { background: #f5f3ef; }
+.robust main thead tr, .robust main thead { background: transparent; }
+.robust main thead th { font-size: 13px; font-weight: 400; color: var(--muted); padding-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--table-line); border-left: 0; border-right: 0; }
+.robust main thead th:hover { color: var(--ink); }
+.robust main tbody td { border-bottom: 1px solid var(--table-line); border-left: 0; border-right: 0; color: var(--ink); }
+.robust main tbody tr:not(:has(input:not(.row-check), textarea)) > td { height: 60px; padding-top: 10px; padding-bottom: 10px; }
+.robust main tbody tr:last-child td { border-bottom: 1px solid var(--table-line); }
+.robust main tbody tr:hover td { background: var(--surface); }
+/* secondary line under the main text in a cell: smaller and grey */
+.robust main tbody td :is(.text-xs, .text-\[13px\], .text-\[12px\]):not([class*="bg-"]) { color: var(--muted); }
+/* cell text: a black main value and a smaller grey second line */
+.robust main .cell-main { color: var(--ink); font-size: 14px; line-height: 20px; font-weight: 500; }
+.robust main .cell-sub { color: var(--muted); font-size: 13px; line-height: 18px; font-weight: 400; margin-top: 2px; }
+/* leading checkbox */
+.row-check { width: 16px; height: 16px; accent-color: #000000; cursor: pointer; vertical-align: middle; }
+/* row actions: quiet icon buttons that show on hover */
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; color: var(--muted); transition: background-color .15s, color .15s; }
+.icon-btn:hover { background: var(--surface-active); color: var(--ink); }
+.robust main tr .row-actions { opacity: 0; transition: opacity .15s; }
+.robust main tr:hover .row-actions, .robust main tr:focus-within .row-actions { opacity: 1; }
+/* list pages: the table sits straight on the page, no card frame or shadow */
+.robust main .table-frame { background: transparent; border: 0; border-radius: 0; box-shadow: none !important; overflow: hidden; }
+.robust main .table-frame + .table-footer { border: 0; box-shadow: none; border-radius: 0; background: transparent; padding-left: 0; padding-right: 0; }
 /* popups: the button row at the bottom, white with a hairline, always visible (sticky) */
 .modal-body .\-mx-6.border-t { position: sticky; bottom: -24px; z-index: 2; background: #ffffff; border-color: #ececec; margin-top: 28px; margin-bottom: -24px; padding-top: 18px; padding-bottom: 18px; }
 .modal-body .flex-col:is(.gap-3, .gap-4) > .\-mx-6.border-t { margin-top: 8px; }
@@ -229,11 +243,11 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .robust main .rounded-xl:has(+ .table-footer) { box-shadow: 0 1px 2px rgba(16, 24, 40, .03); }
 .robust main .table-footer { box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03); }
 /* first column (the record's name) a little stronger; header labels on one line */
-.robust main tbody tr:not(:has(input, textarea)) > td:first-child { font-weight: 500; }
+.robust main tbody tr:not(:has(input:not(.row-check), textarea)) > td:first-child { font-weight: 500; }
 .robust main thead th { vertical-align: middle; line-height: 20px; }
 .robust main thead th > span.inline-flex { vertical-align: middle; }
-/* table text as big as the sidebar (15 px); rows with fields (quote lines) keep their own size */
-.robust main tbody tr:not(:has(input, textarea)) > td { font-size: 15px; }
+/* table text 14 px; rows with fields (quote lines) keep their own size */
+.robust main tbody tr:not(:has(input:not(.row-check), textarea)) > td { font-size: 14px; }
 /* a little less side padding in table cells so more columns fit */
 .robust main :is(thead th, tbody td).px-4 { padding-left: 14px; padding-right: 14px; }
 

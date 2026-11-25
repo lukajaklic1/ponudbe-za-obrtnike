@@ -1,29 +1,27 @@
 import type { QuoteStatus } from '../../types/database'
 
-// Pridobljeno = green, Poslano = yellow, everything else (Osnutek, Izgubljeno) = grey
-// The only badge colours in the app: yellow, green and grey (soft background, darker text, no border)
-export const GREY: React.CSSProperties   = { color: '#464646', backgroundColor: '#ececec' }
-export const YELLOW: React.CSSProperties = { color: '#8a6100', backgroundColor: '#fef3cd' }
-export const GREEN: React.CSSProperties  = { color: '#267a47', backgroundColor: '#dbfce7' }
+// Subtle status chips: warm grey fill, black text, no border.
+// A small dot keeps the meaning: yellow = waiting on someone, green = won, grey = everything else.
+const DOT = { grey: '#b5b2ab', yellow: '#e0a100', green: '#2f9e5b' } as const
 
-const STATUS_COLORS: Record<QuoteStatus, React.CSSProperties> = {
-  enquiry:  YELLOW,   // Povpraševanje: a customer is waiting for an offer
-  downloaded: YELLOW, // Ponudba prenesena: the customer already has the offer
-  draft:    GREY,
-  issued:   YELLOW,   // Izdano: the offer is locked, not sent yet
-  sent:     YELLOW,
-  accepted: GREEN,
-  won:      GREEN,
-  rejected: GREY,
-  lost:     GREY,
-  expired:  GREY,
-  frozen:   GREY,
+const STATUS_DOT: Record<QuoteStatus, keyof typeof DOT> = {
+  enquiry:  'yellow',   // Povpraševanje: a customer is waiting for an offer
+  downloaded: 'yellow', // Ponudba prenesena: the customer already has the offer
+  draft:    'grey',
+  issued:   'yellow',   // Izdano: the offer is locked, not sent yet
+  sent:     'yellow',
+  accepted: 'green',
+  won:      'green',
+  rejected: 'grey',
+  lost:     'grey',
+  expired:  'grey',
+  frozen:   'grey',
 }
 
 export function QuoteStatusBadge({ status, label }: { status: QuoteStatus; label: string }) {
   return (
-    <span className="inline-flex items-center px-[7px] py-[3px] rounded-lg text-xs font-semibold whitespace-nowrap"
-      style={STATUS_COLORS[status]}>
+    <span className="inline-flex items-center gap-1.5 h-6 px-2 rounded-md bg-[#f5f3ef] text-[13px] font-medium text-black whitespace-nowrap">
+      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: DOT[STATUS_DOT[status]] }} />
       {label}
     </span>
   )

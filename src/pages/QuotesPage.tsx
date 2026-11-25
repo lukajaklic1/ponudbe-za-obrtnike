@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Plus, FileText, Search, Check, ChevronDown, MoreVertical, List, Columns3 } from 'lucide-react'
+import { Plus, FileText, Check, ChevronDown, List, Columns3, ArrowUpRight, Pencil } from 'lucide-react'
 import QuotesKanban from '../components/QuotesKanban'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { toast } from '../components/ui/Toast'
@@ -10,7 +10,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import Button from '../components/ui/Button'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageTabs } from '../components/ui/PageTabs'
+import { SearchBar, FilterTabs } from '../components/ui/ListToolbar'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
@@ -65,6 +65,7 @@ export default function QuotesPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = usePageSize('quotes')
   const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())   // ticked rows (only on screen, nothing saved)
   const [sortKey, setSortKey] = useState<'quote_number' | 'customer' | 'status' | 'waiting' | 'value' | 'created_at' | 'assignee'>('created_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   function handleSort(k: typeof sortKey) { setSortKey(k); setSortDir(d => k === sortKey ? (d === 'asc' ? 'desc' : 'asc') : 'asc'); setPage(1) }
@@ -164,18 +165,17 @@ export default function QuotesPage() {
   return (
     <div>
       <PageHeader title={s.quotes} icon={FileText} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
-      <PageTabs tabs={[{ key: 'quotes', label: s.quotes, count: rows.length }]} active="quotes" />
       <div className="px-6 py-5">
 
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="relative">
-          <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={sl ? 'Išči po številki, stranki, e-pošti, telefonu …' : 'Search number, customer, email, phone …'}
-            className="h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
-        </div>
-        <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
-          options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
-          onChange={v => { setStatusFilter((v || 'all') as QuoteStatus | 'all'); setPage(1) }} />
+      <SearchBar value={search} onChange={v => { setSearch(v); setPage(1) }} placeholder={sl ? 'Išči po številki, stranki, e-pošti, telefonu …' : 'Search number, customer, email, phone …'} />
+      <FilterTabs<QuoteStatus | 'all'>
+        tabs={[
+          { key: 'all', label: t.common.all, count: rows.length },
+          ...STATUSES.filter(st => rows.some(r => r.status === st)).map(st => ({ key: st, label: s.status[st], count: rows.filter(r => r.status === st).length })),
+        ]}
+        active={statusFilter}
+        onChange={k => { setStatusFilter(k); setPage(1) }}
+        right={<>
         <FilterSelect label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
           options={[
             ...allUsers.filter(u => u.is_active !== false || rows.some(r => r.assignee_id === u.id)).map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` })),
@@ -186,12 +186,12 @@ export default function QuotesPage() {
         <div className="ml-auto inline-flex h-8 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`w-8 flex items-center justify-center rounded-[8px] transition-colors ${view === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.06)]' : 'text-[#6a6a6a] hover:text-gray-900'}`}>
+              className={`w-8 flex items-center justify-center rounded-[8px] transition-colors ${view === v ? 'bg-white text-black shadow-[0_1px_3px_rgba(0,0,0,0.06)]' : 'text-[#6a6a6a] hover:text-black'}`}>
               <Icon className="w-[15px] h-[15px]" strokeWidth={1.75} />
             </button>
           ))}
         </div>
-      </div>
+      </>} />
 
       {view === 'kanban' && !loading ? (
         <QuotesKanban
@@ -204,69 +204,73 @@ export default function QuotesPage() {
           }}
           onOpen={openQuote} onMove={requestMove} />
       ) : (<>
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="table-frame">
         {loading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <FileText className="w-10 h-10 text-gray-200 mb-3" />
-            <p className="text-sm text-gray-600">{s.noQuotes}</p>
+            <FileText className="w-10 h-10 text-[#e9e8e3] mb-3" />
+            <p className="text-sm text-[#6a6a6a]">{s.noQuotes}</p>
           </div>
         ) : (
           <>
           {/* phones: one card per quote instead of the wide table */}
-          <div className="sm:hidden divide-y divide-gray-200">
+          <div className="sm:hidden divide-y divide-[#ece9e3]">
             {paged.map(q => (
               <button key={q.id} type="button" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
-                className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                className="w-full text-left px-4 py-3.5 hover:bg-[#f5f3ef] transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}</span>
+                  <span className="text-sm font-semibold text-black">{q.quote_number}{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#000000', backgroundColor: '#e9e8e3' }}>{sl ? 'Novo' : 'New'}</span>}</span>
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
-                <div className="text-[15px] font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
+                <div className="text-[15px] font-medium text-black truncate mt-1">{q.customers?.name ?? '—'}</div>
                 {q.site_address && <div className="text-[13px] font-medium text-[#6a6a6a] truncate">{q.site_address}</div>}
                 <div className="flex items-center justify-between gap-2 mt-1.5 text-sm font-medium">
                   <span className="text-[#6a6a6a]">{format(new Date(q.created_at), 'd. M. yyyy')}</span>
-                  <span className="text-gray-900 tabular-nums">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</span>
+                  <span className="text-black tabular-nums">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</span>
                 </div>
               </button>
             ))}
           </div>
-          <div className="hidden sm:block overflow-x-auto"><table className="w-full text-sm font-medium min-w-[720px]">
-            <thead className="bg-gray-50 border-b border-gray-200"><tr>
-              {([['quote_number', s.quoteNumber], ['customer', s.customer], ['', t.common.email], ['status', t.common.status], ['value', t.od.totalNet], ['created_at', t.common.created], ['assignee', s.assignee], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} style={{ width: ['10%', '22%', '20%', '14%', '11%', '10%', '10%', '3%'][i], minWidth: key === 'customer' ? 200 : i === 2 ? 180 : undefined }} className={`${key === 'created_at' ? 'hidden 2xl:table-cell ' : ''}${key === 'value' ? 'text-right !pr-8' : 'text-left'} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
-                  onClick={() => key && handleSort(key as typeof sortKey)}>
-                  <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
+          <div className="hidden sm:block overflow-x-auto"><table className="data-table w-full min-w-[760px]">
+            <thead><tr>
+              <th className="w-10 pl-1 pr-2 text-left">
+                <input type="checkbox" className="row-check" aria-label={sl ? 'Izberi vse na strani' : 'Select all on page'}
+                  checked={paged.length > 0 && paged.every(q => selected.has(q.id))}
+                  onChange={e => setSelected(prev => { const n = new Set(prev); paged.forEach(q => e.target.checked ? n.add(q.id) : n.delete(q.id)); return n })} />
+              </th>
+              {([['quote_number', s.quoteNumber, '13%'], ['customer', s.customer, '30%'], ['status', t.common.status, '17%'], ['assignee', s.assignee, '14%'], ['created_at', t.common.created, '12%'], ['value', t.od.totalNet, '12%']] as [typeof sortKey, string, string][]).map(([key, h, w]) => (
+                <th key={key} style={{ width: w }} className={`px-4 whitespace-nowrap cursor-pointer select-none ${key === 'value' ? 'text-right' : 'text-left'}`}
+                  onClick={() => handleSort(key)}>
+                  <span className="inline-flex items-center">{h}<SortIcon active={sortKey === key} dir={sortDir} /></span>
                 </th>
               ))}
+              <th className="w-[88px]" aria-label={sl ? 'Dejanja' : 'Actions'} />
             </tr></thead>
-            <tbody className="divide-y divide-gray-200">
-              {paged.map(q => (
-                <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
-                  <td className="px-4 py-3">
-                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>{isNewEnquiry(q) && <span className="ml-2 inline-flex items-center px-[7px] py-[2px] rounded-lg text-xs font-semibold" style={{ color: '#267a47', backgroundColor: '#dbfce7' }}>{sl ? 'Novo' : 'New'}</span>}
+            <tbody>
+              {paged.map(q => {
+                const open = () => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)
+                const created = new Date(q.created_at)
+                return (
+                <tr key={q.id} className="group cursor-pointer" onClick={open}>
+                  <td className="pl-1 pr-2" onClick={e => e.stopPropagation()}>
+                    <input type="checkbox" className="row-check" aria-label={q.quote_number}
+                      checked={selected.has(q.id)}
+                      onChange={e => setSelected(prev => { const n = new Set(prev); if (e.target.checked) n.add(q.id); else n.delete(q.id); return n })} />
                   </td>
-                  <td className="px-4 py-3 max-w-0">
-                    <div className="text-gray-900 truncate">{q.customers?.name ?? '—'}</div>
-                    {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
+                  <td className="px-4 whitespace-nowrap">
+                    <div className="cell-main">{q.quote_number}</div>
+                    {isNewEnquiry(q) && <div className="cell-sub">{sl ? 'Novo povpraševanje' : 'New enquiry'}</div>}
                   </td>
-                  <td className="px-4 py-3 max-w-0">
-                    <div className="text-[#6a6a6a] truncate">{q.contact_email || q.customers?.email || '—'}</div>
+                  <td className="px-4 max-w-0">
+                    <div className="cell-main truncate">{q.customers?.name ?? '—'}</div>
+                    {q.site_address && <div className="cell-sub truncate">{q.site_address}</div>}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
-                      {isOpenOffer(q.status) && (() => {
-                        const n = waitingDays(q) ?? 0
-                        return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
-                          className="text-[13px] whitespace-nowrap" style={{ color: '#6a6a6a' }}>{sentAgo(n)}</span>
-                      })()}
-                    </div>
+                  <td className="px-4 whitespace-nowrap">
+                    <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
+                    {isOpenOffer(q.status) && <div className="cell-sub" title={sl ? 'Dni od pošiljanja' : 'Days since sent'}>{sentAgo(waitingDays(q) ?? 0)}</div>}
                   </td>
-                  <td className="px-4 !pr-8 py-3 text-right tabular-nums whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
-                  <td className="hidden 2xl:table-cell px-4 py-3 !text-[#6a6a6a] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
-                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                  <td className="px-4" onClick={e => e.stopPropagation()}>
                     <AssigneeCell
                       quoteId={q.id}
                       assigneeId={q.assignee_id}
@@ -277,15 +281,22 @@ export default function QuotesPage() {
                       onChange={(uid) => setRows(prev => prev.map(r => r.id === q.id ? { ...r, assignee_id: uid, assignee: companyUsers.find(u => u.id === uid) ?? null } : r))}
                     />
                   </td>
-                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-end">
-                      <button onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
+                  <td className="px-4 whitespace-nowrap">
+                    <div className="cell-main">{format(created, 'd. M. yyyy')}</div>
+                    <div className="cell-sub">{format(created, 'HH:mm')}</div>
+                  </td>
+                  <td className="px-4 text-right tabular-nums whitespace-nowrap">
+                    <div className="cell-main">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</div>
+                    <div className="cell-sub">{sl ? 'brez DDV' : 'excl. VAT'}</div>
+                  </td>
+                  <td className="pr-2" onClick={e => e.stopPropagation()}>
+                    <div className="row-actions flex justify-end gap-0.5">
+                      <button type="button" onClick={open} title={sl ? 'Odpri' : 'Open'} aria-label={sl ? 'Odpri' : 'Open'} className="icon-btn"><ArrowUpRight className="w-4 h-4" /></button>
+                      {canEdit && isDraftLike(q.status) && <button type="button" onClick={open} title={sl ? 'Uredi' : 'Edit'} aria-label={sl ? 'Uredi' : 'Edit'} className="icon-btn"><Pencil className="w-4 h-4" /></button>}
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table></div>
           </>
@@ -336,7 +347,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
   const label = assignee ? `${assignee.first_name} ${assignee.last_name}` : null
 
   if (!canEdit) {
-    return label ? <span className="text-[15px] text-[#6a6a6a] whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
+    return label ? <span className="text-[14px] text-black whitespace-nowrap">{label}</span> : <span className="text-[#6a6a6a]">—</span>
   }
 
   return (
@@ -344,30 +355,30 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
       <button
         onClick={() => setOpen(o => !o)}
         disabled={saving}
-        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[15px] text-[#6a6a6a] hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap">
+        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[14px] text-black hover:bg-[#e9e8e3] transition-colors whitespace-nowrap">
         {saving
-          ? <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+          ? <span className="w-3 h-3 border-2 border-[#ece9e3] border-t-blue-500 rounded-full animate-spin" />
           : label
             ? <>
                 <span>{label}</span>
               </>
-            : <span className="text-gray-500 font-normal">{noAssigneeLabel}</span>
+            : <span className="text-[#6a6a6a]">{noAssigneeLabel}</span>
         }
-        <ChevronDown className="w-3 h-3 shrink-0 text-gray-400 ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <ChevronDown className="w-3 h-3 shrink-0 text-[#6a6a6a] ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
       {open && (
-        <div className="absolute z-30 mt-1 left-0 w-60 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-30 mt-1 left-0 w-60 bg-white border border-[#ece9e3] rounded-lg shadow-lg overflow-hidden">
           <div className="max-h-52 overflow-y-auto py-1">
-            <button onClick={() => pick(null)} className="flex items-center w-full px-3 py-1.5 text-sm text-left hover:bg-gray-50 gap-2.5">
-              <span className="w-[22px] h-[22px] rounded-full border border-dashed border-gray-300 shrink-0" />
-              <span className="flex-1 text-gray-600">{noAssigneeLabel}</span>
-              <Check className={`w-3.5 h-3.5 text-gray-900 shrink-0 ${!assigneeId ? '' : 'invisible'}`} />
+            <button onClick={() => pick(null)} className="flex items-center w-full px-3 py-1.5 text-sm text-left hover:bg-[#f5f3ef] gap-2.5">
+              <span className="w-[22px] h-[22px] rounded-full border border-dashed border-[#e9e8e3] shrink-0" />
+              <span className="flex-1 text-[#6a6a6a]">{noAssigneeLabel}</span>
+              <Check className={`w-3.5 h-3.5 text-black shrink-0 ${!assigneeId ? '' : 'invisible'}`} />
             </button>
             {users.map(u => (
-              <button key={u.id} onClick={() => pick(u.id)} className={`flex items-center w-full px-3 py-1.5 text-sm text-left hover:bg-gray-50 gap-2.5 ${assigneeId === u.id ? 'font-medium text-gray-900' : 'text-gray-800'}`}>
+              <button key={u.id} onClick={() => pick(u.id)} className={`flex items-center w-full px-3 py-1.5 text-sm text-left hover:bg-[#f5f3ef] gap-2.5 ${assigneeId === u.id ? 'font-medium text-black' : 'text-black'}`}>
                 <Avatar name={`${u.first_name} ${u.last_name}`} />
                 <span className="flex-1 truncate">{u.first_name} {u.last_name}</span>
-                <Check className={`w-3.5 h-3.5 text-gray-900 shrink-0 ${assigneeId === u.id ? '' : 'invisible'}`} />
+                <Check className={`w-3.5 h-3.5 text-black shrink-0 ${assigneeId === u.id ? '' : 'invisible'}`} />
               </button>
             ))}
           </div>

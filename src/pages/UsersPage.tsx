@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Users, Mail, X, UserCog, MoreVertical, Search } from 'lucide-react'
+import { Plus, Users, Mail, X, UserCog, MoreVertical } from 'lucide-react'
 import Checkbox from '../components/ui/Checkbox'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
@@ -13,7 +13,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { PageTabs } from '../components/ui/PageTabs'
+import { SearchBar, FilterTabs } from '../components/ui/ListToolbar'
 import { Avatar } from '../components/ui/PersonBadge'
 import type { User as AppUser, UserPermission, UserInvitation } from '../types/database'
 
@@ -170,99 +170,98 @@ export default function UsersPage() {
   const allRows = [...sortedUsers, ...invites]
   const paginated = allRows.slice((page - 1) * pageSize, page * pageSize)
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" /></div>
   if (!loading && !isAdmin) return <Navigate to="/dashboard" replace />
 
   return (
     <div>
       <PageHeader title={t.nav.users} icon={UserCog} action={<Button onClick={openInvite} className="gap-2"><Plus className="w-4 h-4" />{s.addUser}</Button>} />
-      <PageTabs tabs={[{ key: 'users', label: t.nav.users, count: users.length + invites.length }]} active="users" />
       <div className="px-6 py-5">
-      <div className="flex flex-wrap gap-3 mb-4">
-        <div className="relative">
-          <Search className="w-4 h-4 text-gray-900 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={t.common.search}
-            className="h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-56" />
-        </div>
+      <SearchBar value={search} onChange={v => { setSearch(v); setPage(1) }} placeholder={t.common.search} />
+      <FilterTabs<typeof statusFilter>
+        tabs={[
+          { key: 'all', label: t.common.all, count: users.length + invites.length },
+          { key: 'active', label: t.common.active, count: users.filter(u => u.is_active).length },
+          { key: 'inactive', label: t.common.deactivated, count: users.filter(u => !u.is_active).length },
+        ]}
+        active={statusFilter}
+        onChange={k => { setStatusFilter(k); setPage(1) }}
+        right={
         <FilterSelect label={s.role} value={roleFilter === 'all' ? '' : roleFilter} allLabel={t.common.all}
           options={[{ value: 'admin', label: s.admin }, { value: 'member', label: s.member }]}
-          onChange={v => { setRoleFilter((v || 'all') as typeof roleFilter); setPage(1) }} />
-        <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
-          options={[{ value: 'active', label: t.common.active }, { value: 'inactive', label: t.common.deactivated }]}
-          onChange={v => { setStatusFilter((v || 'all') as typeof statusFilter); setPage(1) }} />
-      </div>
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          onChange={v => { setRoleFilter((v || 'all') as typeof roleFilter); setPage(1) }} />} />
+      <div className="table-frame">
         {dataLoading ? (
-          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
+          <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" /></div>
         ) : users.length === 0 && invites.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <Users className="w-10 h-10 text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400">{s.noUsers}</p>
+            <Users className="w-10 h-10 text-[#e9e8e3] mb-3" />
+            <p className="text-sm text-[#6a6a6a]">{s.noUsers}</p>
           </div>
         ) : (
           <div className="overflow-x-auto"><table className="w-full text-sm font-medium min-w-[700px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead>
               <tr>
                 {([['name', t.common.name], ['', t.common.email], ['role', s.role], ['status', t.common.status], ['', '']] as [string, string][]).map(([key, h], i) => (
-                  <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                  <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-black' : ''}`}
                     onClick={() => key && handleSort(key as typeof sortKey)}>
                     <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
               {paginated.map(item => {
                 const u = 'is_admin' in item && 'first_name' in item && 'last_name' in item && 'email' in item && 'job_title' in item && !('status' in item) ? (item as AppUser) : null
                 const invite = u ? null : (item as UserInvitation)
                 return u ? (
-                  <tr key={u.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => openEdit(u)}>
+                  <tr key={u.id} className="hover:bg-[#f5f3ef] transition-colors cursor-pointer" onClick={() => openEdit(u)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-2.5 font-medium text-gray-900"><Avatar name={`${u.first_name} ${u.last_name}`} />{u.first_name} {u.last_name}</span>
+                        <span className="inline-flex items-center gap-2.5 font-medium text-black"><Avatar name={`${u.first_name} ${u.last_name}`} />{u.first_name} {u.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
+                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={u.is_admin ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#ececec', color: '#464646' }}>
+                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={u.is_admin ? { backgroundColor: '#e9e8e3', color: '#000000' } : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
                         {u.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {u.is_active
-                        ? <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>{t.common.active}</span>
-                        : <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#ececec', color: '#464646' }}>{s.inactive}</span>}
+                        ? <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e9e8e3', color: '#000000' }}>{t.common.active}</span>
+                        : <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>{s.inactive}</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
                         <button onClick={() => openEdit(u)} title={s.editPermissions}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                          className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg transition-colors"><MoreVertical className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
                 ) : invite ? (
-                  <tr key={invite.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={invite.id} className="hover:bg-[#f5f3ef] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#fef3cd' }}>
-                          <Mail className="w-3.5 h-3.5" style={{ color: '#8a6100' }} />
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#f5f3ef' }}>
+                          <Mail className="w-3.5 h-3.5" style={{ color: '#6a6a6a' }} />
                         </div>
-                        <span className="text-gray-500">{invite.first_name} {invite.last_name}</span>
+                        <span className="text-[#6a6a6a]">{invite.first_name} {invite.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{invite.email}</td>
+                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{invite.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${invite.is_admin ? 'bg-[#dbfce7] text-[#267a47]' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium ${invite.is_admin ? 'bg-[#e9e8e3] text-black' : 'bg-[#f5f3ef] text-[#6a6a6a]'}`}>
                         {invite.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#fef3cd', color: '#8a6100' }}>{s.invited}</span>
+                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>{s.invited}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
                         <button onClick={() => revokeInvite(invite)} title={s.revoke}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
+                          className="p-1.5 text-[#6a6a6a] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -279,8 +278,8 @@ export default function UsersPage() {
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={s.addUser} size="lg">
         {sentTo ? (
           <div>
-            <p className="text-[15px] leading-6 text-[#6a6a6a]">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
-            <div className="flex justify-end -mx-6 px-6 border-t border-gray-200">
+            <p className="text-[15px] leading-6 text-[#6a6a6a]">{s.inviteSent} <span className="font-medium text-black">{sentTo}</span>.</p>
+            <div className="flex justify-end -mx-6 px-6 border-t border-[#ece9e3]">
               <Button onClick={() => setInviteOpen(false)}>{t.common.close}</Button>
             </div>
           </div>
@@ -296,7 +295,7 @@ export default function UsersPage() {
 
             <Checkbox checked={inviteAsAdmin} onChange={setInviteAsAdmin} label={s.admin} />
 
-            <div className="flex gap-3 justify-end -mx-6 px-6 border-t border-gray-200">
+            <div className="flex gap-3 justify-end -mx-6 px-6 border-t border-[#ece9e3]">
               <Button variant="secondary" onClick={() => setInviteOpen(false)}>{t.common.cancel}</Button>
               <Button loading={inviting} onClick={sendInvite}
                 disabled={!inv.email.trim() || !inv.first_name.trim() || !inv.last_name.trim()}>{s.sendInvite}</Button>
@@ -320,7 +319,7 @@ export default function UsersPage() {
             <Checkbox checked={editForm.is_admin} onChange={v => setEditForm(f => ({ ...f, is_admin: v }))} label={s.admin} />
           ) : null}
 
-          <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-gray-200">
+          <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-[#ece9e3]">
             {editUser?.id !== primaryAdminId ? (
               <Button variant={editUser?.is_active ? 'danger' : 'secondary'} onClick={() => { toggleActive(editUser!); setEditUser(null) }}>
                 {editUser?.is_active ? s.deactivateUser : s.reactivateUser}

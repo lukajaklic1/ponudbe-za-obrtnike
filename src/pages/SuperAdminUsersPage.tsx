@@ -5,6 +5,7 @@ import { toast } from '../components/ui/Toast'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
 import { FilterSelect } from '../components/ui/FilterSelect'
+import { SearchBar, FilterTabs } from '../components/ui/ListToolbar'
 import { PersonBadge } from '../components/ui/PersonBadge'
 
 interface UserRow {
@@ -86,77 +87,78 @@ export default function SuperAdminUsersPage() {
       <div className="p-4">
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <div className="relative max-w-xs w-full">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input value={search} onChange={e => { setSearch(e.target.value); resetPage() }} placeholder="Ime, priimek ali e-pošta"
-              className="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
+        <SearchBar value={search} onChange={v => { setSearch(v); resetPage() }} placeholder="Ime, priimek ali e-pošta" />
+        <FilterTabs
+          tabs={[
+            { key: '', label: 'Vsi', count: users.length },
+            { key: 'active', label: 'Aktivni', count: users.filter(u => u.is_active).length },
+            { key: 'inactive', label: 'Deaktivirani', count: users.filter(u => !u.is_active).length },
+          ]}
+          active={statusFilter}
+          onChange={k => { setStatusFilter(k); resetPage() }}
+          right={<>
           <ComboFilter options={companyOptions} value={companyFilter} onChange={v => { setCompanyFilter(v); resetPage() }}
             placeholder="Podjetje" allLabel="Vsa podjetja" />
           <FilterSelect label="Vloga" value={roleFilter} allLabel="Vse"
             options={[{ value: 'super_admin', label: 'Super admin' }, { value: 'admin', label: 'Admin' }, { value: 'user', label: 'Uporabnik' }]}
             onChange={v => { setRoleFilter(v); resetPage() }} />
-          <FilterSelect label="Status" value={statusFilter} allLabel="Vsi"
-            options={[{ value: 'active', label: 'Aktivni' }, { value: 'inactive', label: 'Deaktivirani' }]}
-            onChange={v => { setStatusFilter(v); resetPage() }} />
-        </div>
+          </>} />
 
         {/* Table */}
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="table-frame">
           {loading ? (
             <div className="flex items-center justify-center h-48">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
-              <Users className="w-10 h-10 text-gray-200 mb-3" />
-              <p className="text-sm text-gray-400">Ni rezultatov</p>
+              <Users className="w-10 h-10 text-[#e9e8e3] mb-3" />
+              <p className="text-sm text-[#6a6a6a]">Ni rezultatov</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm font-medium min-w-[760px]">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Uporabnik</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">E-pošta</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Podjetje</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Vloga</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Registriran</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Uporabnik</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">E-pošta</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Vloga</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Registriran</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Status</th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody>
                   {paged.map(u => (
-                    <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={u.id} className="hover:bg-[#f5f3ef] transition-colors">
                       <td className="px-4 py-3">
                         <PersonBadge name={`${u.first_name} ${u.last_name}`} />
                       </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
+                      <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{u.email}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-700 truncate max-w-[160px]">{u.company_name}</span>
+                          <span className="text-[#6a6a6a] truncate max-w-[160px]">{u.company_name}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         {u.is_super_admin ? (
-                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>Super admin</span>
+                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e9e8e3', color: '#000000' }}>Super admin</span>
                         ) : u.is_admin ? (
-                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>Admin</span>
+                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e9e8e3', color: '#000000' }}>Admin</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500">Uporabnik</span>
+                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium bg-[#f5f3ef] text-[#6a6a6a]">Uporabnik</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-gray-600 whitespace-nowrap">{fmt(u.created_at)}
+                        <span className="text-[#6a6a6a] whitespace-nowrap">{fmt(u.created_at)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-lg text-xs font-semibold"
+                        <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium"
                           style={u.is_active
-                            ? { backgroundColor: '#dbfce7', color: '#267a47' }
-                            : { backgroundColor: '#ececec', color: '#464646' }}>
+                            ? { backgroundColor: '#e9e8e3', color: '#000000' }
+                            : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
                           {u.is_active ? 'Aktiven' : 'Deaktiviran'}
                         </span>
                       </td>
@@ -164,7 +166,7 @@ export default function SuperAdminUsersPage() {
                         {!u.is_super_admin && (
                           <button onClick={() => toggle(u)} disabled={toggling === u.id}
                             title={u.is_active ? 'Deaktiviraj' : 'Aktiviraj'}
-                            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg disabled:opacity-40 transition-colors">
+                            className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg disabled:opacity-40 transition-colors">
                             {u.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                           </button>
                         )}
@@ -207,33 +209,33 @@ function ComboFilter({ options, value, onChange, placeholder, allLabel }: {
 
   return (
     <div className="relative" ref={ref}>
-      <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <Search className="w-4 h-4 text-[#6a6a6a] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <input
         value={open ? query : selectedLabel}
         onChange={e => { setQuery(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
         placeholder={value === 'all' ? `${placeholder}…` : selectedLabel}
-        className="h-9 pl-9 pr-8 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+        className="h-9 pl-9 pr-8 rounded-lg border border-[#ece9e3] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
       />
       {value !== 'all' && !open && (
-        <button onClick={() => pick('all')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
+        <button onClick={() => pick('all')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a6a6a] hover:text-black">
           <X className="w-3.5 h-3.5" />
         </button>
       )}
       {open && (
-        <div className="absolute z-20 mt-1 w-60 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-20 mt-1 w-60 bg-white border border-[#ece9e3] rounded-lg shadow-lg overflow-hidden">
           <div className="max-h-60 overflow-y-auto py-1">
-            <button onClick={() => pick('all')} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-gray-50">
-              <span className="flex-1 text-gray-500">{allLabel}</span>
-              {value === 'all' && <Check className="w-4 h-4 text-gray-900" />}
+            <button onClick={() => pick('all')} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-[#f5f3ef]">
+              <span className="flex-1 text-[#6a6a6a]">{allLabel}</span>
+              {value === 'all' && <Check className="w-4 h-4 text-black" />}
             </button>
             {filteredOpts.map(([id, name]) => (
-              <button key={id} onClick={() => pick(id)} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-gray-50">
-                <span className="flex-1 text-gray-900 truncate">{name}</span>
-                {value === id && <Check className="w-4 h-4 text-gray-900 shrink-0" />}
+              <button key={id} onClick={() => pick(id)} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-[#f5f3ef]">
+                <span className="flex-1 text-black truncate">{name}</span>
+                {value === id && <Check className="w-4 h-4 text-black shrink-0" />}
               </button>
             ))}
-            {filteredOpts.length === 0 && <p className="px-3 py-2 text-sm text-gray-400">Ni rezultatov</p>}
+            {filteredOpts.length === 0 && <p className="px-3 py-2 text-sm text-[#6a6a6a]">Ni rezultatov</p>}
           </div>
         </div>
       )}

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Power, PowerOff, Search, Building2 } from 'lucide-react'
+import { Power, PowerOff, Building2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { toast } from '../components/ui/Toast'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { PageHeader } from '../components/ui/PageHeader'
-import { FilterSelect } from '../components/ui/FilterSelect'
+import { SearchBar, FilterTabs } from '../components/ui/ListToolbar'
 
 interface Company {
   id: string
@@ -75,67 +75,66 @@ export default function SuperAdminCompaniesPage() {
       <div className="p-4">
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <div className="relative max-w-xs w-full">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder="Iskanje"
-              className="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <FilterSelect label="Status" value={statusFilter} allLabel="Vsi"
-            options={[{ value: 'active', label: 'Aktivna' }, { value: 'inactive', label: 'Deaktivirana' }]}
-            onChange={v => { setStatusFilter(v); setPage(1) }} />
-        </div>
+        <SearchBar value={search} onChange={v => { setSearch(v); setPage(1) }} placeholder="Iskanje" />
+        <FilterTabs
+          tabs={[
+            { key: '', label: 'Vsa', count: companies.length },
+            { key: 'active', label: 'Aktivna', count: companies.filter(c => c.is_active).length },
+            { key: 'inactive', label: 'Deaktivirana', count: companies.filter(c => !c.is_active).length },
+          ]}
+          active={statusFilter}
+          onChange={k => { setStatusFilter(k); setPage(1) }} />
 
         {/* Table */}
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="table-frame">
           {loading ? (
             <div className="flex items-center justify-center h-48">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
-              <Building2 className="w-10 h-10 text-gray-200 mb-3" />
-              <p className="text-sm text-gray-400">Ni rezultatov</p>
+              <Building2 className="w-10 h-10 text-[#e9e8e3] mb-3" />
+              <p className="text-sm text-[#6a6a6a]">Ni rezultatov</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm font-medium min-w-[640px]">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Podjetje</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Registrirano</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Uporabniki</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Registrirano</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Uporabniki</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Status</th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody>
                   {paged.map(c => (
-                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={c.id} className="hover:bg-[#f5f3ef] transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900">{c.name}</span>
+                          <span className="font-medium text-black">{c.name}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-gray-600 whitespace-nowrap">{fmt(c.created_at)}
+                        <span className="text-[#6a6a6a] whitespace-nowrap">{fmt(c.created_at)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-gray-600 whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
+                        <span className="text-[#6a6a6a] whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-lg text-xs font-semibold"
+                        <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium"
                           style={c.is_active
-                            ? { backgroundColor: '#dbfce7', color: '#267a47' }
-                            : { backgroundColor: '#ececec', color: '#464646' }}>
+                            ? { backgroundColor: '#e9e8e3', color: '#000000' }
+                            : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
                           {c.is_active ? 'Aktivno' : 'Deaktivirano'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => toggle(c)} disabled={toggling === c.id}
                           title={c.is_active ? 'Deaktiviraj' : 'Aktiviraj'}
-                          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg disabled:opacity-40 transition-colors">
+                          className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg disabled:opacity-40 transition-colors">
                           {c.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                         </button>
                       </td>

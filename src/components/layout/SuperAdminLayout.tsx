@@ -35,7 +35,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
   if (!isSuperAdmin) return <Navigate to="/dashboard" replace />
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="robust flex h-screen bg-white overflow-hidden">
       <aside className="w-56 shrink-0 flex flex-col bg-white border-r border-gray-200">
         <div className="px-5 py-5 border-b border-gray-200">
           <AppLogo size="sm" />
