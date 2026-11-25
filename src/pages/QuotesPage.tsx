@@ -15,7 +15,7 @@ import { FilterSelect } from '../components/ui/FilterSelect'
 import { DateRangeFilter } from '../components/ui/DateRangeFilter'
 import { Avatar } from '../components/ui/PersonBadge'
 import { QuoteStatusBadge } from '../components/ui/QuoteStatusBadge'
-import { isNewEnquiry } from '../lib/newEnquiry'
+import { notifyQuotesChanged } from '../lib/newEnquiry'
 import type { Quote, QuoteStatus } from '../types/database'
 import { format } from 'date-fns'
 import { isDraftLike, isOpenOffer } from '../lib/quoteStatus'
@@ -74,6 +74,12 @@ export default function QuotesPage() {
   const [pendingMove, setPendingMove] = useState<{ quote: Row; to: QuoteStatus } | null>(null)
 
   useEffect(() => { if (company) { load(); loadUsers() } }, [company])
+  // opening the Ponudbe tab counts as having seen the new enquiries: the counter in the menu goes back to zero
+  useEffect(() => {
+    if (!company) return
+    supabase.from('quotes').update({ viewed_at: new Date().toISOString() } as any).eq('company_id', company.id).eq('source', 'configurator').is('viewed_at', null)
+      .then(() => notifyQuotesChanged())
+  }, [company])
   useEffect(() => {
     if (!openMenu) return
     const close = () => setOpenMenu(null)
@@ -218,7 +224,7 @@ export default function QuotesPage() {
               <button key={q.id} type="button" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
                 className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}{isNewEnquiry(q) && <span title={sl ? 'Novo povpraševanje' : 'New enquiry'} className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-[#267a47] align-middle" />}</span>
+                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}</span>
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
                 <div className="text-sm font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
@@ -243,7 +249,7 @@ export default function QuotesPage() {
               {paged.map(q => (
                 <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>{isNewEnquiry(q) && <span title={sl ? 'Novo povpraševanje' : 'New enquiry'} className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-[#267a47] align-middle" />}
+                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 truncate">{q.customers?.name ?? '—'}</div>

@@ -19,6 +19,8 @@ import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSou
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
 const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won', 'rest']
 /** teal family for every chart */
+const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
+const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
 const TEAL = { line: '#00d17e', fill: '#00d17e', light: '#ffe5a0', faint: '#dbe7fb', grey: '#e4e4e7' }
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
@@ -414,8 +416,8 @@ export default function DashboardPage() {
                   <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={hasValues ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
                   {hasValues && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? BLUE.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? BLUE.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasValues && emptyOverlay}</div>
             </div>
@@ -430,8 +432,8 @@ export default function DashboardPage() {
                   <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
                   {hasCounts && <Tooltip cursor={{ fill: '#f4f4f5' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? TEAL.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? TEAL.line : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? GREEN.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? GREEN.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasCounts && emptyOverlay}</div>
             </div>
@@ -442,9 +444,9 @@ export default function DashboardPage() {
         {(() => {
           const slices = [
             { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: '#c9c9c9' },
-            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: TEAL.faint },
-            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: TEAL.light },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: TEAL.line },
+            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: BLUE.faint },
+            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: BLUE.mid },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: BLUE.dark },
             { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: TEAL.grey },
           ].map(x => ({ ...x, count: inPeriod.filter(q => statusKey(q) === x.key).length }))
           const total = inPeriod.length
@@ -513,12 +515,12 @@ export default function DashboardPage() {
                         tickFormatter={(n: string) => { const max = narrow ? 16 : 26; return n.length > max ? n.slice(0, max - 1) + '…' : n }} />
                       {topServices.length > 0 && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                       <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                      <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : TEAL.line} maxBarSize={22}
+                      <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : BLUE.dark} maxBarSize={22}
                         // fully won (nothing light after it): the dark part gets the rounded end
                         shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
                         {topServices.length > 0 && <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />}
                       </Bar>
-                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : TEAL.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
+                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : BLUE.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
                         <LabelList dataKey="total" position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />
                       </Bar>
                     </BarChart>
@@ -558,8 +560,8 @@ export default function DashboardPage() {
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           const sources = [
-            { key: 'app', name: sl ? 'Interna priprava ponudb' : 'Made in the app', color: TEAL.light, f: (q: Q) => q.source !== 'configurator' },
-            { key: 'configurator', name: sl ? 'Spletni konfigurator' : 'Online configurator', color: TEAL.line, f: (q: Q) => q.source === 'configurator' },
+            { key: 'app', name: sl ? 'Interna priprava ponudb' : 'Made in the app', color: BLUE.light, f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Spletni konfigurator' : 'Online configurator', color: BLUE.dark, f: (q: Q) => q.source === 'configurator' },
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

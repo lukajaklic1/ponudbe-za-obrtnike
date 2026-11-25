@@ -170,7 +170,7 @@ fieldset:disabled textarea:focus {
 /* configurator, public page: the supplier's own look (--cfg-* set on the page; without them every value is the default) */
 .cfg-public.cfg-public { background-color: var(--cfg-bg, #f5f5f6); font-family: var(--cfg-font, inherit); color: var(--cfg-ink, #111827); }
 .cfg-public :is(button, input, select, textarea) { font-family: inherit; }
-.cfg-public .bg-\[\#101112\] { background-color: var(--cfg-button, #101112); }
+.cfg-public .bg-\[\#101112\] { background-color: var(--cfg-button, #266df0); }
 .cfg-public .text-gray-900, .cfg-public .text-\[\#101112\] { color: var(--cfg-ink, #111827); }
 .cfg-public .text-\[\#5e5e5e\], .cfg-public .text-\[\#52525b\] { color: var(--cfg-muted, #3f3f46); }
 .cfg-public .border-\[\#eeeff1\], .cfg-public .border-gray-200 { border-color: var(--cfg-border, #eeeff1); }

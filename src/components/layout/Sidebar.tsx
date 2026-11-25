@@ -48,9 +48,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   const { lang, setLang, t } = useLanguage()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState<string[]>(readCollapsed)
-  // open quotes (issued or sent, still waiting for the customer's answer), always in sight next to "Ponudbe"
   const location = useLocation()
-  const [openQuotes, setOpenQuotes] = useState(0)
   // new enquiries from the online configurator that nobody has opened yet
   const [newQuotes, setNewQuotes] = useState(0)
   const [tick, setTick] = useState(0)
@@ -61,12 +59,9 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   }, [])
   useEffect(() => {
     if (!company?.id) return
-    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).in('status', ['issued', 'sent', 'downloaded'])
-      .then(({ count }) => setOpenQuotes(count ?? 0))
     supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('company_id', company.id).eq('source', 'configurator').in('status', ['enquiry', 'draft']).is('viewed_at', null)
       .then(({ count }) => setNewQuotes(count ?? 0))
   }, [company?.id, location.pathname, tick])
-  const openLabel = lang === 'sl' ? `Odprte ponudbe (izdane in poslane): ${openQuotes}` : `Open quotes (issued and sent): ${openQuotes}`
 
   function toggleSection(id: string) {
     setCollapsed(c => {
@@ -104,11 +99,12 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
         ? count > 0 && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', 'bg-[#101112] text-white')}>{count}</span>
         : <span className="ml-auto flex items-center gap-1.5">
             
-            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-white border border-gray-200 text-gray-600 text-xs font-medium tabular-nums">{count}</span>}
+            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#e5eeff] text-[#215bcf] text-xs font-medium tabular-nums">{count}</span>}
           </span>}
     </NavLink>
   )
-  const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key], key === 'quotes' ? openQuotes : 0, openLabel, key === 'quotes' ? newQuotes : 0)
+  // the number next to Ponudbe = new enquiries not seen yet (opening the tab sets it back to zero)
+  const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key], key === 'quotes' ? newQuotes : 0, newLabel)
 
   if (rail) return (
     <aside className="w-14 bg-[#fbfbfb] border-r border-gray-200 flex flex-col h-screen shrink-0">
