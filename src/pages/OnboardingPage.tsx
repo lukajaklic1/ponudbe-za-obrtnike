@@ -82,7 +82,7 @@ export default function OnboardingPage() {
                   </div>
                   <button type="button" disabled={!companyName.trim()}
                     onClick={() => setStep('profile')}
-                    className="w-full bg-[#000000] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    className="w-full bg-primary text-white rounded-lg py-2.5 text-sm font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     {o.continue}
                   </button>
                 </div>
@@ -120,7 +120,7 @@ export default function OnboardingPage() {
                       {o.back}
                     </button>
                     <button type="submit" disabled={loading || !firstName.trim() || !lastName.trim()}
-                      className="flex-1 bg-[#000000] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-black disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
+                      className="flex-1 bg-primary text-white rounded-lg py-2.5 text-sm font-medium hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
                       {loading ? o.saving : o.finishSetup}
                     </button>
                   </div>

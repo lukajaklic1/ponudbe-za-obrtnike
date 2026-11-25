@@ -73,12 +73,12 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
           {/* month switcher */}
           <div className="flex items-center justify-between mb-2">
             <button type="button" onClick={() => setMonth(m => subMonths(m, 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-md text-[#9ca3af] hover:text-[#000000] hover:bg-[#f5f3ef]">
+              className="w-8 h-8 flex items-center justify-center rounded-md text-[#9ca3af] hover:text-[#000000] hover:bg-[#f6f8fc]">
               <ChevronLeft className="w-4 h-4" />
             </button>
             <span className="text-sm font-medium text-[#000000] capitalize">{format(month, 'LLLL yyyy', { locale })}</span>
             <button type="button" onClick={() => setMonth(m => addMonths(m, 1))}
-              className="w-8 h-8 flex items-center justify-center rounded-md text-[#9ca3af] hover:text-[#000000] hover:bg-[#f5f3ef]">
+              className="w-8 h-8 flex items-center justify-center rounded-md text-[#9ca3af] hover:text-[#000000] hover:bg-[#f6f8fc]">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -99,7 +99,7 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
                     'h-9 w-9 mx-auto flex items-center justify-center rounded-md text-sm transition-colors',
                     sel ? 'bg-[#000000] text-white font-medium'
                       : off ? 'text-[#c9ccd1] cursor-not-allowed'
-                      : isSameMonth(d, month) ? 'text-[#000000] hover:bg-[#f5f3ef]' : 'text-[#c4c7cc] hover:bg-[#f5f3ef]',
+                      : isSameMonth(d, month) ? 'text-[#000000] hover:bg-[#f6f8fc]' : 'text-[#c4c7cc] hover:bg-[#f6f8fc]',
                     !sel && isToday(d) && 'ring-1 ring-inset ring-[#e5e7eb] font-medium',
                   )}>
                   {format(d, 'd')}
@@ -111,12 +111,12 @@ export function DateFilter({ label, value, allLabel, onChange, min, max }: DateF
           {/* footer */}
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#e5e7eb]">
             <button type="button" onClick={() => pick(new Date())} disabled={disabled(new Date())}
-              className="h-8 px-2.5 rounded-md text-sm text-[#000000] hover:bg-[#f5f3ef] disabled:opacity-40">
+              className="h-8 px-2.5 rounded-md text-sm text-[#000000] hover:bg-[#f6f8fc] disabled:opacity-40">
               {lang === 'sl' ? 'Danes' : 'Today'}
             </button>
             {value && (
               <button type="button" onClick={() => { onChange(''); setOpen(false) }}
-                className="h-8 px-2.5 rounded-md text-sm text-[#9ca3af] hover:text-[#000000] hover:bg-[#f5f3ef]">
+                className="h-8 px-2.5 rounded-md text-sm text-[#9ca3af] hover:text-[#000000] hover:bg-[#f6f8fc]">
                 {lang === 'sl' ? 'Počisti' : 'Clear'}
               </button>
             )}

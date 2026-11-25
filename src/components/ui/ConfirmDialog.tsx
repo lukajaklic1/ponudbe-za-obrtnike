@@ -36,7 +36,7 @@ export default function ConfirmDialog({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-[14px] right-[18px] p-1.5 rounded-lg text-[#6a6a6a] hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          className="absolute top-[14px] right-[18px] p-1.5 rounded-lg text-[#667085] hover:text-gray-900 hover:bg-gray-100 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -44,11 +44,11 @@ export default function ConfirmDialog({
         {/* Content */}
         <div className="px-6 pt-[18px] pb-6">
           <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900 pr-8">{title}</h2>
-          <p className="mt-3 text-[15px] leading-6 text-[#6a6a6a]">{message}</p>
+          <p className="mt-3 text-[15px] leading-6 text-[#667085]">{message}</p>
         </div>
 
         {/* Divider + buttons */}
-        <div className="border-t border-[#ececec] bg-white px-6 py-[18px] flex justify-end gap-3">
+        <div className="border-t border-[#e4e9f2] bg-white px-6 py-[18px] flex justify-end gap-3">
           <button
             onClick={onClose}
             disabled={loading}

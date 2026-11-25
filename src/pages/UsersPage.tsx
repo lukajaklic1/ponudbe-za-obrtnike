@@ -195,15 +195,15 @@ export default function UsersPage() {
           <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" /></div>
         ) : users.length === 0 && invites.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <Users className="w-10 h-10 text-[#e9e8e3] mb-3" />
-            <p className="text-sm text-[#6a6a6a]">{s.noUsers}</p>
+            <Users className="w-10 h-10 text-[#e8eef7] mb-3" />
+            <p className="text-sm text-[#667085]">{s.noUsers}</p>
           </div>
         ) : (
           <div className="overflow-x-auto"><table className="w-full text-sm font-medium min-w-[700px]">
             <thead>
               <tr>
                 {([['name', t.common.name], ['', t.common.email], ['role', s.role], ['status', t.common.status], ['', '']] as [string, string][]).map(([key, h], i) => (
-                  <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-black' : ''}`}
+                  <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-black' : ''}`}
                     onClick={() => key && handleSort(key as typeof sortKey)}>
                     <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                   </th>
@@ -215,53 +215,53 @@ export default function UsersPage() {
                 const u = 'is_admin' in item && 'first_name' in item && 'last_name' in item && 'email' in item && 'job_title' in item && !('status' in item) ? (item as AppUser) : null
                 const invite = u ? null : (item as UserInvitation)
                 return u ? (
-                  <tr key={u.id} className="hover:bg-[#f5f3ef] transition-colors cursor-pointer" onClick={() => openEdit(u)}>
+                  <tr key={u.id} className="hover:bg-[#f6f8fc] transition-colors cursor-pointer" onClick={() => openEdit(u)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="inline-flex items-center gap-2.5 font-medium text-black"><Avatar name={`${u.first_name} ${u.last_name}`} />{u.first_name} {u.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{u.email}</td>
+                    <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={u.is_admin ? { backgroundColor: '#e9e8e3', color: '#000000' } : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
+                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={u.is_admin ? { backgroundColor: '#e8eef7', color: '#000000' } : { backgroundColor: '#f6f8fc', color: '#667085' }}>
                         {u.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {u.is_active
-                        ? <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e9e8e3', color: '#000000' }}>{t.common.active}</span>
-                        : <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>{s.inactive}</span>}
+                        ? <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e8eef7', color: '#000000' }}>{t.common.active}</span>
+                        : <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#f6f8fc', color: '#667085' }}>{s.inactive}</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
                         <button onClick={() => openEdit(u)} title={s.editPermissions}
-                          className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                          className="p-1.5 text-[#667085] hover:text-black hover:bg-[#e8eef7] rounded-lg transition-colors"><MoreVertical className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
                 ) : invite ? (
-                  <tr key={invite.id} className="hover:bg-[#f5f3ef] transition-colors">
+                  <tr key={invite.id} className="hover:bg-[#f6f8fc] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#f5f3ef' }}>
-                          <Mail className="w-3.5 h-3.5" style={{ color: '#6a6a6a' }} />
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#f6f8fc' }}>
+                          <Mail className="w-3.5 h-3.5" style={{ color: '#667085' }} />
                         </div>
-                        <span className="text-[#6a6a6a]">{invite.first_name} {invite.last_name}</span>
+                        <span className="text-[#667085]">{invite.first_name} {invite.last_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{invite.email}</td>
+                    <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{invite.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium ${invite.is_admin ? 'bg-[#e9e8e3] text-black' : 'bg-[#f5f3ef] text-[#6a6a6a]'}`}>
+                      <span className={`inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium ${invite.is_admin ? 'bg-[#e8eef7] text-black' : 'bg-[#f6f8fc] text-[#667085]'}`}>
                         {invite.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>{s.invited}</span>
+                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#f6f8fc', color: '#667085' }}>{s.invited}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
                         <button onClick={() => revokeInvite(invite)} title={s.revoke}
-                          className="p-1.5 text-[#6a6a6a] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
+                          className="p-1.5 text-[#667085] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -278,8 +278,8 @@ export default function UsersPage() {
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={s.addUser} size="lg">
         {sentTo ? (
           <div>
-            <p className="text-[15px] leading-6 text-[#6a6a6a]">{s.inviteSent} <span className="font-medium text-black">{sentTo}</span>.</p>
-            <div className="flex justify-end -mx-6 px-6 border-t border-[#ece9e3]">
+            <p className="text-[15px] leading-6 text-[#667085]">{s.inviteSent} <span className="font-medium text-black">{sentTo}</span>.</p>
+            <div className="flex justify-end -mx-6 px-6 border-t border-[#e4e9f2]">
               <Button onClick={() => setInviteOpen(false)}>{t.common.close}</Button>
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function UsersPage() {
 
             <Checkbox checked={inviteAsAdmin} onChange={setInviteAsAdmin} label={s.admin} />
 
-            <div className="flex gap-3 justify-end -mx-6 px-6 border-t border-[#ece9e3]">
+            <div className="flex gap-3 justify-end -mx-6 px-6 border-t border-[#e4e9f2]">
               <Button variant="secondary" onClick={() => setInviteOpen(false)}>{t.common.cancel}</Button>
               <Button loading={inviting} onClick={sendInvite}
                 disabled={!inv.email.trim() || !inv.first_name.trim() || !inv.last_name.trim()}>{s.sendInvite}</Button>
@@ -319,7 +319,7 @@ export default function UsersPage() {
             <Checkbox checked={editForm.is_admin} onChange={v => setEditForm(f => ({ ...f, is_admin: v }))} label={s.admin} />
           ) : null}
 
-          <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-[#ece9e3]">
+          <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-[#e4e9f2]">
             {editUser?.id !== primaryAdminId ? (
               <Button variant={editUser?.is_active ? 'danger' : 'secondary'} onClick={() => { toggleActive(editUser!); setEditUser(null) }}>
                 {editUser?.is_active ? s.deactivateUser : s.reactivateUser}

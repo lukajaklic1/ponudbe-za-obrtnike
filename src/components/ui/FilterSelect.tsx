@@ -45,7 +45,7 @@ export function FilterSelect({ label, value, options, allLabel, onChange, icon: 
         <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[180px] w-max">
           <button
             onClick={() => { onChange(''); setOpen(false) }}
-            className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f5f3ef] transition-colors ${value === '' ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
+            className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f6f8fc] transition-colors ${value === '' ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
           >
             {allLabel}
           </button>
@@ -53,7 +53,7 @@ export function FilterSelect({ label, value, options, allLabel, onChange, icon: 
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false) }}
-              className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f5f3ef] transition-colors ${value === opt.value ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
+              className={`block w-full text-left px-3 py-1.5 pr-6 text-sm whitespace-nowrap hover:bg-[#f6f8fc] transition-colors ${value === opt.value ? 'text-gray-900 font-medium' : 'text-gray-600'}`}
             >
               {opt.label}
             </button>

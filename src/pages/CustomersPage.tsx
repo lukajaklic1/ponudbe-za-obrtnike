@@ -193,21 +193,21 @@ export default function CustomersPage() {
           <div className="flex items-center justify-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
-            <Users className="w-10 h-10 text-[#e9e8e3] mb-3" />
-            <p className="text-sm text-[#6a6a6a]">{s.noCustomers}</p>
+            <Users className="w-10 h-10 text-[#e8eef7] mb-3" />
+            <p className="text-sm text-[#667085]">{s.noCustomers}</p>
           </div>
         ) : (
           <>
           {/* phones: one card per customer instead of the wide table */}
-          <div className="sm:hidden divide-y divide-[#ece9e3]">
+          <div className="sm:hidden divide-y divide-[#e4e9f2]">
             {paginated.map(c => (
-              <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-[#f5f3ef] transition-colors">
+              <button key={c.id} type="button" onClick={() => canEdit && openEdit(c)} className="w-full text-left px-4 py-3.5 hover:bg-[#f6f8fc] transition-colors">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[15px] font-semibold text-black truncate">{c.name}</span>
-                  <span className="shrink-0 text-[13px] font-medium text-[#6a6a6a]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
+                  <span className="shrink-0 text-[13px] font-medium text-[#667085]">{typeOf(c) === 'company' ? o.typeCompany : o.typePerson}</span>
                 </div>
-                <div className="text-[13px] font-medium text-[#6a6a6a] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
-                <div className="flex items-center justify-between gap-2 mt-1 text-[13px] font-medium text-[#6a6a6a]">
+                <div className="text-[13px] font-medium text-[#667085] truncate mt-0.5">{[c.email, c.phone].filter(Boolean).join(' · ') || '—'}</div>
+                <div className="flex items-center justify-between gap-2 mt-1 text-[13px] font-medium text-[#667085]">
                   <span>{c.address_city ?? ''}</span>
                   <span>{s.quotesCount}: {counts[c.id] ?? 0}</span>
                 </div>
@@ -217,7 +217,7 @@ export default function CustomersPage() {
           <div className="hidden sm:block overflow-x-auto"><table className="w-full text-sm font-medium min-w-[820px]">
             <thead><tr>
               {([['name', o.customer], ['type', o.customerType], ['', t.common.email], ['', t.common.phone], ['city', o.city], ['quotes', s.quotesCount], ['status', t.common.status], ['', s.updatedAt], ['', '']] as [string, string][]).map(([key, h], i) => (
-                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-black' : ''}`}
+                <th key={i} className={`text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap ${key ? 'cursor-pointer select-none hover:text-black' : ''}`}
                   onClick={() => key && handleSort(key as typeof sortKey)}>
                   <span className="inline-flex items-center gap-0.5">{h}{key && <SortIcon active={sortKey === key} dir={sortDir} />}</span>
                 </th>
@@ -227,7 +227,7 @@ export default function CustomersPage() {
               {paginated.map(c => {
                 const company = typeOf(c) === 'company'
                 return (
-                  <tr key={c.id} className={`hover:bg-[#f5f3ef] transition-colors ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && openEdit(c)}>
+                  <tr key={c.id} className={`hover:bg-[#f6f8fc] transition-colors ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && openEdit(c)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="min-w-0">
@@ -235,22 +235,22 @@ export default function CustomersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{company ? o.typeCompany : o.typePerson}</td>
-                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{c.email ?? '—'}</td>
-                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{c.phone ?? '—'}</td>
-                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{c.address_city ?? '—'}</td>
-                    <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{counts[c.id] ?? 0}</td>
+                    <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{company ? o.typeCompany : o.typePerson}</td>
+                    <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{c.email ?? '—'}</td>
+                    <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{c.phone ?? '—'}</td>
+                    <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{c.address_city ?? '—'}</td>
+                    <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{counts[c.id] ?? 0}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#e9e8e3', color: '#000000' } : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
+                      <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={(c.status ?? 'active') === 'active' ? { backgroundColor: '#e8eef7', color: '#000000' } : { backgroundColor: '#f6f8fc', color: '#667085' }}>
                         {(c.status ?? 'active') === 'active' ? t.common.activeF : t.common.inactiveF}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-[#6a6a6a] whitespace-nowrap">{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
+                      <span className="text-[#667085] whitespace-nowrap">{format(new Date(c.updated_at), 'd. M. yyyy')}</span>
                     </td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex justify-end">
-                        {canEdit && <button onClick={() => openEdit(c)} className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg"><MoreVertical className="w-4 h-4" /></button>}
+                        {canEdit && <button onClick={() => openEdit(c)} className="p-1.5 text-[#667085] hover:text-black hover:bg-[#e8eef7] rounded-lg"><MoreVertical className="w-4 h-4" /></button>}
                       </div>
                     </td>
                   </tr>
@@ -270,7 +270,7 @@ export default function CustomersPage() {
           <div className="inline-flex self-start h-10 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
             {([['person', o.typePerson], ['company', o.typeCompany]] as [CustomerType, string][]).map(([v, label]) => (
               <button key={v} type="button" onClick={() => setForm(f => ({ ...f, customer_type: v }))}
-                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-black shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#6a6a6a] hover:text-black'}`}>
+                className={`px-4 rounded-[8px] text-[15px] font-medium transition-colors ${form.customer_type === v ? 'bg-white text-black shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#667085] hover:text-black'}`}>
                 {label}
               </button>
             ))}
@@ -292,21 +292,21 @@ export default function CustomersPage() {
             <Input id="c-postal" label={t.common.postalCode} placeholder={ph.postal} {...field('address_postal_code')} />
             <Input id="c-city" label={o.city} placeholder={ph.city} {...field('address_city')} />
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium" style={{ color: '#6a6a6a' }}>{lang === 'en' ? 'Country' : 'Država'}</label>
+              <label className="text-xs font-medium" style={{ color: '#667085' }}>{lang === 'en' ? 'Country' : 'Država'}</label>
               <Select value={form.country} onChange={v => setForm(f => ({ ...f, country: v }))} options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
             </div>
             <div className="sm:col-span-2 flex flex-col gap-1">
-              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#6a6a6a' }}>{o.customerNotes}</label>
+              <label htmlFor="c-notes" className="text-xs font-medium" style={{ color: '#667085' }}>{o.customerNotes}</label>
               <textarea id="c-notes" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={o.customerNotesHint}
-                className="rounded-lg border border-[#ece9e3] px-3 py-2 text-sm text-black placeholder-[#6a6a6a] hover:border-[#6a6a6a] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                className="rounded-lg border border-[#e4e9f2] px-3 py-2 text-sm text-black placeholder-[#667085] hover:border-[#667085] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             </div>
           </div>
 
           <Checkbox checked={form.status === 'active'} onChange={v => setForm(f => ({ ...f, status: v ? 'active' : 'inactive' }))} label={t.common.activeF} />
         </div>
 
-        {editing && (counts[editing.id] ?? 0) > 0 && <p className="text-sm text-[#6a6a6a] mt-5">{s.cannotDeleteLinkedCustomer}</p>}
-        <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-[#ece9e3]">
+        {editing && (counts[editing.id] ?? 0) > 0 && <p className="text-sm text-[#667085] mt-5">{s.cannotDeleteLinkedCustomer}</p>}
+        <div className="flex items-center justify-between mt-5 pt-4 -mx-6 px-6 border-t border-[#e4e9f2]">
           <div>
             {editing && isAdmin && (counts[editing.id] ?? 0) === 0 && (
               <Button variant="danger" onClick={() => { setOpen(false); setToDelete(editing) }}>{t.common.delete}</Button>

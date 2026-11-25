@@ -76,7 +76,7 @@ export default function SillIcon({ material, size = 64 }: { material?: string | 
   const uid = useId().replace(/:/g, '')
   const m = sillMaterialOf(material)
   const clip = `sill-clip-${uid}`, sheen = `sill-sheen-${uid}`
-  const tex: (typeof TEXTURES)[keyof typeof TEXTURES] = m === 'none' ? { base: '#f5f3ef', layers: [], gloss: false } : TEXTURES[m]
+  const tex: (typeof TEXTURES)[keyof typeof TEXTURES] = m === 'none' ? { base: '#f6f8fc', layers: [], gloss: false } : TEXTURES[m]
   const imgUrl = tex.image?.() ?? null
   const warp = `sill-warp-${uid}`, soft = `sill-soft-${uid}`
   return (

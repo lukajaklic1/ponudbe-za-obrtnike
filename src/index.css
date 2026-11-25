@@ -4,16 +4,18 @@
 
 /* ── Theme tokens: one place for the app's palette and font ── */
 :root {
-  --surface: #f5f3ef;        /* light grey: sidebar and every light grey surface */
-  --surface-active: #e9e8e3; /* selected sidebar item */
+  --surface: #f6f8fc;        /* light grey: sidebar and every light grey surface */
+  --surface-active: #e8eef7; /* selected sidebar item */
+  --primary: #0168ce;        /* primary buttons (hover: --primary-hover) */
+  --primary-hover: #0157ad;
   --ink: #000000;            /* black text */
-  --muted: #6a6a6a;          /* main grey text */
-  --muted-strong: #464646;   /* darker grey text where it reads better */
+  --muted: #667085;          /* main grey text */
+  --muted-strong: #475467;   /* darker grey text where it reads better */
   --font-sans: 'DM Sans Variable', 'DM Sans', sans-serif;
 }
 body { font-family: var(--font-sans); color: var(--ink); }
 
-.text-label { color: #6a6a6a; }
+.text-label { color: #667085; }
 
 /* ── Landing page animations ── */
 @keyframes fadeUp {
@@ -128,17 +130,17 @@ select:disabled {
 /* Disabled inputs/selects/textareas in read-only fieldset */
 fieldset:disabled input,
 fieldset:disabled textarea {
-  background-color: #f5f3ef !important;
-  color: #6a6a6a !important;
-  border-color: #f0f0f0 !important;
+  background-color: #f6f8fc !important;
+  color: #667085 !important;
+  border-color: #e4e9f2 !important;
   cursor: not-allowed;
 }
 
 fieldset:disabled select {
-  background-color: #f5f3ef !important;
-  color: #6a6a6a !important;
-  -webkit-text-fill-color: #6a6a6a !important;
-  border-color: #f0f0f0 !important;
+  background-color: #f6f8fc !important;
+  color: #667085 !important;
+  -webkit-text-fill-color: #667085 !important;
+  border-color: #e4e9f2 !important;
   cursor: not-allowed;
 }
 
@@ -148,7 +150,7 @@ fieldset:disabled textarea:hover,
 fieldset:disabled input:focus,
 fieldset:disabled select:focus,
 fieldset:disabled textarea:focus {
-  border-color: #f0f0f0 !important;
+  border-color: #e4e9f2 !important;
   outline: none !important;
   box-shadow: none !important;
 }
@@ -159,7 +161,7 @@ fieldset:disabled textarea:focus {
 .robust h1, .robust h2, .robust h3 { letter-spacing: -0.01em; }
 /* top-level cards: hairline border and the faintest shadow (cards inside cards stay flat) */
 .robust main :is(.rounded-xl, .rounded-2xl).border:not(:is(.rounded-xl, .rounded-2xl).border .rounded-xl) {
-  border-color: #f0f0f0;
+  border-color: #e4e9f2;
   box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03);
 }
 /* fields and dropdowns: a soft shadow under the border like Levelpath (the selected field shows its teal ring instead) */
@@ -173,19 +175,19 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 /* fields: soft border, teal focus like Levelpath */
 .robust main :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { color: #000000; }
 /* example text in fields: stronger grey and medium weight like Levelpath (sampled), typed text medium too */
-:is(input, textarea)::placeholder { color: #8a8a8a !important; font-weight: 500; opacity: 1; }
+:is(input, textarea)::placeholder { color: #98a2b3 !important; font-weight: 500; opacity: 1; }
 :is(.modal-body, .form-scope, .robust main) :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { font-weight: 500; }
 /* everywhere (also sign-in pages and popups): the selected field gets a thick dark teal outline like Levelpath
    (sampled #3e706f): 1 px border + 1 px ring = 2 px, plus a faint teal halo; no layout shift */
 :is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within, .peer-focus-visible\:ring-blue-500) {
-  --tw-ring-color: rgba(38, 137, 122, .2);
-  border-color: #26897a !important;
+  --tw-ring-color: rgba(1, 104, 206, .2);
+  border-color: #0168ce !important;
 }
-:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 3px rgba(38, 137, 122, .16) !important; }
+:is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 3px rgba(1, 104, 206, .16) !important; }
 /* ── Tables (every table in the app): clean and modern ──
    white header with small grey labels and chevrons after them, no vertical lines,
    tall rows split only by a very light hairline, warm grey hover */
-:root { --table-line: #ece9e3; }
+:root { --table-line: #e4e9f2; }
 .robust main table { border-collapse: separate; border-spacing: 0; }
 .robust main thead tr, .robust main thead { background: transparent; }
 .robust main thead th { font-size: 13px; font-weight: 400; color: var(--muted); padding-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--table-line); border-left: 0; border-right: 0; }
@@ -207,10 +209,21 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .robust main tr .row-actions { opacity: 0; transition: opacity .15s; }
 .robust main tr:hover .row-actions, .robust main tr:focus-within .row-actions { opacity: 1; }
 /* list pages: the table sits straight on the page, no card frame or shadow */
-.robust main .table-frame { background: transparent; border: 0; border-radius: 0; box-shadow: none !important; overflow: hidden; }
+.robust main .table-frame { background: transparent; border: 0; border-radius: 0; box-shadow: none !important; }
+/* list tables: a rounded light header bar, then every row is its own rounded white card with a gap between rows */
+.robust main .table-frame table { border-collapse: separate; border-spacing: 0 10px; margin-top: -10px; }
+.robust main .table-frame thead th { background: var(--surface); border-bottom: 0; font-size: 13px; font-weight: 400; color: var(--muted); padding-top: 10px; padding-bottom: 10px; }
+.robust main .table-frame thead th:first-child { border-radius: 10px 0 0 10px; }
+.robust main .table-frame thead th:last-child { border-radius: 0 10px 10px 0; }
+.robust main .table-frame tbody td,
+.robust main .table-frame tbody tr:last-child td { background: #ffffff; border-top: 1px solid var(--table-line); border-bottom: 1px solid var(--table-line); color: var(--ink); }
+.robust main .table-frame tbody tr:not(:has(input:not(.row-check), textarea)) > td { height: 56px; padding-top: 8px; padding-bottom: 8px; font-size: 14px; }
+.robust main .table-frame tbody td:first-child { border-left: 1px solid var(--table-line); border-radius: 10px 0 0 10px; }
+.robust main .table-frame tbody td:last-child { border-right: 1px solid var(--table-line); border-radius: 0 10px 10px 0; }
+.robust main .table-frame tbody tr:hover td { background: #fbfcfe; border-color: #d0d5dd; }
 .robust main .table-frame + .table-footer { border: 0; box-shadow: none; border-radius: 0; background: transparent; padding-left: 0; padding-right: 0; }
 /* popups: the button row at the bottom, white with a hairline, always visible (sticky) */
-.modal-body .\-mx-6.border-t { position: sticky; bottom: -24px; z-index: 2; background: #ffffff; border-color: #ececec; margin-top: 28px; margin-bottom: -24px; padding-top: 18px; padding-bottom: 18px; }
+.modal-body .\-mx-6.border-t { position: sticky; bottom: -24px; z-index: 2; background: #ffffff; border-color: #e4e9f2; margin-top: 28px; margin-bottom: -24px; padding-top: 18px; padding-bottom: 18px; }
 .modal-body .flex-col:is(.gap-3, .gap-4) > .\-mx-6.border-t { margin-top: 8px; }
 /* fields: 40 px high, 14 px text (Levelpath) */
 .robust :is(input:not([type]), input[type=text], input[type=email], input[type=tel], input[type=number], input[type=password], input[type=search], input[type=date]).py-2 { padding-top: 9px; padding-bottom: 9px; font-size: 14px; }
@@ -221,7 +234,7 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 :is(.modal-body, .form-scope) :not(.flex-col) > label:not(:has(input)) + :is(input, textarea, div, button) { margin-top: 6px; }
 :is(.modal-body, .form-scope) label.block.mb-1 { margin-bottom: 6px; }
 .modal-body .flex.flex-col:is(.gap-3, .gap-4) { row-gap: 20px; }
-:is(.modal-body, .form-scope) p:is(.text-xs, .text-\[13px\]):not(.text-red-600):not(.text-red-500) { font-size: 14px; line-height: 20px; font-weight: 400; color: #6a6a6a; }
+:is(.modal-body, .form-scope) p:is(.text-xs, .text-\[13px\]):not(.text-red-600):not(.text-red-500) { font-size: 14px; line-height: 20px; font-weight: 400; color: #667085; }
 :is(.modal-body, .form-scope) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not(.sr-only), textarea, .field-control) { border-radius: 10px; font-size: 15px; }
 :is(.modal-body, .form-scope) .rounded-lg:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) { border-radius: 10px; }
 :is(.modal-body, .form-scope) .field-control input { font-size: 15px; }
@@ -239,7 +252,7 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .req-star { color: #8a0f29; font-weight: 600; }
 /* a table directly followed by its footer: one frame with square bottom corners */
 .robust main .rounded-xl:has(+ .table-footer) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-.robust main .table-footer { border-color: #f0f0f0; }
+.robust main .table-footer { border-color: #e4e9f2; }
 .robust main .rounded-xl:has(+ .table-footer) { box-shadow: 0 1px 2px rgba(16, 24, 40, .03); }
 .robust main .table-footer { box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03); }
 /* first column (the record's name) a little stronger; header labels on one line */
@@ -259,10 +272,10 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 
 /* configurator (public page and inside a quote): the app's soft shadow on cards, option cards and chips */
 .cfg-scope :is(.rounded-xl, .rounded-2xl, .rounded-\[10px\]).border {
-  border-color: var(--cfg-border, #f0f0f0);
+  border-color: var(--cfg-border, #e4e9f2);
   box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03);
 }
-.cfg-scope button:is(.rounded-xl, .rounded-2xl, .rounded-\[10px\]).border:hover { border-color: #dcdcdc; }
+.cfg-scope button:is(.rounded-xl, .rounded-2xl, .rounded-\[10px\]).border:hover { border-color: #d0d5dd; }
 
 /* configurator: a new step fades and slides in */
 @keyframes cfg-step-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -273,19 +286,19 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .cfg-public h2 { font-size: 19px; line-height: 27px; letter-spacing: -0.02em; font-weight: 600; }
 .cfg-public button.rounded-xl .text-sm.font-medium { font-size: 14px; line-height: 20px; }
 .cfg-public button.rounded-xl .text-sm.font-medium.mt-2 { font-weight: 600; }
-.cfg-public button.rounded-xl .text-\[13px\] { font-size: 13px; line-height: 18px; color: var(--cfg-muted, #464646); }
+.cfg-public button.rounded-xl .text-\[13px\] { font-size: 13px; line-height: 18px; color: var(--cfg-muted, #475467); }
 
 /* configurator, public page: the supplier's own look (--cfg-* set on the page; without them every value is the default) */
-.cfg-public.cfg-public { background-color: var(--cfg-bg, #f5f3ef); font-family: var(--cfg-font, inherit); color: var(--cfg-ink, #000000); }
+.cfg-public.cfg-public { background-color: var(--cfg-bg, #f6f8fc); font-family: var(--cfg-font, inherit); color: var(--cfg-ink, #000000); }
 .cfg-public :is(button, input, select, textarea) { font-family: inherit; }
 .cfg-public .bg-\[\#000000\] { background-color: var(--cfg-button, #000000); }
 .cfg-public .text-gray-900, .cfg-public .text-\[\#000000\] { color: var(--cfg-ink, #000000); }
-.cfg-public .text-\[\#6a6a6a\], .cfg-public .text-\[\#464646\] { color: var(--cfg-muted, #464646); }
-.cfg-public .border-\[\#f0f0f0\], .cfg-public .border-gray-200 { border-color: var(--cfg-border, #f0f0f0); }
+.cfg-public .text-\[\#667085\], .cfg-public .text-\[\#475467\] { color: var(--cfg-muted, #475467); }
+.cfg-public .border-\[\#e4e9f2\], .cfg-public .border-gray-200 { border-color: var(--cfg-border, #e4e9f2); }
 
 /* dropdowns and date fields look like the text fields: same weight, same height */
 .robust main button.field-control { font-weight: 500; }
 .robust main input[type=date].field-control, .robust main input[type=date] { height: 40px; }
 
 /* configurator, public page: the light grey texts (step counter, notes under buttons) a bit stronger */
-.cfg-public .text-\[\#8a8a8a\], .cfg-public .text-gray-400 { color: #6a6a6a; }
+.cfg-public .text-\[\#98a2b3\], .cfg-public .text-gray-400 { color: #667085; }

@@ -98,13 +98,13 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
         isActive ? 'nav-active bg-surface-active text-black' : 'text-[#000000] hover:bg-surface-active',
       )}
     >
-      <Icon className={cn("w-[18px] h-[18px] shrink-0", "text-[#6a6a6a] group-[.nav-active]:text-black")} strokeWidth={2} />
+      <Icon className={cn("w-[18px] h-[18px] shrink-0", "text-[#667085] group-[.nav-active]:text-black")} strokeWidth={2} />
       {!rail && label}
       {rail
         ? (fresh > 0 || count > 0) && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', fresh > 0 ? 'bg-[#267a47] text-white' : 'bg-[#000000] text-white')}>{fresh > 0 ? fresh : count}</span>
         : <span className="ml-auto flex items-center gap-1.5">
             {fresh > 0 && <span title={newLabel} className="inline-flex items-center h-[20px] px-1.5 rounded-md bg-[#dbfce7] text-[#267a47] text-xs font-semibold tabular-nums whitespace-nowrap">{lang === 'sl' ? 'Nova' : 'New'} {fresh}</span>}
-            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f5f3ef] border border-[#e6e6e6] text-[#6a6a6a] text-xs font-semibold tabular-nums">{count}</span>}
+            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f6f8fc] border border-[#e4e9f2] text-[#667085] text-xs font-semibold tabular-nums">{count}</span>}
           </span>}
     </NavLink>
   )
@@ -114,7 +114,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
     <aside className="w-14 bg-surface flex flex-col h-screen shrink-0">
       <div className="h-14 border-b border-gray-200 flex items-center justify-center shrink-0">
         <button onClick={toggle} title={lang === 'sl' ? 'Prikaži meni' : 'Show menu'} aria-label={lang === 'sl' ? 'Prikaži meni' : 'Show menu'}
-          className="p-2 rounded-lg text-[#6a6a6a] hover:bg-surface-active transition-colors">
+          className="p-2 rounded-lg text-[#667085] hover:bg-surface-active transition-colors">
           <PanelLeft className="w-[18px] h-[18px]" />
         </button>
       </div>
@@ -132,7 +132,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
         <div className="mt-1" title={profile ? `${profile.first_name} ${profile.last_name}` : ''}>
           <Avatar tone="brand" name={profile ? `${profile.first_name} ${profile.last_name}` : '?'} size={28} />
         </div>
-        <button onClick={handleSignOut} className="p-2 rounded-lg text-[#6a6a6a] hover:text-gray-900 hover:bg-surface-active transition-colors" title={t.nav.signOut} aria-label={t.nav.signOut}>
+        <button onClick={handleSignOut} className="p-2 rounded-lg text-[#667085] hover:text-gray-900 hover:bg-surface-active transition-colors" title={t.nav.signOut} aria-label={t.nav.signOut}>
           <LogOut className="w-4 h-4" />
         </button>
       </div>
@@ -145,11 +145,11 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <AppLogo size="md" />
         <div className="flex items-center gap-1">
-          <button onClick={toggle} className="hidden lg:flex p-1.5 text-[#6a6a6a] hover:text-gray-700 hover:bg-surface-active rounded-md transition-colors" title="Hide sidebar">
+          <button onClick={toggle} className="hidden lg:flex p-1.5 text-[#667085] hover:text-gray-700 hover:bg-surface-active rounded-md transition-colors" title="Hide sidebar">
             <PanelLeft className="w-[18px] h-[18px]" />
           </button>
           {onClose && (
-            <button onClick={onClose} className="lg:hidden p-1.5 text-[#6a6a6a] hover:text-gray-900 hover:bg-surface-active rounded-lg transition-colors shrink-0">
+            <button onClick={onClose} className="lg:hidden p-1.5 text-[#667085] hover:text-gray-900 hover:bg-surface-active rounded-lg transition-colors shrink-0">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -160,7 +160,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       {company && (
         <div className="px-3 pt-3 pb-1">
           <div className="flex items-center gap-2.5 px-3 py-2">
-            <Building2 className="w-4 h-4 text-[#6a6a6a] shrink-0" strokeWidth={2} />
+            <Building2 className="w-4 h-4 text-[#667085] shrink-0" strokeWidth={2} />
             <p className="text-[15px] font-semibold text-gray-900 truncate">{company.name}</p>
           </div>
         </div>
@@ -218,7 +218,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
               {profile ? `${profile.first_name} ${profile.last_name}` : '—'}
             </p>
           </div>
-          <button onClick={handleSignOut} className="text-[#6a6a6a] hover:text-gray-900 transition-colors" title={t.nav.signOut}>
+          <button onClick={handleSignOut} className="text-[#667085] hover:text-gray-900 transition-colors" title={t.nav.signOut}>
             <LogOut className="w-4 h-4" />
           </button>
         </div>

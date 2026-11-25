@@ -93,48 +93,48 @@ export default function SuperAdminCompaniesPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
-              <Building2 className="w-10 h-10 text-[#e9e8e3] mb-3" />
-              <p className="text-sm text-[#6a6a6a]">Ni rezultatov</p>
+              <Building2 className="w-10 h-10 text-[#e8eef7] mb-3" />
+              <p className="text-sm text-[#667085]">Ni rezultatov</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm font-medium min-w-[640px]">
                 <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Podjetje</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Registrirano</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Uporabniki</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Registrirano</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Uporabniki</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Status</th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
                 <tbody>
                   {paged.map(c => (
-                    <tr key={c.id} className="hover:bg-[#f5f3ef] transition-colors">
+                    <tr key={c.id} className="hover:bg-[#f6f8fc] transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-black">{c.name}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-[#6a6a6a] whitespace-nowrap">{fmt(c.created_at)}
+                        <span className="text-[#667085] whitespace-nowrap">{fmt(c.created_at)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-[#6a6a6a] whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
+                        <span className="text-[#667085] whitespace-nowrap">{pluralUsers(c.user_count ?? 0)}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium"
                           style={c.is_active
-                            ? { backgroundColor: '#e9e8e3', color: '#000000' }
-                            : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
+                            ? { backgroundColor: '#e8eef7', color: '#000000' }
+                            : { backgroundColor: '#f6f8fc', color: '#667085' }}>
                           {c.is_active ? 'Aktivno' : 'Deaktivirano'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => toggle(c)} disabled={toggling === c.id}
                           title={c.is_active ? 'Deaktiviraj' : 'Aktiviraj'}
-                          className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg disabled:opacity-40 transition-colors">
+                          className="p-1.5 text-[#667085] hover:text-black hover:bg-[#e8eef7] rounded-lg disabled:opacity-40 transition-colors">
                           {c.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                         </button>
                       </td>

@@ -17,20 +17,20 @@ export default function ShadingIcon({ kind, size = 64 }: { kind?: string | null;
   switch (kind) {
     case 'blinds':
       body = <>{frame}
-        <rect x="8" y="4" width="44" height="4" rx="1" fill="#6a6a6a" />
+        <rect x="8" y="4" width="44" height="4" rx="1" fill="#667085" />
         {Array.from({ length: 9 }, (_, i) => <g key={i}>
           <rect x="9" y={9 + i * 3.6} width="42" height="2.6" rx="0.6" fill="#d1d5db" stroke="#9ca3af" strokeWidth="0.4" />
-          <rect x="9" y={9 + i * 3.6} width="42" height="0.8" fill="#f5f3ef" />
+          <rect x="9" y={9 + i * 3.6} width="42" height="0.8" fill="#f6f8fc" />
         </g>)}
-        <line x1="20" y1="8" x2="20" y2="42" stroke="#6a6a6a" strokeWidth="0.5" /><line x1="40" y1="8" x2="40" y2="42" stroke="#6a6a6a" strokeWidth="0.5" />
+        <line x1="20" y1="8" x2="20" y2="42" stroke="#667085" strokeWidth="0.5" /><line x1="40" y1="8" x2="40" y2="42" stroke="#667085" strokeWidth="0.5" />
       </>
       break
     case 'roller':
       body = <>{frame}
-        <rect x="6" y="2" width="48" height="8" rx="1.5" fill="#9ca3af" stroke="#6a6a6a" strokeWidth="0.8" />
+        <rect x="6" y="2" width="48" height="8" rx="1.5" fill="#9ca3af" stroke="#667085" strokeWidth="0.8" />
         <rect x="8" y="10" width="44" height="26" fill="#e5e7eb" />
         {Array.from({ length: 13 }, (_, i) => <line key={i} x1="8" x2="52" y1={11 + i * 2} y2={11 + i * 2} stroke="#9ca3af" strokeWidth="0.5" />)}
-        <rect x="8" y="35" width="44" height="2" fill="#6a6a6a" />
+        <rect x="8" y="35" width="44" height="2" fill="#667085" />
       </>
       break
     case 'pleated':
@@ -45,26 +45,26 @@ export default function ShadingIcon({ kind, size = 64 }: { kind?: string | null;
       body = <>{frame}
         <rect x="12" y="12" width="32" height="38" fill={`url(#${mesh})`} />
         {Array.from({ length: 10 }, (_, i) => <rect key={i} x={12 + i * 3.2} y="12" width="1.6" height="38" fill="#9ca3af" opacity="0.35" />)}
-        {Array.from({ length: 11 }, (_, i) => <line key={'l' + i} x1={12 + i * 3.2} y1="12" x2={12 + i * 3.2} y2="50" stroke="#6a6a6a" strokeWidth="0.5" />)}
-        <rect x="44" y="11" width="3.5" height="40" rx="1" fill="#6a6a6a" />
+        {Array.from({ length: 11 }, (_, i) => <line key={'l' + i} x1={12 + i * 3.2} y1="12" x2={12 + i * 3.2} y2="50" stroke="#667085" strokeWidth="0.5" />)}
+        <rect x="44" y="11" width="3.5" height="40" rx="1" fill="#667085" />
         <rect x="12" y="10" width="36" height="2" fill="#9ca3af" /><rect x="12" y="50" width="36" height="2" fill="#9ca3af" />
       </>
       break
     case 'screen':
       body = <>{frame}
-        <rect x="11" y="11" width="38" height="40" rx="1" fill={`url(#${mesh})`} stroke="#6a6a6a" strokeWidth="1.6" />
+        <rect x="11" y="11" width="38" height="40" rx="1" fill={`url(#${mesh})`} stroke="#667085" strokeWidth="1.6" />
       </>
       break
     case 'screen_roll':
       body = <>{frame}
-        <rect x="9" y="7" width="42" height="5" rx="1.2" fill="#9ca3af" stroke="#6a6a6a" strokeWidth="0.6" />
+        <rect x="9" y="7" width="42" height="5" rx="1.2" fill="#9ca3af" stroke="#667085" strokeWidth="0.6" />
         <rect x="12" y="12" width="36" height="28" fill={`url(#${mesh})`} />
-        <rect x="11" y="39" width="38" height="2" rx="0.6" fill="#6a6a6a" />
-        <line x1="12" y1="12" x2="12" y2="50" stroke="#6a6a6a" strokeWidth="1" /><line x1="48" y1="12" x2="48" y2="50" stroke="#6a6a6a" strokeWidth="1" />
+        <rect x="11" y="39" width="38" height="2" rx="0.6" fill="#667085" />
+        <line x1="12" y1="12" x2="12" y2="50" stroke="#667085" strokeWidth="1" /><line x1="48" y1="12" x2="48" y2="50" stroke="#667085" strokeWidth="1" />
       </>
       break
     default:
-      body = <rect width="60" height="60" fill="#f5f3ef" />
+      body = <rect width="60" height="60" fill="#f6f8fc" />
   }
   return (
     <svg width={size} height={size} viewBox="0 0 60 60" className="shrink-0" aria-hidden>

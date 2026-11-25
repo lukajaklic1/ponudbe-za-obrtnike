@@ -49,20 +49,20 @@ export default function Pagination({ total, page, pageSize, onChange, onPageSize
   const from = (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
   const go = (p: number) => { onChange(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  const arrow = 'w-7 h-7 flex items-center justify-center rounded-md text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors'
+  const arrow = 'w-7 h-7 flex items-center justify-center rounded-md text-[#667085] hover:text-black hover:bg-[#e8eef7] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors'
 
   return (
-    <div className="table-footer flex items-center justify-between gap-4 px-4 py-2.5 bg-white border border-[#ece9e3] border-t-0 rounded-b-xl">
+    <div className="table-footer flex items-center justify-between gap-4 px-4 py-2.5 bg-white border border-[#e4e9f2] border-t-0 rounded-b-xl">
       <p className="text-[15px] font-medium text-black">{results(total, sl)}</p>
       <div className="flex items-center gap-3">
         {onPageSizeChange && total > PAGE_SIZE_OPTIONS[0] && (
           <span className="block w-[118px]">
-            <Select size="xs" align="right" value={pageSize} className="h-8 text-[15px] font-medium border-transparent shadow-none hover:bg-[#e9e8e3] hover:border-transparent justify-end"
+            <Select size="xs" align="right" value={pageSize} className="h-8 text-[15px] font-medium border-transparent shadow-none hover:bg-[#e8eef7] hover:border-transparent justify-end"
               options={PAGE_SIZE_OPTIONS.map(n => ({ value: n, label: sl ? `${n} vrstic` : `${n} rows` }))}
               onChange={n => { onPageSizeChange(n); onChange(1) }} />
           </span>
         )}
-        {totalPages > 1 && <span className="text-[15px] font-medium text-[#6a6a6a] whitespace-nowrap">{from}–{to} {sl ? 'od' : 'of'} {total}</span>}
+        {totalPages > 1 && <span className="text-[15px] font-medium text-[#667085] whitespace-nowrap">{from}–{to} {sl ? 'od' : 'of'} {total}</span>}
         <div className="flex items-center gap-0.5">
           <button type="button" onClick={() => go(page - 1)} disabled={page <= 1} className={arrow} aria-label={sl ? 'Prejšnja stran' : 'Previous page'}><ChevronLeft className="w-4 h-4" /></button>
           <button type="button" onClick={() => go(page + 1)} disabled={page >= totalPages} className={arrow} aria-label={sl ? 'Naslednja stran' : 'Next page'}><ChevronRight className="w-4 h-4" /></button>

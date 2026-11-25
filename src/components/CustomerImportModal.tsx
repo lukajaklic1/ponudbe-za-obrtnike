@@ -98,15 +98,15 @@ export default function CustomerImportModal({ open, onClose, companyId, lang, ty
   return (
     <Modal open={open} onClose={close} title={T.title} size="lg">
       <div className="flex flex-col gap-4">
-        <p className="text-[15px] leading-6 text-[#6a6a6a]">{T.intro}</p>
+        <p className="text-[15px] leading-6 text-[#667085]">{T.intro}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="secondary" size="sm" onClick={downloadTemplate} className="gap-1.5"><Download className="w-3.5 h-3.5" />{T.template}</Button>
-          <span className="text-[13px] text-[#6a6a6a]">{T.columns}</span>
+          <span className="text-[13px] text-[#667085]">{T.columns}</span>
         </div>
 
-        <label className="flex items-center gap-2.5 px-4 py-4 border border-dashed border-gray-300 rounded-[10px] cursor-pointer hover:border-gray-500 hover:bg-[#f5f3ef] transition-colors">
+        <label className="flex items-center gap-2.5 px-4 py-4 border border-dashed border-gray-300 rounded-[10px] cursor-pointer hover:border-gray-500 hover:bg-[#f6f8fc] transition-colors">
           {fileName ? <FileText className="w-4 h-4 text-gray-900 shrink-0" /> : <UploadCloud className="w-4 h-4 text-gray-400 shrink-0" />}
-          <span className={`text-[15px] font-medium ${fileName ? 'text-gray-900' : 'text-[#6a6a6a]'}`}>{fileName || T.pick}</span>
+          <span className={`text-[15px] font-medium ${fileName ? 'text-gray-900' : 'text-[#667085]'}`}>{fileName || T.pick}</span>
           <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f); e.target.value = '' }} />
         </label>
 

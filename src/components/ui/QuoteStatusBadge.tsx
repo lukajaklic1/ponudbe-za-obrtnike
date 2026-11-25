@@ -1,15 +1,22 @@
+import { Check } from 'lucide-react'
 import type { QuoteStatus } from '../../types/database'
 
-// Subtle status chips: warm grey fill, black text, no border.
-// A small dot keeps the meaning: yellow = waiting on someone, green = won, grey = everything else.
-const DOT = { grey: '#b5b2ab', yellow: '#e0a100', green: '#2f9e5b' } as const
+// Subtle coloured pills, no border: green = won (with a check), amber = waiting on someone,
+// blue = a new enquiry, grey = draft or closed.
+type Tone = 'green' | 'amber' | 'blue' | 'grey'
+const TONES: Record<Tone, { bg: string; fg: string }> = {
+  green: { bg: '#e6f6ea', fg: '#1a7f37' },
+  amber: { bg: '#fdf3d8', fg: '#8a5a00' },
+  blue:  { bg: '#e8f1fc', fg: '#0157ad' },
+  grey:  { bg: '#f6f8fc', fg: '#475467' },
+}
 
-const STATUS_DOT: Record<QuoteStatus, keyof typeof DOT> = {
-  enquiry:  'yellow',   // Povpraševanje: a customer is waiting for an offer
-  downloaded: 'yellow', // Ponudba prenesena: the customer already has the offer
+const STATUS_TONE: Record<QuoteStatus, Tone> = {
+  enquiry:  'blue',     // Povpraševanje: a customer is waiting for an offer
+  downloaded: 'amber',  // Ponudba prenesena: the customer already has the offer
   draft:    'grey',
-  issued:   'yellow',   // Izdano: the offer is locked, not sent yet
-  sent:     'yellow',
+  issued:   'amber',    // Izdano: the offer is locked, not sent yet
+  sent:     'amber',
   accepted: 'green',
   won:      'green',
   rejected: 'grey',
@@ -19,9 +26,11 @@ const STATUS_DOT: Record<QuoteStatus, keyof typeof DOT> = {
 }
 
 export function QuoteStatusBadge({ status, label }: { status: QuoteStatus; label: string }) {
+  const tone = STATUS_TONE[status]
+  const { bg, fg } = TONES[tone]
   return (
-    <span className="inline-flex items-center gap-1.5 h-6 px-2 rounded-md bg-[#f5f3ef] text-[13px] font-medium text-black whitespace-nowrap">
-      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: DOT[STATUS_DOT[status]] }} />
+    <span className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-[12px] font-medium whitespace-nowrap" style={{ backgroundColor: bg, color: fg }}>
+      {tone === 'green' && <Check className="w-3 h-3" strokeWidth={2.5} />}
       {label}
     </span>
   )

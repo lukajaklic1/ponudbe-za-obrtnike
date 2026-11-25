@@ -26,7 +26,7 @@ export function Avatar({ name, size = 24, tone = 'neutral' }: { name: string; si
   }
   return (
     <span className="inline-flex items-center justify-center rounded-full font-medium shrink-0 select-none"
-      style={{ backgroundColor: '#f5f3ef', border: '1px solid #e2e2e2', color: '#464646', width: size, height: size, fontSize: Math.max(9, Math.round(size * 0.4)), letterSpacing: '0.01em' }}>
+      style={{ backgroundColor: '#f6f8fc', border: '1px solid #e2e2e2', color: '#475467', width: size, height: size, fontSize: Math.max(9, Math.round(size * 0.4)), letterSpacing: '0.01em' }}>
       {initialsOf(name)}
     </span>
   )

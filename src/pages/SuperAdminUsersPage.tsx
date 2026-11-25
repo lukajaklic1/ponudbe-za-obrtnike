@@ -112,53 +112,53 @@ export default function SuperAdminUsersPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
-              <Users className="w-10 h-10 text-[#e9e8e3] mb-3" />
-              <p className="text-sm text-[#6a6a6a]">Ni rezultatov</p>
+              <Users className="w-10 h-10 text-[#e8eef7] mb-3" />
+              <p className="text-sm text-[#667085]">Ni rezultatov</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm font-medium min-w-[760px]">
                 <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Uporabnik</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">E-pošta</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Podjetje</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Vloga</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Registriran</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6a6a6a] whitespace-nowrap">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Uporabnik</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">E-pošta</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Podjetje</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Vloga</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Registriran</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#667085] whitespace-nowrap">Status</th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
                 <tbody>
                   {paged.map(u => (
-                    <tr key={u.id} className="hover:bg-[#f5f3ef] transition-colors">
+                    <tr key={u.id} className="hover:bg-[#f6f8fc] transition-colors">
                       <td className="px-4 py-3">
                         <PersonBadge name={`${u.first_name} ${u.last_name}`} />
                       </td>
-                      <td className="px-4 py-3 text-[#6a6a6a] whitespace-nowrap">{u.email}</td>
+                      <td className="px-4 py-3 text-[#667085] whitespace-nowrap">{u.email}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-[#6a6a6a] truncate max-w-[160px]">{u.company_name}</span>
+                          <span className="text-[#667085] truncate max-w-[160px]">{u.company_name}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         {u.is_super_admin ? (
-                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e9e8e3', color: '#000000' }}>Super admin</span>
+                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e8eef7', color: '#000000' }}>Super admin</span>
                         ) : u.is_admin ? (
-                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e9e8e3', color: '#000000' }}>Admin</span>
+                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium" style={{ backgroundColor: '#e8eef7', color: '#000000' }}>Admin</span>
                         ) : (
-                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium bg-[#f5f3ef] text-[#6a6a6a]">Uporabnik</span>
+                          <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium bg-[#f6f8fc] text-[#667085]">Uporabnik</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-[#6a6a6a] whitespace-nowrap">{fmt(u.created_at)}
+                        <span className="text-[#667085] whitespace-nowrap">{fmt(u.created_at)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center h-6 px-2 rounded-md text-[13px] font-medium"
                           style={u.is_active
-                            ? { backgroundColor: '#e9e8e3', color: '#000000' }
-                            : { backgroundColor: '#f5f3ef', color: '#6a6a6a' }}>
+                            ? { backgroundColor: '#e8eef7', color: '#000000' }
+                            : { backgroundColor: '#f6f8fc', color: '#667085' }}>
                           {u.is_active ? 'Aktiven' : 'Deaktiviran'}
                         </span>
                       </td>
@@ -166,7 +166,7 @@ export default function SuperAdminUsersPage() {
                         {!u.is_super_admin && (
                           <button onClick={() => toggle(u)} disabled={toggling === u.id}
                             title={u.is_active ? 'Deaktiviraj' : 'Aktiviraj'}
-                            className="p-1.5 text-[#6a6a6a] hover:text-black hover:bg-[#e9e8e3] rounded-lg disabled:opacity-40 transition-colors">
+                            className="p-1.5 text-[#667085] hover:text-black hover:bg-[#e8eef7] rounded-lg disabled:opacity-40 transition-colors">
                             {u.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                           </button>
                         )}
@@ -209,33 +209,33 @@ function ComboFilter({ options, value, onChange, placeholder, allLabel }: {
 
   return (
     <div className="relative" ref={ref}>
-      <Search className="w-4 h-4 text-[#6a6a6a] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <Search className="w-4 h-4 text-[#667085] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <input
         value={open ? query : selectedLabel}
         onChange={e => { setQuery(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
         placeholder={value === 'all' ? `${placeholder}…` : selectedLabel}
-        className="h-9 pl-9 pr-8 rounded-lg border border-[#ece9e3] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+        className="h-9 pl-9 pr-8 rounded-lg border border-[#e4e9f2] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
       />
       {value !== 'all' && !open && (
-        <button onClick={() => pick('all')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6a6a6a] hover:text-black">
+        <button onClick={() => pick('all')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#667085] hover:text-black">
           <X className="w-3.5 h-3.5" />
         </button>
       )}
       {open && (
-        <div className="absolute z-20 mt-1 w-60 bg-white border border-[#ece9e3] rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-20 mt-1 w-60 bg-white border border-[#e4e9f2] rounded-lg shadow-lg overflow-hidden">
           <div className="max-h-60 overflow-y-auto py-1">
-            <button onClick={() => pick('all')} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-[#f5f3ef]">
-              <span className="flex-1 text-[#6a6a6a]">{allLabel}</span>
+            <button onClick={() => pick('all')} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-[#f6f8fc]">
+              <span className="flex-1 text-[#667085]">{allLabel}</span>
               {value === 'all' && <Check className="w-4 h-4 text-black" />}
             </button>
             {filteredOpts.map(([id, name]) => (
-              <button key={id} onClick={() => pick(id)} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-[#f5f3ef]">
+              <button key={id} onClick={() => pick(id)} className="flex items-center w-full px-3 py-2 text-sm text-left hover:bg-[#f6f8fc]">
                 <span className="flex-1 text-black truncate">{name}</span>
                 {value === id && <Check className="w-4 h-4 text-black shrink-0" />}
               </button>
             ))}
-            {filteredOpts.length === 0 && <p className="px-3 py-2 text-sm text-[#6a6a6a]">Ni rezultatov</p>}
+            {filteredOpts.length === 0 && <p className="px-3 py-2 text-sm text-[#667085]">Ni rezultatov</p>}
           </div>
         </div>
       )}

@@ -30,9 +30,9 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
         size === 'md' && 'max-w-lg',
         size === 'lg' && 'max-w-2xl',
       )}>
-        <div className="flex items-center justify-between px-6 h-[60px] border-b border-[#ececec] shrink-0">
+        <div className="flex items-center justify-between px-6 h-[60px] border-b border-[#e4e9f2] shrink-0">
           <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900">{title}</h2>
-          <button onClick={onClose} className="-mr-1.5 p-1.5 rounded-lg text-[#6a6a6a] hover:text-gray-900 hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="-mr-1.5 p-1.5 rounded-lg text-[#667085] hover:text-gray-900 hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
