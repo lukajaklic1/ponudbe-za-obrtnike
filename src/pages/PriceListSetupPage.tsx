@@ -569,7 +569,7 @@ export default function PriceListSetupPage() {
                                               return <button key={v.key} type="button" disabled={!canEdit} onClick={() => setOff(vs ? [...off, v.key] : off.filter(x => x !== v.key))}
                                                 className={cn('relative rounded-lg border p-3 flex items-center justify-center h-[190px] transition-colors', vs ? SEL_ON : SEL_OFF)}>
                                                 {vs && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
-                                                <span className={cn(!vs && 'opacity-40')}><SpecDrawing spec={applyVariant(makeSpec(n), v)} width={drawW} height={door ? 2300 : 1400} size={door ? 160 : n > 2 ? 170 : 150} className="max-w-full h-auto" /></span>
+                                                <span className={cn(!vs && 'opacity-40')}><SpecDrawing spec={applyVariant(makeSpec(n), v)} width={drawW} height={door ? 2300 : 1400} size={door ? 160 : n > 2 ? 170 : 150} photo className="max-w-full h-auto" /></span>
                                               </button>
                                             })}
                                           </div>
@@ -884,7 +884,7 @@ export default function PriceListSetupPage() {
             <div className="space-y-3">
             {/* windows: sashes, top light / bottom panel, openings */}
             {offer.windows && <Fold open={!!folds.windows} onToggle={() => { toggleFold('windows'); setOpenSash(null); setVariantTab({}) }} title={T.catWindows} summary={windowsSummary}
-              pic={<SpecDrawing spec={makeSpec(2)} width={1200} height={1300} size={64} plain slim />}>
+              pic={<SpecDrawing spec={makeSpec(2)} width={1200} height={1300} size={64} plain photo />}>
               {builder()}
             </Fold>}
 
@@ -893,7 +893,7 @@ export default function PriceListSetupPage() {
               const picked = (offer.combos?.s2 ?? all.map(comboKey)).filter(k => all.some(c => comboKey(c) === k))
               const setPicked = (keys: string[]) => setOffer({ combos: { ...(offer.combos ?? {}), s2: keys } })
               return <Fold open={!!folds.slidingWindows} onToggle={() => toggleFold('slidingWindows')} title={T.catSlidingWindows} summary={T.slidingSummary(picked.length, all.length)}
-                pic={<SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={85} plain slim />}>
+                pic={<SpecDrawing spec={makeSlidingSpec()} width={1600} height={1200} size={85} plain photo />}>
                 <div>
                 {groupProfiles('slidingWindows')}
                 <div className="text-[13px] font-medium text-[#4f4f4f] mb-3">{T.combosFor}</div>
@@ -903,7 +903,7 @@ export default function PriceListSetupPage() {
                     return <button key={k} type="button" disabled={!canEdit} onClick={() => setPicked(sel ? picked.filter(x => x !== k) : [...picked, k])}
                       className={cn('relative rounded-lg border p-2 flex items-center justify-center h-[170px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
                       {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
-                      <SpecDrawing spec={{ ...makeSlidingSpec(), main: c }} width={1600} height={1200} size={150} className="max-w-full h-auto" />
+                      <SpecDrawing spec={{ ...makeSlidingSpec(), main: c }} width={1600} height={1200} size={150} photo className="max-w-full h-auto" />
                     </button>
                   })}
                 </div>
@@ -913,7 +913,7 @@ export default function PriceListSetupPage() {
 
             {/* balcony doors: built like windows */}
             {offer.doors && <Fold open={!!folds.doors} onToggle={() => { toggleFold('doors'); setOpenSash(null); setVariantTab({}) }} title={T.catDoors} summary={doorsSummary}
-              pic={<SpecDrawing spec={makeSpec(1)} width={1000} height={2200} size={64} plain slim />}>
+              pic={<SpecDrawing spec={makeSpec(1)} width={1000} height={2200} size={64} plain photo />}>
               {builder('door')}
             </Fold>}
 
@@ -923,7 +923,7 @@ export default function PriceListSetupPage() {
               const sum = list.reduce((x, n) => ({ on: x.on + allowedCombos(n, offer, 'wall').length, all: x.all + allCombos(n, offer, 'wall').length }), { on: 0, all: 0 })
               const wW = (n: number) => n * 1000
               return <Fold open={!!folds.walls} onToggle={() => { toggleFold('walls'); setOpenSash(null) }} title={T.catSliding} summary={T.wallsSummary(list.length, sum.on, sum.all)}
-                pic={<SpecDrawing spec={makeWallSpec(2)} width={2000} height={2200} size={64} plain slim />}>
+                pic={<SpecDrawing spec={makeWallSpec(2)} width={2000} height={2200} size={64} plain photo />}>
                 {groupProfiles('walls')}
                 <div className="text-[13px] font-medium text-[#4f4f4f] mb-2">{T.panelCount}</div>
                 <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
@@ -958,7 +958,7 @@ export default function PriceListSetupPage() {
                               return <button key={k} type="button" disabled={!canEdit} onClick={() => setPicked(sel ? picked.filter(x => x !== k) : [...picked, k])}
                                 className={cn('relative rounded-lg border p-3 flex items-center justify-center h-[190px] transition-colors', sel ? SEL_ON : SEL_OFF)}>
                                 {sel && <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#131313] text-white flex items-center justify-center"><Check className="w-3 h-3" strokeWidth={3} /></span>}
-                                <span className={cn(!sel && 'opacity-40')}><SpecDrawing spec={{ ...makeWallSpec(n), main: c }} width={wW(n)} height={2200} size={170} className="max-w-full h-auto" /></span>
+                                <span className={cn(!sel && 'opacity-40')}><SpecDrawing spec={{ ...makeWallSpec(n), main: c }} width={wW(n)} height={2200} size={170} photo className="max-w-full h-auto" /></span>
                               </button>
                             })}
                           </div>
@@ -984,7 +984,7 @@ export default function PriceListSetupPage() {
               const STD_FLASHINGS: [string, string, number][] = [['Obroba za valovito kritino (opečna, betonska)', 'Flashing for profiled roofing (clay, concrete tiles)', 95], ['Obroba za ravno kritino (skodle, ploščice)', 'Flashing for flat roofing (shingles, slates)', 80], ['Obroba za pločevinasto kritino', 'Flashing for metal roofing', 90]]
               const n2 = (v: number) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
               return <Fold open={!!folds.roof} onToggle={() => toggleFold('roof')} title={T.catRoof}
-                summary={T.roofSummary(roof.models.length, roof.models.reduce((a, m) => a + m.sizes.length, 0))} pic={<RoofWindowDrawing size={72} />}>
+                summary={T.roofSummary(roof.models.length, roof.models.reduce((a, m) => a + m.sizes.length, 0))} pic={<RoofWindowDrawing size={72} photo />}>
                 <p className="text-[13px] leading-5 text-[#4f4f4f] -mt-1 mb-4 max-w-3xl">{T.roofStepHint}</p>
                 <div className="space-y-4">
                   {roof.models.map(m => {
@@ -998,7 +998,7 @@ export default function PriceListSetupPage() {
                       <div className="p-4 flex gap-4">
                         <label className={cn('relative w-[104px] h-[104px] shrink-0 rounded-lg border border-gray-200 bg-[#fafafa] flex items-center justify-center overflow-hidden', canEdit && 'cursor-pointer hover:border-gray-400')}
                           title={m.image_url ? T.photoChange : T.photo}>
-                          {m.image_url ? <img src={m.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <RoofWindowDrawing size={72} opening={m.opening} />}
+                          {m.image_url ? <img src={m.image_url} alt="" className="max-w-full max-h-full object-contain" /> : <RoofWindowDrawing size={72} opening={m.opening} photo />}
                           {canEdit && <span className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-600">
                             {uploadingKey === m.id ? '…' : <Upload className="w-3.5 h-3.5" />}</span>}
                           {canEdit && <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadRoofPhoto(m.id, f, url => setModel(m.id, { image_url: url })) }} />}
@@ -1837,7 +1837,7 @@ export default function PriceListSetupPage() {
 function RowPic({ spec, width, height = 1300, slim = true }: { spec: WindowSpec; width: number; height?: number; slim?: boolean }) {
   return (
     <div className="w-[120px] h-[64px] flex items-center justify-center shrink-0">
-      <SpecDrawing spec={spec} width={width} height={height} size={Math.round(64 * Math.max(width, height) / height)} plain slim={slim} />
+      <SpecDrawing spec={spec} width={width} height={height} size={Math.round(64 * Math.max(width, height) / height)} plain photo slim={slim} />
     </div>
   )
 }
@@ -1858,18 +1858,19 @@ function AllRow({ all, some, onToggle, label, count, disabled, plain }: { all: b
 
 
 /** A product group in the price list: one row you open with the arrow. */
-function Fold({ open, onToggle, title, summary, pic, children }: { open: boolean; onToggle: () => void; title: string; summary: string; pic: React.ReactNode; children: React.ReactNode }) {
+/** one product group of step 2: a plain row (title and short summary) that opens with the arrow */
+function Fold({ open, onToggle, title, summary, pic, children }: { open: boolean; onToggle: () => void; title: string; summary: string; pic?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className={cn('rounded-xl border bg-white overflow-hidden transition-colors', open ? 'border-gray-300' : 'border-gray-200')}>
-      <button type="button" onClick={onToggle} className="w-full flex items-center gap-4 px-4 py-3 text-left hover:bg-gray-50">
-        <div className="w-[120px] h-[64px] flex items-center justify-center shrink-0">{pic}</div>
+      <button type="button" onClick={onToggle} className="w-full flex items-center gap-5 px-5 py-3 text-left hover:bg-[#fafafa]">
+        {pic && <div className="w-20 h-[72px] flex items-center justify-center shrink-0 [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:w-auto [&_svg]:h-auto">{pic}</div>}
         <div className="flex-1 min-w-0">
-          <div className="text-[15px] font-semibold text-gray-900">{title}</div>
-          <div className="text-[13px] font-medium text-[#4f4f4f] mt-0.5">{summary}</div>
+          <div className="text-[17px] leading-6 font-semibold text-gray-900">{title}</div>
+          <div className="text-sm text-[#4f4f4f] mt-0.5">{summary}</div>
         </div>
-        <ChevronDown className={cn('w-4 h-4 text-gray-500 transition-transform', open && 'rotate-180')} />
+        <ChevronDown className={cn('w-5 h-5 text-gray-500 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
-      {open && <div className="border-t border-gray-100 p-4">{children}</div>}
+      {open && <div className="border-t border-gray-100 p-5">{children}</div>}
     </div>
   )
 }
@@ -1885,10 +1886,10 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
   return (
     <section className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-7">
       <div className="flex items-start gap-3 mb-6">
-        <span className="w-7 h-7 mt-0.5 rounded-full bg-white text-gray-900 ring-1 ring-inset ring-[#d4d4d4] text-[13px] font-semibold flex items-center justify-center shrink-0">{n}</span>
+        <span className="w-6 h-6 mt-0.5 rounded-full bg-white text-gray-900 ring-1 ring-inset ring-[#d4d4d4] text-xs font-semibold flex items-center justify-center shrink-0">{n}</span>
         <div>
-          <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900">{title}</h2>
-          <p className="text-sm leading-[22px] text-[#4f4f4f] mt-0.5 max-w-3xl">{hint}</p>
+          <h2 className="text-[18px] leading-[26px] tracking-[-0.02em] font-semibold text-gray-900">{title}</h2>
+          <p className="text-[13px] leading-5 text-[#4f4f4f] mt-0.5 max-w-3xl">{hint}</p>
         </div>
       </div>
       {children}

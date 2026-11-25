@@ -2,7 +2,7 @@ import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { THEME_FONTS } from '../lib/configuratorTheme'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, Ban, Pencil } from 'lucide-react'
+import { Plus, Trash2, Check, Loader2, Phone, Mail, ArrowLeft, FileText, EyeOff, Ban, Pencil, RotateCcw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../hooks/useLanguage'
 import WindowDrawing from '../components/WindowDrawing'
@@ -115,13 +115,13 @@ const TXT = {
     unit: 'cena/kos', total: 'Skupaj brez DDV', vat: 'DDV', gross: 'Skupaj z DDV', estimate: 'Okvirna cena. Končno ponudbo pripravimo po izmeri na terenu.',
     basePrice: 'Osnovna cena', noPrice: 'Cena po izmeri', pricesHidden: 'Ceno prejmete v ponudbi na e-mail.', pricesAtEnd: 'Ceno boste videli na koncu, ko vpišete svoje podatke.', rangeTitle: 'Okvirna cena z DDV', rangeNote: 'Okvirni razpon. Natančno ceno pripravimo po izmeri na terenu.',
     getOffer: 'Prenesi ponudbo', getOfferPdf: 'Prenesi ponudbo (PDF)', orEnquiry: 'Ali samo pošljite povpraševanje',
-    pdfDoneTitle: 'Vaša ponudba je prenesena', pdfDoneText: 'Informativna ponudba se je prenesla na vašo napravo. Ponudnik je o tem obveščen in vas bo po potrebi kontaktiral. Številka ponudbe:', pdfAgain: 'Prenesi ponudbo znova', yourTotal: 'Skupaj z DDV',
+    pdfDoneTitle: 'Vaša ponudba je prenesena', pdfDoneText: 'Informativna ponudba se je prenesla na vašo napravo. Ponudnik je o tem obveščen in vas bo po potrebi kontaktiral.', quoteNoLabel: 'Številka ponudbe', pdfAgain: 'Prenesi ponudbo znova', yourTotal: 'Skupaj z DDV',
     pdfNote: 'Informativna ponudba, izračunana v spletnem konfiguratorju. Končno ponudbo pripravimo po izmeri na terenu.', pdfTaken: 'Stranka je prenesla informativno ponudbo (PDF).',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
     contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov montaže', street: 'Ulica in hišna številka', postal: 'Poštna številka', city: 'Kraj', country: 'Država', postalPick: 'Vpišite številko ali kraj', outOfArea: 'Na tem naslovu montaže ne izvajamo. Povpraševanje lahko pošljete brez montaže.', note: 'Opomba',
     consent: 'Strinjam se, da ponudnik moje podatke uporabi za pripravo ponudbe.',
-    doneTitle: 'Hvala, povpraševanje je oddano!', doneText: 'Ponudnik bo pripravil ponudbo in vas kontaktiral. Številka vašega povpraševanja:',
-    newOne: 'Novo povpraševanje', invalidSize: 'Mere so izven dovoljenega razpona', pcs: 'kos',
+    doneTitle: 'Hvala, povpraševanje je oddano!', doneText: 'Ponudnik bo pripravil ponudbo in vas kontaktiral.', enquiryNoLabel: 'Številka povpraševanja',
+    startOver: 'Začni znova', startOverConfirm: 'Vsa okna v povpraševanju bodo izbrisana. Želite začeti znova?', newOne: 'Novo povpraševanje', invalidSize: 'Mere so izven dovoljenega razpona', pcs: 'kos',
     errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', company_required: 'Vnesite naziv podjetja.', address_required: 'Vnesite celoten naslov montaže.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
     addToQuote: 'Dodaj v ponudbo', cancel: 'Prekliči', room: 'Prostor', roofOpeningLabel: 'Odpiranje',
@@ -154,13 +154,13 @@ const TXT = {
     unit: 'price/pc', total: 'Total excl. VAT', vat: 'VAT', gross: 'Total incl. VAT', estimate: 'Estimated price. The final quote follows an on-site measurement.',
     basePrice: 'Base price', noPrice: 'Price after measurement', pricesHidden: 'You will receive the price in the quote by e-mail.', pricesAtEnd: 'You will see the price at the end, after entering your details.', rangeTitle: 'Estimated price incl. VAT', rangeNote: 'An estimated range. We prepare the exact price after measuring on site.',
     getOffer: 'Download the quote', getOfferPdf: 'Download the quote (PDF)', orEnquiry: 'Or just send an enquiry',
-    pdfDoneTitle: 'Your quote has been downloaded', pdfDoneText: 'The informative quote was downloaded to your device. The supplier has been notified and will contact you if needed. Quote number:', pdfAgain: 'Download the quote again', yourTotal: 'Total incl. VAT',
+    pdfDoneTitle: 'Your quote has been downloaded', pdfDoneText: 'The informative quote was downloaded to your device. The supplier has been notified and will contact you if needed.', quoteNoLabel: 'Quote number', pdfAgain: 'Download the quote again', yourTotal: 'Total incl. VAT',
     pdfNote: 'Informative quote, calculated in the online configurator. We prepare the final quote after measuring on site.', pdfTaken: 'The customer downloaded the informative quote (PDF).',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
     contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Installation address', street: 'Street and house number', postal: 'Postal code', city: 'Town', country: 'Country', postalPick: 'Type the code or the town', outOfArea: 'We do not install at this address. You can still send the enquiry without installation.', note: 'Note',
     consent: 'I agree that the supplier uses my data to prepare a quote.',
-    doneTitle: 'Thank you, your enquiry was sent!', doneText: 'The supplier will prepare a quote and contact you. Your enquiry number:',
-    newOne: 'New enquiry', invalidSize: 'Size is outside the allowed range', pcs: 'pc',
+    doneTitle: 'Thank you, your enquiry was sent!', doneText: 'The supplier will prepare a quote and contact you.', enquiryNoLabel: 'Enquiry number',
+    startOver: 'Start over', startOverConfirm: 'All windows in the enquiry will be deleted. Start over?', newOne: 'New enquiry', invalidSize: 'Size is outside the allowed range', pcs: 'pc',
     errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', company_required: 'Enter the company name.', address_required: 'Enter the full installation address.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
     addToQuote: 'Add to quote', cancel: 'Cancel', room: 'Room', roofOpeningLabel: 'Opening',
@@ -570,8 +570,9 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     })
     if (error) {
       setSending(false)
+      console.error('submit_configuration failed', error)
       const code = Object.keys(T.errors).find(k => String(error.message).includes(k))
-      setError(code ? T.errors[code] : T.genericError)
+      setError(code ? T.errors[code] : `${T.genericError} (${[error.code, error.message].filter(Boolean).join(': ')})`)
       return
     }
     if (withPdf && offerLines) {
@@ -885,7 +886,8 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] sticky top-0 z-30">
         <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[72px] sm:h-20' : data.company.logo_size === 's' ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]')}>
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className={cn('flex items-center gap-2.5 min-w-0', (stage === 'review' || stage === 'contact') && 'cursor-pointer')}
+            onClick={() => { if (stage === 'review' || stage === 'contact') { setStage('config'); window.scrollTo({ top: 0 }) } }}>
             {/* only the supplier's logo; without a logo its name stands in */}
             {data.company.logo_url
               ? <img src={data.company.logo_url} alt={data.company.name} className={cn('w-auto object-contain object-left', data.company.logo_size === 'l' ? 'h-12 sm:h-14 max-w-[200px] sm:max-w-[320px]' : data.company.logo_size === 's' ? 'h-8 sm:h-9 max-w-[150px] sm:max-w-[200px]' : 'h-10 sm:h-12 max-w-[180px] sm:max-w-[260px]')} />
@@ -895,12 +897,12 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
           <div className="flex items-center gap-2">
             {/* contact shown as information, not as buttons (no link, no hover) */}
             {data.company.phone && <span title={data.company.phone}
-              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] cursor-default select-text">
+              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#f0f0f0] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] cursor-default select-text">
               <Phone className="w-4 h-4" /><span className="hidden sm:inline">{data.company.phone}</span></span>}
             {data.company.email && <span title={data.company.email}
-              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#dfdfdf] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] cursor-default select-text">
+              className="inline-flex items-center gap-2 h-10 px-3 sm:px-3.5 rounded-[10px] border border-[#f0f0f0] bg-white text-sm font-medium text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.06)] cursor-default select-text">
               <Mail className="w-4 h-4" /><span className="hidden md:inline">{data.company.email}</span></span>}
-            <div className="flex items-center h-10 p-1 rounded-[10px] border border-[#dfdfdf] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
+            <div className="flex items-center h-10 p-1 rounded-[10px] border border-[#f0f0f0] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)]">
               {(['sl', 'en'] as const).map(l => <button key={l} onClick={() => setLang(l)} className={cn('px-2.5 h-full rounded-md text-xs font-semibold uppercase transition-colors', lang === l ? 'bg-[#131313] text-white' : 'text-[#4f4f4f] hover:text-gray-900')}>{l}</button>)}
             </div>
           </div>
@@ -908,20 +910,31 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
       </header>}
 
       {stage === 'done' ? (
-        <div className="max-w-lg mx-auto px-4 py-16 text-center">
-          <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center text-white mb-4" style={btn}><Check className="w-6 h-6" /></div>
-          <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{offerSnap ? T.pdfDoneTitle : T.doneTitle}</h1>
-          <p className="text-[15px] text-[#4f4f4f] mt-2">{offerSnap ? T.pdfDoneText : T.doneText}</p>
-          <p className="text-lg font-semibold text-gray-900 mt-2">{result?.quote_number}</p>
-          {/* the price after the details: when it was hidden until now, or with the offer */}
-          {calc && (offerSnap || priceMode === 'end') && <div className="mt-5 inline-flex flex-col items-center rounded-xl border border-gray-200 bg-white px-6 py-4">
-            <span className="text-sm font-medium text-[#4f4f4f]">{T.yourTotal}</span>
-            <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(offerSnap?.total_gross ?? totals.gross, cur)}</span>
-          </div>}
-          {offerSnap && <div><button onClick={() => downloadOffer(offerSnap, result?.quote_number ?? '')}
-            className="mt-5 inline-flex items-center gap-2 h-11 px-5 rounded-lg text-sm font-semibold text-white hover:opacity-90" style={btn}><FileText className="w-4 h-4" />{T.pdfAgain}</button></div>}
-          <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })) }}
-            className="mt-6 text-sm font-medium hover:underline" style={{ color: accent }}>{T.newOne}</button>
+        <div className="max-w-xl mx-auto px-4 py-10 sm:py-16">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] px-6 py-8 sm:px-10 sm:py-10 text-center">
+            <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-7 h-7" strokeWidth={2.5} /></div>
+            <h1 className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 mt-5">{offerSnap ? T.pdfDoneTitle : T.doneTitle}</h1>
+            <p className="text-[15px] leading-6 text-[#4f4f4f] mt-2 max-w-md mx-auto">{offerSnap ? T.pdfDoneText : T.doneText}</p>
+
+            {/* the number and, when the price is shown after the details, the total */}
+            <dl className="mt-6 rounded-xl bg-[#f7f7f8] border border-gray-200 text-left divide-y divide-gray-200">
+              <div className="flex items-baseline justify-between gap-4 px-4 py-3">
+                <dt className="text-sm text-[#4f4f4f]">{offerSnap ? T.quoteNoLabel : T.enquiryNoLabel}</dt>
+                <dd className="text-[15px] font-semibold text-gray-900 tabular-nums">{result?.quote_number}</dd>
+              </div>
+              {calc && (offerSnap || priceMode === 'end') && <div className="flex items-baseline justify-between gap-4 px-4 py-3">
+                <dt className="text-sm text-[#4f4f4f]">{T.yourTotal}</dt>
+                <dd className="text-[22px] leading-7 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(offerSnap?.total_gross ?? totals.gross, cur)}</dd>
+              </div>}
+            </dl>
+
+            <div className="mt-6 flex flex-col gap-2.5">
+              {offerSnap && <button onClick={() => downloadOffer(offerSnap, result?.quote_number ?? '')}
+                className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}><FileText className="w-4 h-4" />{T.pdfAgain}</button>}
+              <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })); window.scrollTo({ top: 0 }) }}
+                className={cn('w-full h-11 rounded-lg text-sm font-semibold transition-colors', offerSnap ? 'border border-gray-200 bg-white text-gray-900 hover:border-gray-400' : 'text-white hover:opacity-90')} style={offerSnap ? undefined : btn}>{T.newOne}</button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className={cn('w-full px-4 sm:px-6 lg:px-8 py-6 grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start', 'max-w-[1480px] mx-auto')}>
@@ -1474,9 +1487,10 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                 </div>}
               </div>
             ) : (
-              /* Contact stage */
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <button type="button" onClick={() => setStage('review')} className="self-start inline-flex items-center gap-2 h-10 pl-3 pr-4 mb-4 rounded-[10px] border border-gray-200 bg-white text-sm font-semibold text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-gray-400 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
+              /* Contact stage: the way back is a button above the card */
+              <div className="flex flex-col items-start gap-3">
+                <button type="button" onClick={() => setStage('review')} className="self-start inline-flex items-center gap-2 h-10 pl-3 pr-4 rounded-[10px] border border-gray-200 bg-white text-sm font-semibold text-gray-900 shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-gray-400 transition-colors"><ArrowLeft className="w-4 h-4" />{T.backToReview}</button>
+              <div className="w-full bg-white border border-gray-200 rounded-xl p-6">
                 <h2 className="text-lg font-semibold tracking-[-0.01em] text-gray-900 mb-5">{T.contact}</h2>
                 <div className="inline-flex p-1 rounded-[10px] bg-[#f1f1f1] mb-5">
                   {(['person', 'company'] as const).map(k => <button key={k} type="button" onClick={() => setContact({ ...contact, customer_type: k })}
@@ -1525,6 +1539,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                   {T.consent}
                 </label>
                 {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+              </div>
               </div>
             )}
           </div>
@@ -1590,12 +1605,11 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                   <span className="font-semibold text-gray-900 whitespace-nowrap tabular-nums">{money(items.reduce((a, x) => a + (priceOf(x) ?? 0) * x.quantity, 0), cur)}</span>
                 </li>
               </ul>}
-              {!internal && serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 mt-3 space-y-1">
-                <li className="text-[13px] font-medium text-[#4f4f4f]">{T.servicesTitle}</li>
-                {serviceRows.map(r => <li key={r.option.id} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-gray-900 min-w-0 truncate">{r.option.name} <span className="text-[13px] text-[#4f4f4f]">{Number(r.option.price_piece ?? 0) > 0 || (r.option.per_item && r.option.per_item !== 'window') ? `${r.qty.toLocaleString('de-DE')} ${L.unitShort.piece}` : r.option.pricing === 'flat' || r.option.pricing === 'percent' ? '' : `${r.qty.toLocaleString('de-DE')} ${L.unitShort[r.option.pricing]}`}</span></span>
-                  {show && <span className="font-medium text-gray-900 whitespace-nowrap">{money(r.total, cur)}</span>}
-                </li>)}
+              {!internal && serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 mt-3">
+                <li className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="font-semibold text-gray-900">{T.servicesTitle}</span>
+                  {show && <span className="font-semibold text-gray-900 whitespace-nowrap tabular-nums">{money(serviceRows.reduce((a, r) => a + r.total, 0), cur)}</span>}
+                </li>
               </ul>}
               {internal ? null : show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
@@ -1626,6 +1640,8 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                 <button disabled={!canFinish} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toContact}</button>
                 {!canFinish && <p className="text-[13px] text-[#8a8a8a] mt-2 text-center">{finishNote}</p>}
+                <button type="button" onClick={() => { if (window.confirm(T.startOverConfirm)) { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })); window.scrollTo({ top: 0 }) } }}
+                  className="mt-2 w-full h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-[#4f4f4f] hover:border-gray-400 hover:text-gray-900 transition-colors"><RotateCcw className="w-4 h-4" />{T.startOver}</button>
               </>
               ) : (
                 (() => {
@@ -1794,7 +1810,7 @@ function OptionGroupPicker({ group, title, options, selected, onToggle, onClear,
 
 // Selected state, same as in the app: outline + light tint in the accent colour + check badge
 const tint = (hex: string, a: number) => /^#[0-9a-f]{6}$/i.test(hex) ? hex + Math.round(a * 255).toString(16).padStart(2, '0') : 'transparent'
-const selStyle = (accent: string): React.CSSProperties => ({ borderColor: accent, boxShadow: `inset 0 0 0 1px ${accent}`, backgroundColor: tint(accent, 0.04) })
+const selStyle = (accent: string): React.CSSProperties => ({ borderColor: accent, boxShadow: `inset 0 0 0 1px ${accent}`, backgroundColor: tint(accent, 0.07) })
 /** the "none" choice: an empty light-grey tile with a thin grey border, the size of the other samples (56 px), so every card looks the same */
 function NoneTile() {
   return <span className="w-14 h-14 rounded-lg bg-[#fafafa] border border-gray-200 flex items-center justify-center text-gray-400"><Ban className="w-6 h-6" strokeWidth={1.5} /></span>

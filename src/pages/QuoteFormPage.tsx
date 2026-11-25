@@ -659,7 +659,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   if (!readOnly && company && !hasPerm('quotes', 'create')) return <Navigate to="/quotes" replace />
 
   const ro = readOnly
-  const border = ro ? 'border-[#dfdfdf]' : 'border-gray-200'
+  const border = ro ? 'border-[#f0f0f0]' : 'border-gray-200'
   const selectedCustomer = customers.find(c => c.id === customerId)
   const custAddr = selectedCustomer ? [selectedCustomer.address_street, [selectedCustomer.address_postal_code, selectedCustomer.address_city].filter(Boolean).join(' ')].filter(Boolean).join(', ') : ''
   const companyTerms = (company?.payment_terms_list ?? []) as string[]
@@ -728,7 +728,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#4f4f4f]">{s.customer}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#4f4f4f' }}>{selectedCustomer?.name ?? '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#f0f0f0', color: '#4f4f4f' }}>{selectedCustomer?.name ?? '—'}</div>
                   : <CustomerSearch customers={customers} value={customerId} placeholder={o.searchCustomer} emptyText={o.noCustomerMatch}
                       labels={{ person: o.typePerson, company: o.typeCompany }}
                       onChange={cid => {
@@ -812,7 +812,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               <div className="lg:col-span-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#4f4f4f]">{s.paymentTerms}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#dfdfdf', color: '#4f4f4f' }}>{paymentTerms || '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#f0f0f0', color: '#4f4f4f' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
                     ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-900 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
                     : <Select value={paymentTerms} onChange={setPaymentTerms}
@@ -824,7 +824,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-[#4f4f4f]">{s.notes}</label>
               <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder={ro ? '' : o.notesHint}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:border-[#dfdfdf]" />
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:border-[#f0f0f0]" />
             </div>
           </fieldset>
 
@@ -862,7 +862,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
         {/* ── Windows (configurator) ───────────────────── */}
         {(cfg || windowLines.length > 0) && <div className={`bg-white rounded-xl border mb-5 ${border}`}>
-          <div className={`flex items-center justify-between gap-2 px-6 py-3.5 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
+          <div className={`flex items-center justify-between gap-2 px-6 py-3.5 border-b ${ro ? 'border-[#f0f0f0]' : 'border-gray-100'}`}>
             <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{o.windowsTitle}</h2>
             {!ro && cfg && <Button size="sm" onClick={() => setCfgOpen({})} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addWindow}</Button>}
           </div>
@@ -926,7 +926,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
         {/* ── Services, computed from the windows ─────── */}
         {(cfg && svcOptions.length > 0 && !ro) || serviceLines.length > 0 ? <div className={`bg-white rounded-xl border mb-5 ${border}`}>
-          <div className={`px-6 py-3.5 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
+          <div className={`px-6 py-3.5 border-b ${ro ? 'border-[#f0f0f0]' : 'border-gray-100'}`}>
             <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{o.servicesTitle}</h2>
             {!ro && <p className="text-[13px] text-[#4f4f4f] mt-0.5">{o.servicesHint}</p>}
           </div>
@@ -965,7 +965,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
         {/* ── Lines ─────────────────────────────────────── */}
         <div id="general-lines" className={`bg-white rounded-xl border overflow-hidden mb-5 ${border}`}>
-          <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#dfdfdf]' : 'border-gray-100'}`}>
+          <div className={`flex items-center justify-between gap-2 px-6 py-3 border-b ${ro ? 'border-[#f0f0f0]' : 'border-gray-100'}`}>
             <h2 className="text-base font-semibold text-gray-900">{o.lines}</h2>
             {!ro && <Button variant="secondary" size="sm" onClick={() => addLine('')} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{lang === 'en' ? 'Add item' : 'Dodaj postavko'}</Button>}
           </div>
@@ -987,7 +987,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 const rl = freeLines.filter(l => l.room === rn)
                 const sub = rl.reduce((a, l) => a + lineTotal(num(l)), 0)
                 return (
-                  <tbody key={rn || '__general'} className={`divide-y ${ro ? 'divide-[#dfdfdf]' : 'divide-gray-100'}`}>
+                  <tbody key={rn || '__general'} className={`divide-y ${ro ? 'divide-[#f0f0f0]' : 'divide-gray-100'}`}>
                     {grouped && (
                       <tr className="bg-[#fbfbfb]">
                         <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-2">

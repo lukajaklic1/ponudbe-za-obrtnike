@@ -7,4 +7,4 @@ export const THEME_FONTS: { key: string; label: string; stack: string | null }[]
   { key: 'trebuchet', label: 'Trebuchet', stack: "'Trebuchet MS', 'Lucida Grande', sans-serif" },
   { key: 'georgia', label: 'Georgia (serif)', stack: "Georgia, 'Times New Roman', serif" },
 ]
-export const THEME_DEFAULTS = { bg: '#f5f5f6', button: '#131313', ink: '#111827', muted: '#4f4f4f', border: '#dfdfdf' }
+export const THEME_DEFAULTS = { bg: '#f5f5f6', button: '#131313', ink: '#111827', muted: '#3a3a3a', border: '#f0f0f0' }

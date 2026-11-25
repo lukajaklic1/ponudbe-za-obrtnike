@@ -18,19 +18,25 @@ const TXT = {
   sl: {
     title: 'Objava', save: 'Shrani', saved: 'Shranjeno.',
     logoSize: 'Velikost logotipa', logoSizeHint: 'Logotip naložite v Nastavitvah; prazen rob okoli njega se obreže sam.', logoSizes: { s: 'Majhen', m: 'Srednji', l: 'Velik' } as Record<string, string>,
-    modeTitle: 'Kako deluje konfigurator za stranke', modeHint: 'Izberite, ali stranka vidi cene in kaj dobi na koncu. Stranko dobite vedno na seznamu ponudb: kot Povpraševanje (ponudbo izdate vi) ali kot Ponudba prenesena (stranka že ima ponudbo).',
-    priceModeLabel: 'Cene',
+    modeTitle: 'Kako deluje konfigurator za stranke', modeHint: 'Izberite eno od spodnjih opcij, ki bo definirala vaš konfigurator.',
+    combos: [
+      ['live', 'pdf', 'Sprotne cene, ponudba takoj', 'Stranka med konfiguracijo vidi sprotne cene. Po konfiguraciji in oddaji osebnih podatkov sama prenese ponudbo (PDF), vi dobite obvestilo. Na seznamu ima status Ponudba prenesena.'],
+      ['live', 'enquiry', 'Sprotne cene, povpraševanje', 'Stranka med konfiguracijo vidi sprotne cene. Po konfiguraciji in oddaji osebnih podatkov pošlje povpraševanje. Vi ponudbo pregledate, izdate in pošljete stranki.'],
+      ['never', 'pdf', 'Brez cen, ponudba takoj', 'Stranka med konfiguracijo cen ne vidi. Po oddaji osebnih podatkov sama prenese ponudbo s cenami (PDF), vi dobite obvestilo.'],
+      ['never', 'enquiry', 'Brez cen, povpraševanje', 'Stranka cen ne vidi. Po konfiguraciji in oddaji osebnih podatkov pošlje povpraševanje. Vi pripravite in pošljete ponudbo.'],
+    ] as [string, string, string, string][],
+    priceModeLabel: 'Kdaj stranka vidi cene?',
     priceModes: [
-      ['live', 'Sproti', 'Stranka vidi ceno okna in vsakega doplačila med izbiranjem.'],
-      ['end', 'Šele na koncu', 'Med izbiranjem brez cen, ceno vidi, ko vpiše svoje podatke.'],
-      ['range', 'Okvirno (od–do)', 'Namesto natančne cene razpon, na primer od 820 do 980 €.'],
-      ['never', 'Nikoli', 'Stranka cen ne vidi, pošlje samo povpraševanje.'],
+      ['live', 'Med izbiranjem', 'Ceno vidi že med konfiguriranjem, za okno in vsako opremo.'],
+      ['end', 'Po vnosu podatkov', 'Med izbiranjem cen ne vidi. Ceno vidi, ko vpiše svoje podatke.'],
+      ['range', 'Samo okvirno', 'Namesto cene vidi razpon, na primer od 820 do 980 €.'],
+      ['never', 'Nikoli', 'Cen ne vidi. Pošlje samo povpraševanje.'],
     ] as [string, string, string][],
-    endModeLabel: 'Na koncu',
+    endModeLabel: 'Kaj se zgodi, ko stranka odda podatke?',
     endModes: [
-      ['enquiry', 'Pošlje povpraševanje', 'Status Povpraševanje: stranka pošlje povpraševanje, vi izdate in pošljete ponudbo.'],
-      ['pdf', 'Takoj prenese ponudbo', 'Status Ponudba prenesena: stranka vpiše podatke in prenese ponudbo (PDF), vas pa obvestimo.'],
-      ['choose', 'Stranka izbere', 'Stranka izbere: prenese ponudbo (Ponudba prenesena) ali pošlje povpraševanje (Povpraševanje).'],
+      ['enquiry', 'Pošlje se povpraševanje', 'Stranka pošlje povpraševanje, ponudbo ji pripravite in pošljete vi. Na seznamu ima status Povpraševanje.'],
+      ['pdf', 'Ponudbo dobi takoj', 'Stranka po vnosu podatkov sama prenese ponudbo (PDF). Vi dobite obvestilo, na seznamu ima status Ponudba prenesena.'],
+      ['choose', 'Stranka izbere', 'Stranka sama izbere: prenese ponudbo ali pošlje povpraševanje.'],
     ] as [string, string, string][],
     modeResult: (p: string, e: string) => e !== 'enquiry' && p === 'never'
       ? 'Stranka cen med izbiranjem ne vidi, na koncu pa prenese ponudbo s cenami.'
@@ -49,19 +55,25 @@ const TXT = {
   en: {
     title: 'Publishing', save: 'Save', saved: 'Saved.',
     logoSize: 'Logo size', logoSizeHint: 'Upload the logo in Settings; the empty margin around it is cut away.', logoSizes: { s: 'Small', m: 'Medium', l: 'Large' } as Record<string, string>,
-    modeTitle: 'How the configurator works for customers', modeHint: 'Choose whether the customer sees prices and what they get at the end. The customer always appears in your quotes list: as an Enquiry (you issue the quote) or as an Offer downloaded (the customer already has the quote).',
-    priceModeLabel: 'Prices',
+    modeTitle: 'How the configurator works for customers', modeHint: 'Choose one of the options below to define your configurator.',
+    combos: [
+      ['live', 'pdf', 'Live prices, quote right away', 'The customer sees live prices while configuring. After configuring and entering their details they download the quote (PDF) themselves, you are notified. Status in the list: Offer downloaded.'],
+      ['live', 'enquiry', 'Live prices, enquiry', 'The customer sees live prices while configuring. After entering their details they send an enquiry. You review, issue and send the quote.'],
+      ['never', 'pdf', 'No prices, quote right away', 'The customer sees no prices while configuring. After entering their details they download the quote with prices (PDF), you are notified.'],
+      ['never', 'enquiry', 'No prices, enquiry', 'The customer sees no prices. After configuring and entering their details they send an enquiry. You prepare and send the quote.'],
+    ] as [string, string, string, string][],
+    priceModeLabel: 'When does the customer see prices?',
     priceModes: [
-      ['live', 'Live', 'The customer sees the price of the window and every extra while choosing.'],
-      ['end', 'Only at the end', 'No prices while choosing, the price after entering their details.'],
-      ['range', 'Estimate (from–to)', 'A range instead of the exact price, e.g. from 820 to 980 €.'],
-      ['never', 'Never', 'The customer does not see prices and only sends an enquiry.'],
+      ['live', 'While choosing', 'They see the price while configuring, for the window and every extra.'],
+      ['end', 'After entering details', 'No prices while choosing. They see the price once they enter their details.'],
+      ['range', 'Estimate only', 'A range instead of the price, e.g. from 820 to 980 €.'],
+      ['never', 'Never', 'No prices. They only send an enquiry.'],
     ] as [string, string, string][],
-    endModeLabel: 'At the end',
+    endModeLabel: 'What happens when the customer submits their details?',
     endModes: [
-      ['enquiry', 'Sends an enquiry', 'Status Enquiry: the customer sends an enquiry, you issue and send the quote.'],
-      ['pdf', 'Downloads the quote', 'Status Offer downloaded: the customer enters their details and downloads the quote (PDF), you are notified.'],
-      ['choose', 'The customer chooses', 'The customer chooses: download the quote (Offer downloaded) or send an enquiry (Enquiry).'],
+      ['enquiry', 'An enquiry is sent', 'The customer sends an enquiry and you prepare and send the quote. Status in the list: Enquiry.'],
+      ['pdf', 'They get the quote right away', 'After entering details the customer downloads the quote (PDF) themselves. You are notified, status: Offer downloaded.'],
+      ['choose', 'The customer chooses', 'The customer picks: download the quote or send an enquiry.'],
     ] as [string, string, string][],
     modeResult: (p: string, e: string) => e !== 'enquiry' && p === 'never'
       ? 'The customer sees no prices while choosing and downloads a quote with prices at the end.'
@@ -161,6 +173,11 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       {canEdit && (form.enabled
         ? <Button variant="secondary" loading={toggling} onClick={() => setPublished(false)}>{T.hide}</Button>
         : <Button loading={toggling} onClick={() => setPublished(true)}>{T.publish}</Button>)}
+      {slugOk && <div className="basis-full flex flex-wrap items-center gap-2">
+        <input readOnly value={url} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 bg-gray-50" />
+        <Button variant="secondary" className="gap-1.5" onClick={() => copy(url)}><Copy className="w-4 h-4" />{T.copy}</Button>
+        <a href={url} target="_blank" rel="noreferrer"><Button variant="secondary" className="gap-1.5"><ExternalLink className="w-4 h-4" />{T.open}</Button></a>
+      </div>}
     </Card>
 
     <Card className="p-5 space-y-5">
@@ -168,23 +185,17 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
         <h2 className="text-base font-semibold text-gray-900">{T.modeTitle}</h2>
         <p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.modeHint}</p>
       </div>
-      {([['priceMode', T.priceModeLabel, T.priceModes], ['endMode', T.endModeLabel, T.endModes]] as const).map(([key, label, opts]) => (
-        <div key={key}>
-          <label>{label}</label>
-          <div className="grid sm:grid-cols-2 gap-2 mt-2">
-            {opts.map(([value, title, hint]) => { const on = form[key] === value
-              return <button key={value} type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, [key]: value }))}
-                className={cn('text-left rounded-xl border px-4 py-3 transition-colors', on ? 'border-[#26897a] bg-[#eef8f6]' : 'border-gray-200 bg-white hover:border-gray-400')}>
-                <div className="flex items-center gap-2">
-                  <span className={cn('w-4 h-4 rounded-full border-2 shrink-0', on ? 'border-[#26897a] bg-[#26897a] shadow-[inset_0_0_0_2px_#fff]' : 'border-gray-300')} />
-                  <span className="text-[15px] font-semibold text-gray-900">{title}</span>
-                </div>
-                <p className="text-sm font-medium text-[#4f4f4f] mt-1 pl-6">{hint}</p>
-              </button> })}
-          </div>
-        </div>
-      ))}
-      <p className="text-sm font-medium text-[#4f4f4f]">{T.modeResult(form.priceMode, form.endMode)}</p>
+      <div className="grid gap-2">
+        {T.combos.map(([pm, em, , hint]) => { const on = form.priceMode === pm && form.endMode === em
+          return <button key={pm + em} type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, priceMode: pm, endMode: em }))}
+            className={cn('text-left rounded-xl border px-4 py-3 transition-colors', on ? 'border-[#26897a] bg-[#eef8f6]' : 'border-gray-200 bg-white hover:border-gray-400')}>
+            <div className="flex items-start gap-3">
+              <span className={cn('w-4 h-4 mt-1 rounded-full border-2 shrink-0', on ? 'border-[#26897a] bg-[#26897a] shadow-[inset_0_0_0_2px_#fff]' : 'border-gray-300')} />
+              <span className="text-[15px] leading-6 font-medium text-gray-900">{hint}</span>
+            </div>
+          </button> })}
+      </div>
+      {canEdit && <div className="flex justify-end"><Button onClick={save} loading={saving}>{T.save}</Button></div>}
     </Card>
 
     <Card className="p-5 space-y-4">

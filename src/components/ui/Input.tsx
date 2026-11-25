@@ -36,7 +36,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={id}
             className={cn(
-              'field-control block w-full rounded-lg border px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:border-[#dfdfdf] disabled:cursor-not-allowed',
+              'field-control block w-full rounded-lg border px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:border-[#f0f0f0] disabled:cursor-not-allowed',
               error
                 ? 'border-red-400 bg-red-50 focus:ring-red-400'
                 : 'border-gray-200 bg-white hover:border-gray-400',

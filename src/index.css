@@ -119,7 +119,7 @@ fieldset:disabled input,
 fieldset:disabled textarea {
   background-color: #f9fafb !important;
   color: #4f4f4f !important;
-  border-color: #dfdfdf !important;
+  border-color: #f0f0f0 !important;
   cursor: not-allowed;
 }
 
@@ -127,7 +127,7 @@ fieldset:disabled select {
   background-color: #f9fafb !important;
   color: #4f4f4f !important;
   -webkit-text-fill-color: #4f4f4f !important;
-  border-color: #dfdfdf !important;
+  border-color: #f0f0f0 !important;
   cursor: not-allowed;
 }
 
@@ -137,7 +137,7 @@ fieldset:disabled textarea:hover,
 fieldset:disabled input:focus,
 fieldset:disabled select:focus,
 fieldset:disabled textarea:focus {
-  border-color: #dfdfdf !important;
+  border-color: #f0f0f0 !important;
   outline: none !important;
   box-shadow: none !important;
 }
@@ -148,7 +148,7 @@ fieldset:disabled textarea:focus {
 .robust h1, .robust h2, .robust h3 { letter-spacing: -0.01em; }
 /* top-level cards: hairline border and the faintest shadow (cards inside cards stay flat) */
 .robust main :is(.rounded-xl, .rounded-2xl).border:not(:is(.rounded-xl, .rounded-2xl).border .rounded-xl) {
-  border-color: #dfdfdf;
+  border-color: #f0f0f0;
   box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03);
 }
 /* fields and dropdowns: a soft shadow under the border like Levelpath (the selected field shows its teal ring instead) */
@@ -174,7 +174,7 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 /* tables: light grey header with dividers between columns, rows split by hairlines */
 .robust main table { border-collapse: separate; border-spacing: 0; }
 .robust main thead tr, .robust main thead { background: #fafafa; }
-.robust main thead th { font-size: 15px; font-weight: 500; color: #4f4f4f; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #dfdfdf; }
+.robust main thead th { font-size: 15px; font-weight: 500; color: #4f4f4f; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
 /* sort arrows in front of the column name, like Levelpath */
 .robust main th > span.inline-flex { flex-direction: row-reverse; justify-content: flex-end; }
 .robust main th > span.inline-flex > span.ml-1 { margin-left: 0; margin-right: 6px; }
@@ -214,7 +214,7 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .req-star { color: #8a0f29; font-weight: 600; }
 /* a table directly followed by its footer: one frame with square bottom corners */
 .robust main .rounded-xl:has(+ .table-footer) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-.robust main .table-footer { border-color: #dfdfdf; }
+.robust main .table-footer { border-color: #f0f0f0; }
 .robust main .rounded-xl:has(+ .table-footer) { box-shadow: 0 1px 2px rgba(16, 24, 40, .03); }
 .robust main .table-footer { box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03); }
 /* first column (the record's name) a little stronger; header labels on one line */
@@ -234,10 +234,10 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 
 /* configurator (public page and inside a quote): the app's soft shadow on cards, option cards and chips */
 .cfg-scope :is(.rounded-xl, .rounded-2xl, .rounded-\[10px\]).border {
-  border-color: var(--cfg-border, #dfdfdf);
+  border-color: var(--cfg-border, #f0f0f0);
   box-shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .03);
 }
-.cfg-scope button:is(.rounded-xl, .rounded-2xl, .rounded-\[10px\]).border:hover { border-color: #c4c4c4; }
+.cfg-scope button:is(.rounded-xl, .rounded-2xl, .rounded-\[10px\]).border:hover { border-color: #dcdcdc; }
 
 /* configurator: a new step fades and slides in */
 @keyframes cfg-step-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -245,19 +245,22 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 @media (prefers-reduced-motion: reduce) { .cfg-step-in { animation: none; } }
 
 /* configurator, public page: a clearer hierarchy (bigger, tighter step titles; readable card labels, descriptions and prices) */
-.cfg-public h2 { font-size: 22px; line-height: 30px; letter-spacing: -0.02em; font-weight: 600; }
-.cfg-public button.rounded-xl .text-sm.font-medium { font-size: 15px; line-height: 22px; }
+.cfg-public h2 { font-size: 19px; line-height: 27px; letter-spacing: -0.02em; font-weight: 600; }
+.cfg-public button.rounded-xl .text-sm.font-medium { font-size: 14px; line-height: 20px; }
 .cfg-public button.rounded-xl .text-sm.font-medium.mt-2 { font-weight: 600; }
-.cfg-public button.rounded-xl .text-\[13px\] { font-size: 14px; line-height: 20px; color: var(--cfg-muted, #4a4a4a); }
+.cfg-public button.rounded-xl .text-\[13px\] { font-size: 13px; line-height: 18px; color: var(--cfg-muted, #3a3a3a); }
 
 /* configurator, public page: the supplier's own look (--cfg-* set on the page; without them every value is the default) */
 .cfg-public.cfg-public { background-color: var(--cfg-bg, #f5f5f6); font-family: var(--cfg-font, inherit); color: var(--cfg-ink, #111827); }
 .cfg-public :is(button, input, select, textarea) { font-family: inherit; }
 .cfg-public .bg-\[\#131313\] { background-color: var(--cfg-button, #131313); }
 .cfg-public .text-gray-900, .cfg-public .text-\[\#131313\] { color: var(--cfg-ink, #111827); }
-.cfg-public .text-\[\#4f4f4f\], .cfg-public .text-\[\#4a4a4a\] { color: var(--cfg-muted, #4f4f4f); }
-.cfg-public .border-\[\#dfdfdf\], .cfg-public .border-gray-200 { border-color: var(--cfg-border, #dfdfdf); }
+.cfg-public .text-\[\#4f4f4f\], .cfg-public .text-\[\#4a4a4a\] { color: var(--cfg-muted, #3a3a3a); }
+.cfg-public .border-\[\#f0f0f0\], .cfg-public .border-gray-200 { border-color: var(--cfg-border, #f0f0f0); }
 
 /* dropdowns and date fields look like the text fields: same weight, same height */
 .robust main button.field-control { font-weight: 500; }
 .robust main input[type=date].field-control, .robust main input[type=date] { height: 40px; }
+
+/* configurator, public page: the light grey texts (step counter, notes under buttons) a bit stronger */
+.cfg-public .text-\[\#8a8a8a\], .cfg-public .text-gray-400 { color: #5f5f5f; }
