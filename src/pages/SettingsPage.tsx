@@ -39,7 +39,7 @@ const LBL = {
 }
 
 // Same look as the Input component, so every field on the page matches the rest of the app
-const LABEL = 'block text-xs font-medium text-[#4f4f4f] mb-1.5'
+const LABEL = 'block text-xs font-medium text-[#6a6a6a] mb-1.5'
 const TEXTAREA = 'block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y disabled:bg-gray-50 disabled:cursor-not-allowed'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HRK']
@@ -183,7 +183,7 @@ export default function SettingsPage() {
               <NumberInput label={o.unpaidCapital} unit="€" value={form.unpaid_capital ?? null} decimals={2} onValue={v => setForm(f => ({ ...f, unpaid_capital: v }))} />
             </>}
           </div>
-          <p className="text-xs font-medium text-[#4f4f4f] mt-3">{o.legalHint}</p>
+          <p className="text-xs font-medium text-[#6a6a6a] mt-3">{o.legalHint}</p>
           <div className="mt-5">
             <span className={LABEL}>{x.logo}</span>
             <div role="button" tabIndex={0}
@@ -194,7 +194,7 @@ export default function SettingsPage() {
               onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) uploadLogo(f) }}
               className={cn('flex items-center gap-5 rounded-lg border border-dashed px-5 py-6 cursor-pointer transition-colors', dragOver ? 'border-gray-900 bg-gray-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/60')}>
               <div className="w-36 h-20 rounded-md border border-gray-200 bg-white flex items-center justify-center overflow-hidden shrink-0"
-                style={form.logo_url ? undefined : { backgroundImage: 'linear-gradient(45deg,#f4f4f5 25%,transparent 25%,transparent 75%,#f4f4f5 75%),linear-gradient(45deg,#f4f4f5 25%,transparent 25%,transparent 75%,#f4f4f5 75%)', backgroundSize: '12px 12px', backgroundPosition: '0 0,6px 6px' }}>
+                style={form.logo_url ? undefined : { backgroundImage: 'linear-gradient(45deg,#f5f3ef 25%,transparent 25%,transparent 75%,#f5f3ef 75%),linear-gradient(45deg,#f5f3ef 25%,transparent 25%,transparent 75%,#f5f3ef 75%)', backgroundSize: '12px 12px', backgroundPosition: '0 0,6px 6px' }}>
                 {form.logo_url ? <img src={form.logo_url} alt="" className="max-w-full max-h-full object-contain p-2" /> : <ImageIcon className="w-5 h-5 text-gray-300" />}
               </div>
               <div className="min-w-0 flex-1">
@@ -202,7 +202,7 @@ export default function SettingsPage() {
                   <Upload className="w-3.5 h-3.5 text-gray-500" />
                   {uploading ? x.uploading : form.logo_url ? x.replaceLogo : x.uploadLogo}
                 </div>
-                <p className="text-xs font-medium text-[#4f4f4f] mt-0.5">{x.logoHint}</p>
+                <p className="text-xs font-medium text-[#6a6a6a] mt-0.5">{x.logoHint}</p>
               </div>
               {form.logo_url && <button type="button" onClick={e => { e.stopPropagation(); removeLogo() }}
                 className="shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium text-gray-500 hover:text-red-600 hover:bg-red-50">{x.removeLogo}</button>}
@@ -225,7 +225,7 @@ export default function SettingsPage() {
             <Input id="next_num" label={s.nextQuoteNumber} type="number" value={String(nextNum)}
               onChange={e => setForm(f => ({ ...f, quote_counter: Math.max(0, (parseInt(e.target.value) || 1) - 1) }))} />
           </div>
-          <p className="text-xs font-medium text-[#4f4f4f] mt-2">{s.nextQuoteWillBe}: <span className="text-gray-600">{preview}</span></p>
+          <p className="text-xs font-medium text-[#6a6a6a] mt-2">{s.nextQuoteWillBe}: <span className="text-gray-600">{preview}</span></p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
             <Input id="valid_days" label={o.validDays} type="number" min={1} value={String(form.default_valid_days ?? 30)}
@@ -241,7 +241,7 @@ export default function SettingsPage() {
             <Input id="advance_pct" label={lang === 'sl' ? 'Popust ob plačilu 100% avansa (%)' : 'Discount for 100% advance payment (%)'} type="number" min={0} step="0.5"
               value={String(form.advance_discount_pct ?? 3)}
               onChange={e => setForm(f => ({ ...f, advance_discount_pct: Math.max(0, Number(e.target.value.replace(',', '.')) || 0) }))} />
-            <p className="sm:col-span-2 self-end text-sm font-medium text-[#4f4f4f] pb-2">{lang === 'sl' ? 'Ponudba pokaže ceno brez avansa in ceno ob plačilu 100% avansa. Na posamezni ponudbi ga lahko spremenite, 0 pomeni brez te cene.' : 'The quote shows the price without and with 100% advance payment. You can change it on each quote, 0 means no advance price.'}</p>
+            <p className="sm:col-span-2 self-end text-sm font-medium text-[#6a6a6a] pb-2">{lang === 'sl' ? 'Ponudba pokaže ceno brez avansa in ceno ob plačilu 100% avansa. Na posamezni ponudbi ga lahko spremenite, 0 pomeni brez te cene.' : 'The quote shows the price without and with 100% advance payment. You can change it on each quote, 0 means no advance price.'}</p>
           </div>
 
           <div className="mt-5">
@@ -249,7 +249,7 @@ export default function SettingsPage() {
               label={lang === 'sl' ? 'Nisem zavezanec za DDV (cene v ponudbah in konfiguratorju so brez DDV)' : 'Not VAT registered (quote and configurator prices without VAT)'} />
             {form.vat_payer === false && <div className="mt-3">
               <Input id="vat_exempt_note" label={x.vatNote} {...field('vat_exempt_note')} />
-              <p className="text-xs font-medium text-[#4f4f4f] mt-1">{x.vatNoteHint}</p>
+              <p className="text-xs font-medium text-[#6a6a6a] mt-1">{x.vatNoteHint}</p>
             </div>}
           </div>
 
@@ -260,7 +260,7 @@ export default function SettingsPage() {
         <Section icon={Wallet} title={s.paymentTerms}
           aside={termsSaved && <span className="inline-flex items-center gap-1 text-xs text-gray-400"><Check className="w-3.5 h-3.5" />{t.common.saved}</span>}>
           <div>
-            <p className="text-xs font-medium text-[#4f4f4f] mb-4">{o.paymentTermsHint}</p>
+            <p className="text-xs font-medium text-[#6a6a6a] mb-4">{o.paymentTermsHint}</p>
             <div className="flex flex-col gap-2">
               {terms.map((term, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -293,7 +293,7 @@ export default function SettingsPage() {
 
         {/* Bank details */}
         <Section icon={CreditCard} title={s.bankDetails}>
-          <p className="text-xs font-medium text-[#4f4f4f] mb-4">{s.bankHint}</p>
+          <p className="text-xs font-medium text-[#6a6a6a] mb-4">{s.bankHint}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="bank_name" label={s.bankName} {...field('bank_name')} />
             <Input id="bank_iban" label="IBAN" {...field('bank_iban')} />
@@ -304,7 +304,7 @@ export default function SettingsPage() {
 
         {/* General terms */}
         <Section icon={Receipt} title={s.quoteTerms}>
-          <p className="text-xs font-medium text-[#4f4f4f] mb-4">{s.quoteTermsHint}</p>
+          <p className="text-xs font-medium text-[#6a6a6a] mb-4">{s.quoteTermsHint}</p>
           <div className="flex flex-col gap-4">
             <div>
               <label className={LABEL}>{s.quoteTermsSl}</label>
@@ -337,7 +337,7 @@ function Section({ icon: Icon, title, aside, children }: { icon: React.ElementTy
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200">
-        <Icon className="w-[18px] h-[18px] text-[#4f4f4f] shrink-0" strokeWidth={1.75} />
+        <Icon className="w-[18px] h-[18px] text-[#6a6a6a] shrink-0" strokeWidth={1.75} />
         <h2 className="text-base font-semibold text-gray-900">{title}</h2>
         {aside && <div className="ml-auto">{aside}</div>}
       </div>

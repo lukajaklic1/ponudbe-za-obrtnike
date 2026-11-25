@@ -95,26 +95,26 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       className={({ isActive }) => cn(
         'group flex items-center rounded-lg mb-0.5 text-[15px] font-medium transition-colors',
         rail ? 'relative justify-center w-10 h-9 mx-auto' : 'gap-3 px-3 py-[7px]',
-        isActive ? 'nav-active bg-[#e8e8e8] text-gray-900' : 'text-[#131313] hover:bg-[#efefef]',
+        isActive ? 'nav-active bg-surface-active text-black' : 'text-[#000000] hover:bg-surface-active',
       )}
     >
-      <Icon className="w-[18px] h-[18px] shrink-0 text-[#131313]" strokeWidth={2} />
+      <Icon className={cn("w-[18px] h-[18px] shrink-0", "text-[#6a6a6a] group-[.nav-active]:text-black")} strokeWidth={2} />
       {!rail && label}
       {rail
-        ? (fresh > 0 || count > 0) && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', fresh > 0 ? 'bg-[#267a47] text-white' : 'bg-[#131313] text-white')}>{fresh > 0 ? fresh : count}</span>
+        ? (fresh > 0 || count > 0) && <span className={cn('absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold flex items-center justify-center tabular-nums', fresh > 0 ? 'bg-[#267a47] text-white' : 'bg-[#000000] text-white')}>{fresh > 0 ? fresh : count}</span>
         : <span className="ml-auto flex items-center gap-1.5">
             {fresh > 0 && <span title={newLabel} className="inline-flex items-center h-[20px] px-1.5 rounded-md bg-[#dbfce7] text-[#267a47] text-xs font-semibold tabular-nums whitespace-nowrap">{lang === 'sl' ? 'Nova' : 'New'} {fresh}</span>}
-            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f4f4f4] border border-[#e6e6e6] text-[#5f5f5f] text-xs font-semibold tabular-nums">{count}</span>}
+            {count > 0 && <span title={countTitle} className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-md bg-[#f5f3ef] border border-[#e6e6e6] text-[#6a6a6a] text-xs font-semibold tabular-nums">{count}</span>}
           </span>}
     </NavLink>
   )
   const navLink = ({ to, icon, key }: NavItem) => linkTo(to, icon, t.nav[key], key === 'quotes' ? openQuotes : 0, openLabel, key === 'quotes' ? newQuotes : 0)
 
   if (rail) return (
-    <aside className="w-14 bg-[#fafafa] border-r border-gray-200 flex flex-col h-screen shrink-0">
+    <aside className="w-14 bg-surface flex flex-col h-screen shrink-0">
       <div className="h-14 border-b border-gray-200 flex items-center justify-center shrink-0">
         <button onClick={toggle} title={lang === 'sl' ? 'Prikaži meni' : 'Show menu'} aria-label={lang === 'sl' ? 'Prikaži meni' : 'Show menu'}
-          className="p-2 rounded-lg text-[#131313] hover:bg-[#efefef] transition-colors">
+          className="p-2 rounded-lg text-[#6a6a6a] hover:bg-surface-active transition-colors">
           <PanelLeft className="w-[18px] h-[18px]" />
         </button>
       </div>
@@ -132,7 +132,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
         <div className="mt-1" title={profile ? `${profile.first_name} ${profile.last_name}` : ''}>
           <Avatar tone="brand" name={profile ? `${profile.first_name} ${profile.last_name}` : '?'} size={28} />
         </div>
-        <button onClick={handleSignOut} className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-[#efefef] transition-colors" title={t.nav.signOut} aria-label={t.nav.signOut}>
+        <button onClick={handleSignOut} className="p-2 rounded-lg text-[#6a6a6a] hover:text-gray-900 hover:bg-surface-active transition-colors" title={t.nav.signOut} aria-label={t.nav.signOut}>
           <LogOut className="w-4 h-4" />
         </button>
       </div>
@@ -140,16 +140,16 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
   )
 
   return (
-    <aside className="w-72 bg-[#fafafa] border-r border-gray-200 flex flex-col h-screen shrink-0">
+    <aside className="w-72 bg-surface flex flex-col h-screen shrink-0">
       {/* App logo — same height as PageHeader (h-[57px]) */}
       <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <AppLogo size="md" />
         <div className="flex items-center gap-1">
-          <button onClick={toggle} className="hidden lg:flex p-1.5 text-gray-400 hover:text-gray-700 hover:bg-[#f6f6f6] rounded-md transition-colors" title="Hide sidebar">
+          <button onClick={toggle} className="hidden lg:flex p-1.5 text-[#6a6a6a] hover:text-gray-700 hover:bg-surface-active rounded-md transition-colors" title="Hide sidebar">
             <PanelLeft className="w-[18px] h-[18px]" />
           </button>
           {onClose && (
-            <button onClick={onClose} className="lg:hidden p-1.5 text-gray-500 hover:text-gray-900 hover:bg-[#f6f6f6] rounded-lg transition-colors shrink-0">
+            <button onClick={onClose} className="lg:hidden p-1.5 text-[#6a6a6a] hover:text-gray-900 hover:bg-surface-active rounded-lg transition-colors shrink-0">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -160,7 +160,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
       {company && (
         <div className="px-3 pt-3 pb-1">
           <div className="flex items-center gap-2.5 px-3 py-2">
-            <Building2 className="w-4 h-4 text-[#4f4f4f] shrink-0" strokeWidth={2} />
+            <Building2 className="w-4 h-4 text-[#6a6a6a] shrink-0" strokeWidth={2} />
             <p className="text-[15px] font-semibold text-gray-900 truncate">{company.name}</p>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
           return (
             <div key={sec.id} className="mt-4">
               <button type="button" onClick={() => toggleSection(sec.id)}
-                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-semibold text-[#131313] rounded-md">
+                className="group/sec flex items-center gap-1 w-full px-3 py-1 mb-1 text-[13px] font-semibold text-[#000000] rounded-md">
                 <ChevronDown className={cn('w-3 h-3 transition-transform order-last opacity-0 group-hover/sec:opacity-100', !open && '-rotate-90')} />
                 {t.nav.sections[sec.id]}
               </button>
@@ -202,7 +202,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
                 onClick={() => setLang(l)}
                 className={cn(
                   'px-2 py-0.5 rounded text-xs font-medium transition-colors',
-                  lang === l ? 'bg-[#131313] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-[#f6f6f6]',
+                  lang === l ? 'bg-[#000000] text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-surface-active',
                 )}
               >
                 {l === 'en' ? 'EN' : 'SL'}
@@ -218,7 +218,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
               {profile ? `${profile.first_name} ${profile.last_name}` : '—'}
             </p>
           </div>
-          <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-900 transition-colors" title={t.nav.signOut}>
+          <button onClick={handleSignOut} className="text-[#6a6a6a] hover:text-gray-900 transition-colors" title={t.nav.signOut}>
             <LogOut className="w-4 h-4" />
           </button>
         </div>

@@ -156,7 +156,7 @@ export default function SuperAdminUsersPage() {
                         <span className="px-2 py-0.5 rounded-lg text-xs font-semibold"
                           style={u.is_active
                             ? { backgroundColor: '#dbfce7', color: '#267a47' }
-                            : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
+                            : { backgroundColor: '#ececec', color: '#464646' }}>
                           {u.is_active ? 'Aktiven' : 'Deaktiviran'}
                         </span>
                       </td>

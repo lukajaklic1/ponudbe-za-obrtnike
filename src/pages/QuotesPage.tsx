@@ -186,7 +186,7 @@ export default function QuotesPage() {
         <div className="ml-auto inline-flex h-8 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
-              className={`w-8 flex items-center justify-center rounded-[8px] transition-colors ${view === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.06)]' : 'text-[#4f4f4f] hover:text-gray-900'}`}>
+              className={`w-8 flex items-center justify-center rounded-[8px] transition-colors ${view === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.06)]' : 'text-[#6a6a6a] hover:text-gray-900'}`}>
               <Icon className="w-[15px] h-[15px]" strokeWidth={1.75} />
             </button>
           ))}
@@ -224,9 +224,9 @@ export default function QuotesPage() {
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
                 <div className="text-[15px] font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
-                {q.site_address && <div className="text-[13px] font-medium text-[#4f4f4f] truncate">{q.site_address}</div>}
+                {q.site_address && <div className="text-[13px] font-medium text-[#6a6a6a] truncate">{q.site_address}</div>}
                 <div className="flex items-center justify-between gap-2 mt-1.5 text-sm font-medium">
-                  <span className="text-[#4f4f4f]">{format(new Date(q.created_at), 'd. M. yyyy')}</span>
+                  <span className="text-[#6a6a6a]">{format(new Date(q.created_at), 'd. M. yyyy')}</span>
                   <span className="text-gray-900 tabular-nums">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</span>
                 </div>
               </button>
@@ -252,7 +252,7 @@ export default function QuotesPage() {
                     {q.site_address && <div className="text-[13px] text-gray-600 truncate mt-0.5">{q.site_address}</div>}
                   </td>
                   <td className="px-4 py-3 max-w-0">
-                    <div className="text-[#4f4f4f] truncate">{q.contact_email || q.customers?.email || '—'}</div>
+                    <div className="text-[#6a6a6a] truncate">{q.contact_email || q.customers?.email || '—'}</div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
@@ -260,12 +260,12 @@ export default function QuotesPage() {
                       {isOpenOffer(q.status) && (() => {
                         const n = waitingDays(q) ?? 0
                         return <span title={sl ? 'Dni od pošiljanja' : 'Days since sent'}
-                          className="text-[13px] whitespace-nowrap" style={{ color: '#4f4f4f' }}>{sentAgo(n)}</span>
+                          className="text-[13px] whitespace-nowrap" style={{ color: '#6a6a6a' }}>{sentAgo(n)}</span>
                       })()}
                     </div>
                   </td>
                   <td className="px-4 !pr-8 py-3 text-right tabular-nums whitespace-nowrap">{(Number(q.total_net) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })}</td>
-                  <td className="hidden 2xl:table-cell px-4 py-3 !text-[#4f4f4f] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
+                  <td className="hidden 2xl:table-cell px-4 py-3 !text-[#6a6a6a] whitespace-nowrap">{format(new Date(q.created_at), 'd. M. yyyy')}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <AssigneeCell
                       quoteId={q.id}
@@ -336,7 +336,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
   const label = assignee ? `${assignee.first_name} ${assignee.last_name}` : null
 
   if (!canEdit) {
-    return label ? <span className="text-[15px] text-[#4f4f4f] whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
+    return label ? <span className="text-[15px] text-[#6a6a6a] whitespace-nowrap">{label}</span> : <span className="text-gray-400">—</span>
   }
 
   return (
@@ -344,7 +344,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
       <button
         onClick={() => setOpen(o => !o)}
         disabled={saving}
-        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[15px] text-[#4f4f4f] hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap">
+        className="inline-flex items-center gap-2 -ml-1.5 pl-1.5 pr-1.5 py-1 rounded-md text-[15px] text-[#6a6a6a] hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap">
         {saving
           ? <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           : label

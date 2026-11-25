@@ -166,9 +166,9 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       <div className="flex-1 min-w-[240px]">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-semibold text-gray-900">{T.status}</h2>
-          <span className={form.enabled ? 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#dbfce7] text-[#267a47]' : 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#ececec] text-[#4a4a4a]'}>{form.enabled ? T.published : T.notPublished}</span>
+          <span className={form.enabled ? 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#dbfce7] text-[#267a47]' : 'inline-flex items-center h-[22px] px-2 rounded-md text-[13px] font-medium bg-[#ececec] text-[#464646]'}>{form.enabled ? T.published : T.notPublished}</span>
         </div>
-        <p className="text-sm font-medium text-[#4f4f4f] mt-1">{form.enabled ? T.publishedHint : T.notPublishedHint}</p>
+        <p className="text-sm font-medium text-[#6a6a6a] mt-1">{form.enabled ? T.publishedHint : T.notPublishedHint}</p>
       </div>
       {canEdit && (form.enabled
         ? <Button variant="secondary" loading={toggling} onClick={() => setPublished(false)}>{T.hide}</Button>
@@ -183,7 +183,7 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     <Card className="p-5 space-y-5">
       <div>
         <h2 className="text-base font-semibold text-gray-900">{T.modeTitle}</h2>
-        <p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.modeHint}</p>
+        <p className="text-sm font-medium text-[#6a6a6a] mt-1">{T.modeHint}</p>
       </div>
       <div className="grid gap-2">
         {T.combos.map(([pm, em, , hint]) => { const on = form.priceMode === pm && form.endMode === em
@@ -202,19 +202,19 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       <Input label={T.cfgSlug} value={form.slug} onChange={e => setForm({ ...form, slug: slugify(e.target.value) })} error={slugOk ? undefined : T.slugInvalid} disabled={!canEdit} />
       <div className="flex flex-col gap-1">
         <label>{T.logoSize}</label>
-        <p className="text-sm font-medium text-[#4f4f4f]">{T.logoSizeHint}</p>
+        <p className="text-sm font-medium text-[#6a6a6a]">{T.logoSizeHint}</p>
         <div className="inline-flex p-1 rounded-[10px] bg-[#f1f1f1] w-fit mt-1">
           {(['s', 'm', 'l'] as const).map(k => <button key={k} type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, logoSize: k }))}
-            className={cn('h-9 px-4 rounded-lg text-sm font-semibold transition-colors', form.logoSize === k ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.1)]' : 'text-[#4f4f4f] hover:text-gray-900')}>
+            className={cn('h-9 px-4 rounded-lg text-sm font-semibold transition-colors', form.logoSize === k ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.1)]' : 'text-[#6a6a6a] hover:text-gray-900')}>
             {T.logoSizes[k]}</button>)}
         </div>
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
           <label>Izgled konfiguratorja</label>
-          {Object.keys(form.theme).length > 0 && <button type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, theme: {} }))} className="text-sm font-medium text-[#4f4f4f] hover:text-gray-900 underline">Ponastavi na privzeto</button>}
+          {Object.keys(form.theme).length > 0 && <button type="button" disabled={!canEdit} onClick={() => setForm(f => ({ ...f, theme: {} }))} className="text-sm font-medium text-[#6a6a6a] hover:text-gray-900 underline">Ponastavi na privzeto</button>}
         </div>
-        <p className="text-sm font-medium text-[#4f4f4f]">Pisava in barve vaše strani. Kar ne spremenite, ostane privzeto.</p>
+        <p className="text-sm font-medium text-[#6a6a6a]">Pisava in barve vaše strani. Kar ne spremenite, ostane privzeto.</p>
         <div className="grid sm:grid-cols-2 gap-3 mt-1">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium text-gray-900">Pisava</span>
@@ -227,23 +227,23 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
               <span className="text-sm font-medium text-gray-900">{label}</span>
               <div className="flex items-center gap-2">
                 <input type="color" disabled={!canEdit} value={form.theme[k] ?? THEME_DEFAULTS[k]} onChange={e => setThemeValue(k, e.target.value)} className="h-9 w-12 rounded border border-gray-200 bg-white p-1" />
-                <span className="text-sm font-medium text-[#4f4f4f]">{form.theme[k] ?? 'privzeto'}</span>
-                {form.theme[k] && <button type="button" disabled={!canEdit} onClick={() => setThemeValue(k, null)} className="text-sm text-[#4f4f4f] hover:text-gray-900 underline">ponastavi</button>}
+                <span className="text-sm font-medium text-[#6a6a6a]">{form.theme[k] ?? 'privzeto'}</span>
+                {form.theme[k] && <button type="button" disabled={!canEdit} onClick={() => setThemeValue(k, null)} className="text-sm text-[#6a6a6a] hover:text-gray-900 underline">ponastavi</button>}
               </div>
             </div>
           ))}
         </div>
         <div style={themeVars(form.theme)} className="cfg-public rounded-xl border p-4 mt-1 min-h-0">
           <div className="text-[17px] font-semibold text-gray-900">Kaj želite kupiti?</div>
-          <div className="text-sm text-[#4f4f4f] mt-1">Tako bo videti vaš konfigurator.</div>
-          <div className="mt-3 flex gap-2"><span className="inline-flex h-10 items-center rounded-xl bg-[#131313] px-4 text-sm font-semibold text-white">Naprej</span><span className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-900">Nazaj</span></div>
+          <div className="text-sm text-[#6a6a6a] mt-1">Tako bo videti vaš konfigurator.</div>
+          <div className="mt-3 flex gap-2"><span className="inline-flex h-10 items-center rounded-xl bg-[#000000] px-4 text-sm font-semibold text-white">Naprej</span><span className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-900">Nazaj</span></div>
         </div>
       </div>
       <div className="flex flex-col gap-1">
         <label>{T.cfgAccent}</label>
         <div className="flex items-center gap-2">
           <input type="color" value={form.accent} onChange={e => setForm({ ...form, accent: e.target.value })} className="h-9 w-12 rounded border border-gray-200 bg-white p-1" />
-          <span className="text-sm font-medium text-[#4f4f4f]">{form.accent}</span>
+          <span className="text-sm font-medium text-[#6a6a6a]">{form.accent}</span>
         </div>
       </div>
       <div className="flex flex-col gap-1">
@@ -253,15 +253,15 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
       </div>
       <div>
         <label>{T.area}</label>
-        <p className="text-sm font-medium text-[#4f4f4f] mt-1 mb-3">{T.areaHint}</p>
+        <p className="text-sm font-medium text-[#6a6a6a] mt-1 mb-3">{T.areaHint}</p>
         <div className="flex flex-wrap gap-2">
           {COUNTRIES.map(c => { const on = form.area.countries.includes(c.code)
             return <button key={c.code} type="button" disabled={!canEdit}
               onClick={() => setForm(f => ({ ...f, area: { ...f.area, countries: on ? f.area.countries.filter(x => x !== c.code) : [...f.area.countries, c.code] } }))}
-              className={cn('h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors', on ? 'border-[#26897a] bg-[#eef8f6] text-gray-900' : 'border-gray-200 bg-white text-[#4f4f4f] hover:border-gray-400')}>{c.sl}</button> })}
+              className={cn('h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors', on ? 'border-[#26897a] bg-[#eef8f6] text-gray-900' : 'border-gray-200 bg-white text-[#6a6a6a] hover:border-gray-400')}>{c.sl}</button> })}
         </div>
         {form.area.countries.includes('SI') && <div className="mt-4">
-          <p className="text-sm font-medium text-[#4f4f4f] mb-2">{T.areaSi}</p>
+          <p className="text-sm font-medium text-[#6a6a6a] mb-2">{T.areaSi}</p>
           <div className="grid sm:grid-cols-2 gap-2">
             {SI_AREAS.map(a => <Checkbox key={a.key} checked={form.area.si_areas.includes(a.key)} label={a.sl}
               onChange={on => setForm(f => ({ ...f, area: { ...f.area, si_areas: on ? [...f.area.si_areas, a.key] : f.area.si_areas.filter(x => x !== a.key) } }))} />)}
@@ -272,13 +272,13 @@ function ConfiguratorSettings({ T, canEdit, company, onSaved }: { T: TT; canEdit
     </Card>
 
     <Card className="p-5 space-y-3">
-      <div><h2 className="text-base font-semibold text-gray-900">{T.cfgLink}</h2><p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.linkHint}</p></div>
+      <div><h2 className="text-base font-semibold text-gray-900">{T.cfgLink}</h2><p className="text-sm font-medium text-[#6a6a6a] mt-1">{T.linkHint}</p></div>
       <div className="flex gap-2">
         <input readOnly value={url} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 bg-gray-50" />
         <Button variant="secondary" className="gap-1.5" onClick={() => copy(url)}><Copy className="w-4 h-4" />{T.copy}</Button>
         <a href={url} target="_blank" rel="noreferrer"><Button variant="secondary" className="gap-1.5"><ExternalLink className="w-4 h-4" />{T.open}</Button></a>
       </div>
-      <div className="pt-2"><h3 className="text-base font-semibold text-gray-900">{T.embed}</h3><p className="text-sm font-medium text-[#4f4f4f] mt-1">{T.embedHint}</p></div>
+      <div className="pt-2"><h3 className="text-base font-semibold text-gray-900">{T.embed}</h3><p className="text-sm font-medium text-[#6a6a6a] mt-1">{T.embedHint}</p></div>
       <div className="flex gap-2">
         <textarea readOnly rows={2} value={embed} className="flex-1 min-w-0 font-mono text-xs rounded-lg border border-gray-200 px-3 py-2 text-gray-700 bg-gray-50" />
         <Button variant="secondary" className="gap-1.5 self-start" onClick={() => copy(embed)}><Copy className="w-4 h-4" />{T.copy}</Button>

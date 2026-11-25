@@ -36,7 +36,7 @@ export default function ConfirmDialog({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-[14px] right-[18px] p-1.5 rounded-lg text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          className="absolute top-[14px] right-[18px] p-1.5 rounded-lg text-[#6a6a6a] hover:text-gray-900 hover:bg-gray-100 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -44,7 +44,7 @@ export default function ConfirmDialog({
         {/* Content */}
         <div className="px-6 pt-[18px] pb-6">
           <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900 pr-8">{title}</h2>
-          <p className="mt-3 text-[15px] leading-6 text-[#4f4f4f]">{message}</p>
+          <p className="mt-3 text-[15px] leading-6 text-[#6a6a6a]">{message}</p>
         </div>
 
         {/* Divider + buttons */}
@@ -61,11 +61,11 @@ export default function ConfirmDialog({
             disabled={loading}
             className="inline-flex items-center gap-2 h-10 px-4 text-[15px] font-medium text-white rounded-[10px] transition-colors disabled:opacity-50"
             style={{
-              backgroundColor: danger ? '#ff5454' : '#131313',
+              backgroundColor: danger ? '#ff5454' : '#000000',
               border: danger ? '1px solid #f04f4f' : 'none',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#f04f4f' : '#000000' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#131313' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = danger ? '#ff5454' : '#000000' }}
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

@@ -89,7 +89,7 @@ export default function WindowDrawing({ template, width, height, hinge = 'left',
       <rect x={innerX} y={innerY} width={innerW} height={innerH} fill="#cfe3f3" stroke="#5b6168" strokeWidth={1} />
       {parts}
       {showDims && (
-        <g fontSize={11} fill="#8ea9c0" fontFamily="Inter, system-ui, sans-serif">
+        <g fontSize={11} fill="#8ea9c0" fontFamily="'DM Sans Variable', system-ui, sans-serif">
           <line x1={pad} y1={pad - 12} x2={pad + W} y2={pad - 12} stroke="#a3a3a3" strokeWidth={1} />
           <line x1={pad} y1={pad - 16} x2={pad} y2={pad - 8} stroke="#a3a3a3" />
           <line x1={pad + W} y1={pad - 16} x2={pad + W} y2={pad - 8} stroke="#a3a3a3" />

@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['"DM Sans Variable"', '"DM Sans"', 'sans-serif'],
       },
       colors: {
         blue: {
@@ -24,18 +24,22 @@ export default {
           950: '#0c2860',
         },
         gray: {
-          50:  '#fafafa',
-          100: '#f6f6f6',
+          50:  '#f5f3ef',
+          100: '#f5f3ef',
           200: '#f0f0f0',
           300: '#e4e4e4',
           400: '#9a9a9a',
-          500: '#4f4f4f',
-          600: '#4f4f4f',
-          700: '#45484a',
-          800: '#36393b',
-          900: '#131313',
-          950: '#131313',
+          500: '#6a6a6a',
+          600: '#6a6a6a',
+          700: '#464646',
+          800: '#464646',
+          900: '#000000',
+          950: '#000000',
         },
+        // theme tokens (same values as the CSS variables in index.css)
+        surface: { DEFAULT: '#f5f3ef', active: '#e9e8e3' },
+        ink: '#000000',
+        muted: { DEFAULT: '#6a6a6a', strong: '#464646' },
       },
     },
   },

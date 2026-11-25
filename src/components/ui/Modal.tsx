@@ -32,7 +32,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
       )}>
         <div className="flex items-center justify-between px-6 h-[60px] border-b border-[#ececec] shrink-0">
           <h2 className="text-[19px] font-bold tracking-[-0.015em] text-gray-900">{title}</h2>
-          <button onClick={onClose} className="-mr-1.5 p-1.5 rounded-lg text-[#4f4f4f] hover:text-gray-900 hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="-mr-1.5 p-1.5 rounded-lg text-[#6a6a6a] hover:text-gray-900 hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>

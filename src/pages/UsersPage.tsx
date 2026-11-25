@@ -224,14 +224,14 @@ export default function UsersPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{u.email}</td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={u.is_admin ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#ececec', color: '#4a4a4a' }}>
+                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={u.is_admin ? { backgroundColor: '#dbfce7', color: '#267a47' } : { backgroundColor: '#ececec', color: '#464646' }}>
                         {u.is_admin ? s.admin : s.member}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {u.is_active
                         ? <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#dbfce7', color: '#267a47' }}>{t.common.active}</span>
-                        : <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#ececec', color: '#4a4a4a' }}>{s.inactive}</span>}
+                        : <span className="px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: '#ececec', color: '#464646' }}>{s.inactive}</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
@@ -279,7 +279,7 @@ export default function UsersPage() {
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={s.addUser} size="lg">
         {sentTo ? (
           <div>
-            <p className="text-[15px] leading-6 text-[#4f4f4f]">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
+            <p className="text-[15px] leading-6 text-[#6a6a6a]">{s.inviteSent} <span className="font-medium text-gray-900">{sentTo}</span>.</p>
             <div className="flex justify-end -mx-6 px-6 border-t border-gray-200">
               <Button onClick={() => setInviteOpen(false)}>{t.common.close}</Button>
             </div>

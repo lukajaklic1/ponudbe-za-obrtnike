@@ -2,7 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-.text-label { color: #4f4f4f; }
+/* ── Theme tokens: one place for the app's palette and font ── */
+:root {
+  --surface: #f5f3ef;        /* light grey: sidebar and every light grey surface */
+  --surface-active: #e9e8e3; /* selected sidebar item */
+  --ink: #000000;            /* black text */
+  --muted: #6a6a6a;          /* main grey text */
+  --muted-strong: #464646;   /* darker grey text where it reads better */
+  --font-sans: 'DM Sans Variable', 'DM Sans', sans-serif;
+}
+body { font-family: var(--font-sans); color: var(--ink); }
+
+.text-label { color: #6a6a6a; }
 
 /* ── Landing page animations ── */
 @keyframes fadeUp {
@@ -100,7 +111,7 @@ html {
 }
 
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-feature-settings: normal;
 }
 
@@ -117,16 +128,16 @@ select:disabled {
 /* Disabled inputs/selects/textareas in read-only fieldset */
 fieldset:disabled input,
 fieldset:disabled textarea {
-  background-color: #f9fafb !important;
-  color: #4f4f4f !important;
+  background-color: #f5f3ef !important;
+  color: #6a6a6a !important;
   border-color: #f0f0f0 !important;
   cursor: not-allowed;
 }
 
 fieldset:disabled select {
-  background-color: #f9fafb !important;
-  color: #4f4f4f !important;
-  -webkit-text-fill-color: #4f4f4f !important;
+  background-color: #f5f3ef !important;
+  color: #6a6a6a !important;
+  -webkit-text-fill-color: #6a6a6a !important;
   border-color: #f0f0f0 !important;
   cursor: not-allowed;
 }
@@ -144,7 +155,7 @@ fieldset:disabled textarea:focus {
 
 
 /* ── Levelpath look: neutral greys, white cards with hairline borders, black actions ── */
-.robust main { background: #ffffff; color: #131313; }
+.robust main { background: #ffffff; color: #000000; }
 .robust h1, .robust h2, .robust h3 { letter-spacing: -0.01em; }
 /* top-level cards: hairline border and the faintest shadow (cards inside cards stay flat) */
 .robust main :is(.rounded-xl, .rounded-2xl).border:not(:is(.rounded-xl, .rounded-2xl).border .rounded-xl) {
@@ -158,9 +169,9 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 }
 :is(input, textarea):disabled.border { box-shadow: none; }
 /* field labels: dark and a touch bigger (hints under them stay grey) */
-.robust main label.text-xs, .robust main .field-label { font-size: 14px; color: #131313 !important; font-weight: 600; }
+.robust main label.text-xs, .robust main .field-label { font-size: 14px; color: #000000 !important; font-weight: 600; }
 /* fields: soft border, teal focus like Levelpath */
-.robust main :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { color: #131313; }
+.robust main :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { color: #000000; }
 /* example text in fields: stronger grey and medium weight like Levelpath (sampled), typed text medium too */
 :is(input, textarea)::placeholder { color: #8a8a8a !important; font-weight: 500; opacity: 1; }
 :is(.modal-body, .form-scope, .robust main) :is(input, textarea):not([type=checkbox]):not([type=radio]):not([type=color]) { font-weight: 500; }
@@ -173,17 +184,17 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 :is(.focus\:ring-blue-500:focus, .focus-within\:ring-blue-500:focus-within) { --tw-ring-offset-width: 0px; box-shadow: 0 0 0 3px rgba(38, 137, 122, .16) !important; }
 /* tables: light grey header with dividers between columns, rows split by hairlines */
 .robust main table { border-collapse: separate; border-spacing: 0; }
-.robust main thead tr, .robust main thead { background: #fafafa; }
-.robust main thead th { font-size: 15px; font-weight: 500; color: #4f4f4f; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+.robust main thead tr, .robust main thead { background: #f5f3ef; }
+.robust main thead th { font-size: 15px; font-weight: 500; color: #6a6a6a; padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
 /* sort arrows in front of the column name, like Levelpath */
 .robust main th > span.inline-flex { flex-direction: row-reverse; justify-content: flex-end; }
 .robust main th > span.inline-flex > span.ml-1 { margin-left: 0; margin-right: 6px; }
 .robust main th.text-right > span.inline-flex { justify-content: flex-start; }
-.robust main tbody td { border-bottom: 1px solid #efefef; color: #131313; }
+.robust main tbody td { border-bottom: 1px solid #efefef; color: #000000; }
 .robust main tbody tr:not(:has(input, textarea)) > td { padding-top: 11px; padding-bottom: 11px; }
 .robust main tbody tr:last-child td { border-bottom: 0; }
 .robust main table.keep-last-line tbody tr:last-child td { border-bottom: 1px solid #efefef; }
-.robust main tbody tr:hover td { background: #fafafa; }
+.robust main tbody tr:hover td { background: #f5f3ef; }
 /* popups: the button row at the bottom, white with a hairline, always visible (sticky) */
 .modal-body .\-mx-6.border-t { position: sticky; bottom: -24px; z-index: 2; background: #ffffff; border-color: #ececec; margin-top: 28px; margin-bottom: -24px; padding-top: 18px; padding-bottom: 18px; }
 .modal-body .flex-col:is(.gap-3, .gap-4) > .\-mx-6.border-t { margin-top: 8px; }
@@ -191,12 +202,12 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .robust :is(input:not([type]), input[type=text], input[type=email], input[type=tel], input[type=number], input[type=password], input[type=search], input[type=date]).py-2 { padding-top: 9px; padding-bottom: 9px; font-size: 14px; }
 /* forms like Levelpath (popups and pages marked .form-scope, e.g. Cenik): big bold field labels,
    grey help text in normal size, fields with 10 px corners and 15 px text */
-:is(.modal-body, .form-scope) label:not(:has(input)):not(.cursor-pointer), :is(.modal-body, .form-scope) .field-label { font-size: 16px !important; line-height: 22px; font-weight: 600 !important; color: #131313 !important; }
+:is(.modal-body, .form-scope) label:not(:has(input)):not(.cursor-pointer), :is(.modal-body, .form-scope) .field-label { font-size: 16px !important; line-height: 22px; font-weight: 600 !important; color: #000000 !important; }
 :is(.modal-body, .form-scope) .flex.flex-col:is(.gap-1, .gap-1\.5):has(> label, > .field-label) { gap: 6px; }
 :is(.modal-body, .form-scope) :not(.flex-col) > label:not(:has(input)) + :is(input, textarea, div, button) { margin-top: 6px; }
 :is(.modal-body, .form-scope) label.block.mb-1 { margin-bottom: 6px; }
 .modal-body .flex.flex-col:is(.gap-3, .gap-4) { row-gap: 20px; }
-:is(.modal-body, .form-scope) p:is(.text-xs, .text-\[13px\]):not(.text-red-600):not(.text-red-500) { font-size: 14px; line-height: 20px; font-weight: 400; color: #4f4f4f; }
+:is(.modal-body, .form-scope) p:is(.text-xs, .text-\[13px\]):not(.text-red-600):not(.text-red-500) { font-size: 14px; line-height: 20px; font-weight: 400; color: #6a6a6a; }
 :is(.modal-body, .form-scope) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not(.sr-only), textarea, .field-control) { border-radius: 10px; font-size: 15px; }
 :is(.modal-body, .form-scope) .rounded-lg:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) { border-radius: 10px; }
 :is(.modal-body, .form-scope) .field-control input { font-size: 15px; }
@@ -204,7 +215,7 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .form-scope :is(.space-y-2, .space-y-3):has(> * label.text-xs, > label.text-xs) > :not([hidden]) ~ :not([hidden]) { margin-top: 16px; }
 .modal-body :is(.space-y-3, .space-y-4) > :not([hidden]) ~ :not([hidden]) { margin-top: 20px; }
 .modal-body .grid:is(.gap-3, .gap-4) { row-gap: 20px; }
-:is(.modal-body, .form-scope) label:has(input[type=checkbox]) > span:last-child { font-size: 15px; color: #131313; }
+:is(.modal-body, .form-scope) label:has(input[type=checkbox]) > span:last-child { font-size: 15px; color: #000000; }
 .modal-body .\-mx-6.border-t button { border-radius: 10px; height: 40px; font-size: 15px; }
 /* popups: fields one under another, like Levelpath (grids of fields become one column) */
 .modal-body .grid:has(input:not([type=checkbox]):not([type=radio]), textarea, .field-control):not(:has(.grid)) { grid-template-columns: minmax(0, 1fr); }
@@ -248,14 +259,14 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .cfg-public h2 { font-size: 19px; line-height: 27px; letter-spacing: -0.02em; font-weight: 600; }
 .cfg-public button.rounded-xl .text-sm.font-medium { font-size: 14px; line-height: 20px; }
 .cfg-public button.rounded-xl .text-sm.font-medium.mt-2 { font-weight: 600; }
-.cfg-public button.rounded-xl .text-\[13px\] { font-size: 13px; line-height: 18px; color: var(--cfg-muted, #3a3a3a); }
+.cfg-public button.rounded-xl .text-\[13px\] { font-size: 13px; line-height: 18px; color: var(--cfg-muted, #464646); }
 
 /* configurator, public page: the supplier's own look (--cfg-* set on the page; without them every value is the default) */
-.cfg-public.cfg-public { background-color: var(--cfg-bg, #f5f5f6); font-family: var(--cfg-font, inherit); color: var(--cfg-ink, #111827); }
+.cfg-public.cfg-public { background-color: var(--cfg-bg, #f5f3ef); font-family: var(--cfg-font, inherit); color: var(--cfg-ink, #000000); }
 .cfg-public :is(button, input, select, textarea) { font-family: inherit; }
-.cfg-public .bg-\[\#131313\] { background-color: var(--cfg-button, #131313); }
-.cfg-public .text-gray-900, .cfg-public .text-\[\#131313\] { color: var(--cfg-ink, #111827); }
-.cfg-public .text-\[\#4f4f4f\], .cfg-public .text-\[\#4a4a4a\] { color: var(--cfg-muted, #3a3a3a); }
+.cfg-public .bg-\[\#000000\] { background-color: var(--cfg-button, #000000); }
+.cfg-public .text-gray-900, .cfg-public .text-\[\#000000\] { color: var(--cfg-ink, #000000); }
+.cfg-public .text-\[\#6a6a6a\], .cfg-public .text-\[\#464646\] { color: var(--cfg-muted, #464646); }
 .cfg-public .border-\[\#f0f0f0\], .cfg-public .border-gray-200 { border-color: var(--cfg-border, #f0f0f0); }
 
 /* dropdowns and date fields look like the text fields: same weight, same height */
@@ -263,4 +274,4 @@ div.border:has(> input:not([type=checkbox]):not([type=radio]):not([type=file])) 
 .robust main input[type=date].field-control, .robust main input[type=date] { height: 40px; }
 
 /* configurator, public page: the light grey texts (step counter, notes under buttons) a bit stronger */
-.cfg-public .text-\[\#8a8a8a\], .cfg-public .text-gray-400 { color: #5f5f5f; }
+.cfg-public .text-\[\#8a8a8a\], .cfg-public .text-gray-400 { color: #6a6a6a; }

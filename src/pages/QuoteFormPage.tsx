@@ -674,7 +674,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto sm:flex-1 min-w-0">
           <h1 className="text-2xl leading-8 font-bold tracking-[-0.02em] text-gray-900">{ro ? s.reviewTitle : (editMode ? s.editQuote : s.newQuote)}</h1>
-          {quoteNumber && <span className="text-sm" style={{ color: '#4f4f4f' }}>{quoteNumber}</span>}
+          {quoteNumber && <span className="text-sm" style={{ color: '#6a6a6a' }}>{quoteNumber}</span>}
           {isSaved && <QuoteStatusBadge status={status} label={s.status[status]} />}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -726,9 +726,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           <fieldset disabled={ro} className="contents">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#4f4f4f]">{s.customer}</label>
+                <label className="text-xs font-medium text-[#6a6a6a]">{s.customer}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#f0f0f0', color: '#4f4f4f' }}>{selectedCustomer?.name ?? '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f5f3ef', borderColor: '#f0f0f0', color: '#6a6a6a' }}>{selectedCustomer?.name ?? '—'}</div>
                   : <CustomerSearch customers={customers} value={customerId} placeholder={o.searchCustomer} emptyText={o.noCustomerMatch}
                       labels={{ person: o.typePerson, company: o.typeCompany }}
                       onChange={cid => {
@@ -765,13 +765,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   : <PostFields postalLabel={lang === 'en' ? 'Postal code' : 'Poštna številka'} cityLabel={lang === 'en' ? 'Town' : 'Kraj'} code={selectedCustomer.address_postal_code ?? ''} city={selectedCustomer.address_city ?? ''}
                       onChange={(address_postal_code, address_city) => editCust({ address_postal_code, address_city })} />}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Country' : 'Država'}</label>
+                  <label className="text-xs font-medium text-[#6a6a6a]">{lang === 'en' ? 'Country' : 'Država'}</label>
                   <Select value={selectedCustomer?.country ?? 'SI'} onChange={v => editCust({ country: v, address_postal_code: '', address_city: '' })} disabled={ro || !selectedCustomer || !custEdit}
                     options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
                 </div>
                 {/* sales channel: where the customer heard of the company */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
+                  <label className="text-xs font-medium text-[#6a6a6a]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
                   <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
                     options={leadSourceOptions(lang === 'en' ? 'en' : 'sl')} />
                 </div>
@@ -782,7 +782,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-3 text-[15px] font-semibold text-gray-900 pt-0 flex items-center justify-between gap-3">
                 <span>{lang === 'en' ? 'Address of the works' : 'Naslov del'}</span>
-                {!ro && selectedCustomer && <label className="flex items-center gap-2 text-[13px] font-normal normal-case tracking-normal text-[#4f4f4f] cursor-pointer"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
+                {!ro && selectedCustomer && <label className="flex items-center gap-2 text-[13px] font-normal normal-case tracking-normal text-[#6a6a6a] cursor-pointer"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
               </div>
               <div className="lg:col-span-3"><Input id="q-site" label={lang === 'en' ? 'Street and house number' : 'Ulica in hišna številka'} value={site.street} onChange={e => setSite(x => ({ ...x, street: e.target.value }))} /></div>
               <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -794,7 +794,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   : <PostFields postalLabel={lang === 'en' ? 'Postal code' : 'Poštna številka'} cityLabel={lang === 'en' ? 'Town' : 'Kraj'} code={site.postal} city={site.city}
                       onChange={(postal, city) => setSite(x => ({ ...x, postal, city }))} />}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-[#4f4f4f]">{lang === 'en' ? 'Country' : 'Država'}</label>
+                  <label className="text-xs font-medium text-[#6a6a6a]">{lang === 'en' ? 'Country' : 'Država'}</label>
                   <Select value={site.country} onChange={v => setSite(x => ({ ...x, country: v, postal: '', city: '' }))} disabled={ro}
                     options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
                 </div>
@@ -805,14 +805,14 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 onChange={e => setValidUntil(e.target.value)} />
               <Input id="q-lead" label={o.executionTime} placeholder={ro ? '' : o.executionTimeHint} value={leadTime} onChange={e => setLeadTime(e.target.value)} />
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#4f4f4f]">{o.parity}</label>
+                <label className="text-xs font-medium text-[#6a6a6a]">{o.parity}</label>
                 <Select value={parity} onChange={setParity}
                   options={[{ value: '', label: o.none }, ...INCOTERMS.map(i => ({ value: i.code, label: i.code, hint: i.name }))]} />
               </div>
               <div className="lg:col-span-2 flex flex-col gap-1">
-                <label className="text-xs font-medium text-[#4f4f4f]">{s.paymentTerms}</label>
+                <label className="text-xs font-medium text-[#6a6a6a]">{s.paymentTerms}</label>
                 {ro
-                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f9fafb', borderColor: '#f0f0f0', color: '#4f4f4f' }}>{paymentTerms || '—'}</div>
+                  ? <div className="rounded-lg border px-3 py-2 text-sm min-h-[38px]" style={{ backgroundColor: '#f5f3ef', borderColor: '#f0f0f0', color: '#6a6a6a' }}>{paymentTerms || '—'}</div>
                   : termOptions.length === 0
                     ? <button type="button" onClick={() => navigate('/settings')} className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-900 text-left hover:bg-blue-50/40">{o.addTermsInSettings}</button>
                     : <Select value={paymentTerms} onChange={setPaymentTerms}
@@ -822,15 +822,15 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             <div className="border-t border-gray-100 mt-7 mb-6" />
             <h2 className="text-[22px] leading-[30px] tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Notes and attachments' : 'Opombe in priloge'}</h2>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-[#4f4f4f]">{s.notes}</label>
+              <label className="text-xs font-medium text-[#6a6a6a]">{s.notes}</label>
               <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder={ro ? '' : o.notesHint}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#4f4f4f] disabled:border-[#f0f0f0]" />
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-[#6a6a6a] disabled:border-[#f0f0f0]" />
             </div>
           </fieldset>
 
           {/* Attachments — plain list: open / download / delete (delete only while draft) */}
           <div className="mt-5">
-            <p className="text-xs font-medium text-[#4f4f4f] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
+            <p className="text-xs font-medium text-[#6a6a6a] flex items-center gap-1.5 mb-2"><Paperclip className="w-3.5 h-3.5" />{o.attachments}</p>
             {attachments.map(att => (
               <div key={att.id} className="flex items-center gap-2 px-3 py-2 bg-[#eff5fe] border border-[#deeafd] rounded-lg mb-2">
                 <FileText className="w-4 h-4 text-gray-900 shrink-0" />
@@ -867,7 +867,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             {!ro && cfg && <Button size="sm" onClick={() => setCfgOpen({})} className="gap-1.5"><Plus className="w-3.5 h-3.5" />{o.addWindow}</Button>}
           </div>
           {windowLines.length === 0
-            ? <p className="px-6 py-8 text-center text-[15px] text-[#4f4f4f]">{o.noWindows}</p>
+            ? <p className="px-6 py-8 text-center text-[15px] text-[#6a6a6a]">{o.noWindows}</p>
             : <div className="divide-y divide-gray-100">
               {windowLines.map((l, i) => {
                 const w = windowCfg(l)!
@@ -883,7 +883,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <div className="text-[13px] font-medium text-[#4f4f4f]">{o.position} {i + 1}</div>
+                        <div className="text-[13px] font-medium text-[#6a6a6a]">{o.position} {i + 1}</div>
                         <div className="text-[17px] leading-6 font-semibold text-gray-900">{w.title}</div>
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
@@ -892,30 +892,30 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                           <button type="button" onClick={() => removeLine(l.key)} title={t.common.delete} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>}
                         <div className="text-right">
-                          <div className="text-[13px] text-[#4f4f4f]">{(l.quantity ?? 0).toLocaleString('de-DE')} × {money(l.unit_price ?? 0)}</div>
+                          <div className="text-[13px] text-[#6a6a6a]">{(l.quantity ?? 0).toLocaleString('de-DE')} × {money(l.unit_price ?? 0)}</div>
                           <div className="text-[17px] leading-6 font-semibold text-gray-900 tabular-nums">{money(lineTotal(num(l)))}</div>
                         </div>
                       </div>
                     </div>
                     <dl className="mt-2 grid grid-cols-[minmax(110px,max-content)_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
-                      {w.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#4f4f4f]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
+                      {w.rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-medium text-[#6a6a6a]">{k}</dt><dd className="font-medium text-gray-900">{v}</dd></div>)}
                     </dl>
                     {subsOf(l).length > 0 && <div className="mt-3 rounded-[10px] border border-gray-200 divide-y divide-gray-100">
                       {subsOf(l).map(sl => {
                         const sc = subCfg(sl)!
                         return <div key={sl.key} className="px-3 py-2.5 grid grid-cols-[44px_52px_minmax(0,1fr)_auto] items-center gap-3 text-sm">
-                          <span className="font-medium text-[#4f4f4f]">{i + 1}-{sc.code}</span>
-                          <div className="w-[52px] h-[52px] rounded-lg bg-[#fafafa] border border-gray-100 flex items-center justify-center overflow-hidden">
+                          <span className="font-medium text-[#6a6a6a]">{i + 1}-{sc.code}</span>
+                          <div className="w-[52px] h-[52px] rounded-lg bg-[#f5f3ef] border border-gray-100 flex items-center justify-center overflow-hidden">
                             {sc.image_url ? <img src={sc.image_url} alt="" className="max-w-full max-h-full object-contain" />
                               : sc.sill != null || !sc.shade ? <SillIcon material={sc.sill} size={44} /> : <ShadingIcon kind={sc.shade} size={44} />}
                           </div>
-                          <div className="min-w-0"><div className="font-medium text-gray-900">{sc.title}</div><div className="text-[13px] text-[#4f4f4f]">{sc.rows.map(([k, v]) => `${k}: ${v}`).join(' · ')}</div></div>
-                          <div className="text-right whitespace-nowrap"><span className="font-medium text-[#4f4f4f] mr-3">{(sl.quantity ?? 0).toLocaleString('de-DE')} × {money(sl.unit_price ?? 0)}</span><span className="font-semibold text-gray-900">{money(lineTotal(num(sl)))}</span></div>
+                          <div className="min-w-0"><div className="font-medium text-gray-900">{sc.title}</div><div className="text-[13px] text-[#6a6a6a]">{sc.rows.map(([k, v]) => `${k}: ${v}`).join(' · ')}</div></div>
+                          <div className="text-right whitespace-nowrap"><span className="font-medium text-[#6a6a6a] mr-3">{(sl.quantity ?? 0).toLocaleString('de-DE')} × {money(sl.unit_price ?? 0)}</span><span className="font-semibold text-gray-900">{money(lineTotal(num(sl)))}</span></div>
                         </div>
                       })}
                     </div>}
                     {calcs[l.key] && <details open className="mt-3 group">
-                      <summary className="cursor-pointer select-none text-[13px] font-medium text-[#4f4f4f] hover:text-gray-900 mb-2 list-none flex items-center gap-1.5"><ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" />{sl ? 'Kalkulacija pozicije' : 'Position calculation'}</summary>
+                      <summary className="cursor-pointer select-none text-[13px] font-medium text-[#6a6a6a] hover:text-gray-900 mb-2 list-none flex items-center gap-1.5"><ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" />{sl ? 'Kalkulacija pozicije' : 'Position calculation'}</summary>
                       <WindowCalcTable calc={calcs[l.key]!} lang={sl ? 'sl' : 'en'} saved={l.unit_price != null ? l.unit_price + subsOf(l).reduce((a, x) => a + (x.unit_price ?? 0), 0) : null} />
                     </details>}
                   </div>
@@ -928,7 +928,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         {(cfg && svcOptions.length > 0 && !ro) || serviceLines.length > 0 ? <div className={`bg-white rounded-xl border mb-5 ${border}`}>
           <div className={`px-6 py-3.5 border-b ${ro ? 'border-[#f0f0f0]' : 'border-gray-100'}`}>
             <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-gray-900">{o.servicesTitle}</h2>
-            {!ro && <p className="text-[13px] text-[#4f4f4f] mt-0.5">{o.servicesHint}</p>}
+            {!ro && <p className="text-[13px] text-[#6a6a6a] mt-0.5">{o.servicesHint}</p>}
           </div>
           {!ro && cfg && <div className="px-6 py-4 space-y-4 border-b border-gray-100">
             {([...SERVICE_GROUPS, 'roof'] as const).map(g => {
@@ -940,8 +940,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   {opts.map(x => {
                     const on = chosenServices.includes(x.id)
                     return <button key={x.id} type="button" onClick={() => toggleService(x)}
-                      className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors ${on ? 'border-[#131313] bg-white text-gray-900 shadow-[inset_0_0_0_1px_#131313]' : 'border-gray-200 bg-white text-gray-900 hover:border-gray-400'}`}>
-                      {on && <Check className="w-3.5 h-3.5" />}{x.name}{svcAmount(x) > 0 && <span className="font-normal text-[#4f4f4f]">{money(svcAmount(x))}</span>}
+                      className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[10px] border text-sm font-medium transition-colors ${on ? 'border-[#000000] bg-white text-gray-900 shadow-[inset_0_0_0_1px_#000000]' : 'border-gray-200 bg-white text-gray-900 hover:border-gray-400'}`}>
+                      {on && <Check className="w-3.5 h-3.5" />}{x.name}{svcAmount(x) > 0 && <span className="font-normal text-[#6a6a6a]">{money(svcAmount(x))}</span>}
                     </button>
                   })}
                 </div>
@@ -952,10 +952,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           {serviceLines.length > 0 && <div className="divide-y divide-gray-100">
             {serviceLines.map((l, i) => (
               <div key={l.key} className="px-6 py-3 grid grid-cols-[48px_minmax(0,1fr)_auto] items-baseline gap-4 text-sm">
-                <span className="font-medium text-[#4f4f4f]">M{i + 1}</span>
-                <div className="min-w-0"><div className="font-medium text-gray-900">{l.name}</div>{l.description && <div className="text-[13px] text-[#4f4f4f]">{l.description}</div>}</div>
+                <span className="font-medium text-[#6a6a6a]">M{i + 1}</span>
+                <div className="min-w-0"><div className="font-medium text-gray-900">{l.name}</div>{l.description && <div className="text-[13px] text-[#6a6a6a]">{l.description}</div>}</div>
                 <div className="text-right whitespace-nowrap">
-                  <span className="font-medium text-[#4f4f4f] mr-4">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]} × {money(l.unit_price ?? 0)}</span>
+                  <span className="font-medium text-[#6a6a6a] mr-4">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]} × {money(l.unit_price ?? 0)}</span>
                   <span className="font-semibold text-gray-900">{money(lineTotal(num(l)))}</span>
                 </div>
               </div>
@@ -1123,7 +1123,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           <div className="text-base font-semibold text-gray-900 mb-3">{sl ? 'Skupaj' : 'Total'}</div>
           {windowLines.length > 0 && <ul className="space-y-1.5 text-sm">
             {windowLines.map((l, i) => <li key={l.key} className="flex items-baseline justify-between gap-3">
-              <span className="min-w-0 truncate text-gray-900">{o.position} {i + 1} · {windowCfg(l)!.title}{(l.quantity ?? 0) > 1 && <span className="text-[13px] text-[#4f4f4f]"> {(l.quantity ?? 0)} ×</span>}</span>
+              <span className="min-w-0 truncate text-gray-900">{o.position} {i + 1} · {windowCfg(l)!.title}{(l.quantity ?? 0) > 1 && <span className="text-[13px] text-[#6a6a6a]"> {(l.quantity ?? 0)} ×</span>}</span>
               <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(positionTotal(l))}</span>
             </li>)}
             <li className="flex items-baseline justify-between gap-3 pt-1.5 mt-1 border-t border-gray-100">
@@ -1132,9 +1132,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             </li>
           </ul>}
           {serviceLines.length > 0 && <ul className="space-y-1 text-sm mt-3 pt-3 border-t border-gray-100">
-            <li className="text-[13px] font-medium text-[#4f4f4f]">{o.servicesTitle}</li>
+            <li className="text-[13px] font-medium text-[#6a6a6a]">{o.servicesTitle}</li>
             {serviceLines.map(l => <li key={l.key} className="flex items-baseline justify-between gap-3">
-              <span className="min-w-0 text-gray-900">{l.name} <span className="text-[13px] text-[#4f4f4f]">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]}</span></span>
+              <span className="min-w-0 text-gray-900">{l.name} <span className="text-[13px] text-[#6a6a6a]">{(l.quantity ?? 0).toLocaleString('de-DE', { maximumFractionDigits: 2 })} {o.units[l.unit]}</span></span>
               <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(lineTotal(num(l)))}</span>
             </li>)}
           </ul>}
@@ -1143,15 +1143,15 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{money(freeLines.reduce((a, l) => a + lineTotal(num(l)), 0))}</span>
           </div>}
           <div className="mt-3 pt-3 border-t border-gray-200 space-y-1.5 text-sm">
-            <div className="flex justify-between"><span className="text-[#4f4f4f]">{sl ? 'Skupaj postavke' : 'Subtotal'}</span><span className="tabular-nums">{money(totals.subtotal)}</span></div>
-            {totals.discount_amount > 0 && <div className="flex justify-between"><span className="text-[#4f4f4f]">{sl ? `Popust ${discountPct ?? 0} %` : `Discount ${discountPct ?? 0}%`}</span><span className="tabular-nums">− {money(totals.discount_amount)}</span></div>}
+            <div className="flex justify-between"><span className="text-[#6a6a6a]">{sl ? 'Skupaj postavke' : 'Subtotal'}</span><span className="tabular-nums">{money(totals.subtotal)}</span></div>
+            {totals.discount_amount > 0 && <div className="flex justify-between"><span className="text-[#6a6a6a]">{sl ? `Popust ${discountPct ?? 0} %` : `Discount ${discountPct ?? 0}%`}</span><span className="tabular-nums">− {money(totals.discount_amount)}</span></div>}
             <div className="flex justify-between font-medium text-gray-900"><span>{sl ? 'Skupaj brez DDV' : 'Total excl. VAT'}</span><span className="tabular-nums">{money(totals.total_net)}</span></div>
-            {totals.vat.map(v => <div key={v.rate} className="flex justify-between text-[#4f4f4f]"><span>DDV {v.rate.toLocaleString('de-DE')} %</span><span className="tabular-nums">{money(v.amount)}</span></div>)}
+            {totals.vat.map(v => <div key={v.rate} className="flex justify-between text-[#6a6a6a]"><span>DDV {v.rate.toLocaleString('de-DE')} %</span><span className="tabular-nums">{money(v.amount)}</span></div>)}
             <div className="flex items-baseline justify-between pt-2 mt-1 border-t border-gray-200">
               <span className="text-[15px] font-semibold text-gray-900">{sl ? 'Skupaj z DDV' : 'Total incl. VAT'}</span>
               <span className="text-[26px] leading-8 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(totals.total_gross)}</span>
             </div>
-            {advanceGross != null && <div className="flex justify-between text-[#4f4f4f]"><span>{sl ? `Popust ob 100 % avansu (${(advancePct ?? 0).toLocaleString('de-DE')} %)` : `Discount for 100% advance (${(advancePct ?? 0).toLocaleString('de-DE')}%)`}</span><span className="tabular-nums">− {money(totals.total_gross - advanceGross)}</span></div>}
+            {advanceGross != null && <div className="flex justify-between text-[#6a6a6a]"><span>{sl ? `Popust ob 100 % avansu (${(advancePct ?? 0).toLocaleString('de-DE')} %)` : `Discount for 100% advance (${(advancePct ?? 0).toLocaleString('de-DE')}%)`}</span><span className="tabular-nums">− {money(totals.total_gross - advanceGross)}</span></div>}
             {advanceGross != null && <div className="flex justify-between text-[#267a47] font-medium"><span>{sl ? 'Skupaj ob 100% avansu' : 'Total with 100% advance'}</span><span className="tabular-nums">{money(advanceGross)}</span></div>}
           </div>
         </div>
@@ -1164,10 +1164,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           const margin = sale - cost
           return <div className={`bg-white rounded-xl border p-5 ${border}`}>
             <div className="text-base font-semibold text-gray-900">{sl ? 'Kalkulacija oken' : 'Windows calculation'}</div>
-            <p className="text-[13px] text-[#4f4f4f] mt-0.5 mb-3">{sl ? 'Interno: nabavna vrednost, marža in prodajna cena vseh oken. Ni na ponudbi.' : 'Internal: purchase value, margin and sale price of all windows. Not on the offer.'}</p>
+            <p className="text-[13px] text-[#6a6a6a] mt-0.5 mb-3">{sl ? 'Interno: nabavna vrednost, marža in prodajna cena vseh oken. Ni na ponudbi.' : 'Internal: purchase value, margin and sale price of all windows. Not on the offer.'}</p>
             <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1.5 text-sm tabular-nums">
-              <dt className="text-[#4f4f4f]">{sl ? 'Nabavna vrednost' : 'Purchase value'}</dt><dd className="text-right text-gray-900">{money(cost)}</dd>
-              <dt className="text-[#4f4f4f]">{sl ? 'Marža' : 'Margin'}</dt><dd className="text-right text-[#267a47]">{money(margin)}{sale > 0 && <span className="text-[#4f4f4f]"> ({(Math.round(margin / sale * 1000) / 10).toLocaleString('de-DE')} %)</span>}</dd>
+              <dt className="text-[#6a6a6a]">{sl ? 'Nabavna vrednost' : 'Purchase value'}</dt><dd className="text-right text-gray-900">{money(cost)}</dd>
+              <dt className="text-[#6a6a6a]">{sl ? 'Marža' : 'Margin'}</dt><dd className="text-right text-[#267a47]">{money(margin)}{sale > 0 && <span className="text-[#6a6a6a]"> ({(Math.round(margin / sale * 1000) / 10).toLocaleString('de-DE')} %)</span>}</dd>
               <dt className="font-semibold text-gray-900">{sl ? 'Prodajna vrednost oken' : 'Sale value of windows'}</dt><dd className="text-right font-semibold text-gray-900">{money(sale)}</dd>
             </dl>
           </div>
@@ -1203,8 +1203,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         </div>
         <div className="grid grid-cols-3 gap-3 mt-4">
           {([[o.wallsArea, areas.walls, 'm²'], [o.ceilingArea, areas.ceiling, 'm²'], [o.perimeter, areas.perimeter, 'm']] as [string, number, string][]).map(([lbl, v, u]) => (
-            <div key={lbl} className="rounded-[10px] bg-[#fafafa] border border-gray-200 px-3 py-2.5">
-              <div className="text-[13px] font-medium text-[#4f4f4f]">{lbl}</div>
+            <div key={lbl} className="rounded-[10px] bg-[#f5f3ef] border border-gray-200 px-3 py-2.5">
+              <div className="text-[13px] font-medium text-[#6a6a6a]">{lbl}</div>
               <div className="text-base font-semibold text-gray-900">{v.toLocaleString('de-DE', { maximumFractionDigits: 2 })} {u}</div>
             </div>
           ))}
@@ -1212,7 +1212,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           {([['wallItem', o.wallsWork], ['ceilingItem', o.ceilingWork]] as const).map(([k, lbl]) => (
             <div key={k} className="flex flex-col gap-1">
-              <label className="field-label text-xs font-medium text-[#4f4f4f]">{lbl}</label>
+              <label className="field-label text-xs font-medium text-[#6a6a6a]">{lbl}</label>
               <Select value={room[k]} onChange={v => setRoom(r => ({ ...r, [k]: v }))}
                 options={[{ value: '', label: o.none }, ...m2Items.map(p => ({ value: p.id, label: p.name, hint: money(Number(p.price)) }))]} />
             </div>

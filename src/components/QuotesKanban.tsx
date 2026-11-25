@@ -51,13 +51,13 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol(c => (c === st ? null : c)) }}
             onDrop={e => { e.preventDefault(); drop(st) }}
             className={`flex flex-col flex-1 min-w-[260px] max-h-[calc(100vh-230px)] rounded-xl border transition-all duration-150
-              ${overCol === st ? 'bg-[#efefef] border-gray-400' : droppable ? 'bg-[#f3f3f3] border-dashed border-gray-300' : 'bg-[#f7f7f7] border-transparent'}
+              ${overCol === st ? 'bg-[#efefef] border-gray-400' : droppable ? 'bg-[#f3f3f3] border-dashed border-gray-300' : 'bg-[#f5f3ef] border-transparent'}
               ${dimmed ? 'opacity-50' : ''}`}>
             {/* Column header: status badge, count, total */}
             <div className="flex items-center gap-2 px-3 pt-3 pb-2.5">
               <QuoteStatusBadge status={st} label={statusLabels[st]} />
-              <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#e8e8e8] text-[#4a4a4a]">{cards.length}</span>
-              <span className="ml-auto text-[13px] font-medium text-[#4f4f4f] tabular-nums" title={labels.total}>{money(total)}</span>
+              <span className="text-xs font-medium px-1.5 py-0.5 rounded-md bg-[#e9e8e3] text-[#464646]">{cards.length}</span>
+              <span className="ml-auto text-[13px] font-medium text-[#6a6a6a] tabular-nums" title={labels.total}>{money(total)}</span>
             </div>
 
             {/* Cards */}
@@ -74,22 +74,22 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
                     className={`rounded-[10px] border border-gray-200 bg-white px-3.5 py-3 hover:border-gray-300 transition-colors
                       ${movable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragging?.id === q.id ? 'opacity-40' : ''}`}>
                     {/* number + days in status */}
-                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#4f4f4f]">
+                    <div className="flex items-center gap-2 text-[13px] font-medium text-[#6a6a6a]">
                       <span>{q.quote_number}</span>
                       {days != null && <span className="ml-auto whitespace-nowrap" title={labels.inStatus}>{days} d</span>}
                     </div>
                     {/* customer + site */}
                     <div className="mt-1.5 text-[15px] font-medium text-gray-900 line-clamp-2">{q.customers?.name ?? '—'}</div>
-                    {q.site_address && <div className="mt-0.5 text-[13px] font-medium text-[#4f4f4f] truncate">{q.site_address}</div>}
+                    {q.site_address && <div className="mt-0.5 text-[13px] font-medium text-[#6a6a6a] truncate">{q.site_address}</div>}
                     {/* value + assignee */}
                     <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-gray-100">
                       <span className="text-[15px] font-medium text-gray-900 tabular-nums">{money(Number(q.total_net))}</span>
-                      <span className="ml-auto text-[13px] font-medium text-[#4f4f4f] truncate" title={labels.assignee}>{assignee ?? labels.noAssignee}</span>
+                      <span className="ml-auto text-[13px] font-medium text-[#6a6a6a] truncate" title={labels.assignee}>{assignee ?? labels.noAssignee}</span>
                     </div>
                   </div>
                 )
               })}
-              {cards.length === 0 && <p className="text-[13px] font-medium text-[#4f4f4f] text-center py-8">{labels.empty}</p>}
+              {cards.length === 0 && <p className="text-[13px] font-medium text-[#6a6a6a] text-center py-8">{labels.empty}</p>}
             </div>
           </div>
         )

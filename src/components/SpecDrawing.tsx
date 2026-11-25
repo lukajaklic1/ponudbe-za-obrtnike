@@ -249,7 +249,7 @@ export default function SpecDrawing({ spec, width, height, size = 220, frameColo
       {sills.map((m, i) => <Prof key={i} x={pad - 5} y={pad + H + 1 + i * sillH} w={Math.max(0, W + 10)} h={sillH - (i ? 1 : 0)} rx={1}
         color={SILL_HEX[m] ?? '#c3c6c8'} ids={ids} />)}
       </g>
-      {showDims && <g fontSize={11} fill="#8ea9c0" fontFamily="Inter, system-ui, sans-serif">
+      {showDims && <g fontSize={11} fill="#8ea9c0" fontFamily="'DM Sans Variable', system-ui, sans-serif">
         {/* the width stays over everything (also over a shading box), the height goes down with the window */}
         <line x1={pad} y1={pad - 12} x2={pad + W} y2={pad - 12} stroke="#a3a3a3" />
         <text x={pad + W / 2} y={pad - 16} textAnchor="middle">{width || '—'}</text>
@@ -269,7 +269,7 @@ function FieldShape({ f, x, y, w, h, sashFrame, frameColor, onClick, plain, meet
   const handles = !plain || !!pids
   const G = (r: { x: number; y: number; w: number; h: number }) => pids ? <PhotoGlass {...r} ids={pids} /> : <Glass {...r} ids={ids} />
   const clickable = onClick ? { onClick, style: { cursor: 'pointer' } } : {}
-  const hover = onClick ? <rect x={x} y={y} width={Math.max(0, w)} height={Math.max(0, h)} fill="#131313" opacity={0} className="hover:opacity-10 transition-opacity" /> : null
+  const hover = onClick ? <rect x={x} y={y} width={Math.max(0, w)} height={Math.max(0, h)} fill="#000000" opacity={0} className="hover:opacity-10 transition-opacity" /> : null
   // the opening symbol: thin and soft, it should not cover the glass
   const line = { stroke: '#4f5d6a', strokeOpacity: 0.55, strokeWidth: 0.8, fill: 'none' }
   if (f.opening === 'fixed') {

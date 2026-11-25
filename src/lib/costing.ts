@@ -128,7 +128,7 @@ export const HANDLE_COLORS: { sl: string; en: string; code?: string; look: strin
   { sl: 'Medenina (zlata)', en: 'Brass (gold)', look: '#b8963e|metal' },
   { sl: 'Rjava', en: 'Brown', code: 'RAL 8017', look: ralHex('RAL 8017') ?? '#45322e' },
   { sl: 'Antracit', en: 'Anthracite', code: 'RAL 7016', look: ralHex('RAL 7016') ?? '#383e42' },
-  { sl: 'Črna', en: 'Black', code: 'RAL 9005', look: ralHex('RAL 9005') ?? '#0a0a0a' },
+  { sl: 'Črna', en: 'Black', code: 'RAL 9005', look: ralHex('RAL 9005') ?? '#000000' },
 ]
 const hc = (sl: string) => HANDLE_COLORS.find(c => c.sl === sl)!
 export function sampleHandles(): HandleType[] {

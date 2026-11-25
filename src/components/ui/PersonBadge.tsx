@@ -1,6 +1,6 @@
 // Avatars: quiet grey circle with the initials everywhere in lists (Levelpath style),
 // the black one only for the signed-in person at the bottom of the sidebar.
-const BRAND_COLOR = '#131313'
+const BRAND_COLOR = '#000000'
 
 export function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -26,7 +26,7 @@ export function Avatar({ name, size = 24, tone = 'neutral' }: { name: string; si
   }
   return (
     <span className="inline-flex items-center justify-center rounded-full font-medium shrink-0 select-none"
-      style={{ backgroundColor: '#f4f4f4', border: '1px solid #e2e2e2', color: '#4a4a4a', width: size, height: size, fontSize: Math.max(9, Math.round(size * 0.4)), letterSpacing: '0.01em' }}>
+      style={{ backgroundColor: '#f5f3ef', border: '1px solid #e2e2e2', color: '#464646', width: size, height: size, fontSize: Math.max(9, Math.round(size * 0.4)), letterSpacing: '0.01em' }}>
       {initialsOf(name)}
     </span>
   )
