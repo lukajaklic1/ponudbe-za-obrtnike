@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { House, Plus, Inbox, FileText, Send, Ruler, ArrowRight } from 'lucide-react'
+import { House, Plus, Inbox, FileText, FileCheck, Send, Ruler, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -86,8 +86,9 @@ export default function HomePage() {
 
   const cards = [
     { icon: Inbox, bg: '#feeee1', fg: '#9e3f00', status: 'enquiry', label: sl ? 'Povpraševanja' : 'Enquiries', value: count('enquiry'), sub: avgText ? (sl ? `Povprečen čas do ponudbe: ${avgText}` : `Average time to an offer: ${avgText}`) : (sl ? 'čakajo na ponudbo' : 'waiting for an offer') },
-    { icon: FileText, bg: '#eeeff1', fg: '#52525b', status: 'prep', label: sl ? 'V pripravi' : 'In preparation', value: count('draft') + count('issued'), sub: sl ? `${count('draft')} osnutkov, ${count('issued')} izdanih` : `${count('draft')} drafts, ${count('issued')} issued` },
-    { icon: Send, bg: '#fef3cd', fg: '#8a6100', status: 'out', label: sl ? 'Pri stranki' : 'With the customer', value: openOffers.length, sub: stale ? (sl ? `${stale} starejših od 7 dni` : `${stale} older than 7 days`) : (sl ? 'poslane in prenesene' : 'sent and downloaded') },
+    { icon: FileText, bg: '#eeeff1', fg: '#52525b', status: 'draft', label: sl ? 'Osnutki ponudb' : 'Draft offers', value: count('draft'), sub: sl ? 'v pripravi' : 'in progress' },
+    { icon: FileCheck, bg: '#f0eafd', fg: '#6b3fc4', status: 'issued', label: sl ? 'Izdane ponudbe' : 'Issued offers', value: count('issued'), sub: sl ? 'čakajo na pošiljanje' : 'waiting to be sent' },
+    { icon: Send, bg: '#fef3cd', fg: '#8a6100', status: 'out', label: sl ? 'Ponudbe pri strankah' : 'Offers with customers', value: openOffers.length, sub: stale ? (sl ? `${stale} starejših od 7 dni` : `${stale} older than 7 days`) : (sl ? 'poslane in prenesene' : 'sent and downloaded') },
     { icon: Ruler, bg: '#dcf5f4', fg: '#0c6b6b', status: 'measure', label: sl ? 'Izmere v teku' : 'Measurements in progress', value: count('measure'), sub: sl ? 'čakajo na zaključek' : 'to be finished' },
   ]
 
@@ -101,16 +102,16 @@ export default function HomePage() {
           <p className="text-sm font-medium text-[#5e5e5e] mt-1">{today}</p>
         </div>
 
-        {canQuotes && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {canQuotes && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           {cards.map(x => (
             <div key={x.status} onClick={() => navigate(`/quotes?status=${x.status}`)}
               className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col cursor-pointer hover:border-gray-400 transition-colors">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: x.bg }}><x.icon className="w-[18px] h-[18px]" style={{ color: x.fg }} /></div>
               <div className="text-sm font-medium text-gray-900 mt-4">{x.label}</div>
               <div className="text-4xl font-bold tracking-[-0.03em] text-gray-900 tabular-nums mt-1.5">{rows === null ? '–' : x.value}</div>
-              <div className="text-xs font-medium text-[#7f7f7f] mt-1 min-h-[16px]">{x.sub}</div>
+              <div className="text-xs font-medium text-[#7f7f7f] mt-1 mb-4 min-h-[16px]">{x.sub}</div>
               <Link to={`/quotes?status=${x.status}`} onClick={e => e.stopPropagation()}
-                className="mt-4 self-start inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-400 hover:text-gray-900 transition-colors">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
+                className="mt-auto self-start inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-400 hover:text-gray-900 transition-colors">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
             </div>
           ))}
         </div>}
