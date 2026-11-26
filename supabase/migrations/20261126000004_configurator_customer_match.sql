@@ -9,7 +9,7 @@ DECLARE
     || E'  WHERE company_id = c.id\n'
     || E'    AND ( (lower(email) = v_email AND lower(trim(name)) = lower(trim(CASE WHEN v_ctype = ''company'' THEN v_cname_in ELSE v_person END)))\n'
     || E'       OR (v_ctype = ''company'' AND NULLIF(v_vatno, '''') IS NOT NULL\n'
-    || E'           AND regexp_replace(upper(COALESCE(vat_number, '''')), ''[^A-Z0-9]'', '''', ''g'') = regexp_replace(upper(v_vatno), ''[^A-Z0-9]'', '''', ''g')) )\n'
+    || E'           AND regexp_replace(upper(COALESCE(vat_number, '''')), ''[^A-Z0-9]'', '''', ''g'') = regexp_replace(upper(v_vatno), ''[^A-Z0-9]'', '''', ''g'')) )\n'
     || E'  ORDER BY created_at LIMIT 1;';
 BEGIN
   IF position('lower(trim(name)) = lower(trim(CASE WHEN v_ctype' IN def) > 0 THEN
