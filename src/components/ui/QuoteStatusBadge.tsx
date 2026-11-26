@@ -12,12 +12,8 @@ const STATUS_COLORS: Record<QuoteStatus, React.CSSProperties> = {
   draft:    GREY,
   issued:   YELLOW,   // Izdano: the offer is locked, not sent yet
   sent:     YELLOW,
-  accepted: GREEN,
   won:      GREEN,
-  rejected: GREY,
   lost:     GREY,
-  expired:  GREY,
-  frozen:   GREY,
 }
 
 export function QuoteStatusBadge({ status, label }: { status: QuoteStatus; label: string }) {
