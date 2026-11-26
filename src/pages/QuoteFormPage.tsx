@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Select from '../components/ui/Select'
-import { useNavigate, useParams, Navigate } from 'react-router-dom'
+import { useNavigate, useParams, useLocation, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ChevronLeft, ChevronDown, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud, Send } from 'lucide-react'
 import OfferPdfPreview, { downloadOfferPdf } from '../components/OfferPdfPreview'
@@ -184,6 +184,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const s = t.qp
   const o = t.od
   const navigate = useNavigate()
+  const location = useLocation()
+  const [askSent, setAskSent] = useState(false)   // right after issuing: has the offer been sent to the customer?
+  useEffect(() => {
+    if ((location.state as { askSent?: boolean } | null)?.askSent) { setAskSent(true); navigate(location.pathname, { replace: true, state: null }) }
+  }, [location.state])
   const cur = company?.currency ?? 'EUR'
   const money = (n: number) => (n ?? 0).toLocaleString('de-DE', { style: 'currency', currency: cur })
 
@@ -627,7 +632,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (error) { toast.error(error.message); return }
     setStatusState(newStatus); setSnapshot(snap)
     toast.success(s.offerIssued)
-    navigate(`/quotes/${res.id}`)
+    navigate(`/quotes/${res.id}`, { state: { askSent: true } })
   }
 
   async function downloadPdf() {
@@ -1234,6 +1239,12 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         title={confirm === 'lost' ? s.markRejected : s.markAccepted}
         message={confirm === 'lost' ? s.confirmLost : s.confirmWon}
         confirmLabel={confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
+
+      <ConfirmDialog open={askSent && status === 'issued'} onClose={() => setAskSent(false)}
+        onConfirm={() => { setAskSent(false); changeStatus('sent') }}
+        title={lang === 'sl' ? 'Ponudba je izdana' : 'Offer issued'}
+        message={lang === 'sl' ? 'Ste ponudbo že poslali stranki? Označite jo kot poslano, da se vodi v pravem statusu.' : 'Have you already sent the offer to the customer? Mark it as sent so it is tracked in the right status.'}
+        confirmLabel={s.markSentLabel} cancelLabel={lang === 'sl' ? 'Ne še' : 'Not yet'} />
     </div>
   )
 }
