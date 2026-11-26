@@ -20,6 +20,9 @@ interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?:
 // Top-level items, then named sections (Attio-style small labels, collapsible)
 const TOP: NavItem[] = [
   { to: '/home', icon: House, key: 'home' },
+]
+// Poročila come after the work the user does every day
+const AFTER: NavItem[] = [
   { to: '/dashboard', icon: ChartColumn, key: 'dashboard' },
 ]
 const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [
@@ -122,6 +125,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
           if (!items.length) return null
           return <div key={sec.id} className="mt-3 pt-3 border-t border-gray-200 mx-2">{items.map(navLink)}</div>
         })}
+        {AFTER.filter(visible).length > 0 && <div className="mt-4">{AFTER.filter(visible).map(navLink)}</div>}
       </nav>
       <div className="border-t border-gray-200 py-3 flex flex-col items-center gap-1">
         {profile?.is_admin && linkTo('/users', UserCog, t.nav.users)}
@@ -182,6 +186,7 @@ export default function Sidebar({ onClose, rail = false }: SidebarProps) {
             </div>
           )
         })}
+        {AFTER.filter(visible).length > 0 && <div className="mt-4">{AFTER.filter(visible).map(navLink)}</div>}
       </nav>
 
       {/* Bottom */}

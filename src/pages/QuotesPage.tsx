@@ -56,7 +56,8 @@ export default function QuotesPage() {
   const [allUsers, setAllUsers] = useState<CompanyUser[]>([])   // incl. inactive (they may have created quotes)
   const companyUsers = allUsers.filter(u => u.is_active !== false)
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>('all')
+  // the links on Domov open the list already filtered: /quotes?status=enquiry
+  const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>(() => { const s0 = new URLSearchParams(window.location.search).get('status'); return STATUSES.includes(s0 as QuoteStatus) ? s0 as QuoteStatus : 'all' })
   const [sourceFilter, setSourceFilter] = useState<'all' | 'configurator' | 'manual'>('all')   // where the quote came from
   const [assigneeFilter, setAssigneeFilter] = useState('all')   // user id, 'none' = unassigned
   const [search, setSearch] = useState('')
