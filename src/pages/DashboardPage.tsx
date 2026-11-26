@@ -275,13 +275,13 @@ export default function DashboardPage() {
     const rowOf = (label: string, st: string) => { const x = sum(q => q.status === st); return row(label, x, 'grey', share(x.value)) }
     return [
       rowOf(sl ? 'Povpraševanja' : 'Enquiries', 'enquiry'),
-      rowOf(sl ? 'Osnutki' : 'Drafts', 'draft'),
-      rowOf(sl ? 'Izdane' : 'Issued', 'issued'),
-      rowOf(sl ? 'Poslane' : 'Sent', 'sent'),
-      rowOf(sl ? 'Prenesene' : 'Downloaded', 'downloaded'),
+      rowOf(sl ? 'Osnutki ponudb' : 'Draft quotes', 'draft'),
+      rowOf(sl ? 'Izdane ponudbe' : 'Issued quotes', 'issued'),
+      rowOf(sl ? 'Poslane ponudbe' : 'Sent quotes', 'sent'),
+      rowOf(sl ? 'Prenesene ponudbe' : 'Downloaded quotes', 'downloaded'),
       rowOf(sl ? 'Izmere' : 'Measurements', 'measure'),
-      rowOf(sl ? 'Dobljene' : 'Won', 'won'),
-      rowOf(sl ? 'Izgubljene' : 'Lost', 'lost'),
+      rowOf(sl ? 'Dobljene ponudbe' : 'Won quotes', 'won'),
+      rowOf(sl ? 'Izgubljene ponudbe' : 'Lost quotes', 'lost'),
     ]
   })()
 
@@ -579,8 +579,8 @@ export default function DashboardPage() {
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           const sources = [
-            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: BLUE_RAMP[6], f: (q: Q) => q.source !== 'configurator' },
-            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: BLUE_RAMP[2], f: (q: Q) => q.source === 'configurator' },
+            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: BLUE.dark, f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: BLUE.light, f: (q: Q) => q.source === 'configurator' },
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
