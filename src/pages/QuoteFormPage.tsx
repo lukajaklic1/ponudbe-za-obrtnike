@@ -18,6 +18,7 @@ import { advanceTotal, lineTotal, quoteTotals, roomAreas } from '../lib/quoteTot
 import { PRICE_UNITS, VAT_RATES } from '../lib/quoteTotals'
 import { isService, serviceLine, SERVICE_GROUPS, WL, type WindowOption } from '../lib/windows'
 import { COUNTRIES } from '../lib/siPosts'
+import { windowFromConfigurator } from '../lib/legacyWindow'
 import { ConfiguratorCore, PostFields, isUsable, type ConfigData, type ConfigItem, type ConfiguredWindow } from './ConfiguratorPage'
 import SpecDrawing from '../components/SpecDrawing'
 import WindowDrawing from '../components/WindowDrawing'
@@ -58,6 +59,7 @@ const uid = () => Math.random().toString(36).slice(2, 10)
 interface ServiceConfig { kind: 'service'; option_id: string; auto?: boolean }
 const windowCfg = (l: { config: Record<string, unknown> | null }) => (l.config?.kind === 'window' ? l.config as unknown as WindowConfig : null)
 const serviceCfg = (l: { config: Record<string, unknown> | null }) => (l.config?.kind === 'service' ? l.config as unknown as ServiceConfig : null)
+
 
 let keyc = 0
 const nk = () => `l${++keyc}`
@@ -413,6 +415,15 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           config: { kind: 'service', option_id: o.id, auto: auto(o) } as unknown as Record<string, unknown> }
       })
   }, [cfg, svcOptions, chosenServices, JSON.stringify(windowLines.map(l => [l.quantity, l.unit_price, l.config]))])
+  // windows that came in through the customer's configurator become real window positions, so "Uredi okno" opens the configurator
+  useEffect(() => {
+    if (!cfg || loading) return
+    setLines(ls => {
+      let changed = false
+      const out = ls.map(l => { const c = windowFromConfigurator(l, cfg, sl, nk, uid); if (!c) return l; changed = true; return { ...l, config: c } })
+      return changed ? out : ls
+    })
+  }, [cfg, loading, lines.length])
   // keep the service lines in step with the windows (only when something really changed)
   useEffect(() => {
     if (readOnly || !cfg) return
