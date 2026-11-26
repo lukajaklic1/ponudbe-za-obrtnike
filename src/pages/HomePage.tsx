@@ -54,7 +54,7 @@ export default function HomePage() {
       <PageHeader title={t.nav.home} icon={House} />
       <div className="px-6 py-10 max-w-[1500px] mx-auto space-y-10">
         <div className="text-center pt-2 pb-2">
-<h1 className="text-3xl leading-[1.25] font-bold tracking-[-0.02em] text-gray-900">            {hello}{profile?.first_name ? `, ${profile.first_name}` : ''}!<br />{sl ? 'Kaj želite danes urediti?' : 'What would you like to do today?'}          </h1>
+<h1 className="text-3xl leading-[1.25] font-bold tracking-[-0.02em] text-gray-900">            {hello}{profile?.first_name ? `, ${profile.first_name}` : ''}!<br />{sl ? 'Kaj želite urediti danes?' : 'What would you like to do today?'}          </h1>
           {hasPerm('quotes', 'create') && <div className="flex flex-wrap justify-center gap-2 mt-5">
             <Button variant="secondary" onClick={() => navigate('/quotes/new')} className="gap-1.5"><Plus className="w-4 h-4" />{sl ? 'Nova ponudba' : 'New quote'}</Button>
             {hasPerm('customers', 'create') && <Button variant="secondary" onClick={() => navigate('/customers?new=1')} className="gap-1.5"><UserPlus className="w-4 h-4" />{sl ? 'Dodaj stranko' : 'Add customer'}</Button>}
