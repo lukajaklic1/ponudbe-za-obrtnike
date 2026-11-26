@@ -328,7 +328,13 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const installing = (cfg?.options ?? []).some(o => isService(o) && o.group_key === 'installation' && chosenServices.includes(o.id))
   const isPerson = customers.find(c => c.id === customerId)?.customer_type === 'person'
   const vatTarget = company?.vat_payer === false ? 0 : installing && isPerson ? 9.5 : 22
-  const currentVat = () => vatTarget
+  const currentVat = () => manualVat ?? vatTarget
+  // a VAT rate set by hand for the odd case (all lines the same, different from the automatic one); null = automatic again
+  const manualVat = lines.length > 0 && lines.every(l => l.vat_rate === lines[0].vat_rate) && lines[0].vat_rate !== vatTarget ? lines[0].vat_rate : null
+  function setVatRate(rate: number | null) {
+    const r = rate ?? vatTarget
+    setLines(ls => ls.map(l => ({ ...l, vat_rate: r })))
+  }
   const windowLines = lines.filter(l => windowCfg(l))
   const serviceLines = lines.filter(l => serviceCfg(l))
   const sl = lang !== 'en'
@@ -432,7 +438,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (loading || readOnly || !cfg) return
     if (vatSeen.current === null) { vatSeen.current = vatTarget; return }
     if (vatSeen.current === vatTarget) return
+    const prevTarget = vatSeen.current
     vatSeen.current = vatTarget
+    if (!lines.every(l => l.vat_rate === prevTarget)) return   // a rate set by hand stays
     setLines(ls => ls.map(l => ({ ...l, vat_rate: vatTarget })))
     toast.success(lang === 'en' ? `VAT set to ${vatTarget.toLocaleString('de-DE')}% on all lines.` : `DDV na vseh postavkah je zdaj ${vatTarget.toLocaleString('de-DE')}%.`)
   }, [vatTarget, loading, cfg])
@@ -1088,6 +1096,19 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                   <td className="px-4 py-1.5 text-right text-sm font-medium text-gray-900 whitespace-nowrap">{money(totals.total_net)}</td>
                   {!ro && <td />}
                 </tr>
+                {/* VAT rate: automatic by the rule (22 %, or 9,5 % for installation at a private person), or set by hand for the odd case */}
+                {!ro && <tr>
+                  <td colSpan={colCount - 2} className="px-4 py-1 text-right text-sm text-gray-500">
+                    <span className="inline-flex items-center gap-2">{sl ? 'Stopnja DDV' : 'VAT rate'}
+                      <span className="block w-44 text-left"><Select size="xs" value={manualVat === null ? 'auto' : String(manualVat)} onChange={v => setVatRate(v === 'auto' ? null : Number(v))}
+                        options={[
+                          { value: 'auto', label: `${sl ? 'Samodejno' : 'Automatic'} (${vatTarget.toLocaleString('de-DE')} %)` },
+                          ...[22, 9.5, 5, 0].filter(r => r !== vatTarget || manualVat === r).map(r => ({ value: String(r), label: `${r.toLocaleString('de-DE')} %` })),
+                        ]} /></span>
+                    </span>
+                  </td>
+                  <td colSpan={2} />
+                </tr>}
                 {totals.vat.map(v => (
                   <tr key={v.rate}>
                     <td colSpan={colCount - (ro ? 1 : 2)} className="px-4 py-1 text-right text-sm text-gray-500">{o.vat} {v.rate.toLocaleString('de-DE')}% ({money(v.base)})</td>

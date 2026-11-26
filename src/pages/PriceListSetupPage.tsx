@@ -352,8 +352,8 @@ function sectionsFor(lang: 'sl' | 'en'): Section[] {
         { name: 'Montaža fiksnih komarnikov', pricing: 'perimeter', price: 0, price_piece: 4.58, per_item: 'screen', description: 'Namestitev fiksnega komarnika na okno.' },
         { name: 'Zidarska obdelava špalet', pricing: 'perimeter', price: 12, description: 'Špalete po montaži zidarsko obdelamo in pripravimo za pleskanje.' },
       ] },
-    { group: 'transport', title: sl ? 'Prevoz in odvoz' : 'Transport and disposal', hint: sl ? 'Pavšal enkrat na ponudbo.' : 'Flat, once per quote.',
-      units: ['flat'], single: false,
+    { group: 'transport', title: sl ? 'Prevoz in odvoz' : 'Transport and disposal', hint: sl ? 'Pavšal enkrat na ponudbo, na kos ali na m² površine oken (npr. odvoz starih oken).' : 'Flat once per quote, per piece or per m² of window area (e.g. taking away the old windows).',
+      units: ['flat', 'piece', 'm2'], single: false,
       presets: [
         { name: 'Dostava na objekt', pricing: 'flat', price: 50, description: 'Okna pripeljemo na vaš naslov.' },
         { name: 'Odvoz starih oken na deponijo', pricing: 'flat', price: 0, price_piece: 16.46, description: 'Stara okna odpeljemo in oddamo na deponijo.' },
