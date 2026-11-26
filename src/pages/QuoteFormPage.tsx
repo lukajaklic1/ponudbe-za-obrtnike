@@ -202,7 +202,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [quoteNumber, setQuoteNumber] = useState('')
   const [alreadySent, setAlreadySent] = useState(false)
   const [status, setStatusState] = useState<QuoteStatus>('draft')
-  const [confirm, setConfirm] = useState<null | 'won' | 'lost' | 'measure' | 'sent'>(null)
+  const [confirm, setConfirm] = useState<null | 'won' | 'lost' | 'measure' | 'sent' | 'back'>(null)
+  const [backStatus, setBackStatus] = useState<'sent' | 'downloaded'>('sent')   // where Izmera goes back to: sent by the supplier, or downloaded by the customer
   const [tab, setTab] = useState<'overview' | 'pdf'>('overview')
   const [snapshot, setSnapshot] = useState<OfferSnapshot | null>(null)
   // The PDF always shows the company's current logo (old logo files are deleted on replace)
@@ -282,7 +283,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       const { data: q } = await supabase.from('quotes').select('*').eq('id', id).single()
       if (q) {
         const quote = q as Quote
-        setStatusState(quote.status)
+        setStatusState(quote.status); setBackStatus(quote.sent_at ? 'sent' : 'downloaded')
         if (quote.snapshot) setSnapshot(quote.snapshot as OfferSnapshot)
         // opening an enquiry from the configurator: it is no longer new
         if (isNewEnquiry(quote)) {
@@ -635,8 +636,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null,
     } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l), config: l.config })))
     // issuing locks the offer (Izdano); "Označi kot poslano" then marks it as sent to the customer.
-    // An offer that was already sent and is issued again stays sent.
-    const newStatus: QuoteStatus = status === 'sent' || status === 'downloaded' ? status : 'issued'
+    // An offer that was already sent (or downloaded, or is in measurement) and is issued again keeps that status.
+    const newStatus: QuoteStatus = status === 'sent' || status === 'downloaded' || status === 'measure' ? status : 'issued'
     const now = new Date().toISOString()
     const { error } = await supabase.from('quotes').update({ snapshot: snap, status: newStatus, issued_at: now, updated_at: now } as any).eq('id', res.id)
     setSaving(false)
@@ -712,6 +713,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             {hasPerm('quotes', 'create') && status === 'issued' &&
               <Button onClick={() => setConfirm('sent')} className="gap-1.5"><Send className="w-3.5 h-3.5" />{s.markSentLabel}</Button>}
             {hasPerm('quotes', 'create') && isOpenOffer(status) && <>
+              {status === 'measure' && <Button variant="secondary" onClick={() => setConfirm('back')} className="gap-1.5">{backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')}</Button>}
               {status !== 'measure' && <Button variant="secondary" onClick={() => setConfirm('measure')} className="gap-1.5">{sl ? 'Premakni v izmero' : 'Move to measurement'}</Button>}
               <Button onClick={() => setConfirm('won')} className="gap-1.5"><Check className="w-3.5 h-3.5" />{s.markAccepted}</Button>
               <Button variant="secondary" onClick={() => setConfirm('lost')} className="gap-1.5"><X className="w-3.5 h-3.5" />{s.markRejected}</Button>
@@ -1247,8 +1249,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         title={s.quotes} message={s.deleteQuoteConfirm} confirmLabel={t.common.delete} danger />
 
       <ConfirmDialog open={!!confirm} onClose={() => setConfirm(null)}
-        onConfirm={() => { if (confirm) changeStatus(confirm); setConfirm(null) }}
-title={confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted}        message={confirm === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : confirm === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : confirm === 'lost' ? s.confirmLost : s.confirmWon}        confirmLabel={confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
+        onConfirm={() => { if (confirm) changeStatus(confirm === 'back' ? backStatus : confirm); setConfirm(null) }}
+title={confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted}        message={confirm === 'back' ? (sl ? 'Ali želite vrniti prejšnji status ponudbe?' : 'Return the offer to its previous status?') : confirm === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : confirm === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : confirm === 'lost' ? s.confirmLost : s.confirmWon}        confirmLabel={confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
 
       <ConfirmDialog open={askSent && status === 'issued'} onClose={() => setAskSent(false)}
         onConfirm={() => { setAskSent(false); changeStatus('sent') }}

@@ -153,7 +153,6 @@ export default function QuotesPage() {
   // Dropped on another column. Won / lost lock the offer, so ask first (same as the buttons on the offer).
   function requestMove(q: Row, to: QuoteStatus) {
     if (to === 'issued') navigate(`/quotes/${q.id}/edit`)   // issuing builds the offer document, so it happens in the editor
-    else setPendingMove({ quote: q, to })   // every other change of status asks first
     else moveQuote(q, to)
   }
 
