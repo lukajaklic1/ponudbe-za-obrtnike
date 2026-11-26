@@ -68,7 +68,7 @@ export default function ConfiguratorSettingsPage() {
   const { lang } = useLanguage()
   const T = TXT[lang]
   if (loading) return null
-  if (!hasPerm('price_list', 'view')) return <Navigate to="/dashboard" replace />
+  if (!hasPerm('price_list', 'view')) return <Navigate to="/home" replace />
   return <div>
     <PageHeader title={T.title} icon={Globe} />
     {company && <ConfiguratorSettings T={T} canEdit={hasPerm('price_list', 'create')} company={company} onSaved={refetch} />}

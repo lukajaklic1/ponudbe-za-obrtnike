@@ -31,7 +31,7 @@ export default function AcceptInvitePage() {
     const { error: rpcErr } = await supabase.rpc('accept_invitation', { p_token: token })
     if (rpcErr) { setError(rpcErr.message); setSubmitting(false); return }
 
-    navigate('/dashboard')
+    navigate('/home')
   }
 
   if (loading) {

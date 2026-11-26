@@ -124,7 +124,7 @@ export default function DashboardPage() {
   const [customers, setCustomers] = useState<CustomerStat[]>([])
   const [loading, setLoading] = useState(true)
   // filters: date range (default last 90 days), status, where the quote came from, customer type
-  const [dateFrom, setDateFrom] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 90); return d.toISOString().slice(0, 10) })
+  const [dateFrom, setDateFrom] = useState('')   // no period by default: everything
   const [dateTo, setDateTo] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [sourceFilter, setSourceFilter] = useState('')
@@ -155,9 +155,10 @@ export default function DashboardPage() {
 
   async function loadStatusStats() {
     if (!company) return
-    const [{ data }, { data: lineData }] = await Promise.all([
+    const [{ data }, { data: lineData }, { data: optData }] = await Promise.all([
       supabase.from('quotes').select('id, status, total_net, customer_id, assignee_id, created_at, sent_at, updated_at, closed_at, source, lead_source').eq('company_id', company.id),
       supabase.from('quote_lines').select('quote_id, name, total_net, config').eq('company_id', company.id),
+      supabase.from('window_options').select('name, group_key').eq('company_id', company.id).in('group_key', ['installation', 'removal', 'finishing', 'transport']),
     ])
     const acc: Record<StatusKey, { value: number; count: number }> = {
       all: { value: 0, count: 0 }, sent: { value: 0, count: 0 }, won: { value: 0, count: 0 }, lost: { value: 0, count: 0 },
@@ -176,8 +177,10 @@ export default function DashboardPage() {
     }
     setStatusStats(acc)
 
+    // services of an enquiry from the customer's configurator are lines without a configuration: recognised by the name of the service
+    const svcNames = new Set(((optData as { name: string }[] | null) ?? []).map(o => (o.name ?? '').trim().toLowerCase()))
     setServiceLines(((lineData as { quote_id: string; name: string; total_net: number; config: unknown }[]) ?? [])
-      .map(l => ({ quote_id: l.quote_id, name: (l.name ?? '').trim(), value: Number(l.total_net) || 0, cat: categoryOfLine(l.config) })))
+      .map(l => ({ quote_id: l.quote_id, name: (l.name ?? '').trim(), value: Number(l.total_net) || 0, cat: categoryOfLine(l.config, l.name, svcNames) })))
   }
 
   useEffect(() => { if (company) loadStatusStats() }, [company, filterCustomerId, assigneeFilter])
@@ -330,7 +333,7 @@ export default function DashboardPage() {
         <div className={cn('flex-wrap items-center gap-2', filtersOpen ? 'flex' : 'hidden sm:flex')}>
 
           {/* dates from – to, with quick choices */}
-          <DateRangeFilter label={sl ? 'Obdobje' : 'Period'} from={dateFrom} to={dateTo} onChange={(fr, to) => { setDateFrom(fr); setDateTo(to) }} />
+          <DateRangeFilter label={sl ? 'Obdobje' : 'Period'} allLabel={sl ? 'Vsa' : 'Any time'} from={dateFrom} to={dateTo} onChange={(fr, to) => { setDateFrom(fr); setDateTo(to) }} />
 
           <FilterSelect compact label={sl ? 'Status' : 'Status'} value={statusFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setStatusFilter}
             options={[{ value: 'draft', label: sl ? 'Osnutki' : 'Drafts' }, { value: 'issued', label: sl ? 'Izdane' : 'Issued' }, { value: 'sent', label: sl ? 'Poslane' : 'Sent' }, { value: 'won', label: sl ? 'Dobljene' : 'Won' }, { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' }]} />

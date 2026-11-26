@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { QUOTES_CHANGED } from '../../lib/newEnquiry'
 import {
-  LayoutDashboard, ChartColumn, FileText, Users, UserCog, Settings, LogOut, X, Grid2x2, Globe, Building2, PanelLeft, ChevronDown,
+  LayoutDashboard, House, ChartColumn, FileText, Users, UserCog, Settings, LogOut, X, Grid2x2, Globe, Building2, PanelLeft, ChevronDown,
 } from 'lucide-react'
 import { useSidebarCollapse } from './AppLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -13,12 +13,13 @@ import { cn } from '../../lib/cn'
 import AppLogo from '../ui/AppLogo'
 import { Avatar } from '../ui/PersonBadge'
 
-type NavKey = 'dashboard' | 'windows' | 'configurator' | 'quotes' | 'customers'
+type NavKey = 'home' | 'dashboard' | 'windows' | 'configurator' | 'quotes' | 'customers'
 type PermModule = 'quotes' | 'customers' | 'price_list'
 interface NavItem { to: string; icon: typeof LayoutDashboard; key: NavKey; mod?: PermModule }
 
 // Top-level items, then named sections (Attio-style small labels, collapsible)
 const TOP: NavItem[] = [
+  { to: '/home', icon: House, key: 'home' },
   { to: '/dashboard', icon: ChartColumn, key: 'dashboard' },
 ]
 const SECTIONS: { id: 'sales'; items: NavItem[] }[] = [

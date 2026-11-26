@@ -11,6 +11,7 @@ import OnboardingPage from './pages/OnboardingPage'
 import DashboardPage from './pages/DashboardPage'
 import CustomersPage from './pages/CustomersPage'
 import ConfiguratorSettingsPage from './pages/ConfiguratorSettingsPage'
+import HomePage from './pages/HomePage'
 import PriceListSetupPage from './pages/PriceListSetupPage'
 import ConfiguratorPage from './pages/ConfiguratorPage'
 import QuotesPage from './pages/QuotesPage'
@@ -62,6 +63,7 @@ export default function Root() {
             <Route path="/super-admin/users"     element={<SA><SuperAdminUsersPage /></SA>} />
 
             {/* Protected company app */}
+            <Route path="/home"                  element={<App><HomePage /></App>} />
             <Route path="/dashboard"             element={<App><DashboardPage /></App>} />
             <Route path="/quotes"                element={<App><QuotesPage /></App>} />
             <Route path="/quotes/new"            element={<App><QuoteFormPage /></App>} />

@@ -165,7 +165,7 @@ export default function QuotesPage() {
     toast.success(t.common.saved)
   }
 
-  if (!permLoading && !hasPerm('quotes', 'view')) return <Navigate to="/dashboard" replace />
+  if (!permLoading && !hasPerm('quotes', 'view')) return <Navigate to="/home" replace />
 
   return (
     <div>

@@ -140,7 +140,7 @@ export default function SettingsPage() {
   ] as [boolean, string][]).filter(([m]) => m).map(([, label]) => label) : []
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>
-  if (!isAdmin) return <Navigate to="/dashboard" replace />
+  if (!isAdmin) return <Navigate to="/home" replace />
 
   const prefix = form.quote_prefix || 'P'
   const nextNum = (form.quote_counter ?? 0) + 1

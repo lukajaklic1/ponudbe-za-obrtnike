@@ -13,13 +13,15 @@ interface Props {
   from: string            // yyyy-mm-dd or ''
   to: string              // yyyy-mm-dd or ''
   onChange: (from: string, to: string) => void
+  /** the word for no limit (default: Vse) */
+  allLabel?: string
 }
 
 /**
  * One filter chip for a date range: quick periods (last 30 days, this month …) and "custom" with a start and an end.
  * Same look as the other filter chips.
  */
-export function DateRangeFilter({ label, from, to, onChange }: Props) {
+export function DateRangeFilter({ label, from, to, onChange, allLabel }: Props) {
   const { lang } = useLanguage()
   const sl = lang === 'sl'
   const [open, setOpen] = useState(false)
@@ -37,7 +39,7 @@ export function DateRangeFilter({ label, from, to, onChange }: Props) {
 
   const today = new Date()
   const presets: { id: string; label: string; from: string; to: string }[] = [
-    { id: 'all', label: sl ? 'Vse' : 'Any time', from: '', to: '' },
+    { id: 'all', label: allLabel ?? (sl ? 'Vse' : 'Any time'), from: '', to: '' },
     { id: '7', label: sl ? 'Zadnjih 7 dni' : 'Last 7 days', from: toKey(subDays(today, 6)), to: toKey(today) },
     { id: '30', label: sl ? 'Zadnjih 30 dni' : 'Last 30 days', from: toKey(subDays(today, 29)), to: toKey(today) },
     { id: '90', label: sl ? 'Zadnjih 90 dni' : 'Last 90 days', from: toKey(subDays(today, 89)), to: toKey(today) },

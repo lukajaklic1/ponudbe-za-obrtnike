@@ -163,7 +163,7 @@ export default function CustomersPage() {
 
   const field = (key: keyof Form) => ({ value: form[key] as string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [key]: e.target.value })) })
 
-  if (!permLoading && !hasPerm('customers', 'view')) return <Navigate to="/dashboard" replace />
+  if (!permLoading && !hasPerm('customers', 'view')) return <Navigate to="/home" replace />
 
   return (
     <div>

@@ -782,7 +782,7 @@ export default function PriceListSetupPage() {
     }
   }
 
-  if (!permLoading && !hasPerm('price_list', 'view')) return <Navigate to="/dashboard" replace />
+  if (!permLoading && !hasPerm('price_list', 'view')) return <Navigate to="/home" replace />
   const offer = pricing.offer
 
   // live preview (like Fenestro): one example window, base price + every default choice as its own line

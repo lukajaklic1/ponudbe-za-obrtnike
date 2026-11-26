@@ -4,6 +4,7 @@ export const translations = {
   en: {
     // Nav
     nav: {
+      home: 'Home',
       dashboard: 'Reports',
       sections: { sales: 'Sales' },
       priceList: 'Services',
@@ -595,6 +596,7 @@ export const translations = {
   sl: {
     // Nav
     nav: {
+      home: 'Domov',
       dashboard: 'Poročila',
       sections: { sales: 'Prodaja' },
       priceList: 'Storitve',

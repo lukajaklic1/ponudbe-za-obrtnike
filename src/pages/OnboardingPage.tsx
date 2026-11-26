@@ -26,7 +26,7 @@ export default function OnboardingPage() {
       p_last_name: lastName,
     })
     if (rpcErr) { setError(rpcErr.message); setLoading(false); return }
-    navigate('/dashboard')
+    navigate('/home')
   }
 
   const steps = [

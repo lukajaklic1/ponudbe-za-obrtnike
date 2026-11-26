@@ -16,9 +16,19 @@ export const CATEGORIES: { key: QuoteCategory; sl: string; en: string }[] = [
 export const categoryLabel = (key: string, lang: 'sl' | 'en') => CATEGORIES.find(c => c.key === key)?.[lang] ?? key
 
 /** the category of one quote line, from the configuration the line was made with (free lines are "other") */
-export function categoryOfLine(config: unknown): QuoteCategory {
-  const c = config as { kind?: string; item?: { roof?: unknown; spec?: { kind?: string } | null }; template?: string | null } | null | undefined
-  if (!c || !c.kind) return 'other'
+export function categoryOfLine(config: unknown, name?: string, serviceNames?: Set<string>): QuoteCategory {
+  const c = config as { kind?: string; item?: { roof?: unknown; spec?: { kind?: string } | null }; template?: string | null; roof?: unknown; spec?: { kind?: string } | null; type_id?: string } | null | undefined
+  // a window that came in through the customer's configurator has no kind, but it has what the configurator stored
+  if (c && !c.kind && (c.type_id || c.roof || c.spec)) {
+    if (c.roof || c.template === 'roof') return 'roof'
+    const k0 = c.spec?.kind
+    if (k0 === 'sliding') return 'sliding'
+    if (k0 === 'door') return 'doors'
+    if (k0 === 'wall') return 'walls'
+    if (!c.spec && c.template && (c.template.startsWith('door') || c.template === 'lift_slide')) return 'doors'
+    return 'windows'
+  }
+  if (!c || !c.kind) return name && serviceNames?.has(name.trim().toLowerCase()) ? 'services' : 'other'
   if (c.kind === 'service') return 'services'
   if (c.kind === 'sub') return 'extras'
   if (c.kind !== 'window') return 'other'
