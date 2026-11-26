@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Search, X, Layers, FileText, FileCheck, Send, Trophy, XCircle } from 'lucide-react'
+import { LayoutDashboard, Search, X, Layers, Send, Trophy, XCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
@@ -28,8 +28,6 @@ type Q = { id: string; status: string; total_net: number; customer_id: string; a
 const TONES = { grey: { color: '#5e5e5e', backgroundColor: '#f4f4f5' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
 const KPI_STYLE = [
   { icon: Layers, bg: '#e5eeff', color: '#215bcf' },
-  { icon: FileText, bg: '#f4f4f5', color: '#52525b' },
-  { icon: FileCheck, bg: '#e5eeff', color: '#215bcf' },
   { icon: Send, bg: '#fff3cc', color: '#874d00' },
   { icon: Trophy, bg: '#e0fced', color: '#007d53' },
   { icon: XCircle, bg: '#f4f4f5', color: '#52525b' },
@@ -260,14 +258,12 @@ export default function DashboardPage() {
     const all = sum(() => true)
     const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
     const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), count: x.count, tone, sub })
-    const draft = sum(q => isDraftLike(q.status)), issued = sum(q => q.status === 'issued'), sent = sum(q => q.status === 'sent'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
+    const open = sum(q => q.status !== 'won' && q.status !== 'lost'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
     return [
       row(sl ? 'Skupna vrednost ponudb' : 'Total value of quotes', all, 'grey', all.value ? share(all.value) : ''),
-      row(sl ? 'Osnutki' : 'Drafts', draft, 'grey', share(draft.value)),
-      row(sl ? 'Izdane' : 'Issued', issued, 'grey', share(issued.value)),
-      row(sl ? 'Poslane' : 'Sent', sent, 'grey', share(sent.value)),
-      row(sl ? 'Dobljene' : 'Won', won, 'grey', share(won.value)),
-      row(sl ? 'Izgubljene' : 'Lost', lost, 'grey', share(lost.value)),
+      row(sl ? 'Odprte ponudbe' : 'Open quotes', open, 'grey', share(open.value)),
+      row(sl ? 'Dobljene ponudbe' : 'Won quotes', won, 'grey', share(won.value)),
+      row(sl ? 'Izgubljene ponudbe' : 'Lost quotes', lost, 'grey', share(lost.value)),
     ]
   })()
 
@@ -397,9 +393,9 @@ export default function DashboardPage() {
 
       <div className="px-6 py-5 space-y-6">
 
-        {/* five value cards: total, then drafts / sent / won / lost of the quotes made in the period */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-          {cards.map((c, i) => <div key={c.label} className={i === 0 ? 'col-span-2 lg:col-span-1' : ''}><StatCard {...c} index={i} /></div>)}
+        {/* four value cards: total, open (everything not won or lost), won, lost of the quotes made in the period */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {cards.map((c, i) => <div key={c.label}><StatCard {...c} index={i} /></div>)}
         </div>
 
 
