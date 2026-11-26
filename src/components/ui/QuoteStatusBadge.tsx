@@ -1,16 +1,17 @@
 import type { QuoteStatus } from '../../types/database'
 
 // Pridobljeno = green, Poslano = yellow, everything else (Osnutek, Izgubljeno) = grey
-// The badge colours in the app: yellow, green, grey and orange (only for Povpraševanje) (soft background, darker text, no border)
+// The badge colours in the app: yellow, green, grey, orange (Povpraševanje) and purple (Izdano) (soft background, darker text, no border)
 export const GREY: React.CSSProperties   = { color: '#52525b', backgroundColor: '#eeeff1' }
 export const YELLOW: React.CSSProperties = { color: '#8a6100', backgroundColor: '#fef3cd' }
 export const GREEN: React.CSSProperties  = { color: '#267a47', backgroundColor: '#dbfce7' }
 export const ORANGE: React.CSSProperties = { color: '#9e3f00', backgroundColor: '#feeee1' }
+export const PURPLE: React.CSSProperties = { color: '#6b3fc4', backgroundColor: '#f0eafd' }
 
 const STATUS_COLORS: Record<QuoteStatus, React.CSSProperties> = {
   enquiry:  ORANGE,   // Povpraševanje: a customer is waiting for an offer
   draft:    GREY,
-  issued:   YELLOW,   // Izdano: the offer is locked, not sent yet
+  issued:   PURPLE,   // Izdano: the offer is locked, not sent yet
   sent:     YELLOW,
   won:      GREEN,
   lost:     GREY,
