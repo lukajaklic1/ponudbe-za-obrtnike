@@ -9,7 +9,7 @@ import Button from '../components/ui/Button'
 
 interface Row { id: string; quote_number: string; status: string; total_net: number | null; created_at: string; updated_at: string; sent_at: string | null; site_address: string | null; customers: { name: string; address: string | null } | null }
 
-const HOUR = 3600000, DAY = 86400000
+const DAY = 86400000
 
 /** Where a user lands after signing in: four numbers that say what needs doing, each opens its list. */
 export default function HomePage() {
@@ -30,10 +30,6 @@ export default function HomePage() {
   const count = (st: string) => list.filter(q => q.status === st).length
   const sent = list.filter(q => q.status === 'sent')
   const stale = sent.filter(q => Date.now() - Date.parse(q.sent_at ?? q.updated_at) > 7 * DAY).length
-  // how long it takes from the enquiry to the offer being sent
-  const times = list.filter(q => q.sent_at).map(q => Date.parse(q.sent_at as string) - Date.parse(q.created_at)).filter(x => x >= 0)
-  const avg = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null
-  const avgText = avg === null ? null : avg < DAY ? `${Math.max(1, Math.round(avg / HOUR))} h` : `${(avg / DAY).toLocaleString('de-DE', { maximumFractionDigits: 1 })} ${sl ? 'dni' : 'days'}`
 
   const newest = (items: Row[], key: (q: Row) => string) => [...items].sort((a, b) => Date.parse(key(b)) - Date.parse(key(a)))
   // open offers: made and out with the customer, waiting for an answer; measurement is a stage of its own, so the cards add up
@@ -42,15 +38,15 @@ export default function HomePage() {
   const hello = sl ? 'Pozdravljeni' : 'Hello'
 
   const cards = [
-    { icon: Inbox, bg: '#feeee1', fg: '#9e3f00', status: 'enquiry', label: sl ? 'Povpraševanja' : 'Enquiries', value: count('enquiry'), sub: avgText ? (sl ? `Povprečen čas do ponudbe: ${avgText}` : `Average time to an offer: ${avgText}`) : (sl ? 'čakajo na ponudbo' : 'waiting for an offer') },
-    { icon: FileText, bg: '#eeeff1', fg: '#52525b', status: 'draft', label: sl ? 'Osnutki ponudb' : 'Draft offers', value: count('draft'), sub: sl ? 'v pripravi' : 'in progress' },
-    { icon: FileCheck, bg: '#f0eafd', fg: '#6b3fc4', status: 'issued', label: sl ? 'Izdane ponudbe' : 'Issued offers', value: count('issued'), sub: sl ? 'čakajo na pošiljanje' : 'waiting to be sent' },
-    { icon: Send, bg: '#fef3cd', fg: '#8a6100', status: 'out', label: sl ? 'Ponudbe pri strankah' : 'Offers with customers', value: openOffers.length, sub: stale ? (sl ? `${stale} starejših od 7 dni` : `${stale} older than 7 days`) : (sl ? 'poslane in prenesene' : 'sent and downloaded') },
-    { icon: Ruler, bg: '#dcf5f4', fg: '#0c6b6b', status: 'measure', label: sl ? 'Izmere v teku' : 'Measurements in progress', value: count('measure'), sub: sl ? 'čakajo na zaključek' : 'to be finished' },
+    { icon: Inbox, bg: '#feeee1', fg: '#9e3f00', status: 'enquiry', label: sl ? 'Odprta povpraševanja' : 'Open enquiries', value: count('enquiry'), sub: '' },
+    { icon: FileText, bg: '#eeeff1', fg: '#52525b', status: 'draft', label: sl ? 'Osnutki ponudb' : 'Draft offers', value: count('draft'), sub: '' },
+    { icon: FileCheck, bg: '#f0eafd', fg: '#6b3fc4', status: 'issued', label: sl ? 'Izdane ponudbe, ki čakajo na pošiljanje' : 'Issued offers waiting to be sent', value: count('issued'), sub: '' },
+    { icon: Send, bg: '#fef3cd', fg: '#8a6100', status: 'out', label: sl ? 'Odprte ponudbe pri strankah' : 'Open offers with customers', value: openOffers.length, sub: stale ? (sl ? `${stale} starejših od 7 dni` : `${stale} older than 7 days`) : '' },
+    { icon: Ruler, bg: '#dcf5f4', fg: '#0c6b6b', status: 'measure', label: sl ? 'Vaše izmere v teku' : 'Your measurements in progress', value: count('measure'), sub: '' },
   ]
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-white">
       <PageHeader title={t.nav.home} icon={House} />
       <div className="px-6 py-10 max-w-[1500px] mx-auto space-y-10">
         <div className="text-center pt-2 pb-2">
@@ -63,13 +59,13 @@ export default function HomePage() {
 
         {canQuotes && <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4 text-center">{sl ? 'Poglejte vaše odprte naloge' : 'Your open tasks'}</h2>
-          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-[980px] mx-auto">
           {cards.map(x => (
             <div key={x.status} onClick={() => navigate(`/quotes?status=${x.status}`)}
-              className="bg-white rounded-xl border border-[#e4e4e7] shadow-[0_1px_2px_rgba(16,24,40,0.05)] p-6 flex flex-col cursor-pointer hover:border-gray-400 hover:shadow-[0_2px_6px_rgba(16,24,40,0.08)] transition-all w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)] max-w-[420px]">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: x.bg }}><x.icon className="w-[18px] h-[18px]" style={{ color: x.fg }} /></div>
-              <div className="text-sm font-medium text-gray-900 mt-4">{x.label}</div>
-              <div className="text-4xl font-bold tracking-[-0.03em] text-gray-900 tabular-nums mt-1.5">{rows === null ? '–' : x.value}</div>
+              className="bg-white rounded-xl border border-[#e4e4e7] shadow-[0_1px_2px_rgba(16,24,40,0.05)] p-5 flex flex-col cursor-pointer hover:border-gray-400 hover:shadow-[0_2px_6px_rgba(16,24,40,0.08)] transition-all w-full sm:w-[300px]">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: x.bg }}><x.icon className="w-4 h-4" style={{ color: x.fg }} /></div>
+              <div className="text-sm font-medium text-gray-900 mt-3 min-h-[40px]">{x.label}</div>
+              <div className="text-3xl font-bold tracking-[-0.03em] text-gray-900 tabular-nums mt-1">{rows === null ? '–' : x.value}</div>
               <div className="text-xs font-medium text-[#7f7f7f] mt-1 mb-4 min-h-[16px]">{x.sub}</div>
               <Link to={`/quotes?status=${x.status}`} onClick={e => e.stopPropagation()}
                 className="mt-auto self-start inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-400 hover:text-gray-900 transition-colors">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
