@@ -22,7 +22,7 @@ interface Props {
   quotes: KanbanQuote[]
   canEdit: boolean
   statusLabels: Record<string, string>
-  labels: { empty: string; total: string; created: string; validUntil: string; value: string; assignee: string; noAssignee: string; customer: string; site: string; phone: string; inStatus: string }
+  labels: { dropHere: string; empty: string; total: string; created: string; validUntil: string; value: string; assignee: string; noAssignee: string; customer: string; site: string; phone: string; inStatus: string }
   money: (n: number) => string
   waitingDays: (q: Quote) => number | null
   onOpen: (q: KanbanQuote) => void
@@ -54,7 +54,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol(c => (c === st ? null : c)) }}
             onDrop={e => { e.preventDefault(); drop(st) }}
             className={`flex flex-col flex-1 basis-0 min-w-[240px] h-[calc(100vh-155px)] min-h-[420px] rounded-xl border transition-all duration-150
-              ${overCol === st ? 'bg-[#eeeff1] border-gray-400' : droppable ? 'bg-[#f3f3f3] border-dashed border-gray-300' : 'bg-[#f7f7f7] border-transparent'}
+              ${overCol === st ? 'bg-[#eaf1fe] border-[#266df0]' : droppable ? 'bg-[#f5f8ff] border-dashed border-[#266df0]/60' : 'bg-[#f7f7f7] border-transparent'}
               ${dimmed ? 'opacity-50' : ''}`}>
             {/* Column header: status badge, count, total */}
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 pt-3 pb-2.5">
@@ -63,6 +63,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
               <span className="basis-full text-xs font-medium text-[#7f7f7f] tabular-nums" title={labels.total}>{money(total)}</span>
             </div>
 
+            {droppable && <div className="mx-2 mb-2 rounded-lg border border-dashed border-[#266df0] bg-white/60 py-2 text-center text-xs font-medium text-[#215bcf]">{labels.dropHere}</div>}
             {/* Cards */}
             <div className="flex-1 flex flex-col gap-2 px-2 pb-2 min-h-[140px] overflow-y-auto nice-scroll">
               {cards.map(q => {

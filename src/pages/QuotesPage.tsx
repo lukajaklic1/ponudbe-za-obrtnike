@@ -150,10 +150,9 @@ export default function QuotesPage() {
   const openQuote = (q: Quote) => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)
 
 
-  // Dropped on another column. Won / lost lock the offer, so ask first (same as the buttons on the offer).
+  // Dropped on another column: every change of status asks first (issuing then opens the editor, where the offer is made).
   function requestMove(q: Row, to: QuoteStatus) {
-    if (to === 'issued') navigate(`/quotes/${q.id}/edit`)   // issuing builds the offer document, so it happens in the editor
-    else moveQuote(q, to)
+    setPendingMove({ quote: q, to })
   }
 
   async function moveQuote(q: Row, to: QuoteStatus) {
@@ -207,7 +206,7 @@ export default function QuotesPage() {
           statuses={STATUSES.filter(st => statusFilter === 'all' || st === statusFilter)}
           quotes={sortedFiltered} canEdit={canEdit} statusLabels={s.status} money={money} waitingDays={waitingDays}
           labels={{
-            empty: sl ? 'Ni ponudb' : 'No quotes', total: sl ? 'Skupaj brez DDV' : 'Total excl. VAT',
+            dropHere: sl ? 'Spusti sem' : 'Drop here', empty: sl ? 'Ni ponudb' : 'No quotes', total: sl ? 'Skupaj brez DDV' : 'Total excl. VAT',
             created: t.common.created, validUntil: sl ? 'Velja do' : 'Valid until', value: t.od.totalNet,
             assignee: s.assignee, noAssignee: s.noAssignee, customer: s.customer, site: t.od.siteAddress, phone: t.common.phone, inStatus: sl ? 'Dni v trenutnem statusu' : 'Days in current status',
           }}
@@ -304,10 +303,10 @@ export default function QuotesPage() {
       </>)}
 
       <ConfirmDialog open={!!pendingMove} onClose={() => setPendingMove(null)}
-        onConfirm={() => { if (pendingMove) moveQuote(pendingMove.quote, pendingMove.to); setPendingMove(null) }}
-        title={pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted}
-        message={`${pendingMove?.quote.quote_number ?? ''}: ${pendingMove?.to === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : pendingMove?.to === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : pendingMove?.to === 'lost' ? s.confirmLost : s.confirmWon}`}
-        confirmLabel={pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted} danger={pendingMove?.to === 'lost'} />
+        onConfirm={() => { if (pendingMove) { if (pendingMove.to === 'issued') navigate(`/quotes/${pendingMove.quote.id}/edit`); else moveQuote(pendingMove.quote, pendingMove.to) } setPendingMove(null) }}
+        title={pendingMove?.to === 'issued' ? s.issueOffer : pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted}
+        message={`${pendingMove?.quote.quote_number ?? ''}: ${pendingMove?.to === 'issued' ? (sl ? 'Ponudbo je treba izdati v urejevalniku. Ga odprem?' : 'The offer is issued in the editor. Open it?') : pendingMove?.to === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : pendingMove?.to === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : pendingMove?.to === 'lost' ? s.confirmLost : s.confirmWon}`}
+        confirmLabel={pendingMove?.to === 'issued' ? s.issueOffer : pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted} danger={pendingMove?.to === 'lost'} />
     </div>
     </div>
   )
