@@ -134,7 +134,7 @@ export default function DashboardPage() {
   // customers table: sorting and pages
   const [cSort, setCSort] = useState<{ key: 'name' | 'count' | 'value' | 'won' | 'rate'; dir: 'asc' | 'desc' }>({ key: 'value', dir: 'desc' })
   const [cPage, setCPage] = useState(1)
-  const cPageSize = 15
+  const cPageSize = 12
   const [customerNames, setCustomerNames] = useState<Record<string, string>>({})
   const [customerTypes, setCustomerTypes] = useState<Record<string, string>>({})
   const [filterCustomerId, setFilterCustomerId] = useState<string | null>(null)
@@ -559,7 +559,7 @@ export default function DashboardPage() {
           })
           const top = sorted.slice((cPage - 1) * cPageSize, cPage * cPageSize)
           const th = (key: typeof cSort.key, label: string, right = true, wide = false) => (
-            <th className={`${right ? 'text-right' : 'text-left'} ${wide ? 'hidden sm:table-cell' : ''} px-4 cursor-pointer select-none hover:text-gray-900`}
+            <th className={`${right ? 'text-right' : 'text-left'} ${wide ? 'hidden sm:table-cell' : ''} px-4 py-3 text-xs font-medium text-gray-500 whitespace-nowrap cursor-pointer select-none hover:text-gray-700`}
               onClick={() => { setCSort(s0 => ({ key, dir: s0.key === key && s0.dir === 'desc' ? 'asc' : 'desc' })); setCPage(1) }}>
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
@@ -578,22 +578,22 @@ export default function DashboardPage() {
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
                   <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#7f7f7f] text-xs font-medium tabular-nums">{sorted.length}</span></h2>
-                <div className="overflow-x-auto"><table className="w-full table-fixed keep-last-line">
+                <div className="overflow-x-auto"><table className="w-full table-fixed text-sm font-medium">
                   <colgroup><col /><col className="w-[84px] sm:w-[110px]" /><col className="w-[110px] sm:w-[130px]" /><col className="hidden sm:table-column w-[130px]" /><col className="hidden sm:table-column w-[120px]" /></colgroup>
-                  <thead><tr>
+                  <thead className="bg-gray-50 border-y border-gray-200"><tr>
                     {th('name', sl ? 'Stranka' : 'Customer', false)}
                     {th('count', sl ? 'Ponudbe' : 'Quotes')}
                     {th('value', sl ? 'Vrednost' : 'Value')}
                     {th('won', sl ? 'Dobljeno' : 'Won', true, true)}
                     {th('rate', sl ? 'Uspešnost' : 'Win rate', true, true)}
                   </tr></thead>
-                  <tbody>
-                    {top.map(c => <tr key={c.id}>
-                      <td className="px-4"><div className="truncate" title={c.name}>{c.name}</div></td>
-                      <td className="px-4 text-right whitespace-nowrap text-[#5e5e5e]">{c.count}</td>
-                      <td className="px-4 text-right whitespace-nowrap">{money(c.value)}</td>
-                      <td className="hidden sm:table-cell px-4 text-right whitespace-nowrap">{c.won ? money(c.won) : '—'}</td>
-                      <td className="hidden sm:table-cell px-4 text-right whitespace-nowrap text-[#5e5e5e]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
+                  <tbody className="divide-y divide-gray-200">
+                    {top.map(c => <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3"><div className="truncate" title={c.name}>{c.name}</div></td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap text-[#5e5e5e]">{c.count}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">{money(c.value)}</td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-right whitespace-nowrap">{c.won ? money(c.won) : '—'}</td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-right whitespace-nowrap text-[#5e5e5e]">{c.value ? `${Math.round(c.won / c.value * 100)}%` : '—'}</td>
                     </tr>)}
                   </tbody>
                 </table></div>

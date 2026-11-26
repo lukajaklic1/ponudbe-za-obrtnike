@@ -225,6 +225,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [discountPct, setDiscountPct] = useState<number | null>(0)
   // discount when the customer pays the whole quote in advance; the quote shows both prices
   const [advancePct, setAdvancePct] = useState<number | null>(null)
+  const [reverseCharge, setReverseCharge] = useState(false)   // obrnjena davčna obveznost: VAT 0 % and a note on the offer
   const [lines, setLines] = useState<LineRow[]>([])
   const [deleteQuoteOpen, setDeleteQuoteOpen] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -297,6 +298,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         setValidUntil(quote.valid_until ?? ''); setLeadTime(quote.lead_time ?? ''); setNotes(quote.notes ?? '')
         setDiscountPct(Number(quote.discount_pct ?? 0))
         // a draft without it picks up the company default
+        setReverseCharge(!!quote.reverse_charge)
         setAdvancePct(quote.advance_discount_pct != null ? Number(quote.advance_discount_pct) : isDraftLike(quote.status) && !readOnly ? Number(company.advance_discount_pct ?? 3) : null)
       }
       const { data: ls } = await supabase.from('quote_lines').select('*').eq('quote_id', id).order('position')
@@ -577,7 +579,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
       site_address: siteAddress.trim() || null, payment_terms: paymentTerms.trim() || null, parity: parity || null, lead_source: leadSource || null,
       valid_until: validUntil || null, lead_time: leadTime.trim() || null, delivery_date: null, notes: notes.trim() || null,
-      discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null, total_net: totals.total_net, total_vat: totals.total_vat, total_gross: totals.total_gross,
+      discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null, reverse_charge: reverseCharge, total_net: totals.total_net, total_vat: totals.total_vat, total_gross: totals.total_gross,
     }
     let quoteId = id
     let number = quoteNumber
@@ -636,7 +638,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     const snap = buildSnapshot({
       quote_number: res.number, title: '', valid_until: validUntil || null, lead_time: leadTime || null, payment_terms: paymentTerms || null, parity: parity || null,
       contact_person: contactPerson.trim() || null, contact_email: contactEmail.trim() || null, contact_phone: contactPhone.trim() || null,
-      notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null,
+      notes: notes || null, site_address: siteAddress || null, discount_pct: discountPct ?? 0, advance_discount_pct: advancePct || null, reverse_charge: reverseCharge,
     } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l), config: l.config })))
     // issuing locks the offer (Izdano); "Označi kot poslano" then marks it as sent to the customer.
     // An offer that was already sent (or downloaded, or is in measurement) and is issued again keeps that status.
@@ -1100,10 +1102,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                 {!ro && <tr>
                   <td colSpan={colCount - 2} className="px-4 py-1 text-right text-sm text-gray-500">
                     <span className="inline-flex items-center gap-2">{sl ? 'Stopnja DDV' : 'VAT rate'}
-                      <span className="block w-44 text-left"><Select size="xs" value={manualVat === null ? 'auto' : String(manualVat)} onChange={v => setVatRate(v === 'auto' ? null : Number(v))}
+                      <span className="block w-64 text-left"><Select size="xs" value={reverseCharge ? 'reverse' : manualVat === null ? 'auto' : String(manualVat)} onChange={v => { setReverseCharge(v === 'reverse'); setVatRate(v === 'auto' ? null : v === 'reverse' ? 0 : Number(v)) }}
                         options={[
                           { value: 'auto', label: `${sl ? 'Samodejno' : 'Automatic'} (${vatTarget.toLocaleString('de-DE')} %)` },
                           ...[22, 9.5, 5, 0].filter(r => r !== vatTarget || manualVat === r).map(r => ({ value: String(r), label: `${r.toLocaleString('de-DE')} %` })),
+                          { value: 'reverse', label: sl ? 'Obrnjena davčna obveznost (0 %)' : 'Reverse charge (0 %)' },
                         ]} /></span>
                     </span>
                   </td>

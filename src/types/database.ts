@@ -186,6 +186,8 @@ export interface Quote {
   discount_pct: number
   /** discount for 100% advance payment on this quote (%), null = none */
   advance_discount_pct?: number | null
+  /** reverse charge (obrnjena davčna obveznost): VAT 0 % and a note, the recipient accounts for the VAT */
+  reverse_charge?: boolean | null
   total_net: number
   total_vat: number
   total_gross: number
@@ -195,7 +197,7 @@ export interface Quote {
 
 // Frozen copy of an issued offer (so it never re-reads live price lists).
 export interface OfferSnapshot {
-  offer: { number: string; title?: string | null; issued_at: string; valid_until: string | null; lead_time: string | null; payment_terms: string | null; parity: string | null; notes: string | null; currency: string; site_address?: string | null; discount_pct?: number; advance_discount_pct?: number | null }
+  offer: { number: string; title?: string | null; issued_at: string; valid_until: string | null; lead_time: string | null; payment_terms: string | null; parity: string | null; notes: string | null; currency: string; site_address?: string | null; discount_pct?: number; advance_discount_pct?: number | null; reverse_charge?: boolean }
   customer: { name: string; vat_number: string | null; address: string | null; contact_person: string | null; contact_email: string | null; contact_phone: string | null }
   company: { name: string; address: string | null; tax_id: string | null; legal_form?: string | null; registration_number?: string | null; registry_authority?: string | null; share_capital?: number | null; unpaid_capital?: number | null; email: string | null; phone: string | null; bank_name: string | null; bank_iban: string | null; logo_url: string | null; quote_terms: string | null; quote_terms_en: string | null; website?: string | null; bank_bic?: string | null; vat_payer?: boolean; vat_exempt_note?: string | null }
   lines: OfferSnapshotLine[]

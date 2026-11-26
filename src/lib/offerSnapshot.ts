@@ -30,6 +30,7 @@ export function buildSnapshot(quote: Quote, customer: Customer | null, company: 
       site_address: quote.site_address,
       discount_pct: quote.discount_pct ?? 0,
       advance_discount_pct: quote.advance_discount_pct ?? null,
+      reverse_charge: !!quote.reverse_charge,
     },
     customer: {
       name: customer?.name ?? '—',

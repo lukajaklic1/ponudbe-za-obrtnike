@@ -124,7 +124,7 @@ const L = {
     vatId: 'ID za DDV', taxNo: 'Davčna št.', regNo: 'Matična št.', registry: 'Registrsko sodišče', shareCapital: 'Osnovni kapital', unpaid: 'nevplačani', validity: 'Veljavnost', execution: 'Rok izvedbe', paymentTerms: 'Plačilni pogoji', parity: 'Pariteta',
     pos: 'Poz.', item: 'Opis del', qty: 'Kol.', unit: 'EM', price: 'Cena/EM', disc: 'Pop.', vat: 'DDV', total: 'Vrednost',
     windows: 'Okna in vrata', services: 'Storitve', others: 'Ostale postavke',
-    general: 'Splošno', subtotal: 'Skupaj postavke', discount: 'Popust', advance: (p: string) => `Ob plačilu 100% avansa (popust ${p})`, net: 'Skupaj brez DDV', vatLine: (r: string) => `DDV ${r}`,
+    general: 'Splošno', subtotal: 'Skupaj postavke', discount: 'Popust', advance: (p: string) => `Ob plačilu 100% avansa (popust ${p})`, net: 'Skupaj brez DDV', vatLine: (r: string) => `DDV ${r}`, reverseNote: 'Obrnjena davčna obveznost: DDV obračuna prejemnik storitve (94. člen ZDDV-1).',
     gross: 'ZA PLAČILO', notes: 'Opombe', terms: 'Pogoji',
     page: (n: number, t: number) => `Stran ${n} / ${t}`,
   },
@@ -133,7 +133,7 @@ const L = {
     vatId: 'VAT ID', taxNo: 'Tax no.', regNo: 'Reg. no.', registry: 'Registry court', shareCapital: 'Share capital', unpaid: 'unpaid', validity: 'Valid until', execution: 'Execution time', paymentTerms: 'Payment terms', parity: 'Incoterms',
     pos: 'Pos.', item: 'Description of work', qty: 'Qty', unit: 'Unit', price: 'Unit price', disc: 'Disc.', vat: 'VAT', total: 'Amount',
     windows: 'Windows and doors', services: 'Services', others: 'Other items',
-    general: 'General', subtotal: 'Items total', discount: 'Discount', advance: (p: string) => `With 100% advance payment (${p} off)`, net: 'Total excl. VAT', vatLine: (r: string) => `VAT ${r}`,
+    general: 'General', subtotal: 'Items total', discount: 'Discount', advance: (p: string) => `With 100% advance payment (${p} off)`, net: 'Total excl. VAT', vatLine: (r: string) => `VAT ${r}`, reverseNote: 'Reverse charge: the recipient of the service accounts for the VAT (Art. 94 ZDDV-1).',
     gross: 'TOTAL DUE', notes: 'Notes', terms: 'Terms',
     page: (n: number, t: number) => `Page ${n} / ${t}`,
   },
@@ -366,6 +366,7 @@ export default function OfferPdf({ snap, lang = 'sl', drawings = {} }: { snap: O
             </View>
           )}
           {company.vat_exempt_note ? <Text style={[s.totLabel, { marginTop: 6, textAlign: 'right' }]}>{company.vat_exempt_note}</Text> : null}
+          {offer.reverse_charge ? <Text style={[s.totLabel, { marginTop: 6, textAlign: 'right' }]}>{T.reverseNote}</Text> : null}
         </View>
 
         {offer.notes && (

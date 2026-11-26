@@ -292,6 +292,15 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
       else if (items.length) localStorage.setItem(draftKey(slug), JSON.stringify({ v: 1, items, active, stage, contact, heard, openMap, reachedMap, doneKeys, services }))
     } catch { /* storage off: nothing kept */ }
   }, [items, active, stage, contact, heard, openMap, reachedMap, doneKeys, services])
+  /** a clean start: no windows, nothing remembered about them, the default services; the customer's contact details stay */
+  function resetAll() {
+    setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setResult(null); setError('')
+    setOpenMap({}); setReachedMap({}); setDoneKeys({}); setHeard(''); setSeenReview(false)
+    setServices(data.options.filter(o => isService(o) && o.is_default).map(o => o.id))
+    setContact(c => ({ ...c, note: '' }))
+    try { if (slug) localStorage.removeItem(draftKey(slug)) } catch { /* ignore */ }
+    window.scrollTo({ top: 0 })
+  }
   // start with one window (or the windows handed in when a quote position is edited)
   useEffect(() => { if (!items.length) setItems([defaultItem(data)]) }, [])
   // an installation address outside the supplier's area: the enquiry goes without installation
@@ -935,7 +944,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
               <div className="mt-6 flex flex-col items-stretch gap-1">
                 {offerSnap && <button onClick={() => downloadOffer(offerSnap, result?.quote_number ?? '')}
                   className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}><FileText className="w-4 h-4" />{T.pdfAgain}</button>}
-                <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })); window.scrollTo({ top: 0 }) }}
+                <button onClick={resetAll}
                   className={cn('w-full h-12 rounded-xl text-sm font-semibold transition-colors', offerSnap ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 mt-1' : 'text-white hover:opacity-90')} style={offerSnap ? undefined : btn}>{T.newOne}</button>
               </div>
             </div>
@@ -1648,7 +1657,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                 <button disabled={!canFinish} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toContact}</button>
                 {!canFinish && <p className="text-xs text-[#7f7f7f] mt-2 text-center">{finishNote}</p>}
-                <button type="button" onClick={() => { if (window.confirm(T.startOverConfirm)) { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })); window.scrollTo({ top: 0 }) } }}
+                <button type="button" onClick={() => { if (window.confirm(T.startOverConfirm)) resetAll() }}
                   className="mt-2 w-full h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-[#5e5e5e] hover:border-gray-400 hover:text-gray-900 transition-colors"><RotateCcw className="w-4 h-4" />{T.startOver}</button>
               </>
               ) : (
