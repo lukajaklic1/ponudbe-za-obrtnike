@@ -57,7 +57,7 @@ export default function HomePage() {
       <div className="flex items-center gap-2 px-5 pt-5 pb-3">
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
         <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#7f7f7f] text-xs font-medium tabular-nums">{rows === null ? '–' : items.length}</span>
-        <Link to={`/quotes?status=${status}`} className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-[#5e5e5e] hover:text-gray-900">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
+        <Link to={`/quotes?status=${status}`} className="ml-auto inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-400 hover:text-gray-900 transition-colors">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
       </div>
       {rows !== null && items.length === 0
         ? <p className="px-5 pb-6 pt-2 text-sm font-medium text-[#7f7f7f] border-t border-gray-200">{empty}</p>
@@ -110,7 +110,7 @@ export default function HomePage() {
               <div className="text-4xl font-bold tracking-[-0.03em] text-gray-900 tabular-nums mt-1.5">{rows === null ? '–' : x.value}</div>
               <div className="text-xs font-medium text-[#7f7f7f] mt-1 min-h-[16px]">{x.sub}</div>
               <Link to={`/quotes?status=${x.status}`} onClick={e => e.stopPropagation()}
-                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#5e5e5e] hover:text-gray-900">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
+                className="mt-4 self-start inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-400 hover:text-gray-900 transition-colors">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
             </div>
           ))}
         </div>}
