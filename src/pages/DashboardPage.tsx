@@ -169,7 +169,7 @@ export default function DashboardPage() {
       statusOf.set(q.id, q.status)
       const v = Number(q.total_net) || 0
       acc.all.value += v; acc.all.count++
-      const key = q.status === 'issued' || q.status === 'downloaded' ? 'sent' : q.status   // Izdano and a downloaded offer count as Poslano
+      const key = q.status === 'issued' ? 'sent' : q.status   // Izdano counts as Poslano
       if (key in acc) { acc[key as StatusKey].value += v; acc[key as StatusKey].count++ }
     }
     setStatusStats(acc)
@@ -240,7 +240,7 @@ export default function DashboardPage() {
   const sl = lang === 'sl'
 
   // every filter except the dates (customer and assignee are applied when loading)
-  const statusKey = (q: Q) => q.status === 'enquiry' ? 'draft' : q.status === 'downloaded' ? 'sent' : q.status
+  const statusKey = (q: Q) => q.status === 'enquiry' ? 'draft' : q.status
   const quoteCats = new Map<string, Set<string>>()
   for (const l of serviceLines) { const set = quoteCats.get(l.quote_id) ?? new Set<string>(); set.add(l.cat); quoteCats.set(l.quote_id, set) }
   const base = quotes.filter(q => (!statusFilter || statusKey(q) === statusFilter)
@@ -260,7 +260,7 @@ export default function DashboardPage() {
     const all = sum(() => true)
     const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
     const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), count: x.count, tone, sub })
-    const draft = sum(q => isDraftLike(q.status)), issued = sum(q => q.status === 'issued'), sent = sum(q => q.status === 'sent' || q.status === 'downloaded'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
+    const draft = sum(q => isDraftLike(q.status)), issued = sum(q => q.status === 'issued'), sent = sum(q => q.status === 'sent'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
     return [
       row(sl ? 'Skupna vrednost ponudb' : 'Total value of quotes', all, 'grey', all.value ? share(all.value) : ''),
       row(sl ? 'Osnutki' : 'Drafts', draft, 'grey', share(draft.value)),

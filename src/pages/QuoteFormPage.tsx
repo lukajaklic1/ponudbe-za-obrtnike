@@ -281,8 +281,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         if (isNewEnquiry(quote)) {
           supabase.from('quotes').update({ viewed_at: new Date().toISOString() } as any).eq('id', quote.id).then(() => notifyQuotesChanged())
         }
-        if (!readOnly && !['enquiry', 'draft', 'issued', 'sent', 'downloaded'].includes(quote.status)) { navigate(`/quotes/${id}`, { replace: true }); return }
-        setAlreadySent(['sent', 'downloaded', 'won', 'lost'].includes(quote.status))
+        if (!readOnly && !['enquiry', 'draft', 'issued', 'sent'].includes(quote.status)) { navigate(`/quotes/${id}`, { replace: true }); return }
+        setAlreadySent(['sent', 'won', 'lost'].includes(quote.status))
         setQuoteNumber(quote.quote_number ?? '')
         setCustomerId(quote.customer_id)
         setContactPerson(quote.contact_person ?? ''); setContactEmail(quote.contact_email ?? ''); setContactPhone(quote.contact_phone ?? '')
@@ -620,7 +620,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     } as Quote, cust, company, lines.filter(l => l.name.trim() || l.quantity || l.unit_price).map(l => ({ room: l.room.trim() || null, name: l.name, description: l.description || null, unit: l.unit, ...num(l), config: l.config })))
     // issuing locks the offer (Izdano); "Označi kot poslano" then marks it as sent to the customer.
     // An offer that was already sent and is issued again stays sent.
-    const newStatus: QuoteStatus = status === 'sent' || status === 'downloaded' ? status : 'issued'
+    const newStatus: QuoteStatus = status === 'sent' ? status : 'issued'
     const now = new Date().toISOString()
     const { error } = await supabase.from('quotes').update({ snapshot: snap, status: newStatus, issued_at: now, updated_at: now } as any).eq('id', res.id)
     setSaving(false)
@@ -644,7 +644,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (next === 'sent') patch.sent_at = new Date().toISOString()
     const { error } = await supabase.from('quotes').update(patch).eq('id', id)
     if (error) { toast.error(error.message); return }
-    setStatusState(next); setAlreadySent(['sent', 'downloaded', 'won', 'lost'].includes(next)); toast.success(t.common.saved); notifyQuotesChanged()
+    setStatusState(next); setAlreadySent(['sent', 'won', 'lost'].includes(next)); toast.success(t.common.saved); notifyQuotesChanged()
   }
 
   async function deleteQuote() {
@@ -687,7 +687,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
               : <Button loading={saving} onClick={issue} disabled={!customerId}>{s.saveChanges}</Button>}
           </>}
           {ro && <>
-            {hasPerm('quotes', 'create') && ['enquiry', 'draft', 'issued', 'sent', 'downloaded'].includes(status) &&
+            {hasPerm('quotes', 'create') && ['enquiry', 'draft', 'issued', 'sent'].includes(status) &&
               <Button variant="secondary" onClick={() => navigate(`/quotes/${id}/edit`)} className="gap-1.5"><Pencil className="w-3.5 h-3.5" />{s.editOffer}</Button>}
             {hasPerm('quotes', 'create') && isDraftLike(status) &&
               <Button loading={saving} onClick={issue} disabled={!customerId}>{s.issueOffer}</Button>}

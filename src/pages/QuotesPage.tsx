@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Plus, FileText, Search, Check, ChevronDown, MoreVertical, List, Columns3 } from 'lucide-react'
+import { Plus, FileText, Search, Check, ChevronDown, MoreVertical, List, Columns3, Globe } from 'lucide-react'
 import QuotesKanban from '../components/QuotesKanban'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { toast } from '../components/ui/Toast'
@@ -23,7 +23,7 @@ import { isDraftLike, isOpenOffer } from '../lib/quoteStatus'
 interface CompanyUser { id: string; first_name: string; last_name: string; is_active?: boolean }
 
 
-const STATUSES: QuoteStatus[] = ['enquiry', 'draft', 'issued', 'sent', 'downloaded', 'won', 'lost']
+const STATUSES: QuoteStatus[] = ['enquiry', 'draft', 'issued', 'sent', 'won', 'lost']
 
 const VIEW_KEY = 'obrtdesk-quotes-view'
 
@@ -38,7 +38,7 @@ export default function QuotesPage() {
   const sl = lang === 'sl'
   // Days an open quote has been in its current status (null = final status: won / lost)
   const waitingDays = (q: Quote) => {
-    const from = isDraftLike(q.status) || q.status === 'downloaded' ? q.created_at
+    const from = isDraftLike(q.status) ? q.created_at
       : q.status === 'issued' ? (q.issued_at ?? q.updated_at)
       : q.status === 'sent' ? (q.sent_at ?? q.issued_at ?? q.updated_at)
       : null
@@ -57,6 +57,7 @@ export default function QuotesPage() {
   const companyUsers = allUsers.filter(u => u.is_active !== false)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>('all')
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'configurator' | 'manual'>('all')   // where the quote came from
   const [assigneeFilter, setAssigneeFilter] = useState('all')   // user id, 'none' = unassigned
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')   // created_at range, yyyy-mm-dd
@@ -105,6 +106,7 @@ export default function QuotesPage() {
     const q = search.toLowerCase()
     return (
       (statusFilter === 'all' || r.status === statusFilter) &&
+      (sourceFilter === 'all' || (sourceFilter === 'configurator') === (r.source === 'configurator')) &&
       (!dateFrom || format(new Date(r.created_at), 'yyyy-MM-dd') >= dateFrom) &&
       (!dateTo || format(new Date(r.created_at), 'yyyy-MM-dd') <= dateTo) &&
       (assigneeFilter === 'all' || (assigneeFilter === 'none' ? !r.assignee_id : r.assignee_id === assigneeFilter)) &&
@@ -180,6 +182,9 @@ export default function QuotesPage() {
         <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
           onChange={v => { setStatusFilter((v || 'all') as QuoteStatus | 'all'); setPage(1) }} />
+        <FilterSelect label={sl ? 'Izvor' : 'Source'} value={sourceFilter === 'all' ? '' : sourceFilter} allLabel={t.common.all}
+          options={[{ value: 'configurator', label: sl ? 'Prek konfiguratorja' : 'Via configurator' }, { value: 'manual', label: sl ? 'Ročno narejene' : 'Created manually' }]}
+          onChange={v => { setSourceFilter((v || 'all') as 'all' | 'configurator' | 'manual'); setPage(1) }} />
         <FilterSelect label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
           options={[
             ...allUsers.filter(u => u.is_active !== false || rows.some(r => r.assignee_id === u.id)).map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` })),
@@ -224,7 +229,7 @@ export default function QuotesPage() {
               <button key={q.id} type="button" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
                 className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}</span>
+                  <span className="text-sm font-semibold text-gray-900 inline-flex items-center gap-1.5">{q.quote_number}{q.source === 'configurator' && <Globe className="w-3.5 h-3.5 text-gray-400" aria-label={sl ? 'Prek konfiguratorja' : 'Via configurator'} />}</span>
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
                 <div className="text-sm font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
@@ -249,7 +254,7 @@ export default function QuotesPage() {
               {paged.map(q => (
                 <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>
+                    <span className="text-gray-900 whitespace-nowrap inline-flex items-center gap-1.5">{q.quote_number}{q.source === 'configurator' && <Globe className="w-3.5 h-3.5 text-gray-400" aria-label={sl ? 'Prek konfiguratorja' : 'Via configurator'} />}</span>
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 truncate">{q.customers?.name ?? '—'}</div>

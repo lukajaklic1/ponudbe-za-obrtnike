@@ -105,7 +105,7 @@ export const translations = {
       markFrozen: 'Freeze',
       lostReason: 'Lost reason',
       status: {
-        enquiry: 'Enquiry', downloaded: 'Offer downloaded', draft: 'Draft', issued: 'Issued', sent: 'Sent', won: 'Won', lost: 'Lost',
+        enquiry: 'Enquiry', draft: 'Draft', issued: 'Issued', sent: 'Sent', won: 'Won', lost: 'Lost',
       },
       reviewOffer: 'Review offer', backToEdit: 'Back to editing', issueOffer: 'Issue offer', saveChanges: 'Save changes',
       newVersion: 'Create new version', markAccepted: 'Mark as won', markRejected: 'Mark as lost', markSentLabel: 'Mark as sent', sendOffer: 'Send offer', downloadPdf: 'Download PDF',
@@ -696,7 +696,7 @@ export const translations = {
       markFrozen: 'Zamrzni',
       lostReason: 'Razlog izgube',
       status: {
-        enquiry: 'Povpraševanje', downloaded: 'Ponudba prenesena', draft: 'Osnutek', issued: 'Izdano', sent: 'Poslano', won: 'Pridobljeno', lost: 'Izgubljeno',
+        enquiry: 'Povpraševanje', draft: 'Osnutek', issued: 'Izdano', sent: 'Poslano', won: 'Pridobljeno', lost: 'Izgubljeno',
       },
       reviewOffer: 'Pregled ponudbe', backToEdit: 'Nazaj na urejanje', issueOffer: 'Izdaj ponudbo', saveChanges: 'Shrani spremembe',
       newVersion: 'Ustvari novo verzijo', markAccepted: 'Označi kot pridobljeno', markRejected: 'Označi kot izgubljeno', markSentLabel: 'Označi kot poslano', sendOffer: 'Pošlji ponudbo', downloadPdf: 'Prenesi PDF',
