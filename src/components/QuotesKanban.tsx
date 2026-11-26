@@ -7,8 +7,10 @@ export interface KanbanQuote extends Quote {
   assignee: { first_name: string; last_name: string } | null
 }
 
-// Status changes allowed by dragging a card. Issuing a draft needs the editor (it locks the PDF content).
+// Status changes allowed by dragging a card. Dropping a draft on Izdano opens the editor, where it is issued (that locks the PDF content).
 export const ALLOWED_MOVES: Partial<Record<QuoteStatus, QuoteStatus[]>> = {
+  enquiry: ['issued'],
+  draft: ['issued'],
   issued: ['sent'],
   sent: ['won', 'lost'],
 }
