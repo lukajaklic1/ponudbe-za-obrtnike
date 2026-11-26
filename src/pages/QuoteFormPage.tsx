@@ -197,7 +197,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [quoteNumber, setQuoteNumber] = useState('')
   const [alreadySent, setAlreadySent] = useState(false)
   const [status, setStatusState] = useState<QuoteStatus>('draft')
-  const [confirm, setConfirm] = useState<null | 'won' | 'lost' | 'measure' | 'sent' | 'back'>(null)
+  const [confirm, setConfirm] = useState<null | 'won' | 'lost' | 'measure' | 'sent' | 'back' | 'issue'>(null)
   const [backStatus, setBackStatus] = useState<'sent' | 'downloaded'>('sent')   // where Izmera goes back to: sent by the supplier, or downloaded by the customer
   const [tab, setTab] = useState<'overview' | 'pdf'>('overview')
   const [snapshot, setSnapshot] = useState<OfferSnapshot | null>(null)
@@ -695,14 +695,14 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             {!isDraftLike(status) && <Button variant="secondary" onClick={() => navigate(`/quotes/${id}`)} disabled={saving}>{t.common.cancel}</Button>}
             {isDraftLike(status)
               ? <><Button variant="secondary" loading={saving} onClick={save} disabled={!customerId}>{o.saveAsDraft}</Button>
-                  <Button loading={saving} onClick={issue} disabled={!customerId}>{s.issueOffer}</Button></>
+                  <Button loading={saving} onClick={() => setConfirm('issue')} disabled={!customerId}>{s.issueOffer}</Button></>
               : <Button loading={saving} onClick={issue} disabled={!customerId}>{s.saveChanges}</Button>}
           </>}
           {ro && <>
             {hasPerm('quotes', 'create') && ['enquiry', 'measure', 'draft', 'issued', 'sent', 'downloaded'].includes(status) &&
               <Button variant="secondary" onClick={() => navigate(`/quotes/${id}/edit`)} className="gap-1.5"><Pencil className="w-3.5 h-3.5" />{s.editOffer}</Button>}
             {hasPerm('quotes', 'create') && isDraftLike(status) &&
-              <Button loading={saving} onClick={issue} disabled={!customerId}>{s.issueOffer}</Button>}
+              <Button loading={saving} onClick={() => setConfirm('issue')} disabled={!customerId}>{s.issueOffer}</Button>}
             {!isDraftLike(status) && snapshot?.lines &&
               <Button variant="secondary" className="gap-1.5" loading={downloading} onClick={downloadPdf}><Download className="w-3.5 h-3.5" />{s.downloadPdf}</Button>}
             {hasPerm('quotes', 'create') && status === 'issued' &&
@@ -1244,8 +1244,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         title={s.quotes} message={s.deleteQuoteConfirm} confirmLabel={t.common.delete} danger />
 
       <ConfirmDialog open={!!confirm} onClose={() => setConfirm(null)}
-        onConfirm={() => { if (confirm) changeStatus(confirm === 'back' ? backStatus : confirm); setConfirm(null) }}
-title={confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted}        message={confirm === 'back' ? (sl ? 'Ali želite vrniti prejšnji status ponudbe?' : 'Return the offer to its previous status?') : confirm === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : confirm === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : confirm === 'lost' ? s.confirmLost : s.confirmWon}        confirmLabel={confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
+        onConfirm={() => { const c = confirm; setConfirm(null); if (c === 'issue') issue(); else if (c) changeStatus(c === 'back' ? backStatus : c) }}
+title={confirm === 'issue' ? s.issueOffer : confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted}        message={confirm === 'issue' ? (sl ? 'Ponudba se zaklene in pripravi se PDF. Izdati jo želite?' : 'The offer is locked and its PDF is prepared. Issue it?') : confirm === 'back' ? (sl ? 'Ali želite vrniti prejšnji status ponudbe?' : 'Return the offer to its previous status?') : confirm === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : confirm === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : confirm === 'lost' ? s.confirmLost : s.confirmWon}        confirmLabel={confirm === 'issue' ? s.issueOffer : confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
     </div>
   )
 }
