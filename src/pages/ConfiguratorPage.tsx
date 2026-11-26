@@ -278,6 +278,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
   const [offerSnap, setOfferSnap] = useState<any>(null)
   // removing a position always asks first
   const [askRemove, setAskRemove] = useState<number | null>(null)
+  const [askStartOver, setAskStartOver] = useState(false)
   // services are chosen once for the whole order (montaža, demontaža, odvoz …)
   const [openMap, setOpenMap] = useState<Record<string, string>>(() => draft?.openMap ?? Object.fromEntries((initialItems ?? []).map(x => [x.key, 'none'])))
   const [reachedMap, setReachedMap] = useState<Record<string, number>>(() => draft?.reachedMap ?? Object.fromEntries((initialItems ?? []).map(x => [x.key, 99])))
@@ -1657,7 +1658,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                 <button disabled={!canFinish} onClick={() => { setStage('contact'); window.scrollTo({ top: 0 }) }}
                   className="mt-4 w-full h-11 rounded-lg text-sm font-semibold text-white disabled:opacity-40 hover:opacity-90 transition-opacity" style={btn}>{T.toContact}</button>
                 {!canFinish && <p className="text-xs text-[#7f7f7f] mt-2 text-center">{finishNote}</p>}
-                <button type="button" onClick={() => { if (window.confirm(T.startOverConfirm)) resetAll() }}
+                <button type="button" onClick={() => setAskStartOver(true)}
                   className="mt-2 w-full h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-[#5e5e5e] hover:border-gray-400 hover:text-gray-900 transition-colors"><RotateCcw className="w-4 h-4" />{T.startOver}</button>
               </>
               ) : (
@@ -1688,6 +1689,16 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
           <div className="flex justify-end gap-2 mt-5">
             <button type="button" onClick={() => setAskRemove(null)} className="h-10 px-4 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:border-gray-400">{T.cancel}</button>
             <button type="button" autoFocus onClick={() => { removeItem(askRemove); setAskRemove(null) }} className="h-10 px-4 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700">{T.remove}</button>
+          </div>
+        </div>
+      </div>}
+      {askStartOver && <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4" onClick={() => setAskStartOver(false)}>
+        <div role="dialog" aria-modal="true" className="w-full max-w-sm bg-white rounded-xl shadow-xl p-5" onClick={e => e.stopPropagation()}>
+          <div className="text-base font-semibold text-gray-900">{T.startOver}</div>
+          <p className="text-sm font-medium text-[#5e5e5e] mt-1">{T.startOverConfirm}</p>
+          <div className="flex justify-end gap-2 mt-5">
+            <button type="button" onClick={() => setAskStartOver(false)} className="h-10 px-4 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:border-gray-400">{T.cancel}</button>
+            <button type="button" autoFocus onClick={() => { setAskStartOver(false); resetAll() }} className="h-10 px-4 rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700">{T.startOver}</button>
           </div>
         </div>
       </div>}
