@@ -61,7 +61,7 @@ export default function QuotesPage() {
   // the links on Domov open the list already filtered: /quotes?status=enquiry
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all' | 'prep' | 'out'>(() => { const s0 = new URLSearchParams(window.location.search).get('status'); return s0 === 'prep' || s0 === 'out' ? s0 : STATUSES.includes(s0 as QuoteStatus) ? s0 as QuoteStatus : 'all' })
   const [sourceFilter, setSourceFilter] = useState<'all' | 'configurator' | 'manual'>('all')   // where the quote came from
-  const [assigneeFilter, setAssigneeFilter] = useState('all')   // user id, 'none' = unassigned
+  const [assigneeFilter, setAssigneeFilter] = useState(() => new URLSearchParams(window.location.search).get('assignee') ?? 'all')   // user id, 'none' = unassigned; Domov links pass it
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')   // created_at range, yyyy-mm-dd
   const [dateTo, setDateTo] = useState('')
