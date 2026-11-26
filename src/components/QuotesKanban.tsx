@@ -14,7 +14,7 @@ export const ALLOWED_MOVES: Partial<Record<QuoteStatus, QuoteStatus[]>> = {
   issued: ['sent'],
   sent: ['measure', 'won', 'lost'],
   downloaded: ['measure', 'won', 'lost'],
-  measure: ['won', 'lost'],
+  measure: ['issued', 'won', 'lost'],   // after measuring the offer is corrected and issued again
 }
 
 interface Props {

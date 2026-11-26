@@ -202,7 +202,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [quoteNumber, setQuoteNumber] = useState('')
   const [alreadySent, setAlreadySent] = useState(false)
   const [status, setStatusState] = useState<QuoteStatus>('draft')
-  const [confirm, setConfirm] = useState<null | 'won' | 'lost'>(null)
+  const [confirm, setConfirm] = useState<null | 'won' | 'lost' | 'measure' | 'sent'>(null)
   const [tab, setTab] = useState<'overview' | 'pdf'>('overview')
   const [snapshot, setSnapshot] = useState<OfferSnapshot | null>(null)
   // The PDF always shows the company's current logo (old logo files are deleted on replace)
@@ -710,9 +710,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             {!isDraftLike(status) && snapshot?.lines &&
               <Button variant="secondary" className="gap-1.5" loading={downloading} onClick={downloadPdf}><Download className="w-3.5 h-3.5" />{s.downloadPdf}</Button>}
             {hasPerm('quotes', 'create') && status === 'issued' &&
-              <Button onClick={() => changeStatus('sent')} className="gap-1.5"><Send className="w-3.5 h-3.5" />{s.markSentLabel}</Button>}
+              <Button onClick={() => setConfirm('sent')} className="gap-1.5"><Send className="w-3.5 h-3.5" />{s.markSentLabel}</Button>}
             {hasPerm('quotes', 'create') && isOpenOffer(status) && <>
-              {status !== 'measure' && <Button variant="secondary" onClick={() => changeStatus('measure')} className="gap-1.5">{sl ? 'Premakni v izmero' : 'Move to measurement'}</Button>}
+              {status !== 'measure' && <Button variant="secondary" onClick={() => setConfirm('measure')} className="gap-1.5">{sl ? 'Premakni v izmero' : 'Move to measurement'}</Button>}
               <Button onClick={() => setConfirm('won')} className="gap-1.5"><Check className="w-3.5 h-3.5" />{s.markAccepted}</Button>
               <Button variant="secondary" onClick={() => setConfirm('lost')} className="gap-1.5"><X className="w-3.5 h-3.5" />{s.markRejected}</Button>
             </>}
@@ -1248,9 +1248,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
       <ConfirmDialog open={!!confirm} onClose={() => setConfirm(null)}
         onConfirm={() => { if (confirm) changeStatus(confirm); setConfirm(null) }}
-        title={confirm === 'lost' ? s.markRejected : s.markAccepted}
-        message={confirm === 'lost' ? s.confirmLost : s.confirmWon}
-        confirmLabel={confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
+title={confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted}        message={confirm === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : confirm === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : confirm === 'lost' ? s.confirmLost : s.confirmWon}        confirmLabel={confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
 
       <ConfirmDialog open={askSent && status === 'issued'} onClose={() => setAskSent(false)}
         onConfirm={() => { setAskSent(false); changeStatus('sent') }}

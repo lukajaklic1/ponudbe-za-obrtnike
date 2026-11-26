@@ -153,7 +153,7 @@ export default function QuotesPage() {
   // Dropped on another column. Won / lost lock the offer, so ask first (same as the buttons on the offer).
   function requestMove(q: Row, to: QuoteStatus) {
     if (to === 'issued') navigate(`/quotes/${q.id}/edit`)   // issuing builds the offer document, so it happens in the editor
-    else if (to === 'sent' || to === 'won' || to === 'lost') setPendingMove({ quote: q, to })
+    else setPendingMove({ quote: q, to })   // every other change of status asks first
     else moveQuote(q, to)
   }
 
@@ -306,9 +306,9 @@ export default function QuotesPage() {
 
       <ConfirmDialog open={!!pendingMove} onClose={() => setPendingMove(null)}
         onConfirm={() => { if (pendingMove) moveQuote(pendingMove.quote, pendingMove.to); setPendingMove(null) }}
-        title={pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted}
-        message={`${pendingMove?.quote.quote_number ?? ''}: ${pendingMove?.to === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : pendingMove?.to === 'lost' ? s.confirmLost : s.confirmWon}`}
-        confirmLabel={pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted} danger={pendingMove?.to === 'lost'} />
+        title={pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted}
+        message={`${pendingMove?.quote.quote_number ?? ''}: ${pendingMove?.to === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : pendingMove?.to === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : pendingMove?.to === 'lost' ? s.confirmLost : s.confirmWon}`}
+        confirmLabel={pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted} danger={pendingMove?.to === 'lost'} />
     </div>
     </div>
   )

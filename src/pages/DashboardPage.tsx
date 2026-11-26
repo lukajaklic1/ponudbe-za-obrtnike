@@ -21,7 +21,6 @@ const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won
 /** teal family for every chart */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
-const TEAL = { line: '#00d17e', fill: '#00d17e', light: '#ffe5a0', faint: '#dbe7fb', grey: '#e4e4e7' }
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
@@ -449,12 +448,16 @@ export default function DashboardPage() {
         {/* Status breakdown (donut) + top services — the quotes made in the period, like the cards */}
         {(() => {
           const slices = [
+            // every status in the colour of its badge, a little stronger so the ring reads well
+            { key: 'enquiry', name: sl ? 'Povpraševanja' : 'Enquiries', color: '#f59e5b' },
             { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: '#c9c9c9' },
-            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: BLUE.faint },
-            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: BLUE.mid },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: BLUE.dark },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: TEAL.grey },
-          ].map(x => ({ ...x, count: inPeriod.filter(q => statusKey(q) === x.key).length }))
+            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: '#a78bfa' },
+            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#f5c542' },
+            { key: 'downloaded', name: sl ? 'Prenesene' : 'Downloaded', color: '#f472b6' },
+            { key: 'measure', name: sl ? 'Izmere' : 'Measurements', color: '#2dd4bf' },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#00d17e' },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#e4e4e7' },
+          ].map(x => ({ ...x, count: inPeriod.filter(q => q.status === x.key).length }))
           const total = inPeriod.length
           // the value of the sent quotes by category (windows, doors, roof windows, services …): all of it (light) with the won part (dark) in one bar
           const statusOfQ = new Map(inPeriod.filter(q => !isDraftLike(q.status)).map(q => [q.id, q.status]))
@@ -561,13 +564,13 @@ export default function DashboardPage() {
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
           )
-          const CH_COLORS = ['#215bcf', '#3b82f6', '#6ea0f5', '#9bbcf8', '#c5d8fb', '#7d7d7d', '#b5b5b5', '#d4d4d8']
+          const CH_COLORS = ['#3b82f6', '#8b5cf6', '#f472b6', '#00d17e', '#f5c542', '#2dd4bf', '#f59e5b', '#b5b5b5']
           // every quote has a channel; older ones without it are left out here
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           const sources = [
-            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: BLUE.light, f: (q: Q) => q.source !== 'configurator' },
-            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: BLUE.dark, f: (q: Q) => q.source === 'configurator' },
+            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: '#3b82f6', f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: '#00d17e', f: (q: Q) => q.source === 'configurator' },
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
