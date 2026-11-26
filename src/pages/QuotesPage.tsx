@@ -304,9 +304,9 @@ export default function QuotesPage() {
 
       <ConfirmDialog open={!!pendingMove} onClose={() => setPendingMove(null)}
         onConfirm={() => { if (pendingMove) { if (pendingMove.to === 'issued') navigate(`/quotes/${pendingMove.quote.id}/edit`); else moveQuote(pendingMove.quote, pendingMove.to) } setPendingMove(null) }}
-        title={pendingMove?.to === 'issued' ? s.issueOffer : pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted}
+        title={pendingMove?.to === 'issued' ? (sl ? 'Odpri urejevalnik' : 'Open the editor') : pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted}
         message={`${pendingMove?.quote.quote_number ?? ''}: ${pendingMove?.to === 'issued' ? (sl ? 'Ponudbo je treba izdati v urejevalniku. Ga odprem?' : 'The offer is issued in the editor. Open it?') : pendingMove?.to === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : pendingMove?.to === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : pendingMove?.to === 'lost' ? s.confirmLost : s.confirmWon}`}
-        confirmLabel={pendingMove?.to === 'issued' ? s.issueOffer : pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted} danger={pendingMove?.to === 'lost'} />
+        confirmLabel={pendingMove?.to === 'issued' ? (sl ? 'Odpri urejevalnik' : 'Open the editor') : pendingMove?.to === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : pendingMove?.to === 'sent' ? s.markSentLabel : pendingMove?.to === 'lost' ? s.markRejected : s.markAccepted} danger={pendingMove?.to === 'lost'} />
     </div>
     </div>
   )
