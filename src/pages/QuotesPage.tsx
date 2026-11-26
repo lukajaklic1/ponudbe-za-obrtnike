@@ -183,7 +183,7 @@ export default function QuotesPage() {
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
           onChange={v => { setStatusFilter((v || 'all') as QuoteStatus | 'all'); setPage(1) }} />
         <FilterSelect label={sl ? 'Izvor' : 'Source'} value={sourceFilter === 'all' ? '' : sourceFilter} allLabel={t.common.all}
-          options={[{ value: 'configurator', label: sl ? 'Prek konfiguratorja' : 'Via configurator' }, { value: 'manual', label: sl ? 'Ročno narejene' : 'Created manually' }]}
+          options={[{ value: 'configurator', label: sl ? 'Prek konfiguratorja' : 'Via configurator' }, { value: 'manual', label: sl ? 'Ročno kreirane' : 'Created manually' }]}
           onChange={v => { setSourceFilter((v || 'all') as 'all' | 'configurator' | 'manual'); setPage(1) }} />
         <FilterSelect label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
           options={[

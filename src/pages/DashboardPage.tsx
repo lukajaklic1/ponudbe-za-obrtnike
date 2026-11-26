@@ -330,8 +330,8 @@ export default function DashboardPage() {
           <FilterSelect label={sl ? 'Status' : 'Status'} value={statusFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setStatusFilter}
             options={[{ value: 'draft', label: sl ? 'Osnutki' : 'Drafts' }, { value: 'issued', label: sl ? 'Izdane' : 'Issued' }, { value: 'sent', label: sl ? 'Poslane' : 'Sent' }, { value: 'won', label: sl ? 'Dobljene' : 'Won' }, { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' }]} />
 
-          <FilterSelect label={sl ? 'Vir' : 'Source'} value={sourceFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setSourceFilter}
-            options={[{ value: 'configurator', label: sl ? 'Spletni konfigurator' : 'Online configurator' }, { value: 'app', label: sl ? 'Narejene v aplikaciji' : 'Made in the app' }]} />
+          <FilterSelect label={sl ? 'Izvor' : 'Source'} value={sourceFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setSourceFilter}
+            options={[{ value: 'configurator', label: sl ? 'Prek konfiguratorja' : 'Via configurator' }, { value: 'app', label: sl ? 'Ročno kreirane' : 'Created manually' }]} />
 
           <FilterSelect label={sl ? 'Prodajni kanal' : 'Sales channel'} value={channelFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setChannelFilter}
             options={leadSourceOptions(sl ? 'sl' : 'en')} />
@@ -560,8 +560,8 @@ export default function DashboardPage() {
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           const sources = [
-            { key: 'app', name: sl ? 'Interna priprava ponudb' : 'Made in the app', color: BLUE.light, f: (q: Q) => q.source !== 'configurator' },
-            { key: 'configurator', name: sl ? 'Spletni konfigurator' : 'Online configurator', color: BLUE.dark, f: (q: Q) => q.source === 'configurator' },
+            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: BLUE.light, f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: BLUE.dark, f: (q: Q) => q.source === 'configurator' },
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -596,7 +596,7 @@ export default function DashboardPage() {
               <div className="flex flex-col gap-4 h-full">
                 <RingCard title={sl ? 'Prodajni kanal' : 'Sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'}
                   empty={inPeriod.length ? (sl ? 'Ponudbe v tem obdobju še nimajo prodajnega kanala. Izberite ga pri urejanju ponudbe, nove ga imajo vedno.' : 'Quotes in this period have no sales channel yet. Set it when editing a quote; new ones always have it.') : undefined} />
-                <RingCard title={sl ? 'Vir ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
+                <RingCard title={sl ? 'Izvor ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
               </div>
             </div>
           )
