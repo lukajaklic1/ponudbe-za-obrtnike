@@ -321,7 +321,7 @@ function rpc(fn: string, a: Record<string, any> = {}): { data: any; error: any }
   const quotes = (db.quotes ?? []).filter(q => q.company_id === cid
     && (!a.p_customer_id || q.customer_id === a.p_customer_id)
     && (!a.p_assignee_id || q.assignee_id === a.p_assignee_id))
-  const sentish = (q: Row) => ['sent', 'won', 'lost'].includes(q.status)
+  const sentish = (q: Row) => ['sent', 'downloaded', 'measure', 'won', 'lost'].includes(q.status)
   const sum = (l: Row[]) => Math.round(l.reduce((s, q) => s + Number(q.total_net || 0), 0) * 100) / 100
 
   switch (fn) {

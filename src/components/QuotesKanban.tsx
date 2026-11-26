@@ -12,7 +12,9 @@ export const ALLOWED_MOVES: Partial<Record<QuoteStatus, QuoteStatus[]>> = {
   enquiry: ['issued'],
   draft: ['issued'],
   issued: ['sent'],
-  sent: ['won', 'lost'],
+  sent: ['measure', 'won', 'lost'],
+  downloaded: ['measure', 'won', 'lost'],
+  measure: ['won', 'lost'],
 }
 
 interface Props {

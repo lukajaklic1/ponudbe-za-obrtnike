@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Search, X, Layers, Send, Trophy, XCircle } from 'lucide-react'
+import { LayoutDashboard, Search, X, Inbox, Ruler, FileText, FileCheck, Download, Send, Trophy, XCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
@@ -27,10 +27,15 @@ type Q = { id: string; status: string; total_net: number; customer_id: string; a
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
 const TONES = { grey: { color: '#5e5e5e', backgroundColor: '#f4f4f5' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
 const KPI_STYLE = [
-  { icon: Layers, bg: '#e5eeff', color: '#215bcf' },
-  { icon: Send, bg: '#fff3cc', color: '#874d00' },
-  { icon: Trophy, bg: '#e0fced', color: '#007d53' },
-  { icon: XCircle, bg: '#f4f4f5', color: '#52525b' },
+  // the colours of the status badges
+  { icon: Inbox, bg: '#feeee1', color: '#9e3f00' },      // Povpraševanje
+  { icon: FileText, bg: '#eeeff1', color: '#52525b' },   // Osnutek
+  { icon: FileCheck, bg: '#f0eafd', color: '#6b3fc4' },  // Izdano
+  { icon: Send, bg: '#fef3cd', color: '#8a6100' },       // Poslano
+  { icon: Download, bg: '#fde8f3', color: '#a3195b' },   // Preneseno
+  { icon: Ruler, bg: '#dcf5f4', color: '#0c6b6b' },      // Izmera
+  { icon: Trophy, bg: '#dbfce7', color: '#267a47' },     // Pridobljeno
+  { icon: XCircle, bg: '#eeeff1', color: '#52525b' },    // Izgubljeno
 ]
 function StatCard({ label, value, badge, count, index }: { label: string; value: string; badge: string; count: number; index: number; tone?: keyof typeof TONES; sub?: string }) {
   const k = KPI_STYLE[index] ?? KPI_STYLE[0]
@@ -167,7 +172,7 @@ export default function DashboardPage() {
       statusOf.set(q.id, q.status)
       const v = Number(q.total_net) || 0
       acc.all.value += v; acc.all.count++
-      const key = q.status === 'issued' ? 'sent' : q.status   // Izdano counts as Poslano
+      const key = q.status === 'issued' || q.status === 'downloaded' || q.status === 'measure' ? 'sent' : q.status   // Izdano and a downloaded offer count as Poslano in the charts
       if (key in acc) { acc[key as StatusKey].value += v; acc[key as StatusKey].count++ }
     }
     setStatusStats(acc)
@@ -238,7 +243,7 @@ export default function DashboardPage() {
   const sl = lang === 'sl'
 
   // every filter except the dates (customer and assignee are applied when loading)
-  const statusKey = (q: Q) => q.status === 'enquiry' ? 'draft' : q.status
+  const statusKey = (q: Q) => isDraftLike(q.status) ? 'draft' : q.status === 'downloaded' || q.status === 'measure' ? 'sent' : q.status
   const quoteCats = new Map<string, Set<string>>()
   for (const l of serviceLines) { const set = quoteCats.get(l.quote_id) ?? new Set<string>(); set.add(l.cat); quoteCats.set(l.quote_id, set) }
   const base = quotes.filter(q => (!statusFilter || statusKey(q) === statusFilter)
@@ -252,18 +257,23 @@ export default function DashboardPage() {
   // quotes made in the chosen dates
   const inPeriod = base.filter(q => inRange(q.created_at))
 
-  // quotes made in the chosen dates, by their status now: the five values add up to the total
+  // quotes made in the chosen dates, by their status now
   const cards = (() => {
     const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((acc, q) => ({ value: acc.value + (Number(q.total_net) || 0), count: acc.count + 1 }), { value: 0, count: 0 })
     const all = sum(() => true)
     const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
     const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), count: x.count, tone, sub })
-    const open = sum(q => q.status !== 'won' && q.status !== 'lost'), won = sum(q => q.status === 'won'), lost = sum(q => q.status === 'lost')
+    // one card per status (8): two rows of four
+    const rowOf = (label: string, st: string) => { const x = sum(q => q.status === st); return row(label, x, 'grey', share(x.value)) }
     return [
-      row(sl ? 'Skupna vrednost ponudb' : 'Total value of quotes', all, 'grey', all.value ? share(all.value) : ''),
-      row(sl ? 'Odprte ponudbe' : 'Open quotes', open, 'grey', share(open.value)),
-      row(sl ? 'Dobljene ponudbe' : 'Won quotes', won, 'grey', share(won.value)),
-      row(sl ? 'Izgubljene ponudbe' : 'Lost quotes', lost, 'grey', share(lost.value)),
+      rowOf(sl ? 'Povpraševanja' : 'Enquiries', 'enquiry'),
+      rowOf(sl ? 'Osnutki' : 'Drafts', 'draft'),
+      rowOf(sl ? 'Izdane' : 'Issued', 'issued'),
+      rowOf(sl ? 'Poslane' : 'Sent', 'sent'),
+      rowOf(sl ? 'Prenesene' : 'Downloaded', 'downloaded'),
+      rowOf(sl ? 'Izmere' : 'Measurements', 'measure'),
+      rowOf(sl ? 'Dobljene' : 'Won', 'won'),
+      rowOf(sl ? 'Izgubljene' : 'Lost', 'lost'),
     ]
   })()
 

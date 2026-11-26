@@ -23,7 +23,7 @@ import { isDraftLike, isOpenOffer } from '../lib/quoteStatus'
 interface CompanyUser { id: string; first_name: string; last_name: string; is_active?: boolean }
 
 
-const STATUSES: QuoteStatus[] = ['enquiry', 'draft', 'issued', 'sent', 'won', 'lost']
+const STATUSES: QuoteStatus[] = ['enquiry', 'draft', 'issued', 'sent', 'downloaded', 'measure', 'won', 'lost']
 
 const VIEW_KEY = 'obrtdesk-quotes-view'
 
@@ -40,7 +40,7 @@ export default function QuotesPage() {
   const waitingDays = (q: Quote) => {
     const from = isDraftLike(q.status) ? q.created_at
       : q.status === 'issued' ? (q.issued_at ?? q.updated_at)
-      : q.status === 'sent' ? (q.sent_at ?? q.issued_at ?? q.updated_at)
+      : q.status === 'sent' || q.status === 'downloaded' || q.status === 'measure' ? (q.sent_at ?? q.issued_at ?? q.updated_at)
       : null
     if (!from) return null
     return Math.max(0, Math.floor((Date.now() - Date.parse(from)) / 86400000))
