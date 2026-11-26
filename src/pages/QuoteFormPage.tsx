@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Select from '../components/ui/Select'
-import { useNavigate, useParams, useLocation, Navigate } from 'react-router-dom'
+import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ChevronLeft, ChevronDown, Plus, Trash2, Pencil, Download, Check, X, Search, Paperclip, FileText, UploadCloud, Send } from 'lucide-react'
 import OfferPdfPreview, { downloadOfferPdf } from '../components/OfferPdfPreview'
@@ -186,11 +186,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const s = t.qp
   const o = t.od
   const navigate = useNavigate()
-  const location = useLocation()
-  const [askSent, setAskSent] = useState(false)   // right after issuing: has the offer been sent to the customer?
-  useEffect(() => {
-    if ((location.state as { askSent?: boolean } | null)?.askSent) { setAskSent(true); navigate(location.pathname, { replace: true, state: null }) }
-  }, [location.state])
   const cur = company?.currency ?? 'EUR'
   const money = (n: number) => (n ?? 0).toLocaleString('de-DE', { style: 'currency', currency: cur })
 
@@ -644,7 +639,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     if (error) { toast.error(error.message); return }
     setStatusState(newStatus); setSnapshot(snap)
     toast.success(s.offerIssued)
-    navigate(`/quotes/${res.id}`, { state: { askSent: true } })
+    navigate(`/quotes/${res.id}`)
   }
 
   async function downloadPdf() {
@@ -1251,12 +1246,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       <ConfirmDialog open={!!confirm} onClose={() => setConfirm(null)}
         onConfirm={() => { if (confirm) changeStatus(confirm === 'back' ? backStatus : confirm); setConfirm(null) }}
 title={confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted}        message={confirm === 'back' ? (sl ? 'Ali želite vrniti prejšnji status ponudbe?' : 'Return the offer to its previous status?') : confirm === 'measure' ? (sl ? 'Ali želite ponudbo premakniti v izmero?' : 'Move this offer to measurement?') : confirm === 'sent' ? (sl ? 'Ali ste ponudbo poslali stranki?' : 'Have you sent the offer to the customer?') : confirm === 'lost' ? s.confirmLost : s.confirmWon}        confirmLabel={confirm === 'back' ? (backStatus === 'sent' ? (sl ? 'Vrni v Poslano' : 'Back to Sent') : (sl ? 'Vrni v Preneseno' : 'Back to Downloaded')) : confirm === 'measure' ? (sl ? 'Premakni v izmero' : 'Move to measurement') : confirm === 'sent' ? s.markSentLabel : confirm === 'lost' ? s.markRejected : s.markAccepted} danger={confirm === 'lost'} />
-
-      <ConfirmDialog open={askSent && status === 'issued'} onClose={() => setAskSent(false)}
-        onConfirm={() => { setAskSent(false); changeStatus('sent') }}
-        title={lang === 'sl' ? 'Ponudba je izdana' : 'Offer issued'}
-        message={lang === 'sl' ? 'Ste ponudbo že poslali stranki? Označite jo kot poslano, da se vodi v pravem statusu.' : 'Have you already sent the offer to the customer? Mark it as sent so it is tracked in the right status.'}
-        confirmLabel={s.markSentLabel} cancelLabel={lang === 'sl' ? 'Ne še' : 'Not yet'} />
     </div>
   )
 }
