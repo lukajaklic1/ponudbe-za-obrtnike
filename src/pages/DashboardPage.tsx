@@ -21,8 +21,8 @@ const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won
 /** teal family for every chart */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
-/** Rings: one ring is read in blue, the other in green — even steps of the same colour, from a light tint to
- *  the colour itself, with the last step only a little darker than it (no near-black slice). */
+/** Rings: the status and source rings are read in blue, the channels ring in green — even steps of the same
+ *  colour, from a light tint to the colour itself, the last step only a little darker (no near-black slice). */
 const BLUE_RAMP = ['#d8e6fd', '#bed6fc', '#a3c4fb', '#89b4fa', '#70a4f8', '#5592f7', '#3b82f6', '#326fd1']
 const GREEN_RAMP = ['#ccf6e5', '#abf0d4', '#87e9c2', '#66e3b2', '#45dda1', '#21d78f', '#00d17e', '#00b26b']
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
@@ -579,8 +579,8 @@ export default function DashboardPage() {
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           const sources = [
-            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: '#3b82f6', f: (q: Q) => q.source !== 'configurator' },
-            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: '#00d17e', f: (q: Q) => q.source === 'configurator' },
+            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: BLUE_RAMP[6], f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: BLUE_RAMP[2], f: (q: Q) => q.source === 'configurator' },
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
