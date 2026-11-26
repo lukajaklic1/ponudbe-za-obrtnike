@@ -1536,7 +1536,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                     </>}
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-semibold text-gray-900">{T.country}</span>
-                    <Select value={contact.country} onChange={v => setContact({ ...contact, country: v, postal_code: '', city: '' })}
+                    <Select value={contact.country} onChange={v => setContact(c => ({ ...c, country: v }))}
                       options={COUNTRIES.map(c => ({ value: c.code, label: c[lang] }))} />
                   </div>
                   {outOfArea && <p className="sm:col-span-2 text-sm font-medium text-[#8a6100] bg-[#fef3cd] rounded-lg px-3 py-2">{endMode === 'pdf' ? T.outOfAreaPdf : T.outOfArea}</p>}
@@ -1610,24 +1610,25 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
             <div className={cn(internal ? '' : 'bg-white border border-gray-200 rounded-xl p-5', !internal && stage === 'config' && 'hidden')}>
               {!internal && <div className={cn('text-base font-semibold text-gray-900', stage !== 'config' ? 'mb-2' : '')}>{T.summary}</div>}
               {!internal && stage === 'config' && <p className="text-xs leading-5 text-[#5e5e5e] mt-1 mb-4">{T.yourOrderHint}</p>}
-              {!internal && show && <ul className="border-t border-gray-100 pt-3 space-y-1.5">
+              {!internal && <ul className="border-t border-gray-100 pt-3 space-y-1.5">
                 {items.map((x, i) => {
                   const xp = priceOf(x)
                   return <li key={x.key} className="flex items-baseline justify-between gap-3 text-sm">
                     <span className="min-w-0 truncate text-gray-900">{T.position} {i + 1} · {describe(x).title}{x.quantity > 1 && <span className="text-xs text-[#5e5e5e]"> {x.quantity} ×</span>}</span>
-                    <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{xp != null ? money(xp * x.quantity, cur) : '—'}</span>
+                    {show && <span className="font-medium text-gray-900 whitespace-nowrap tabular-nums">{xp != null ? money(xp * x.quantity, cur) : '—'}</span>}
                   </li>
                 })}
-                <li className="flex items-baseline justify-between gap-3 text-sm pt-1.5 mt-1 border-t border-gray-100">
+                {show && <li className="flex items-baseline justify-between gap-3 text-sm pt-1.5 mt-1 border-t border-gray-100">
                   <span className="font-semibold text-gray-900">{T.windowsTotal}</span>
                   <span className="font-semibold text-gray-900 whitespace-nowrap tabular-nums">{money(items.reduce((a, x) => a + (priceOf(x) ?? 0) * x.quantity, 0), cur)}</span>
-                </li>
+                </li>}
               </ul>}
               {!internal && serviceRows.length > 0 && <ul className="border-t border-gray-100 pt-2 mt-3">
                 <li className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="font-semibold text-gray-900">{T.servicesTitle}</span>
                   {show && <span className="font-semibold text-gray-900 whitespace-nowrap tabular-nums">{money(serviceRows.reduce((a, r) => a + r.total, 0), cur)}</span>}
                 </li>
+                {serviceRows.map(r => <li key={r.option.id} className="text-xs text-[#5e5e5e] pt-1 truncate">{r.option.name}</li>)}
               </ul>}
               {internal ? null : show ? <div className="border-t border-gray-200 mt-3 pt-3 space-y-1.5 text-sm">
                 <Row l={T.total} r={money(totals.net, cur)} />
