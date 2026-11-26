@@ -498,17 +498,55 @@ const RAW = `1000|Ljubljana
 export interface SiPost { code: string; name: string }
 export const SI_POSTS: SiPost[] = RAW.split('\n').map(l => { const [code, name] = l.split('|'); return { code, name } })
 
-/** postal areas of Slovenia (first digit of the postal code), used for the installation area */
+/** the 12 statistical regions of Slovenia, used for the installation area */
 export const SI_AREAS: { key: string; sl: string; en: string }[] = [
-  { key: '1', sl: 'Ljubljana in okolica (1000–1999)', en: 'Ljubljana area (1000–1999)' },
-  { key: '2', sl: 'Maribor, Ptuj, Koroška (2000–2999)', en: 'Maribor, Ptuj, Carinthia (2000–2999)' },
-  { key: '3', sl: 'Celje, Velenje, Savinjska (3000–3999)', en: 'Celje, Velenje, Savinja (3000–3999)' },
-  { key: '4', sl: 'Kranj, Gorenjska (4000–4999)', en: 'Kranj, Upper Carniola (4000–4999)' },
-  { key: '5', sl: 'Nova Gorica, Goriška (5000–5999)', en: 'Nova Gorica, Gorizia region (5000–5999)' },
-  { key: '6', sl: 'Koper, Obala, Kras, Notranjska (6000–6999)', en: 'Koper, coast, Karst (6000–6999)' },
-  { key: '8', sl: 'Novo mesto, Dolenjska, Posavje (8000–8999)', en: 'Novo mesto, Lower Carniola (8000–8999)' },
-  { key: '9', sl: 'Murska Sobota, Pomurje (9000–9999)', en: 'Murska Sobota, Mura region (9000–9999)' },
+  { key: 'pomurska', sl: 'Pomurska', en: 'Pomurje' },
+  { key: 'podravska', sl: 'Podravska', en: 'Podravje' },
+  { key: 'koroska', sl: 'Koroška', en: 'Carinthia' },
+  { key: 'savinjska', sl: 'Savinjska', en: 'Savinja' },
+  { key: 'zasavska', sl: 'Zasavska', en: 'Central Sava' },
+  { key: 'posavska', sl: 'Posavska', en: 'Lower Sava' },
+  { key: 'jugovzhodna', sl: 'Jugovzhodna Slovenija', en: 'Southeast Slovenia' },
+  { key: 'osrednjeslovenska', sl: 'Osrednjeslovenska', en: 'Central Slovenia' },
+  { key: 'gorenjska', sl: 'Gorenjska', en: 'Upper Carniola' },
+  { key: 'primorsko-notranjska', sl: 'Primorsko-notranjska', en: 'Littoral–Inner Carniola' },
+  { key: 'goriska', sl: 'Goriška', en: 'Gorizia' },
+  { key: 'obalno-kraska', sl: 'Obalno-kraška', en: 'Coastal–Karst' },
 ]
+
+/** postal code ranges of the regions; the first matching rule wins, so the exceptions come first */
+const REGION_RULES: [number, number, string][] = [
+  [1380, 1389, 'primorsko-notranjska'], // Cerknica, Bloke, Loška dolina
+  [1310, 1310, 'jugovzhodna'], [1316, 1319, 'jugovzhodna'], [1330, 1339, 'jugovzhodna'], // Ribnica, Sodražica, Loški Potok, Kočevje
+  [1410, 1431, 'zasavska'],
+  [1432, 1432, 'savinjska'], // Zidani Most
+  [1433, 1434, 'posavska'], // Radeče, Loka pri Zidanem Mostu
+  [1000, 1999, 'osrednjeslovenska'],
+  [2360, 2394, 'koroska'],
+  [2000, 2999, 'podravska'],
+  [3000, 3999, 'savinjska'],
+  [4000, 4999, 'gorenjska'],
+  [5000, 5999, 'goriska'],
+  [6225, 6225, 'primorsko-notranjska'], [6230, 6232, 'primorsko-notranjska'], [6244, 6244, 'primorsko-notranjska'], [6250, 6258, 'primorsko-notranjska'],
+  [6000, 6999, 'obalno-kraska'],
+  [8250, 8299, 'posavska'], [8311, 8312, 'posavska'], // Brežice, Krško, Sevnica, Kostanjevica na Krki, Podbočje
+  [8000, 8999, 'jugovzhodna'],
+  [9000, 9999, 'pomurska'],
+]
+export function regionOfPostal(postal: string): string | null {
+  const n = parseInt(postal.trim(), 10)
+  if (!Number.isFinite(n)) return null
+  return REGION_RULES.find(([a, b]) => n >= a && n <= b)?.[2] ?? null
+}
+/** earlier settings stored the first digit of the postal code; this turns them into the regions they covered */
+const LEGACY_AREAS: Record<string, string[]> = {
+  '1': ['osrednjeslovenska', 'zasavska', 'jugovzhodna', 'primorsko-notranjska', 'posavska'],
+  '2': ['podravska', 'koroska'], '3': ['savinjska'], '4': ['gorenjska'], '5': ['goriska'],
+  '6': ['obalno-kraska', 'primorsko-notranjska'], '8': ['jugovzhodna', 'posavska'], '9': ['pomurska'],
+}
+export function normalizeAreas(keys: string[]): string[] {
+  return [...new Set(keys.flatMap(k => LEGACY_AREAS[k] ?? [k]))]
+}
 
 /** countries a supplier can work in */
 export const COUNTRIES: { code: string; sl: string; en: string }[] = [
@@ -527,6 +565,6 @@ export const DEFAULT_AREA: InstallArea = { countries: ['SI'], si_areas: [] }
 export function inArea(area: InstallArea | null | undefined, country: string, postal: string): boolean {
   const a = area ?? DEFAULT_AREA
   if (!a.countries.includes(country)) return false
-  if (country === 'SI' && a.si_areas.length) return a.si_areas.includes(postal.trim().charAt(0))
+  if (country === 'SI' && a.si_areas.length) { const r = regionOfPostal(postal); return !!r && normalizeAreas(a.si_areas).includes(r) }
   return true
 }

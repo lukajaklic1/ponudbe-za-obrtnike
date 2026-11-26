@@ -23,6 +23,7 @@ import {
 } from '../lib/costing'
 import { cn } from '../lib/cn'
 import Select from '../components/ui/Select'
+import AppLogo from '../components/ui/AppLogo'
 import { SI_POSTS, COUNTRIES, inArea, type InstallArea } from '../lib/siPosts'
 import { leadSourceOptions } from '../lib/leadSources'
 import {
@@ -118,9 +119,9 @@ const TXT = {
     pdfDoneTitle: 'Vaša ponudba je prenesena', pdfDoneText: 'Informativna ponudba se je prenesla na vašo napravo. Ponudnik je o tem obveščen in vas bo po potrebi kontaktiral.', quoteNoLabel: 'Številka ponudbe', pdfAgain: 'Prenesi ponudbo znova', yourTotal: 'Skupaj z DDV',
     pdfNote: 'Informativna ponudba, izračunana v spletnem konfiguratorju. Končno ponudbo pripravimo po izmeri na terenu.', pdfTaken: 'Stranka je prenesla informativno ponudbo (PDF).',
     next: 'Nadaljuj na podatke', back: 'Nazaj na okna', send: 'Pošlji povpraševanje', sending: 'Pošiljam …',
-    contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov montaže', street: 'Ulica in hišna številka', postal: 'Poštna številka', city: 'Kraj', country: 'Država', postalPick: 'Vpišite številko ali kraj', outOfArea: 'Na tem naslovu montaže ne izvajamo. Povpraševanje lahko pošljete brez montaže.', note: 'Opomba',
+    contact: 'Vaši podatki', person: 'Fizična oseba', company: 'Podjetje', companyName: 'Naziv podjetja', vatNo: 'ID za DDV', contactPersonHint: 'Kontaktna oseba', firstName: 'Ime', lastName: 'Priimek', email: 'E-pošta', phone: 'Telefon', address: 'Naslov montaže', street: 'Ulica in hišna številka', postal: 'Poštna številka', city: 'Kraj', country: 'Država', postalPick: 'Vpišite številko ali kraj', outOfArea: 'Na tem naslovu montaže ne izvajamo. Povpraševanje lahko pošljete brez montaže.', outOfAreaPdf: 'Na tem naslovu montaže ne izvajamo. Ponudbo lahko prenesete brez montaže.', note: 'Opomba',
     consent: 'Strinjam se, da ponudnik moje podatke uporabi za pripravo ponudbe.',
-    doneTitle: 'Hvala, povpraševanje je oddano!', doneText: 'Ponudnik bo pripravil ponudbo in vas kontaktiral.', enquiryNoLabel: 'Številka povpraševanja',
+    doneTitle: 'Hvala, povpraševanje je oddano!', doneText: 'Ponudnik bo pripravil ponudbo in vas kontaktiral.', enquiryNoLabel: 'Številka povpraševanja', contactQ: 'Imate vprašanje?',
     startOver: 'Začni znova', startOverConfirm: 'Vsa okna v povpraševanju bodo izbrisana. Želite začeti znova?', newOne: 'Novo povpraševanje', invalidSize: 'Mere so izven dovoljenega razpona', pcs: 'kos',
     errors: { invalid_email: 'Vnesite veljaven e-poštni naslov.', name_required: 'Vnesite ime in priimek.', company_required: 'Vnesite naziv podjetja.', address_required: 'Vnesite celoten naslov montaže.', rate_limited: 'Preveč povpraševanj v kratkem času. Poskusite kasneje.', size_out_of_range: 'Nekatere mere so izven dovoljenega razpona.' } as Record<string, string>,
     genericError: 'Pošiljanje ni uspelo. Poskusite znova.',
@@ -157,9 +158,9 @@ const TXT = {
     pdfDoneTitle: 'Your quote has been downloaded', pdfDoneText: 'The informative quote was downloaded to your device. The supplier has been notified and will contact you if needed.', quoteNoLabel: 'Quote number', pdfAgain: 'Download the quote again', yourTotal: 'Total incl. VAT',
     pdfNote: 'Informative quote, calculated in the online configurator. We prepare the final quote after measuring on site.', pdfTaken: 'The customer downloaded the informative quote (PDF).',
     next: 'Continue to details', back: 'Back to windows', send: 'Send enquiry', sending: 'Sending …',
-    contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Installation address', street: 'Street and house number', postal: 'Postal code', city: 'Town', country: 'Country', postalPick: 'Type the code or the town', outOfArea: 'We do not install at this address. You can still send the enquiry without installation.', note: 'Note',
+    contact: 'Your details', person: 'Private person', company: 'Company', companyName: 'Company name', vatNo: 'VAT number', contactPersonHint: 'Contact person', firstName: 'First name', lastName: 'Last name', email: 'E-mail', phone: 'Phone', address: 'Installation address', street: 'Street and house number', postal: 'Postal code', city: 'Town', country: 'Country', postalPick: 'Type the code or the town', outOfArea: 'We do not install at this address. You can still send the enquiry without installation.', outOfAreaPdf: 'We do not install at this address. You can still download the quote without installation.', note: 'Note',
     consent: 'I agree that the supplier uses my data to prepare a quote.',
-    doneTitle: 'Thank you, your enquiry was sent!', doneText: 'The supplier will prepare a quote and contact you.', enquiryNoLabel: 'Enquiry number',
+    doneTitle: 'Thank you, your enquiry was sent!', doneText: 'The supplier will prepare a quote and contact you.', enquiryNoLabel: 'Enquiry number', contactQ: 'Any questions?',
     startOver: 'Start over', startOverConfirm: 'All windows in the enquiry will be deleted. Start over?', newOne: 'New enquiry', invalidSize: 'Size is outside the allowed range', pcs: 'pc',
     errors: { invalid_email: 'Enter a valid e-mail address.', name_required: 'Enter your first and last name.', company_required: 'Enter the company name.', address_required: 'Enter the full installation address.', rate_limited: 'Too many enquiries in a short time. Try again later.', size_out_of_range: 'Some sizes are outside the allowed range.' } as Record<string, string>,
     genericError: 'Sending failed. Please try again.',
@@ -896,7 +897,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
             {/* only the supplier's logo; without a logo its name stands in */}
             {data.company.logo_url
               ? <img src={data.company.logo_url} alt={data.company.name} className={cn('w-auto object-contain object-left', data.company.logo_size === 'l' ? 'h-12 sm:h-14 max-w-[200px] sm:max-w-[320px]' : data.company.logo_size === 's' ? 'h-8 sm:h-9 max-w-[150px] sm:max-w-[200px]' : 'h-10 sm:h-12 max-w-[180px] sm:max-w-[260px]')} />
-              : <div className="text-lg font-bold tracking-[-0.01em] text-gray-900 truncate">{data.company.name}</div>}
+              : <AppLogo size="md" />}
           </div>
           {/* contact as buttons (on a phone only the icons), then the language */}
           <div className="flex items-center gap-2">
@@ -912,30 +913,35 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
       </header>}
 
       {stage === 'done' ? (
-        <div className="max-w-xl mx-auto px-4 py-10 sm:py-16">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] px-6 py-8 sm:px-10 sm:py-10 text-center">
-            <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center bg-[#dbfce7] text-[#267a47] ring-1 ring-inset ring-[#b7ecc9]"><Check className="w-7 h-7" strokeWidth={2.5} /></div>
-            <h1 className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 mt-5">{offerSnap ? T.pdfDoneTitle : T.doneTitle}</h1>
-            <p className="text-sm leading-6 text-[#5e5e5e] mt-2 max-w-md mx-auto">{offerSnap ? T.pdfDoneText : T.doneText}</p>
+        <div className="max-w-lg mx-auto px-4 pt-12 pb-16 sm:pt-20">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] overflow-hidden">
+            <div className="px-6 pt-10 pb-8 sm:px-10 text-center">
+              <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center bg-[#dbfce7] text-[#267a47] shadow-[0_0_0_8px_#f0fdf4]"><Check className="w-8 h-8" strokeWidth={2.5} /></div>
+              <h1 className="text-[24px] leading-8 font-bold tracking-[-0.02em] text-gray-900 mt-7">{offerSnap ? T.pdfDoneTitle : T.doneTitle}</h1>
+              <p className="text-[15px] leading-6 text-[#5e5e5e] mt-3 max-w-sm mx-auto">{offerSnap ? T.pdfDoneText : T.doneText}</p>
 
-            {/* the number and, when the price is shown after the details, the total */}
-            <dl className="mt-6 rounded-xl bg-[#f7f7f8] border border-gray-200 text-left divide-y divide-gray-200">
-              <div className="flex items-baseline justify-between gap-4 px-4 py-3">
-                <dt className="text-sm text-[#5e5e5e]">{offerSnap ? T.quoteNoLabel : T.enquiryNoLabel}</dt>
-                <dd className="text-sm font-semibold text-gray-900 tabular-nums">{result?.quote_number}</dd>
+              {/* the number and, when the price is shown after the details, the total */}
+              <div className="mt-8 rounded-xl border border-gray-200 divide-y divide-gray-200 text-left">
+                <div className="px-5 py-4">
+                  <div className="text-xs font-medium text-[#7f7f7f]">{offerSnap ? T.quoteNoLabel : T.enquiryNoLabel}</div>
+                  <div className="text-base font-semibold text-gray-900 tabular-nums mt-1">{result?.quote_number}</div>
+                </div>
+                {calc && (offerSnap || priceMode === 'end') && <div className="px-5 py-4">
+                  <div className="text-xs font-medium text-[#7f7f7f]">{T.yourTotal}</div>
+                  <div className="text-[22px] leading-7 font-bold tracking-[-0.02em] text-gray-900 tabular-nums mt-0.5">{money(offerSnap?.total_gross ?? totals.gross, cur)}</div>
+                </div>}
               </div>
-              {calc && (offerSnap || priceMode === 'end') && <div className="flex items-baseline justify-between gap-4 px-4 py-3">
-                <dt className="text-sm text-[#5e5e5e]">{T.yourTotal}</dt>
-                <dd className="text-[22px] leading-7 font-bold tracking-[-0.02em] text-gray-900 tabular-nums">{money(offerSnap?.total_gross ?? totals.gross, cur)}</dd>
-              </div>}
-            </dl>
 
-            <div className="mt-6 flex flex-col gap-2.5">
-              {offerSnap && <button onClick={() => downloadOffer(offerSnap, result?.quote_number ?? '')}
-                className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}><FileText className="w-4 h-4" />{T.pdfAgain}</button>}
-              <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })); window.scrollTo({ top: 0 }) }}
-                className={cn('w-full h-11 rounded-lg text-sm font-semibold transition-colors', offerSnap ? 'border border-gray-200 bg-white text-gray-900 hover:border-gray-400' : 'text-white hover:opacity-90')} style={offerSnap ? undefined : btn}>{T.newOne}</button>
+              <div className="mt-6 flex flex-col items-stretch gap-1">
+                {offerSnap && <button onClick={() => downloadOffer(offerSnap, result?.quote_number ?? '')}
+                  className="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={btn}><FileText className="w-4 h-4" />{T.pdfAgain}</button>}
+                <button onClick={() => { setItems([defaultItem(data)]); setActive(0); setStage('config'); setConsent(false); setOfferSnap(null); setContact(c => ({ ...c, note: '' })); window.scrollTo({ top: 0 }) }}
+                  className={cn('w-full h-12 rounded-xl text-sm font-semibold transition-colors', offerSnap ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 mt-1' : 'text-white hover:opacity-90')} style={offerSnap ? undefined : btn}>{T.newOne}</button>
+              </div>
             </div>
+            {(data.company.phone || data.company.email) && <div className="border-t border-gray-200 bg-[#fafafa] px-6 py-4 sm:px-10 text-center text-sm text-[#5e5e5e]">
+              {T.contactQ} <span className="font-medium text-gray-900">{[data.company.phone, data.company.email].filter(Boolean).join(' · ')}</span>
+            </div>}
           </div>
         </div>
       ) : (
@@ -1523,7 +1529,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
                     <Select value={contact.country} onChange={v => setContact({ ...contact, country: v, postal_code: '', city: '' })}
                       options={COUNTRIES.map(c => ({ value: c.code, label: c[lang] }))} />
                   </div>
-                  {outOfArea && <p className="sm:col-span-2 text-sm font-medium text-[#8a6100] bg-[#fef3cd] rounded-lg px-3 py-2">{T.outOfArea}</p>}
+                  {outOfArea && <p className="sm:col-span-2 text-sm font-medium text-[#8a6100] bg-[#fef3cd] rounded-lg px-3 py-2">{endMode === 'pdf' ? T.outOfAreaPdf : T.outOfArea}</p>}
                   {/* where the customer heard of the supplier (goes to the enquiry's note) */}
                   <div className="sm:col-span-2 flex flex-col gap-1">
                     <span className="text-sm font-semibold text-gray-900">{T.heard}<span className="req-star"> *</span></span>
@@ -1694,7 +1700,7 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
 }
 
 export type PriceMode = 'live' | 'end' | 'range' | 'never'
-export type EndMode = 'enquiry' | 'pdf' | 'choose'
+export type EndMode = 'enquiry' | 'pdf'
 
 /** id of the natural wood colour the configurator adds to wooden profiles */
 const NATURAL_WOOD_ID = 'wood_natural'
