@@ -795,7 +795,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             <h2 className="text-[22px] leading-7 tracking-[-0.02em] font-semibold text-gray-900 mb-4">{lang === 'en' ? 'Commercial terms' : 'Komercialni pogoji'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-3 text-sm font-semibold text-gray-900 pt-0 flex items-center justify-between gap-3">
-                <span>{lang === 'en' ? 'Address of the works' : 'Naslov del'}</span>
+                <span>{lang === 'en' ? 'Address of the works' : 'Naslov montaže'}</span>
                 {!ro && selectedCustomer && <label className="flex items-center gap-2 text-xs font-normal normal-case tracking-normal text-[#7f7f7f] cursor-pointer"><input type="checkbox" className="rounded border-gray-300" checked={!!siteAddress && siteAddress === custAddr} onChange={e => setSiteAddress(e.target.checked ? custAddr : '')} />{lang === 'en' ? 'Same as the customer address' : 'Enako kot naslov stranke'}</label>}
               </div>
               <div className="lg:col-span-3"><Input id="q-site" label={lang === 'en' ? 'Street and house number' : 'Ulica in hišna številka'} value={site.street} onChange={e => setSite(x => ({ ...x, street: e.target.value }))} /></div>
