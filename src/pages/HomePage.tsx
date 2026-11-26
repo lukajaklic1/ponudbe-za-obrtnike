@@ -47,8 +47,8 @@ export default function HomePage() {
   const money = (n: number | null) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })
   const newest = (items: Row[], key: (q: Row) => string) => [...items].sort((a, b) => Date.parse(key(b)) - Date.parse(key(a)))
   const newEnquiries = newest(list.filter(q => q.status === 'enquiry'), q => q.created_at)
-  // open offers: made and out with the customer, not decided yet
-  const openOffers = newest(list.filter(q => ['issued', 'sent', 'downloaded', 'measure'].includes(q.status)), q => q.sent_at ?? q.updated_at)
+  // open offers: made and out with the customer, waiting for an answer; measurement is a stage of its own, so the cards add up
+  const openOffers = newest(list.filter(q => q.status === 'sent' || q.status === 'downloaded'), q => q.sent_at ?? q.updated_at)
   const statusName = (s0: string) => (t.qp.status as Record<string, string>)[s0] ?? s0
 
   /** a plain table card: the newest rows, a link to all of them */
@@ -86,8 +86,8 @@ export default function HomePage() {
 
   const cards = [
     { icon: Inbox, bg: '#feeee1', fg: '#9e3f00', status: 'enquiry', label: sl ? 'Povpraševanja' : 'Enquiries', value: count('enquiry'), sub: avgText ? (sl ? `Povprečen čas do ponudbe: ${avgText}` : `Average time to an offer: ${avgText}`) : (sl ? 'čakajo na ponudbo' : 'waiting for an offer') },
-    { icon: FileText, bg: '#eeeff1', fg: '#52525b', status: 'draft', label: sl ? 'Osnutki' : 'Drafts', value: count('draft'), sub: sl ? 'v pripravi' : 'in progress' },
-    { icon: Send, bg: '#fef3cd', fg: '#8a6100', status: 'sent', label: sl ? 'Poslane ponudbe' : 'Sent offers', value: sent.length, sub: stale ? (sl ? `${stale} starejših od 7 dni` : `${stale} older than 7 days`) : (sl ? 'čakajo na odgovor' : 'waiting for an answer') },
+    { icon: FileText, bg: '#eeeff1', fg: '#52525b', status: 'prep', label: sl ? 'V pripravi' : 'In preparation', value: count('draft') + count('issued'), sub: sl ? `${count('draft')} osnutkov, ${count('issued')} izdanih` : `${count('draft')} drafts, ${count('issued')} issued` },
+    { icon: Send, bg: '#fef3cd', fg: '#8a6100', status: 'out', label: sl ? 'Pri stranki' : 'With the customer', value: openOffers.length, sub: stale ? (sl ? `${stale} starejših od 7 dni` : `${stale} older than 7 days`) : (sl ? 'poslane in prenesene' : 'sent and downloaded') },
     { icon: Ruler, bg: '#dcf5f4', fg: '#0c6b6b', status: 'measure', label: sl ? 'Izmere v teku' : 'Measurements in progress', value: count('measure'), sub: sl ? 'čakajo na zaključek' : 'to be finished' },
   ]
 
@@ -118,7 +118,7 @@ export default function HomePage() {
         {canQuotes && <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-5 items-stretch">
           <Table title={sl ? 'Nova povpraševanja' : 'New enquiries'} status="enquiry" items={newEnquiries} empty={sl ? 'Ni novih povpraševanj.' : 'No new enquiries.'}
             when={sl ? 'Prejeto' : 'Received'} whenOf={q => q.created_at} showStatus />
-          <Table title={sl ? 'Odprte ponudbe' : 'Open offers'} status="sent" items={openOffers} empty={sl ? 'Ni odprtih ponudb.' : 'No open offers.'}
+          <Table title={sl ? 'Ponudbe pri stranki' : 'Offers with the customer'} status="out" items={openOffers} empty={sl ? 'Ni ponudb, ki čakajo na odgovor.' : 'No offers waiting for an answer.'}
             when={sl ? 'Poslano' : 'Sent'} whenOf={q => q.sent_at ?? q.updated_at} showStatus />
         </div>}
       </div>

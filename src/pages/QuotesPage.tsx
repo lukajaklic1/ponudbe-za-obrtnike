@@ -25,6 +25,8 @@ interface CompanyUser { id: string; first_name: string; last_name: string; is_ac
 
 const STATUSES: QuoteStatus[] = ['enquiry', 'draft', 'issued', 'sent', 'downloaded', 'measure', 'won', 'lost']
 
+// stages of the Domov cards: in preparation (draft + issued) and with the customer (sent + downloaded); each quote is in exactly one
+const GROUPS: Record<string, QuoteStatus[]> = { prep: ['draft', 'issued'], out: ['sent', 'downloaded'] }
 const VIEW_KEY = 'obrtdesk-quotes-view'
 
 interface Row extends Quote { customers: { name: string; phone?: string | null; email?: string | null; customer_type?: 'person' | 'company' } | null; assignee: { first_name: string; last_name: string } | null }
@@ -57,7 +59,7 @@ export default function QuotesPage() {
   const companyUsers = allUsers.filter(u => u.is_active !== false)
   const [loading, setLoading] = useState(true)
   // the links on Domov open the list already filtered: /quotes?status=enquiry
-  const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>(() => { const s0 = new URLSearchParams(window.location.search).get('status'); return STATUSES.includes(s0 as QuoteStatus) ? s0 as QuoteStatus : 'all' })
+  const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all' | 'prep' | 'out'>(() => { const s0 = new URLSearchParams(window.location.search).get('status'); return s0 === 'prep' || s0 === 'out' ? s0 : STATUSES.includes(s0 as QuoteStatus) ? s0 as QuoteStatus : 'all' })
   const [sourceFilter, setSourceFilter] = useState<'all' | 'configurator' | 'manual'>('all')   // where the quote came from
   const [assigneeFilter, setAssigneeFilter] = useState('all')   // user id, 'none' = unassigned
   const [search, setSearch] = useState('')
@@ -106,7 +108,7 @@ export default function QuotesPage() {
     const assigneeName = r.assignee ? `${r.assignee.first_name} ${r.assignee.last_name}`.toLowerCase() : ''
     const q = search.toLowerCase()
     return (
-      (statusFilter === 'all' || r.status === statusFilter) &&
+      (statusFilter === 'all' || (statusFilter === 'prep' || statusFilter === 'out' ? GROUPS[statusFilter].includes(r.status) : r.status === statusFilter)) &&
       (sourceFilter === 'all' || (sourceFilter === 'configurator') === (r.source === 'configurator')) &&
       (!dateFrom || format(new Date(r.created_at), 'yyyy-MM-dd') >= dateFrom) &&
       (!dateTo || format(new Date(r.created_at), 'yyyy-MM-dd') <= dateTo) &&
@@ -180,8 +182,8 @@ export default function QuotesPage() {
             className="h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
         </div>
         <FilterSelect compact label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
-          options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
-          onChange={v => { setStatusFilter((v || 'all') as QuoteStatus | 'all'); setPage(1) }} />
+          options={[{ value: 'prep', label: sl ? 'Osnutki in izdane' : 'Drafts and issued' }, { value: 'out', label: sl ? 'Poslane in prenesene' : 'Sent and downloaded' }, ...STATUSES.map(st => ({ value: st, label: s.status[st] }))]}
+          onChange={v => { setStatusFilter((v || 'all') as QuoteStatus | 'all' | 'prep' | 'out'); setPage(1) }} />
         <FilterSelect compact label={sl ? 'Izvor' : 'Source'} value={sourceFilter === 'all' ? '' : sourceFilter} allLabel={t.common.all}
           options={[{ value: 'configurator', label: sl ? 'Prek konfiguratorja' : 'Via configurator' }, { value: 'manual', label: sl ? 'Ročno kreirane' : 'Created manually' }]}
           onChange={v => { setSourceFilter((v || 'all') as 'all' | 'configurator' | 'manual'); setPage(1) }} />
@@ -204,7 +206,7 @@ export default function QuotesPage() {
 
       {view === 'kanban' && !loading ? (
         <QuotesKanban
-          statuses={STATUSES.filter(st => statusFilter === 'all' || st === statusFilter)}
+          statuses={STATUSES.filter(st => statusFilter === 'all' || (statusFilter === 'prep' || statusFilter === 'out' ? GROUPS[statusFilter].includes(st) : st === statusFilter))}
           quotes={sortedFiltered} canEdit={canEdit} statusLabels={s.status} money={money} waitingDays={waitingDays}
           labels={{
             dropHere: sl ? 'Spusti sem' : 'Drop here', empty: sl ? 'Ni ponudb' : 'No quotes', total: sl ? 'Skupaj brez DDV' : 'Total excl. VAT',
