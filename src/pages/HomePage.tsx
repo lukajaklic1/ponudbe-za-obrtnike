@@ -117,7 +117,7 @@ export default function HomePage() {
 
         {canQuotes && <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-5 items-stretch">
           <Table title={sl ? 'Nova povpraševanja' : 'New enquiries'} status="enquiry" items={newEnquiries} empty={sl ? 'Ni novih povpraševanj.' : 'No new enquiries.'}
-            when={sl ? 'Prejeto' : 'Received'} whenOf={q => q.created_at} />
+            when={sl ? 'Prejeto' : 'Received'} whenOf={q => q.created_at} showStatus />
           <Table title={sl ? 'Odprte ponudbe' : 'Open offers'} status="sent" items={openOffers} empty={sl ? 'Ni odprtih ponudb.' : 'No open offers.'}
             when={sl ? 'Poslano' : 'Sent'} whenOf={q => q.sent_at ?? q.updated_at} showStatus />
         </div>}
