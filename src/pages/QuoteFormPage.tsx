@@ -780,7 +780,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                       onChange={(address_postal_code, address_city) => editCust({ address_postal_code, address_city })} />}
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-[#7f7f7f]">{lang === 'en' ? 'Country' : 'Država'}</label>
-                  <Select value={selectedCustomer?.country ?? 'SI'} onChange={v => editCust({ country: v, address_postal_code: '', address_city: '' })} disabled={ro || !selectedCustomer || !custEdit}
+                  <Select value={selectedCustomer?.country ?? 'SI'} onChange={v => editCust({ country: v })} disabled={ro || !selectedCustomer || !custEdit}
                     options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
                 </div>
                 {/* sales channel: where the customer heard of the company */}
@@ -809,7 +809,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                       onChange={(postal, city) => setSite(x => ({ ...x, postal, city }))} />}
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-[#7f7f7f]">{lang === 'en' ? 'Country' : 'Država'}</label>
-                  <Select value={site.country} onChange={v => setSite(x => ({ ...x, country: v, postal: '', city: '' }))} disabled={ro}
+                  <Select value={site.country} onChange={v => setSite(x => ({ ...x, country: v }))} disabled={ro}
                     options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
                 </div>
               </div>
