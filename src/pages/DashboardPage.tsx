@@ -323,19 +323,19 @@ export default function DashboardPage() {
           {/* dates from – to, with quick choices */}
           <DateRangeFilter label={sl ? 'Obdobje' : 'Period'} from={dateFrom} to={dateTo} onChange={(fr, to) => { setDateFrom(fr); setDateTo(to) }} />
 
-          <FilterSelect label={sl ? 'Status' : 'Status'} value={statusFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setStatusFilter}
+          <FilterSelect compact label={sl ? 'Status' : 'Status'} value={statusFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setStatusFilter}
             options={[{ value: 'draft', label: sl ? 'Osnutki' : 'Drafts' }, { value: 'issued', label: sl ? 'Izdane' : 'Issued' }, { value: 'sent', label: sl ? 'Poslane' : 'Sent' }, { value: 'won', label: sl ? 'Dobljene' : 'Won' }, { value: 'lost', label: sl ? 'Izgubljene' : 'Lost' }]} />
 
-          <FilterSelect label={sl ? 'Izvor' : 'Source'} value={sourceFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setSourceFilter}
+          <FilterSelect compact label={sl ? 'Izvor' : 'Source'} value={sourceFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setSourceFilter}
             options={[{ value: 'configurator', label: sl ? 'Prek konfiguratorja' : 'Via configurator' }, { value: 'app', label: sl ? 'Ročno kreirane' : 'Created manually' }]} />
 
-          <FilterSelect label={sl ? 'Prodajni kanal' : 'Sales channel'} value={channelFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setChannelFilter}
+          <FilterSelect compact label={sl ? 'Prodajni kanal' : 'Sales channel'} value={channelFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setChannelFilter}
             options={leadSourceOptions(sl ? 'sl' : 'en')} />
 
-          <FilterSelect label={sl ? 'Kategorija' : 'Category'} value={categoryFilter} allLabel={sl ? 'Vse' : 'All'} onChange={setCategoryFilter}
+          <FilterSelect compact label={sl ? 'Kategorija' : 'Category'} value={categoryFilter} allLabel={sl ? 'Vse' : 'All'} onChange={setCategoryFilter}
             options={CATEGORIES.map(c => ({ value: c.key, label: sl ? c.sl : c.en }))} />
 
-          <FilterSelect label={sl ? 'Tip stranke' : 'Customer type'} value={typeFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setTypeFilter}
+          <FilterSelect compact label={sl ? 'Tip stranke' : 'Customer type'} value={typeFilter} allLabel={sl ? 'Vsi' : 'All'} onChange={setTypeFilter}
             options={[{ value: 'person', label: sl ? 'Fizične osebe' : 'Private persons' }, { value: 'company', label: sl ? 'Podjetja' : 'Companies' }]} />
 
 

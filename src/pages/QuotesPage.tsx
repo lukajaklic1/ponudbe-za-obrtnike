@@ -179,13 +179,13 @@ export default function QuotesPage() {
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} placeholder={sl ? 'Išči po številki, stranki, e-pošti, telefonu …' : 'Search number, customer, email, phone …'}
             className="h-8 pl-9 pr-3 rounded-[10px] border border-gray-200 bg-white text-sm placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
         </div>
-        <FilterSelect label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
+        <FilterSelect compact label={t.common.status} value={statusFilter === 'all' ? '' : statusFilter} allLabel={t.common.all}
           options={STATUSES.map(st => ({ value: st, label: s.status[st] }))}
           onChange={v => { setStatusFilter((v || 'all') as QuoteStatus | 'all'); setPage(1) }} />
-        <FilterSelect label={sl ? 'Izvor' : 'Source'} value={sourceFilter === 'all' ? '' : sourceFilter} allLabel={t.common.all}
+        <FilterSelect compact label={sl ? 'Izvor' : 'Source'} value={sourceFilter === 'all' ? '' : sourceFilter} allLabel={t.common.all}
           options={[{ value: 'configurator', label: sl ? 'Prek konfiguratorja' : 'Via configurator' }, { value: 'manual', label: sl ? 'Ročno kreirane' : 'Created manually' }]}
           onChange={v => { setSourceFilter((v || 'all') as 'all' | 'configurator' | 'manual'); setPage(1) }} />
-        <FilterSelect label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
+        <FilterSelect compact label={s.assignee} value={assigneeFilter === 'all' ? '' : assigneeFilter} allLabel={t.common.all}
           options={[
             ...allUsers.filter(u => u.is_active !== false || rows.some(r => r.assignee_id === u.id)).map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` })),
             { value: 'none', label: s.noAssignee },
