@@ -56,9 +56,9 @@ export function DateRangeFilter({ label, from, to, onChange }: Props) {
   return (
     <div className="relative" ref={ref}>
       <button type="button" onClick={() => { setOpen(o => !o); setCustom(!active && isSet) }}
-        className={cn('flex items-center gap-1.5 pl-3 h-8 rounded-[10px] border border-gray-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)] text-sm whitespace-nowrap hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500', isSet ? 'pr-7' : 'pr-2.5')}>
+        className={cn('flex items-center gap-1.5 pl-3 h-8 rounded-[10px] border border-gray-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.06)] text-sm whitespace-nowrap hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500', isSet ? 'pr-7 border-blue-300 bg-[#f5f8ff]' : 'pr-2.5')}>
         <span className="text-gray-600">{label}:</span>
-        <span className="text-gray-900 font-medium">{shown}</span>
+        <span className={cn('font-medium', isSet ? 'text-[#215bcf]' : 'text-gray-900')}>{shown}</span>
         {!isSet && <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-0.5" />}
       </button>
       {isSet && <button type="button" onClick={() => onChange('', '')} title={sl ? 'Počisti' : 'Clear'}

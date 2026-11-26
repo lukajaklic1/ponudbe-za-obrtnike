@@ -170,7 +170,7 @@ export default function QuotesPage() {
 
   return (
     <div>
-      <PageHeader title={s.quotes} icon={FileText} count={rows.length} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
+      <PageHeader title={s.quotes} icon={FileText} count={filtered.length} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
       <div className="px-6 py-5">
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
