@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Plus, FileText, Search, Check, ChevronDown, MoreVertical, List, Columns3, Globe } from 'lucide-react'
+import { Plus, FileText, Search, Check, ChevronDown, MoreVertical, List, Columns3 } from 'lucide-react'
 import QuotesKanban from '../components/QuotesKanban'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { toast } from '../components/ui/Toast'
@@ -229,7 +229,7 @@ export default function QuotesPage() {
               <button key={q.id} type="button" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}
                 className="w-full text-left px-4 py-3.5 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-gray-900 inline-flex items-center gap-1.5">{q.quote_number}{q.source === 'configurator' && <Globe className="w-3.5 h-3.5 text-gray-400" aria-label={sl ? 'Prek konfiguratorja' : 'Via configurator'} />}</span>
+                  <span className="text-sm font-semibold text-gray-900">{q.quote_number}</span>
                   <QuoteStatusBadge status={q.status} label={s.status[q.status]} />
                 </div>
                 <div className="text-sm font-medium text-gray-900 truncate mt-1">{q.customers?.name ?? '—'}</div>
@@ -254,7 +254,7 @@ export default function QuotesPage() {
               {paged.map(q => (
                 <tr key={q.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(canEdit && isDraftLike(q.status) ? `/quotes/${q.id}/edit` : `/quotes/${q.id}`)}>
                   <td className="px-4 py-3">
-                    <span className="text-gray-900 whitespace-nowrap inline-flex items-center gap-1.5">{q.quote_number}{q.source === 'configurator' && <Globe className="w-3.5 h-3.5 text-gray-400" aria-label={sl ? 'Prek konfiguratorja' : 'Via configurator'} />}</span>
+                    <span className="text-gray-900 whitespace-nowrap">{q.quote_number}</span>
                   </td>
                   <td className="px-4 py-3 max-w-0">
                     <div className="text-gray-900 truncate">{q.customers?.name ?? '—'}</div>
