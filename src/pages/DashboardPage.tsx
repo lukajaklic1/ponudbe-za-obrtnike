@@ -21,23 +21,26 @@ const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won
 /** teal family for every chart */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
-/** Rings: one blue ramp, light → dark, instead of a different hue per slice. Green is kept for the one slice
- *  that means it everywhere else in the app (won; on the channels ring, everything else). */
-const BLUE_RAMP = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b']
+/** Rings: one ring is read in blue, the other in green — even steps of the same colour, from a light tint to
+ *  the colour itself, with the last step only a little darker than it (no near-black slice). */
+const BLUE_RAMP = ['#d8e6fd', '#bed6fc', '#a3c4fb', '#89b4fa', '#70a4f8', '#5592f7', '#3b82f6', '#326fd1']
+const GREEN_RAMP = ['#ccf6e5', '#abf0d4', '#87e9c2', '#66e3b2', '#45dda1', '#21d78f', '#00d17e', '#00b26b']
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
 const TONES = { grey: { color: '#5e5e5e', backgroundColor: '#f4f4f5' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
+const BLUE_CHIP = { bg: '#e5eeff', color: '#215bcf' }
+const GREEN_CHIP = { bg: '#dbfce7', color: '#267a47' }
 const KPI_STYLE = [
-  // the colours of the status badges
-  { icon: Inbox, bg: '#feeee1', color: '#9e3f00' },      // Povpraševanje
-  { icon: FileText, bg: '#eeeff1', color: '#52525b' },   // Osnutek
-  { icon: FileCheck, bg: '#f0eafd', color: '#6b3fc4' },  // Izdano
-  { icon: Send, bg: '#fef3cd', color: '#8a6100' },       // Poslano
-  { icon: Download, bg: '#fde8f3', color: '#a3195b' },   // Preneseno
-  { icon: Ruler, bg: '#dcf5f4', color: '#0c6b6b' },      // Izmera
-  { icon: Trophy, bg: '#dbfce7', color: '#267a47' },     // Pridobljeno
-  { icon: XCircle, bg: '#eeeff1', color: '#52525b' },    // Izgubljeno
+  // blue all the way through the funnel, green only for the one that means it: won
+  { icon: Inbox, ...BLUE_CHIP },      // Povpraševanje
+  { icon: FileText, ...BLUE_CHIP },   // Osnutek
+  { icon: FileCheck, ...BLUE_CHIP },  // Izdano
+  { icon: Send, ...BLUE_CHIP },       // Poslano
+  { icon: Download, ...BLUE_CHIP },   // Preneseno
+  { icon: Ruler, ...BLUE_CHIP },      // Izmera
+  { icon: Trophy, ...GREEN_CHIP },    // Pridobljeno
+  { icon: XCircle, ...BLUE_CHIP },    // Izgubljeno
 ]
 function StatCard({ label, value, badge, count, index }: { label: string; value: string; badge: string; count: number; index: number; tone?: keyof typeof TONES; sub?: string }) {
   const k = KPI_STYLE[index] ?? KPI_STYLE[0]
@@ -461,8 +464,8 @@ export default function DashboardPage() {
             { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: BLUE_RAMP[3] },
             { key: 'downloaded', name: sl ? 'Prenesene' : 'Downloaded', color: BLUE_RAMP[4] },
             { key: 'measure', name: sl ? 'Izmere' : 'Measurements', color: BLUE_RAMP[5] },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: GREEN.dark },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: BLUE_RAMP[6] },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: BLUE_RAMP[6] },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: BLUE_RAMP[7] },
           ].map(x => ({ ...x, count: inPeriod.filter(q => q.status === x.key).length }))
           const total = inPeriod.length
           // the value of the sent quotes by category (windows, doors, roof windows, services …): all of it (light) with the won part (dark) in one bar
@@ -570,8 +573,8 @@ export default function DashboardPage() {
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
           )
-          // one shade per channel, always in this order (a channel keeps its colour when another one drops out)
-          const CH_COLORS = [...BLUE_RAMP, GREEN.dark]
+          // one shade per channel, always in this order (a channel keeps its shade when another one drops out)
+          const CH_COLORS = GREEN_RAMP
           // every quote has a channel; older ones without it are left out here
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
