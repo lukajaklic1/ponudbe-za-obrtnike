@@ -17,7 +17,7 @@ interface Row {
 }
 
 const HOUR = 3600000, DAY = 86400000
-const ROWS = 6
+const ROWS = 5
 
 /** Where a user lands after signing in: the work in front of them as small tables, newest first. */
 export default function HomePage() {
@@ -92,7 +92,7 @@ export default function HomePage() {
           </tr></thead>
           <tbody className="divide-y divide-gray-200">
             {items.slice(0, ROWS).map(q => <tr key={q.id} onClick={() => navigate(`/quotes/${q.id}`)} className="hover:bg-gray-50 transition-colors cursor-pointer">
-              {cols.map((c, i) => <td key={i} className={`px-4 py-3 ${c.right ? 'text-right whitespace-nowrap' : ''} ${c.hide ? 'hidden 2xl:table-cell' : ''}`}>{c.cell(q)}</td>)}
+              {cols.map((c, i) => <td key={i} className={`px-4 py-2.5 ${c.right ? 'text-right whitespace-nowrap' : ''} ${c.hide ? 'hidden 2xl:table-cell' : ''}`}>{c.cell(q)}</td>)}
             </tr>)}
           </tbody>
         </table></div>}
@@ -128,7 +128,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 items-start">
             <Table icon={Inbox} title={sl ? 'Prejeta povpraševanja' : 'Received enquiries'} status="enquiry" items={enquiries}
               empty={sl ? 'Ni novih povpraševanj.' : 'No new enquiries.'}
               cols={[number, customer, when(sl ? 'Prejeto' : 'Received', q => q.created_at), value]} />
@@ -140,7 +140,7 @@ export default function HomePage() {
               cols={[number, customer, when(sl ? 'Posodobljeno' : 'Updated', q => q.updated_at), value]} />
             <Table icon={Ruler} title={sl ? 'Izmere v teku' : 'Measurements in progress'} status="measure" items={measuring}
               empty={sl ? 'Ni izmer v teku.' : 'No measurements in progress.'}
-              cols={[number, customer, { head: sl ? 'Naslov montaže' : 'Site', hide: true, cell: q => <span className="block max-w-[180px] truncate text-[#5e5e5e]" title={q.site_address ?? ''}>{q.site_address || '—'}</span> }, when(sl ? 'V izmeri' : 'In measurement', q => q.updated_at), value]} />
+              cols={[number, customer, { head: sl ? 'Naslov montaže' : 'Site', cell: q => <span className="block max-w-[170px] truncate text-[#5e5e5e]" title={q.site_address ?? ''}>{q.site_address || '—'}</span> }, value]} />
           </div>
         </>}
 
