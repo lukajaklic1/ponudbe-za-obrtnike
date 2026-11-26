@@ -901,13 +901,13 @@ export function ConfiguratorCore({ data: rawData, slug = '', mode = 'public', in
     <div className={cn('cfg-scope', internal ? 'text-gray-900' : 'cfg-public min-h-screen bg-[#f5f5f6] text-gray-900')} style={internal ? undefined : themeVars(data.company.theme)}>
       {/* Header */}
       {!internal && <header className="bg-white border-b border-gray-200 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] sticky top-0 z-30">
-        <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[72px] sm:h-20' : data.company.logo_size === 's' ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]')}>
+        <div className={cn('px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3', data.company.logo_size === 'l' ? 'h-[88px] sm:h-28' : data.company.logo_size === 's' ? 'h-12 sm:h-14' : 'h-16 sm:h-[72px]')}>
           <div className={cn('flex items-center gap-2.5 min-w-0', (stage === 'review' || stage === 'contact') && 'cursor-pointer')}
             onClick={() => { if (stage === 'review' || stage === 'contact') { setStage('config'); window.scrollTo({ top: 0 }) } }}>
             {/* only the supplier's logo; without a logo its name stands in */}
             {data.company.logo_url
-              ? <img src={data.company.logo_url} alt={data.company.name} className={cn('w-auto object-contain object-left', data.company.logo_size === 'l' ? 'h-12 sm:h-14 max-w-[200px] sm:max-w-[320px]' : data.company.logo_size === 's' ? 'h-8 sm:h-9 max-w-[150px] sm:max-w-[200px]' : 'h-10 sm:h-12 max-w-[180px] sm:max-w-[260px]')} />
-              : <AppLogo size="md" />}
+              ? <img src={data.company.logo_url} alt={data.company.name} className={cn('w-auto object-contain object-left', data.company.logo_size === 'l' ? 'h-16 sm:h-20 max-w-[240px] sm:max-w-[420px]' : data.company.logo_size === 's' ? 'h-7 sm:h-7 max-w-[120px] sm:max-w-[160px]' : 'h-11 sm:h-12 max-w-[180px] sm:max-w-[280px]')} />
+              : <AppLogo size={data.company.logo_size === 'l' ? 'lg' : data.company.logo_size === 's' ? 'sm' : 'md'} />}
           </div>
           {/* contact as buttons (on a phone only the icons), then the language */}
           <div className="flex items-center gap-2">

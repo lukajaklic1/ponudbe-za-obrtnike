@@ -18,7 +18,7 @@ import { advanceTotal, lineTotal, quoteTotals, roomAreas } from '../lib/quoteTot
 import { PRICE_UNITS, VAT_RATES } from '../lib/quoteTotals'
 import { isService, serviceLine, SERVICE_GROUPS, WL, type WindowOption } from '../lib/windows'
 import { COUNTRIES } from '../lib/siPosts'
-import { windowFromConfigurator } from '../lib/legacyWindow'
+import { windowFromConfigurator, serviceFromConfigurator, isAutoService } from '../lib/legacyWindow'
 import { ConfiguratorCore, PostFields, isUsable, type ConfigData, type ConfigItem, type ConfiguredWindow } from './ConfiguratorPage'
 import SpecDrawing from '../components/SpecDrawing'
 import WindowDrawing from '../components/WindowDrawing'
@@ -238,6 +238,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   // Window configurator inside the quote: the same data and prices as the customer's configurator
   const [cfg, setCfg] = useState<ConfigData | null>(null)
   const [cfgOpen, setCfgOpen] = useState<null | { key?: string; items?: ConfigItem[] }>(null)
+  // the quote came in through the customer's configurator (an enquiry): its plain lines are read back once
+  const [fromConfigurator, setFromConfigurator] = useState(false)
+  const servicesRead = useRef(false)
   useEffect(() => {
     if (!cfgOpen) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCfgOpen(null) }
@@ -260,6 +263,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
 
   async function init() {
     if (!company) return
+    servicesRead.current = false
+    setFromConfigurator(false)
     // spinner only on first load (initial state) — reloads keep the current view on screen
     const [{ data: cust }, { data: pis }] = await Promise.all([
       supabase.from('customers').select('*').eq('company_id', company.id).order('name'),
@@ -279,6 +284,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       const { data: q } = await supabase.from('quotes').select('*').eq('id', id).single()
       if (q) {
         const quote = q as Quote
+        setFromConfigurator(quote.source === 'configurator')
         setStatusState(quote.status); setBackStatus(quote.sent_at ? 'sent' : 'downloaded')
         if (quote.snapshot) setSnapshot(quote.snapshot as OfferSnapshot)
         // opening an enquiry from the configurator: it is no longer new
@@ -419,15 +425,26 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           config: { kind: 'service', option_id: o.id, auto: auto(o) } as unknown as Record<string, unknown> }
       })
   }, [cfg, svcOptions, chosenServices, JSON.stringify(windowLines.map(l => [l.quantity, l.unit_price, l.config]))])
-  // windows that came in through the customer's configurator become real window positions, so "Uredi okno" opens the configurator
+  // an enquiry from the customer's configurator comes in as plain lines: its windows become real window positions
+  // ("Uredi okno" then opens the configurator on exactly this window) and its services become chosen services again
   useEffect(() => {
     if (!cfg || loading) return
-    setLines(ls => {
-      let changed = false
-      const out = ls.map(l => { const c = windowFromConfigurator(l, cfg, sl, nk, uid); if (!c) return l; changed = true; return { ...l, config: c } })
-      return changed ? out : ls
+    // services are matched by name, so only an enquiry is read that way, and only once: a line the user writes
+    // himself never turns into a service behind his back
+    const readServices = fromConfigurator && !servicesRead.current
+    servicesRead.current = true
+    const out = lines.map(l => {
+      const w = windowFromConfigurator(l, cfg, sl, nk, uid)
+      if (w) return { ...l, config: w }
+      const o = readServices ? serviceFromConfigurator(l, svcOptions) : null
+      if (o) return { ...l, config: { kind: 'service', option_id: o.id, auto: isAutoService(o) } as unknown as Record<string, unknown> }
+      return l
     })
-  }, [cfg, loading, lines.length])
+    if (out.every((l, i) => l === lines[i])) return
+    const picked = out.map(l => serviceCfg(l)).filter((c): c is ServiceConfig => !!c && !c.auto).map(c => c.option_id)
+    setLines(out)
+    setChosenServices(sv => [...new Set([...sv, ...picked])])
+  }, [cfg, loading, lines, svcOptions, fromConfigurator])
   // keep the service lines in step with the windows (only when something really changed)
   useEffect(() => {
     if (readOnly || !cfg) return
