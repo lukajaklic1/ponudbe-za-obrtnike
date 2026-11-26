@@ -7,7 +7,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import { PageHeader } from '../components/ui/PageHeader'
 import Button from '../components/ui/Button'
 
-interface Row { status: string; created_at: string; updated_at: string; sent_at: string | null }
+interface Row { id: string; quote_number: string; status: string; total_net: number | null; created_at: string; updated_at: string; sent_at: string | null; customers: { name: string } | null }
 
 const HOUR = 3600000, DAY = 86400000
 
@@ -22,7 +22,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!company || !canQuotes) { setRows([]); return }
-    supabase.from('quotes').select('status, created_at, updated_at, sent_at').eq('company_id', company.id).limit(2000)
+    supabase.from('quotes').select('id, quote_number, status, total_net, created_at, updated_at, sent_at, customers(name)').eq('company_id', company.id).limit(2000)
       .then(({ data }: { data: unknown }) => setRows((data as Row[] | null) ?? []))
   }, [company?.id, canQuotes])
 
@@ -35,6 +35,45 @@ export default function HomePage() {
   const avg = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null
   const avgText = avg === null ? null : avg < DAY ? `${Math.max(1, Math.round(avg / HOUR))} h` : `${(avg / DAY).toLocaleString('de-DE', { maximumFractionDigits: 1 })} ${sl ? 'dni' : 'days'}`
 
+  const ago = (iso: string) => {
+    const ms = Date.now() - Date.parse(iso)
+    if (ms < HOUR) return sl ? 'pravkar' : 'just now'
+    if (ms < DAY) { const h = Math.floor(ms / HOUR); return sl ? `pred ${h} h` : `${h} h ago` }
+    const d = Math.floor(ms / DAY)
+    return sl ? `pred ${d} d` : `${d} d ago`
+  }
+  const money = (n: number | null) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: company?.currency ?? 'EUR' })
+  const newest = (items: Row[], key: (q: Row) => string) => [...items].sort((a, b) => Date.parse(key(b)) - Date.parse(key(a)))
+  const newEnquiries = newest(list.filter(q => q.status === 'enquiry'), q => q.created_at)
+  // open offers: made and out with the customer, not decided yet
+  const openOffers = newest(list.filter(q => ['issued', 'sent', 'downloaded', 'measure'].includes(q.status)), q => q.sent_at ?? q.updated_at)
+  const statusName = (s0: string) => (t.qp.status as Record<string, string>)[s0] ?? s0
+
+  /** a plain table card: the newest rows, a link to all of them */
+  function Table({ title, status, items, empty, when, whenOf, showStatus }: { title: string; status: string; items: Row[]; empty: string; when: string; whenOf: (q: Row) => string; showStatus?: boolean }) {
+    return <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="flex items-center gap-2 px-5 pt-5 pb-3">
+        <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#7f7f7f] text-xs font-medium tabular-nums">{rows === null ? '–' : items.length}</span>
+        <Link to={`/quotes?status=${status}`} className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-[#5e5e5e] hover:text-gray-900">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
+      </div>
+      {rows !== null && items.length === 0
+        ? <p className="px-5 pb-6 pt-2 text-sm font-medium text-[#7f7f7f] border-t border-gray-200">{empty}</p>
+        : <div className="overflow-x-auto"><table className="w-full text-sm font-medium">
+          <thead className="bg-gray-50 border-y border-gray-200"><tr>
+            {[sl ? 'Številka' : 'Number', sl ? 'Stranka' : 'Customer', showStatus ? when : when, sl ? 'Vrednost' : 'Value'].map((h, i) => <th key={i} className={`px-4 py-2.5 text-xs font-medium text-gray-500 whitespace-nowrap ${i >= 2 ? 'text-right' : 'text-left'}`}>{h}</th>)}
+          </tr></thead>
+          <tbody className="divide-y divide-gray-200">
+            {items.slice(0, 5).map(q => <tr key={q.id} onClick={() => navigate(`/quotes/${q.id}`)} className="hover:bg-gray-50 transition-colors cursor-pointer">
+              <td className="px-4 py-2.5 font-semibold text-gray-900 whitespace-nowrap">{q.quote_number}</td>
+              <td className="px-4 py-2.5"><span className="block max-w-[170px] truncate text-gray-900">{q.customers?.name ?? '—'}</span></td>
+              <td className="px-4 py-2.5 text-right whitespace-nowrap text-[#7f7f7f]">{showStatus ? `${statusName(q.status)} · ${ago(whenOf(q))}` : ago(whenOf(q))}</td>
+              <td className="px-4 py-2.5 text-right whitespace-nowrap text-gray-900 tabular-nums">{money(q.total_net)}</td>
+            </tr>)}
+          </tbody>
+        </table></div>}
+    </section>
+  }
   const hour = new Date().getHours()
   const hello = sl ? (hour < 12 ? 'Dobro jutro' : hour < 18 ? 'Dober dan' : 'Dober večer') : (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening')
   const today = new Date().toLocaleDateString(sl ? 'sl-SI' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -50,7 +89,7 @@ export default function HomePage() {
     <div>
       <PageHeader title={t.nav.home} icon={House}
         action={hasPerm('quotes', 'create') && <Button onClick={() => navigate('/quotes/new')} className="gap-1.5"><Plus className="w-4 h-4" />{sl ? 'Nova ponudba' : 'New quote'}</Button>} />
-      <div className="px-6 py-6 max-w-5xl mx-auto space-y-6">
+      <div className="px-6 py-6 max-w-[1500px] mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{hello}{profile?.first_name ? `, ${profile.first_name}` : ''}</h1>
           <p className="text-sm font-medium text-[#5e5e5e] mt-1">{today}</p>
@@ -59,15 +98,22 @@ export default function HomePage() {
         {canQuotes && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {cards.map(x => (
             <div key={x.status} onClick={() => navigate(`/quotes?status=${x.status}`)}
-              className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col cursor-pointer hover:border-gray-400 transition-colors">
+              className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col cursor-pointer hover:border-gray-400 transition-colors">
               <div className="w-8 h-8 rounded-lg bg-[#f4f4f5] flex items-center justify-center"><x.icon className="w-4 h-4 text-[#52525b]" /></div>
               <div className="text-sm font-medium text-gray-900 mt-4">{x.label}</div>
-              <div className="text-3xl font-bold tracking-[-0.02em] text-gray-900 tabular-nums mt-1">{rows === null ? '–' : x.value}</div>
+              <div className="text-4xl font-bold tracking-[-0.03em] text-gray-900 tabular-nums mt-1.5">{rows === null ? '–' : x.value}</div>
               <div className="text-xs font-medium text-[#7f7f7f] mt-1 min-h-[16px]">{x.sub}</div>
               <Link to={`/quotes?status=${x.status}`} onClick={e => e.stopPropagation()}
                 className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#5e5e5e] hover:text-gray-900">{sl ? 'Prikaži vse' : 'Show all'}<ArrowRight className="w-3.5 h-3.5" /></Link>
             </div>
           ))}
+        </div>}
+
+        {canQuotes && <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-5 items-start">
+          <Table title={sl ? 'Nova povpraševanja' : 'New enquiries'} status="enquiry" items={newEnquiries} empty={sl ? 'Ni novih povpraševanj.' : 'No new enquiries.'}
+            when={sl ? 'Prejeto' : 'Received'} whenOf={q => q.created_at} />
+          <Table title={sl ? 'Odprte ponudbe' : 'Open offers'} status="sent" items={openOffers} empty={sl ? 'Ni odprtih ponudb.' : 'No open offers.'}
+            when={sl ? 'Status' : 'Status'} whenOf={q => q.sent_at ?? q.updated_at} showStatus />
         </div>}
       </div>
     </div>
