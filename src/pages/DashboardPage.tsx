@@ -585,8 +585,8 @@ export default function DashboardPage() {
                   </tbody>
                 </table></div>
                 {top.length === 0 && <div className="flex-1 flex items-center justify-center min-h-[220px] text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div>}
+                <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} fixedSize />
               </div>
-              <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} fixedSize />
               </div>
               {/* sales channel and where the quotes came from, two rings one under the other */}
               <div className="flex flex-col gap-4 h-full">

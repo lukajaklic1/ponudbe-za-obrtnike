@@ -299,9 +299,8 @@ export default function QuotesPage() {
           </table></div>
           </>
         )}
+        <Pagination total={filtered.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
       </div>
-
-      <Pagination total={filtered.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
       </>)}
 
       <ConfirmDialog open={!!pendingMove} onClose={() => setPendingMove(null)}

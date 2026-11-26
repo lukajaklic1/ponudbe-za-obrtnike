@@ -269,9 +269,8 @@ export default function UsersPage() {
             </tbody>
           </table></div>
         )}
+        <Pagination total={allRows.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
       </div>
-
-      <Pagination total={allRows.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
 
       {/* Invite modal */}
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={s.addUser} size="lg">

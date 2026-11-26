@@ -53,7 +53,7 @@ export default function Pagination({ total, page, pageSize, onChange, onPageSize
   }
 
   return (
-    <div className="flex items-center justify-between pt-3">
+    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-white">
       <div className="flex items-center gap-4">
         {onPageSizeChange && (
           <label className="flex items-center gap-2 text-xs font-medium text-gray-500">

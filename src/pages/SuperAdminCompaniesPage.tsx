@@ -145,8 +145,8 @@ export default function SuperAdminCompaniesPage() {
               </table>
             </div>
           )}
+          <Pagination total={filtered.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
         </div>
-        <Pagination total={filtered.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   )

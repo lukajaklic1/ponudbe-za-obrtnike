@@ -259,9 +259,8 @@ export default function CustomersPage() {
           </table></div>
           </>
         )}
+        <Pagination total={filtered.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
       </div>
-
-      <Pagination total={filtered.length} page={page} pageSize={pageSize} onChange={setPage} onPageSizeChange={setPageSize} />
 
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? s.editCustomer : s.newCustomer} size="lg">
         <div className="flex flex-col gap-4">
