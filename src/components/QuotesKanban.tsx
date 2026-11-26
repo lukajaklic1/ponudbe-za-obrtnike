@@ -49,7 +49,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             onDragOver={e => { if (droppable) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOverCol(st) } }}
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol(c => (c === st ? null : c)) }}
             onDrop={e => { e.preventDefault(); drop(st) }}
-            className={`flex flex-col flex-1 basis-0 min-w-[170px] h-[calc(100vh-155px)] min-h-[420px] rounded-xl border transition-all duration-150
+            className={`flex flex-col flex-1 basis-0 min-w-[240px] h-[calc(100vh-155px)] min-h-[420px] rounded-xl border transition-all duration-150
               ${overCol === st ? 'bg-[#eeeff1] border-gray-400' : droppable ? 'bg-[#f3f3f3] border-dashed border-gray-300' : 'bg-[#f7f7f7] border-transparent'}
               ${dimmed ? 'opacity-50' : ''}`}>
             {/* Column header: status badge, count, total */}
