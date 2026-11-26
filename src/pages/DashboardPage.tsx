@@ -597,7 +597,8 @@ export default function DashboardPage() {
                     {th('won', sl ? 'Dobljeno' : 'Won', true, true)}
                     {th('rate', sl ? 'Uspešnost' : 'Win rate', true, true)}
                   </tr></thead>
-                  <tbody className="divide-y divide-gray-200">
+                  {/* border-b: a line under the last customer too, not only between the rows */}
+                  <tbody className="divide-y divide-gray-200 border-b border-gray-200">
                     {top.map(c => <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3"><div className="truncate" title={c.name}>{c.name}</div></td>
                       <td className="px-4 py-3 text-right whitespace-nowrap text-[#5e5e5e]">{c.count}</td>
