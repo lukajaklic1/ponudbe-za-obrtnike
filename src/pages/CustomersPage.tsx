@@ -90,6 +90,8 @@ export default function CustomersPage() {
   }
 
   function openNew() { setEditing(null); setForm(empty); setOpen(true) }
+  // Domov: "Dodaj stranko" opens this page with the form already open
+  useEffect(() => { if (new URLSearchParams(window.location.search).get('new') === '1') { openNew(); window.history.replaceState({}, '', window.location.pathname) } }, [])
   function openEdit(c: Customer) {
     const type = typeOf(c)
     // person without split name (old data): first word = first name, rest = last name

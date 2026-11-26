@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { House, Plus, Inbox, FileText, FileCheck, Send, Ruler, ArrowRight } from 'lucide-react'
+import { House, Plus, UserPlus, Inbox, FileText, FileCheck, Send, Ruler, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -80,9 +80,7 @@ export default function HomePage() {
         </table></div>}
     </section>
   }
-  const hour = new Date().getHours()
-  const hello = sl ? (hour < 12 ? 'Dobro jutro' : hour < 18 ? 'Dober dan' : 'Dober večer') : (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening')
-  const today = new Date().toLocaleDateString(sl ? 'sl-SI' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const hello = sl ? 'Pozdravljeni' : 'Hello'
 
   const cards = [
     { icon: Inbox, bg: '#feeee1', fg: '#9e3f00', status: 'enquiry', label: sl ? 'Povpraševanja' : 'Enquiries', value: count('enquiry'), sub: avgText ? (sl ? `Povprečen čas do ponudbe: ${avgText}` : `Average time to an offer: ${avgText}`) : (sl ? 'čakajo na ponudbo' : 'waiting for an offer') },
@@ -94,12 +92,15 @@ export default function HomePage() {
 
   return (
     <div>
-      <PageHeader title={t.nav.home} icon={House}
-        action={hasPerm('quotes', 'create') && <Button onClick={() => navigate('/quotes/new')} className="gap-1.5"><Plus className="w-4 h-4" />{sl ? 'Nova ponudba' : 'New quote'}</Button>} />
+      <PageHeader title={t.nav.home} icon={House} />
       <div className="px-6 py-6 max-w-[1500px] mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-[-0.02em] text-gray-900">{hello}{profile?.first_name ? `, ${profile.first_name}` : ''}</h1>
-          <p className="text-sm font-medium text-[#5e5e5e] mt-1">{today}</p>
+        <div className="text-center pt-2 pb-2">
+          <h1 className="text-3xl font-bold tracking-[-0.02em] text-gray-900">{hello}{profile?.first_name ? `, ${profile.first_name}` : ''}</h1>
+          <p className="text-base font-medium text-[#5e5e5e] mt-1">{sl ? 'S čim vam lahko danes pomagamo?' : 'How can we help you today?'}</p>
+          {hasPerm('quotes', 'create') && <div className="flex flex-wrap justify-center gap-2 mt-5">
+            <Button onClick={() => navigate('/quotes/new')} className="gap-1.5"><Plus className="w-4 h-4" />{sl ? 'Nova ponudba' : 'New quote'}</Button>
+            {hasPerm('customers', 'create') && <Button variant="secondary" onClick={() => navigate('/customers?new=1')} className="gap-1.5"><UserPlus className="w-4 h-4" />{sl ? 'Dodaj stranko' : 'Add customer'}</Button>}
+          </div>}
         </div>
 
         {canQuotes && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
