@@ -21,6 +21,9 @@ const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won
 /** teal family for every chart */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
+/** Rings: one blue ramp, light → dark, instead of a different hue per slice. Green is kept for the one slice
+ *  that means it everywhere else in the app (won; on the channels ring, everything else). */
+const BLUE_RAMP = ['#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b']
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
@@ -65,7 +68,7 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
             <PieChart>
               {total === 0
                 ? <Pie isAnimationActive={false} data={[{ name: '', value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#eeeff1" /></Pie>
-                : <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
+                : <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} stroke="#ffffff" strokeWidth={2}>
                     {shown.map(p => <Cell key={p.key} fill={p.color} />)}
                   </Pie>}
               {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
@@ -77,7 +80,7 @@ function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: s
           </div>
         </div>
         <div className="w-full flex flex-col gap-2">
-          {[...parts].sort((x, y) => y.value - x.value).map(p => (
+          {[...parts].filter(p => p.count > 0 || p.value > 0).sort((x, y) => y.value - x.value).map(p => (
             <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
               <span className="text-[#5e5e5e] flex-1 min-w-0 truncate" title={p.name}>{p.name}</span>
@@ -452,14 +455,14 @@ export default function DashboardPage() {
         {(() => {
           const slices = [
             // every status in the colour of its badge, a little stronger so the ring reads well
-            { key: 'enquiry', name: sl ? 'Povpraševanja' : 'Enquiries', color: '#f59e5b' },
-            { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: '#c9c9c9' },
-            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: '#a78bfa' },
-            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: '#f5c542' },
-            { key: 'downloaded', name: sl ? 'Prenesene' : 'Downloaded', color: '#f472b6' },
-            { key: 'measure', name: sl ? 'Izmere' : 'Measurements', color: '#2dd4bf' },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: '#00d17e' },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#e4e4e7' },
+            { key: 'enquiry', name: sl ? 'Povpraševanja' : 'Enquiries', color: BLUE_RAMP[0] },
+            { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: BLUE_RAMP[1] },
+            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: BLUE_RAMP[2] },
+            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: BLUE_RAMP[3] },
+            { key: 'downloaded', name: sl ? 'Prenesene' : 'Downloaded', color: BLUE_RAMP[4] },
+            { key: 'measure', name: sl ? 'Izmere' : 'Measurements', color: BLUE_RAMP[5] },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: GREEN.dark },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: BLUE_RAMP[6] },
           ].map(x => ({ ...x, count: inPeriod.filter(q => q.status === x.key).length }))
           const total = inPeriod.length
           // the value of the sent quotes by category (windows, doors, roof windows, services …): all of it (light) with the won part (dark) in one bar
@@ -485,7 +488,7 @@ export default function DashboardPage() {
                       <PieChart>
                         {total === 0
                           ? <Pie isAnimationActive={false} data={[{ value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#eeeff1" /></Pie>
-                          : <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} paddingAngle={2} stroke="none">
+                          : <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} stroke="#ffffff" strokeWidth={2}>
                               {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
                             </Pie>}
                         {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #eeeff1', fontSize: 13 }} />}
@@ -498,7 +501,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-2">
-                    {slices.map(x => (
+                    {slices.filter(x => x.count > 0).map(x => (
                       <div key={x.key} className="flex items-center gap-2 text-sm font-medium">
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: x.color }} />
                         <span className="text-[#5e5e5e] flex-1">{x.name}</span>
@@ -567,7 +570,8 @@ export default function DashboardPage() {
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
           )
-          const CH_COLORS = ['#3b82f6', '#8b5cf6', '#f472b6', '#00d17e', '#f5c542', '#2dd4bf', '#f59e5b', '#b5b5b5']
+          // one shade per channel, always in this order (a channel keeps its colour when another one drops out)
+          const CH_COLORS = [...BLUE_RAMP, GREEN.dark]
           // every quote has a channel; older ones without it are left out here
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
