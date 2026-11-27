@@ -37,16 +37,17 @@ function Cta({ to, children, tone = 'green', small = false }: { to: string; chil
   )
 }
 
-/** a screen of the app, framed the way a product shot should be */
-function Shot({ src, alt, className = '' }: { src: string; alt: string; className?: string }) {
+/** A screen of the app in a window frame — white, grey or blue profile, like the product itself. */
+function Shot({ src, alt, frame = 'white', className = '' }: { src: string; alt: string; frame?: 'white' | 'grey' | 'blue'; className?: string }) {
+  const mat = frame === 'blue' ? '#cfe2f5' : frame === 'grey' ? '#d8dcde' : '#ffffff'
+  const edge = frame === 'blue' ? 'rgba(13,61,105,0.18)' : frame === 'grey' ? 'rgba(4,24,24,0.16)' : 'rgba(4,24,24,0.10)'
   return (
-    <div className={`rounded-[20px] overflow-hidden bg-white shadow-[0_30px_70px_-30px_rgba(4,24,24,0.45)] ${className}`}
-      style={{ border: '1px solid rgba(4,24,24,0.08)' }}>
-      <div className="h-8 flex items-center gap-1.5 px-4 border-b" style={{ borderColor: 'rgba(4,24,24,0.06)', backgroundColor: '#fbfbfb' }}>
-        {['#ff5f57', '#febc2e', '#28c840'].map(c => <span key={c} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />)}
+    <figure className={`rounded-[18px] p-2.5 sm:p-3 shadow-[0_40px_80px_-32px_rgba(0,0,0,0.55)] ${className}`}
+      style={{ backgroundColor: mat, border: `1px solid ${edge}` }}>
+      <div className="rounded-[10px] overflow-hidden bg-white" style={{ border: `1px solid ${edge}` }}>
+        <img src={src} alt={alt} loading="lazy" className="block w-full" />
       </div>
-      <img src={src} alt={alt} loading="lazy" className="block w-full" />
-    </div>
+    </figure>
   )
 }
 
@@ -101,13 +102,13 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: FONT, color: INK }}>
       {/* ── the green top: navbar and hero stand on the band ───────────── */}
-      <div className="relative" style={{ backgroundColor: DARK }}>
+      <div className="relative overflow-hidden" style={{ backgroundColor: DARK }}>
         {/* a soft light sitting behind the product shot */}
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(900px 420px at 72% 18%, rgba(161,237,134,0.18), rgba(7,41,40,0) 70%)' }} />
 
         {/* floating navbar: the logo and the actions, nothing in between */}
         <div className="sticky top-0 z-40 px-4 sm:px-6 pt-4">
-          <div className="max-w-[1180px] mx-auto rounded-2xl bg-white/95 backdrop-blur shadow-[0_10px_30px_-12px_rgba(4,24,24,0.35)]">
+          <div className="max-w-[1320px] mx-auto rounded-2xl bg-white/95 backdrop-blur shadow-[0_10px_30px_-12px_rgba(4,24,24,0.35)]">
             <div className="h-14 sm:h-16 pl-4 pr-3 sm:pl-6 sm:pr-4 flex items-center justify-between gap-3">
               <Link to="/" className="shrink-0"><AppLogo size="md" showName /></Link>
               <div className="flex items-center gap-1 sm:gap-2">
@@ -125,36 +126,44 @@ export default function LandingPage() {
         </div>
 
         {/* hero */}
-        <section className="relative max-w-[1180px] mx-auto px-5 sm:px-6 pt-14 pb-0 sm:pt-20">
-          <div className="max-w-3xl">
-            <Eyebrow on="dark">{sl ? 'Za ponudnike oken' : 'For window suppliers'}</Eyebrow>
-            <h1 className="mt-5 text-[40px] leading-[1.05] sm:text-[60px] lg:text-[72px] lg:leading-[1.04] font-medium tracking-[-0.025em]" style={{ color: ON_DARK }}>
-              {sl ? <>Konfigurator oken,<br />ki piše ponudbe</> : <>A window configurator<br />that writes the quotes</>}
-            </h1>
-            <p className="mt-6 text-[18px] leading-7 sm:text-[21px] sm:leading-8 max-w-2xl" style={{ color: ON_DARK_MUTED }}>
-              {sl
-                ? 'Stranka na vaši spletni strani sama sestavi okno in odda povpraševanje. Pri vas se odpre kot skonfigurirana ponudba — pregledate, popravite, izdate.'
-                : 'On your website the customer builds the window and sends an enquiry. It opens on your side as a configured quote — you review it, adjust it, issue it.'}
-            </p>
-            <div className="mt-9 flex flex-col sm:flex-row gap-3">
-              <Cta to="/register">{sl ? 'Začnite brezplačno' : 'Start for free'}</Cta>
-              <a href="#konfigurator" className="inline-flex h-12 items-center gap-2 rounded-lg px-6 text-[16px] font-medium border transition-colors hover:bg-white/5"
-                style={{ borderColor: 'rgba(223,249,249,0.28)', color: ON_DARK }}>
-                {sl ? 'Poglejte aplikacijo' : 'See the app'}<ArrowUpRight className="w-[18px] h-[18px]" />
-              </a>
+        <section className="relative max-w-[1320px] mx-auto px-5 sm:px-6 pt-12 pb-0 sm:pt-16">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:gap-16 lg:items-center">
+            <div>
+              <Eyebrow on="dark">{sl ? 'Za ponudnike oken' : 'For window suppliers'}</Eyebrow>
+              <h1 className="mt-5 text-[40px] leading-[1.05] sm:text-[52px] lg:text-[60px] lg:leading-[1.05] font-medium tracking-[-0.025em]" style={{ color: ON_DARK }}>
+                {sl ? <>Konfigurator oken,<br />ki piše ponudbe</> : <>A window configurator<br />that writes the quotes</>}
+              </h1>
+              <p className="mt-6 text-[18px] leading-7 sm:text-[20px] sm:leading-8" style={{ color: ON_DARK_MUTED }}>
+                {sl
+                  ? 'Stranka na vaši spletni strani sama sestavi okno in odda povpraševanje. Pri vas se odpre kot skonfigurirana ponudba — pregledate, popravite, izdate.'
+                  : 'On your website the customer builds the window and sends an enquiry. It opens on your side as a configured quote — you review it, adjust it, issue it.'}
+              </p>
+              <div className="mt-9 flex flex-col sm:flex-row gap-3">
+                <Cta to="/register">{sl ? 'Začnite brezplačno' : 'Start for free'}</Cta>
+                <a href="#konfigurator" className="inline-flex h-12 items-center gap-2 rounded-lg px-6 text-[16px] font-medium border transition-colors hover:bg-white/5"
+                  style={{ borderColor: 'rgba(223,249,249,0.28)', color: ON_DARK }}>
+                  {sl ? 'Poglejte aplikacijo' : 'See the app'}<ArrowUpRight className="w-[18px] h-[18px]" />
+                </a>
+              </div>
+              <p className="mt-4 text-sm" style={{ color: ON_DARK_MUTED }}>{sl ? 'Brez namestitve. Brez kartice.' : 'No installation. No card.'}</p>
             </div>
-            <p className="mt-4 text-sm" style={{ color: ON_DARK_MUTED }}>{sl ? 'Brez namestitve. Brez kartice.' : 'No installation. No card.'}</p>
-          </div>
 
-          <div className="relative z-10 mt-14 sm:mt-16 translate-y-[56px] sm:translate-y-[96px]">
-            <Shot src="/marketing/porocila.jpg" alt={sl ? 'Poročila v aplikaciji' : 'Reports in the app'} />
+            {/* three screens in window frames, the way the product looks */}
+            <div className="relative lg:-mr-6">
+              <Shot src="/marketing/konfigurator.jpg" frame="white" alt={sl ? 'Spletni konfigurator oken' : 'The online window configurator'} />
+              <Shot src="/marketing/porocila.jpg" frame="blue" alt={sl ? 'Poročila' : 'Reports'}
+                className="hidden sm:block absolute -bottom-12 -left-10 w-[48%]" />
+              <Shot src="/marketing/ponudbe.jpg" frame="grey" alt={sl ? 'Ponudbe' : 'Quotes'}
+                className="hidden lg:block absolute -top-8 right-2 w-[34%]" />
+            </div>
           </div>
+          <div className="h-10 sm:h-20" />
         </section>
       </div>
 
       {/* ── three facts, right under the band ──────────────────────────── */}
-      <section className="max-w-[1180px] mx-auto px-5 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-3 pt-[88px] pb-10 sm:pt-[136px] sm:pb-14">
+      <section className="max-w-[1320px] mx-auto px-5 sm:px-6">
+        <div className="grid gap-8 sm:grid-cols-3 py-12 sm:py-16">
           {facts.map(f => (
             <div key={f.k}>
               <p className="text-[22px] leading-7 font-medium tracking-[-0.01em]">{f.k}</p>
@@ -167,7 +176,7 @@ export default function LandingPage() {
       {/* ── what it does: a block per screen, alternating sides ─────────── */}
       {blocks.map((b, i) => (
         <section key={b.eyebrow} id={i === 0 ? 'konfigurator' : undefined} style={{ backgroundColor: i % 2 === 1 ? CARD : '#ffffff' }}>
-          <div className="max-w-[1180px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-2 lg:items-center">
+          <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-2 lg:items-center">
             <div className={i % 2 === 1 ? 'lg:order-2' : ''}>
               <Eyebrow>{b.eyebrow}</Eyebrow>
               <h2 className="mt-4 text-[30px] leading-[1.15] sm:text-[42px] sm:leading-[1.14] font-medium tracking-[-0.02em]">{b.title}</h2>
@@ -187,7 +196,7 @@ export default function LandingPage() {
 
       {/* ── the calculation, written out ───────────────────────────────── */}
       <section style={{ backgroundColor: DARK, color: ON_DARK }}>
-        <div className="max-w-[1180px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-2 lg:items-center">
+        <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-2 lg:items-center">
           <div>
             <Eyebrow on="dark">{sl ? 'Kalkulacija' : 'The calculation'}</Eyebrow>
             <h2 className="mt-4 text-[30px] leading-[1.15] sm:text-[42px] sm:leading-[1.14] font-medium tracking-[-0.02em]">
@@ -228,7 +237,7 @@ export default function LandingPage() {
 
       {/* ── price list ─────────────────────────────────────────────────── */}
       <section style={{ backgroundColor: CARD }}>
-        <div className="max-w-[1180px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-2 lg:items-center">
+        <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-2 lg:items-center">
           <div className="lg:order-2">
             <Eyebrow>{sl ? 'Vaš cenik' : 'Your price list'}</Eyebrow>
             <h2 className="mt-4 text-[30px] leading-[1.15] sm:text-[42px] sm:leading-[1.14] font-medium tracking-[-0.02em]">
@@ -244,7 +253,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── pricing ────────────────────────────────────────────────────── */}
-      <section id="cena" className="max-w-[1180px] mx-auto px-5 sm:px-6 py-16 sm:py-24">
+      <section id="cena" className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24">
         <div className="text-center">
           <Eyebrow>{sl ? 'Cena' : 'Pricing'}</Eyebrow>
           <h2 className="mt-4 text-[30px] leading-[1.15] sm:text-[42px] sm:leading-[1.14] font-medium tracking-[-0.02em]">
@@ -274,7 +283,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── faq ────────────────────────────────────────────────────────── */}
-      <section className="max-w-[1180px] mx-auto px-5 sm:px-6 pb-16 sm:pb-24">
+      <section className="max-w-[1320px] mx-auto px-5 sm:px-6 pb-16 sm:pb-24">
         <Eyebrow>{sl ? 'Pogosta vprašanja' : 'Frequently asked'}</Eyebrow>
         <div className="mt-8 grid gap-x-14 gap-y-8 sm:grid-cols-2">
           {faq.map(f => (
@@ -288,7 +297,7 @@ export default function LandingPage() {
 
       {/* ── closing call ───────────────────────────────────────────────── */}
       <section className="px-5 sm:px-6 pb-16 sm:pb-24">
-        <div className="max-w-[1180px] mx-auto rounded-[24px] px-6 py-14 sm:px-12 sm:py-20 text-center relative overflow-hidden" style={{ backgroundColor: DARK, color: ON_DARK }}>
+        <div className="max-w-[1320px] mx-auto rounded-[24px] px-6 py-14 sm:px-12 sm:py-20 text-center relative overflow-hidden" style={{ backgroundColor: DARK, color: ON_DARK }}>
           <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(600px 300px at 50% 0%, rgba(161,237,134,0.18), rgba(7,41,40,0) 70%)' }} />
           <div className="relative">
             <h2 className="text-[30px] leading-[1.15] sm:text-[44px] sm:leading-[1.16] font-medium tracking-[-0.02em] max-w-2xl mx-auto">
@@ -304,7 +313,7 @@ export default function LandingPage() {
 
       {/* ── footer ─────────────────────────────────────────────────────── */}
       <footer className="border-t" style={{ borderColor: 'rgba(4,24,24,0.10)' }}>
-        <div className="max-w-[1180px] mx-auto px-5 sm:px-6 py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <AppLogo size="sm" showName />
             <p className="mt-2.5 text-sm" style={{ color: MUTED }}>{sl ? 'Storitev ponuja Bimetric · info@bimetric.si' : 'A service by Bimetric · info@bimetric.si'}</p>
