@@ -47,35 +47,44 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'grey' }:
   )
 }
 
-/** How often a channel actually ends in a job: a rate bar per row, with the counts under it so a 1-of-1 cannot pass for a trend. */
+/** How often a channel actually ends in a job: one row per channel, best first, with the counts next to the
+ *  rate so a one-of-one cannot pass for a trend. */
 function WinRateCard({ title, hint, rows, money, sl }: {
   title: string; hint: string; sl: boolean; money: (n: number) => string
   rows: { key: string; name: string; won: number; decided: number; wonValue: number; open: number }[]
 }) {
+  const best = rows.find(r => r.decided > 0)
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-      <p className="text-xs text-[#7f7f7f] mt-1 mb-5">{hint}</p>
+      <p className="text-xs text-[#7f7f7f] mt-1 mb-1">{hint}</p>
       {rows.length === 0
         ? <div className="h-24 flex items-center justify-center text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div>
-        : <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-5">
+        : <div className="divide-y divide-gray-100">
             {rows.map(r => {
               const pct = r.decided ? Math.round(r.won / r.decided * 100) : null
+              const lead = best && r.key === best.key && pct != null && pct > 0
               return (
-                <div key={r.key}>
-                  <div className="flex items-baseline justify-between gap-3 mb-1.5">
-                    <span className="text-sm font-medium text-gray-900 truncate" title={r.name}>{r.name}</span>
-                    <span className="text-sm font-semibold tabular-nums shrink-0" style={{ color: pct ? '#267a47' : '#7f7f7f' }}>{pct == null ? '—' : `${pct} %`}</span>
+                <div key={r.key} className="py-4 flex items-center gap-4 sm:gap-6">
+                  <div className="w-[120px] sm:w-[200px] shrink-0 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate" title={r.name}>{r.name}</p>
+                    <p className="text-xs text-[#7f7f7f] mt-0.5 truncate">
+                      {pct == null
+                        ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
+                        : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}`}
+                      {r.open > 0 && ` · ${r.open} ${sl ? 'še v igri' : 'still in play'}`}
+                    </p>
                   </div>
-                  <div className="h-2 rounded-full bg-[#f4f4f5] overflow-hidden">
-                    {!!pct && <div className="h-full rounded-full" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: GREEN.dark }} />}
+                  <div className="flex-1 min-w-0">
+                    <div className="h-2.5 rounded-full bg-[#f4f4f5] overflow-hidden">
+                      {!!pct && <div className="h-full rounded-full transition-[width] duration-500"
+                        style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: lead ? BLUE.dark : BLUE.mid }} />}
+                    </div>
                   </div>
-                  <p className="text-xs text-[#7f7f7f] mt-1.5 tabular-nums truncate">
-                    {pct == null
-                      ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
-                      : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}${r.wonValue ? ` · ${money(r.wonValue)}` : ''}`}
-                    {r.open > 0 && ` · ${r.open} ${sl ? 'še v igri' : 'still in play'}`}
-                  </p>
+                  <div className="w-[88px] sm:w-[120px] shrink-0 text-right">
+                    <p className={cn('text-base font-semibold tabular-nums', pct == null ? 'text-[#7f7f7f]' : 'text-gray-900')}>{pct == null ? '—' : `${pct} %`}</p>
+                    <p className="text-xs text-[#7f7f7f] tabular-nums truncate">{r.wonValue ? money(r.wonValue) : '—'}</p>
+                  </div>
                 </div>
               )
             })}
@@ -612,9 +621,10 @@ export default function DashboardPage() {
           rows.sort((a, b) => (b.decided ? b.won / b.decided : -1) - (a.decided ? a.won / a.decided : -1) || b.decided - a.decided)
           return <WinRateCard sl={sl} money={money} rows={rows}
             title={sl ? 'Uspešnost po prodajnih kanalih' : 'Win rate by sales channel'}
-            hint={sl ? 'Delež dobljenih med zaključenimi ponudbami kanala. Kanal, ki prinese veliko povpraševanj, ni nujno tisti, ki prinese posle.'
-              : 'Won as a share of the decided quotes of each channel. The channel that brings the most enquiries is not always the one that brings the jobs.'} />
+            hint={sl ? 'Graf prikazuje delež pridobljenih poslov med zaključenimi ponudbami posameznega prodajnega kanala. Iz grafa lahko razberete, kateri kanal vam prinese največji delež pridobljenih poslov med zaključenimi ponudbami.'
+              : 'The chart shows the share of won jobs among the decided quotes of each sales channel. It tells you which channel brings you the biggest share of won jobs.'} />
         })()}
+
 
         {/* customers, sales channel and source of the quotes made in the period */}
         {(() => {
@@ -687,6 +697,7 @@ export default function DashboardPage() {
             </div>
           )
         })()}
+
       </div>
     </div>
   )
