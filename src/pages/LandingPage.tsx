@@ -29,10 +29,10 @@ const ON_DARK = '#dff9f9'
 const ON_DARK_MUTED = 'rgba(223,249,249,0.70)'
 const ON_DARK_HAIR = 'rgba(223,249,249,0.16)'
 const LIME = '#a1ed86'
-const LIME_BAR = '#b9f3a3'
 const GREEN = '#81de60'
 const PANEL = '#eef4fd'
-const SOFT = '#f6f7f8'
+const SOFT = '#f4f3f0'        // warm neutral; the cold grey made the page feel sterile
+const CARD = 'rounded-[20px] bg-white p-6 sm:p-7 transition-transform duration-200 hover:-translate-y-0.5'
 const BLUE = '#266df0'
 const SHADOW = '0 12px 40px rgba(60,79,109,0.10), 0 2px 8px rgba(60,79,109,0.05)'
 const SHADOW_LIFT = '0 40px 90px rgba(0,0,0,0.45)'
@@ -245,9 +245,9 @@ export default function LandingPage() {
   ]
 
   const audience = [
-    { t: sl ? 'Proizvajalci oken' : 'Window makers', d: sl ? 'Profili po tekočem metru, okovje po krilu, delo in marža — kalkulacija kot v proizvodnji.' : 'Profiles per metre, hardware per sash, labour and margin — a calculation like the workshop does it.' },
-    { t: sl ? 'Monterji in trgovci' : 'Fitters and dealers', d: sl ? 'Cenik dobavitelja z vašo maržo, montaža, odvoz in police kot storitve na ponudbi.' : 'Your supplier list with your margin, installation, disposal and sills as services on the quote.' },
-    { t: sl ? 'Ekipe z več prodajalci' : 'Teams with several sellers', d: sl ? 'Vsaka ponudba ima odgovorno osebo, zgodovino sprememb in status, ki ga vidijo vsi.' : 'Every quote has an assignee, a history of changes and a status everyone can see.' },
+    { icon: Calculator, t: sl ? 'Proizvajalci oken' : 'Window makers', d: sl ? 'Profili po tekočem metru, okovje po krilu, delo in marža — kalkulacija kot v proizvodnji.' : 'Profiles per metre, hardware per sash, labour and margin — a calculation like the workshop does it.' },
+    { icon: Ruler, t: sl ? 'Monterji in trgovci' : 'Fitters and dealers', d: sl ? 'Cenik dobavitelja z vašo maržo, montaža, odvoz in police kot storitve na ponudbi.' : 'Your supplier list with your margin, installation, disposal and sills as services on the quote.' },
+    { icon: Users, t: sl ? 'Ekipe z več prodajalci' : 'Teams with several sellers', d: sl ? 'Vsaka ponudba ima odgovorno osebo, zgodovino sprememb in status, ki ga vidijo vsi.' : 'Every quote has an assignee, a history of changes and a status everyone can see.' },
   ]
 
   const statuses = [
@@ -305,11 +305,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: FONT, color: INK }}>
-      {/* ══ announcement ══════════════════════════════════════════════ */}
-      <div className="w-full px-6 py-2.5 text-center text-[13px] sm:text-sm" style={{ backgroundColor: LIME_BAR, color: INK }}>
-        {sl ? 'Fenestio je v beta obdobju — cena po dogovoru, brez vezave.' : 'Fenestio is in beta — the price is agreed individually, with no lock-in.'}
-      </div>
-
       {/* ══ navbar: on the green, then light ══════════════════════════ */}
       <header className="sticky top-0 z-40 transition-colors duration-300"
         style={scrolled
@@ -379,6 +374,57 @@ export default function LandingPage() {
         </section>
       </div>
 
+      {/* ══ four parts, as cards on the band ══════════════════════════ */}
+      <section style={{ backgroundColor: DARK, color: ON_DARK }}>
+        <div className={`${WRAP} pb-20 sm:pb-28`}>
+          <div className="max-w-[46ch]">
+            <Eyebrow on="dark">{sl ? 'Kaj dela Fenestio' : 'What Fenestio does'}</Eyebrow>
+            <h2 className={`mt-5 ${H2}`}>{sl ? 'Štirje deli, en sam cenik' : 'Four parts, one price list'}</h2>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { t: sl ? 'Konfigurator' : 'Configurator', d: sl ? 'Stranka sestavi okno na vaši strani, korak za korakom.' : 'The customer builds the window on your site, step by step.', k: 'win' },
+              { t: sl ? 'Povpraševanja' : 'Enquiries', d: sl ? 'Pridejo kot skonfigurirana okna, ne kot opis v e-pošti.' : 'They arrive as configured windows, not as an e-mail.', k: 'chip' },
+              { t: sl ? 'Ponudbe' : 'Quotes', d: sl ? 'Izdate, pošljete in spremljate po statusih do naročila.' : 'Issue, send and follow them through to the order.', k: 'status' },
+              { t: sl ? 'Poročila' : 'Reports', d: sl ? 'Kaj je odprto, kaj dobljeno in kateri kanal prinese posle.' : 'What is open, what is won, which channel brings the jobs.', k: 'bars' },
+            ].map(c => (
+              <div key={c.t} className="rounded-[20px] p-6 flex flex-col transition-transform duration-200 hover:-translate-y-0.5"
+                style={{ backgroundColor: 'rgba(223,249,249,0.06)', border: `1px solid ${ON_DARK_HAIR}` }}>
+                <div className="h-[72px] flex items-center">
+                  {c.k === 'win' && <div className="flex items-end gap-2">
+                    <WindowDrawing template="tilt_turn" width={900} height={1400} size={40} />
+                    <WindowDrawing template="double_mullion" width={1800} height={1400} size={52} />
+                    <WindowDrawing template="fixed" width={700} height={900} size={34} />
+                  </div>}
+                  {c.k === 'chip' && <div className="flex flex-wrap gap-2">
+                    {[sl ? 'Novo povpraševanje' : 'New enquiry', sl ? '3 pozicije' : '3 positions', '2.405 €'].map(x => (
+                      <span key={x} className="inline-flex items-center h-7 px-3 rounded-full text-[12px] font-medium" style={{ backgroundColor: 'rgba(223,249,249,0.10)' }}>{x}</span>
+                    ))}
+                  </div>}
+                  {c.k === 'status' && <div className="w-full space-y-1.5">
+                    {[[sl ? 'Poslano' : 'Sent', 70], [sl ? 'Izmera' : 'Measurement', 45], [sl ? 'Pridobljeno' : 'Won', 100]].map(([n, v]) => (
+                      <div key={n as string} className="flex items-center gap-2.5 text-[12px]">
+                        <span className="w-20 shrink-0 truncate" style={{ color: ON_DARK_MUTED }}>{n}</span>
+                        <span className="flex-1 h-1.5 rounded-full" style={{ backgroundColor: 'rgba(223,249,249,0.12)' }}>
+                          <span className="block h-1.5 rounded-full" style={{ width: `${v}%`, backgroundColor: Number(v) === 100 ? LIME : 'rgba(223,249,249,0.45)' }} />
+                        </span>
+                      </div>
+                    ))}
+                  </div>}
+                  {c.k === 'bars' && <div className="flex items-end gap-2 h-[56px]">
+                    {[28, 44, 20, 56, 36, 48].map((h, i) => (
+                      <span key={i} className="w-4 rounded-t-[3px]" style={{ height: h, backgroundColor: i === 3 ? LIME : 'rgba(223,249,249,0.22)' }} />
+                    ))}
+                  </div>}
+                </div>
+                <h3 className="mt-6 text-[18px] leading-6 font-medium tracking-[-0.01em]">{c.t}</h3>
+                <p className="mt-2 text-[15px] leading-[1.6]" style={{ color: ON_DARK_MUTED }}>{c.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ══ who it is for ═════════════════════════════════════════════ */}
       <section className={`${WRAP} ${SECTION}`}>
         <div className="grid gap-12 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-20">
@@ -386,11 +432,12 @@ export default function LandingPage() {
             <Eyebrow>{sl ? 'Za koga je' : 'Who it is for'}</Eyebrow>
             <h2 className={`mt-5 ${H2}`}>{sl ? 'Za vse, ki prodajajo okna' : 'For everyone who sells windows'}</h2>
           </div>
-          <div className="grid gap-10 sm:grid-cols-3">
+          <div className="grid gap-x-14 gap-y-10 sm:grid-cols-3">
             {audience.map(a => (
-              <div key={a.t}>
-                <h3 className="text-[18px] leading-7 font-medium tracking-[-0.01em]">{a.t}</h3>
-                <p className={`mt-2 ${BODY}`} style={{ color: MUTED }}>{a.d}</p>
+              <div key={a.t} className="pl-6 border-l" style={{ borderColor: HAIR }}>
+                <a.icon className="w-5 h-5" style={{ color: INK }} strokeWidth={1.5} />
+                <h3 className="mt-4 text-[17px] leading-6 font-medium tracking-[-0.01em]">{a.t}</h3>
+                <p className="mt-2 text-[15px] leading-[1.6]" style={{ color: MUTED }}>{a.d}</p>
               </div>
             ))}
           </div>
@@ -484,6 +531,97 @@ export default function LandingPage() {
                 <p className="mt-3 text-[14px] font-medium">{s.t}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ four panels, the reference pattern: the work at the top, the words below ══ */}
+      <section className={`${WRAP} ${SECTION}`}>
+        <div className="max-w-[48ch]">
+          <Eyebrow>{sl ? 'Delo, ki ga prevzame' : 'The work it takes over'}</Eyebrow>
+          <h2 className={`mt-5 ${H2}`}>{sl ? 'Štiri stvari, ki jih danes delate ročno' : 'Four things you still do by hand'}</h2>
+        </div>
+        <div className="mt-12 grid gap-5 lg:grid-cols-2">
+          {/* 1 — the calculation */}
+          <div className="rounded-[24px] p-7 sm:p-9" style={{ backgroundColor: PANEL }}>
+            <div className="rounded-[16px] bg-white p-5 text-[13px] leading-6 tabular-nums" style={{ boxShadow: SHADOW }}>
+              {[[sl ? 'Okvir' : 'Frame', '2×(1800+1400) + 6 %', '6,784 m', '105,15 €'],
+                [sl ? 'Krila' : 'Sashes', '2×(805+1276)', '4,412 m', '78,31 €'],
+                [sl ? 'Steklo' : 'Glass', '675×1146 + 815×1286', '1,822 m²', '58,29 €']].map(([a, b, c, d]) => (
+                <div key={a} className="grid grid-cols-[72px_minmax(0,1fr)_64px_64px] gap-x-3 py-1">
+                  <span className="font-medium">{a}</span><span className="truncate" style={{ color: MUTED }}>{b}</span>
+                  <span className="text-right" style={{ color: MUTED }}>{c}</span><span className="text-right font-medium">{d}</span>
+                </div>
+              ))}
+              <div className="mt-2 pt-2 flex justify-between border-t" style={{ borderColor: HAIR }}>
+                <span style={{ color: MUTED }}>{sl ? 'Prodajna cena' : 'Sale price'}</span><span className="font-medium">576,12 €</span>
+              </div>
+            </div>
+            <h3 className={`mt-8 ${H3}`}>{sl ? 'Računanje cene vsakega okna' : 'Pricing every window by hand'}</h3>
+            <p className={`mt-3 ${BODY}`} style={{ color: MUTED }}>
+              {sl ? 'Dolžine profilov, površina stekla, okovje po krilu in delo — izračunano iz vašega cenika, z vsako vrstico razloženo.'
+                  : 'Profile lengths, glass area, hardware per sash and labour — worked out from your price list, with every line explained.'}
+            </p>
+          </div>
+
+          {/* 2 — the enquiry */}
+          <div className="rounded-[24px] p-7 sm:p-9" style={{ backgroundColor: PANEL }}>
+            <div className="rounded-[16px] bg-white p-5 flex items-center gap-5" style={{ boxShadow: SHADOW }}>
+              <WindowDrawing template="double_mullion" width={1800} height={1400} size={92} />
+              <div className="min-w-0 text-[13px]">
+                <p className="font-medium text-[14px]">{sl ? 'Dvokrilno okno s stebričkom' : 'Double sash with mullion'}</p>
+                <p className="mt-1" style={{ color: MUTED }}>1800 × 1400 mm · PVC 82 mm · Ug 0,7</p>
+                <p className="mt-1" style={{ color: MUTED }}>{sl ? 'Kip in odpiranje levo · roleta' : 'Tilt and turn left · roller shutter'}</p>
+                <p className="mt-2 font-medium text-[15px]">1.284,00 €</p>
+              </div>
+            </div>
+            <h3 className={`mt-8 ${H3}`}>{sl ? 'Prepisovanje povpraševanj' : 'Retyping the enquiry'}</h3>
+            <p className={`mt-3 ${BODY}`} style={{ color: MUTED }}>
+              {sl ? 'Povpraševanje pride kot pozicija z risbo, merami in izbirami — odprete jo in uredite, ne tipkate na novo.'
+                  : 'The enquiry arrives as a position with a drawing, sizes and choices — you open and adjust it instead of typing it again.'}
+            </p>
+          </div>
+
+          {/* 3 — where the quote stands */}
+          <div className="rounded-[24px] p-7 sm:p-9" style={{ backgroundColor: PANEL }}>
+            <div className="rounded-[16px] bg-white p-5" style={{ boxShadow: SHADOW }}>
+              <div className="grid grid-cols-3 gap-3">
+                {[{ n: sl ? 'Poslano' : 'Sent', c: '#215bcf', bg: '#e5eeff', v: '14.457 €', q: '7' },
+                  { n: sl ? 'Izmera' : 'Measurement', c: '#8a6100', bg: '#fef3cd', v: '2.478 €', q: '3' },
+                  { n: sl ? 'Pridobljeno' : 'Won', c: '#267a47', bg: '#dbfce7', v: '6.654 €', q: '3' }].map(col => (
+                  <div key={col.n} className="rounded-xl p-3" style={{ backgroundColor: '#f7f7f7' }}>
+                    <span className="inline-flex items-center h-6 px-2 rounded-md text-[11px] font-medium" style={{ color: col.c, backgroundColor: col.bg }}>{col.n}</span>
+                    <p className="mt-2.5 text-[15px] font-medium tabular-nums">{col.v}</p>
+                    <p className="text-[12px]" style={{ color: MUTED }}>{col.q} {sl ? 'ponudb' : 'quotes'}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <h3 className={`mt-8 ${H3}`}>{sl ? 'Iskanje, kje je katera ponudba' : 'Hunting for where a quote stands'}</h3>
+            <p className={`mt-3 ${BODY}`} style={{ color: MUTED }}>
+              {sl ? 'Vsaka ponudba ima status, vrednost in odgovorno osebo. Vsota po stolpcu pove, koliko je v igri.'
+                  : 'Every quote has a status, a value and an assignee, and the sum above each column says how much is in play.'}
+            </p>
+          </div>
+
+          {/* 4 — where the work comes from */}
+          <div className="rounded-[24px] p-7 sm:p-9" style={{ backgroundColor: PANEL }}>
+            <div className="rounded-[16px] bg-white p-5" style={{ boxShadow: SHADOW }}>
+              {[[sl ? 'Priporočilo' : 'Referral', 100], ['Google', 50], ['Instagram', 33], ['Facebook', 0]].map(([n, v]) => (
+                <div key={n as string} className="flex items-center gap-3 py-1.5 text-[13px]">
+                  <span className="w-20 shrink-0 truncate font-medium">{n}</span>
+                  <span className="flex-1 h-2 rounded-full" style={{ backgroundColor: '#f4f4f5' }}>
+                    <span className="block h-2 rounded-full" style={{ width: `${Math.max(Number(v), 2)}%`, backgroundColor: Number(v) === 100 ? BLUE : '#93c5fd' }} />
+                  </span>
+                  <span className="w-10 text-right tabular-nums">{v} %</span>
+                </div>
+              ))}
+            </div>
+            <h3 className={`mt-8 ${H3}`}>{sl ? 'Ugibanje, kateri oglas se izplača' : 'Guessing which advert pays off'}</h3>
+            <p className={`mt-3 ${BODY}`} style={{ color: MUTED }}>
+              {sl ? 'Vsako povpraševanje nosi svoj kanal, poročilo pa pokaže, kolikšen delež zaključenih ponudb po njem dobite.'
+                  : 'Every enquiry carries its channel, and the report shows the share of its decided quotes you actually win.'}
+            </p>
           </div>
         </div>
       </section>
@@ -637,10 +775,12 @@ export default function LandingPage() {
           <Eyebrow>{sl ? 'Kaj je notri' : 'What is inside'}</Eyebrow>
           <h2 className={`mt-5 ${H2}`}>{sl ? 'Vse od povpraševanja do naročila' : 'Everything from the enquiry to the order'}</h2>
         </div>
-        <div className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {grid.map(g => (
-            <div key={g.t} className="pl-6 border-l" style={{ borderColor: HAIR }}>
-              <g.icon className="w-5 h-5" style={{ color: INK }} strokeWidth={1.6} />
+            <div key={g.t} className={CARD} style={{ border: `1px solid ${HAIR}`, boxShadow: SHADOW }}>
+              <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: PANEL }}>
+                <g.icon className="w-[18px] h-[18px]" style={{ color: BLUE }} strokeWidth={1.7} />
+              </span>
               <h3 className="mt-4 text-[17px] leading-6 font-medium tracking-[-0.01em]">{g.t}</h3>
               <p className="mt-2 text-[15px] leading-[1.6]" style={{ color: MUTED }}>{g.d}</p>
             </div>
@@ -676,8 +816,8 @@ export default function LandingPage() {
             <Eyebrow>{sl ? 'Cena' : 'Pricing'}</Eyebrow>
             <h2 className={`mt-5 ${H2}`}>{sl ? 'Dogovorimo se za vaše podjetje' : 'Agreed for your company'}</h2>
             <p className={`mt-6 ${LEAD}`} style={{ color: MUTED }}>
-              {sl ? 'Fenestio je v beta obdobju. Ceno postavimo glede na velikost ekipe in obseg cenika, račun prejmete mesečno. Pri vnosu cenika vam pomagamo, da so prve ponudbe takoj prave.'
-                  : 'Fenestio is in beta. The price follows the size of your team and your price list, and you are invoiced monthly. We help you set the list up so the first quotes are right away correct.'}
+              {sl ? 'Ceno postavimo glede na velikost ekipe in obseg cenika, račun prejmete mesečno. Pri vnosu cenika vam pomagamo, da so prve ponudbe takoj prave.'
+                  : 'The price follows the size of your team and your price list, and you are invoiced monthly. We help you set the list up so the first quotes are right away correct.'}
             </p>
           </div>
           <div className="rounded-[24px] bg-white p-8 sm:p-10" style={{ boxShadow: SHADOW, border: `1px solid ${HAIR}` }}>
