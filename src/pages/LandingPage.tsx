@@ -7,7 +7,7 @@
 //
 // Tokens measured off the reference: ink #041818, band #072928, lime #a1ed86, action #81de60,
 // light panel #eef4fd, 8px buttons, 24px cards, Inter Tight at 400–500 with tight tracking.
-import '@fontsource-variable/inter-tight'
+import '@fontsource-variable/geist'
 import { Link } from 'react-router-dom'
 import {
   ArrowUpRight, Check, X, MonitorSmartphone, FileText, Calculator,
@@ -27,10 +27,10 @@ const LIME = '#a1ed86'
 const GREEN = '#81de60'
 const PANEL = '#eef4fd'
 const BLUE = '#266df0'
-const FONT = "'Inter Tight Variable', Inter, ui-sans-serif, system-ui, sans-serif"
+const FONT = "'Geist Variable', Inter, ui-sans-serif, system-ui, sans-serif"
 
 function Eyebrow({ children, on = 'light' }: { children: React.ReactNode; on?: 'light' | 'dark' }) {
-  return <p className="text-[13px] font-medium uppercase" style={{ letterSpacing: '1.5px', color: on === 'dark' ? LIME : MUTED }}>{children}</p>
+  return <p className="text-[13px] font-medium uppercase" style={{ letterSpacing: '0.12em', color: on === 'dark' ? LIME : MUTED }}>{children}</p>
 }
 
 /** small rounded label, the way the reference tags a block */
@@ -214,8 +214,8 @@ export default function LandingPage() {
       <div className="relative overflow-hidden" style={{ backgroundColor: DARK }}>
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(1000px 500px at 78% 10%, rgba(161,237,134,0.16), rgba(7,41,40,0) 72%)' }} />
 
-        <div className="sticky top-0 z-40 px-4 sm:px-6 pt-4">
-          <div className="max-w-[1320px] mx-auto rounded-2xl bg-white/95 backdrop-blur shadow-[0_10px_30px_-12px_rgba(4,24,24,0.35)]">
+        <div className="sticky top-0 z-40 px-6 sm:px-10 pt-5">
+          <div className="max-w-[1560px] mx-auto rounded-2xl bg-white/95 backdrop-blur shadow-[0_10px_30px_-12px_rgba(4,24,24,0.35)]">
             <div className="h-14 sm:h-16 pl-4 pr-3 sm:pl-6 sm:pr-4 flex items-center justify-between gap-3">
               <Link to="/" className="shrink-0"><AppLogo size="md" showName /></Link>
               <div className="flex items-center gap-1 sm:gap-2">
@@ -227,8 +227,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <section className="relative max-w-[1320px] mx-auto px-5 sm:px-6 pt-12 sm:pt-16 pb-14 sm:pb-20">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:gap-16 lg:items-center">
+        <section className="relative max-w-[1560px] mx-auto px-6 sm:px-10 pt-12 sm:pt-16 pb-14 sm:pb-20">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,620px)_minmax(0,1fr)] lg:gap-16 lg:items-center">
             <div>
               <Eyebrow on="dark">{sl ? 'Za ponudnike oken' : 'For window suppliers'}</Eyebrow>
               <h1 className="mt-5 text-[40px] leading-[1.05] sm:text-[52px] lg:text-[60px] lg:leading-[1.05] font-medium tracking-[-0.025em]" style={{ color: ON_DARK }}>
@@ -256,7 +256,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative w-full max-w-[620px] lg:ml-auto">
               <PositionCard />
               <div className="hidden sm:flex absolute -top-4 -left-6 items-center gap-2 h-9 px-3.5 rounded-full bg-white text-[13px] font-medium shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: BLUE }} />{sl ? 'Povpraševanje oddano' : 'Enquiry sent'}
@@ -282,7 +282,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── before / with ──────────────────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24">
+      <section className="max-w-[1560px] mx-auto px-6 sm:px-10 py-20 sm:py-28">
         <div className="text-center max-w-2xl mx-auto">
           <Eyebrow>{sl ? 'Zakaj Fenestio' : 'Why Fenestio'}</Eyebrow>
           <h2 className="mt-4 text-[30px] leading-[1.15] sm:text-[44px] sm:leading-[1.15] font-medium tracking-[-0.02em]">
@@ -315,7 +315,7 @@ export default function LandingPage() {
 
       {/* ── the calculation ────────────────────────────────────────────── */}
       <section id="kalkulacija" style={{ backgroundColor: PANEL }}>
-        <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-center">
+        <div className="max-w-[1560px] mx-auto px-6 sm:px-10 py-20 sm:py-28 grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-center">
           <div>
             <Tag>{sl ? 'Kalkulacija' : 'The calculation'}</Tag>
             <h2 className="mt-5 text-[30px] leading-[1.15] sm:text-[40px] sm:leading-[1.15] font-medium tracking-[-0.02em]">
@@ -331,7 +331,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── the board and the history ──────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:items-center">
+      <section className="max-w-[1560px] mx-auto px-6 sm:px-10 py-20 sm:py-28 grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:items-center">
         <BoardCard />
         <div>
           <Tag>{sl ? 'Ponudbe' : 'Quotes'}</Tag>
@@ -347,7 +347,7 @@ export default function LandingPage() {
 
       {/* ── reports ────────────────────────────────────────────────────── */}
       <section style={{ backgroundColor: PANEL }}>
-        <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24 grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-center">
+        <div className="max-w-[1560px] mx-auto px-6 sm:px-10 py-20 sm:py-28 grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-center">
           <div>
             <Tag>{sl ? 'Poročila' : 'Reports'}</Tag>
             <h2 className="mt-5 text-[30px] leading-[1.15] sm:text-[40px] sm:leading-[1.15] font-medium tracking-[-0.02em]">
@@ -363,7 +363,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── everything inside ──────────────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24">
+      <section className="max-w-[1560px] mx-auto px-6 sm:px-10 py-20 sm:py-28">
         <div className="text-center max-w-2xl mx-auto">
           <Eyebrow>{sl ? 'Kaj je notri' : 'What is inside'}</Eyebrow>
           <h2 className="mt-4 text-[30px] leading-[1.15] sm:text-[44px] sm:leading-[1.15] font-medium tracking-[-0.02em]">
@@ -383,7 +383,7 @@ export default function LandingPage() {
 
       {/* ── pricing ────────────────────────────────────────────────────── */}
       <section id="cena" style={{ backgroundColor: PANEL }}>
-        <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24">
+        <div className="max-w-[1560px] mx-auto px-6 sm:px-10 py-20 sm:py-28">
           <div className="text-center max-w-2xl mx-auto">
             <Eyebrow>{sl ? 'Cena' : 'Pricing'}</Eyebrow>
             <h2 className="mt-4 text-[30px] leading-[1.15] sm:text-[44px] sm:leading-[1.15] font-medium tracking-[-0.02em]">
@@ -414,7 +414,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── faq ────────────────────────────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-5 sm:px-6 py-16 sm:py-24">
+      <section className="max-w-[1560px] mx-auto px-6 sm:px-10 py-20 sm:py-28">
         <Eyebrow>{sl ? 'Pogosta vprašanja' : 'Frequently asked'}</Eyebrow>
         <div className="mt-8 grid gap-x-14 gap-y-8 sm:grid-cols-2">
           {faq.map(f => (
@@ -427,8 +427,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── closing call ───────────────────────────────────────────────── */}
-      <section className="px-5 sm:px-6 pb-16 sm:pb-24">
-        <div className="max-w-[1320px] mx-auto rounded-[24px] px-6 py-14 sm:px-12 sm:py-20 text-center relative overflow-hidden" style={{ backgroundColor: DARK, color: ON_DARK }}>
+      <section className="px-6 sm:px-10 pb-20 sm:pb-28">
+        <div className="max-w-[1560px] mx-auto rounded-[24px] px-6 py-14 sm:px-12 sm:py-20 text-center relative overflow-hidden" style={{ backgroundColor: DARK, color: ON_DARK }}>
           <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(700px 320px at 50% 0%, rgba(161,237,134,0.18), rgba(7,41,40,0) 70%)' }} />
           <div className="relative">
             <h2 className="text-[30px] leading-[1.15] sm:text-[44px] sm:leading-[1.16] font-medium tracking-[-0.02em] max-w-2xl mx-auto">
@@ -444,7 +444,7 @@ export default function LandingPage() {
 
       {/* ── footer ─────────────────────────────────────────────────────── */}
       <footer className="border-t" style={{ borderColor: FAINT }}>
-        <div className="max-w-[1320px] mx-auto px-5 sm:px-6 py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="max-w-[1560px] mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <AppLogo size="sm" showName />
             <p className="mt-2.5 text-sm" style={{ color: MUTED }}>{sl ? 'Storitev ponuja Bimetric · info@bimetric.si' : 'A service by Bimetric · info@bimetric.si'}</p>
