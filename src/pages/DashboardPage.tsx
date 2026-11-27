@@ -18,7 +18,7 @@ import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSou
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
 const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won', 'rest']
-/** One meaning per colour on this page: blue = still in play or offered, green = won, grey = nothing there. */
+/** The two charts up top are read as a pair: the first one in blue, the second one in green. Elsewhere green marks what was won. */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
 /** Rings: the status and source rings are read in blue, the channels ring in green — even steps of the same
@@ -447,9 +447,9 @@ export default function DashboardPage() {
         {/* four cards: what is still in play, won, lost, and how often we win */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard icon={Send} tone="blue" label={sl ? 'Odprta povpraševanja in ponudbe' : 'Open enquiries and quotes'} value={money(kpi.open.value)} sub={countQuotes(lang, kpi.open.count)} />
-          <StatCard icon={Trophy} tone="green" label={sl ? 'Dobljene ponudbe' : 'Won quotes'} value={money(kpi.won.value)} sub={countQuotes(lang, kpi.won.count)} />
-          <StatCard icon={XCircle} label={sl ? 'Izgubljene ponudbe' : 'Lost quotes'} value={money(kpi.lost.value)} sub={countQuotes(lang, kpi.lost.count)} />
-          <StatCard icon={Percent} label={sl ? 'Uspešnost ponudb' : 'Win rate'} value={kpi.rate == null ? '—' : `${kpi.rate} %`}
+          <StatCard icon={Trophy} tone="blue" label={sl ? 'Dobljene ponudbe' : 'Won quotes'} value={money(kpi.won.value)} sub={countQuotes(lang, kpi.won.count)} />
+          <StatCard icon={XCircle} tone="blue" label={sl ? 'Izgubljene ponudbe' : 'Lost quotes'} value={money(kpi.lost.value)} sub={countQuotes(lang, kpi.lost.count)} />
+          <StatCard icon={Percent} tone="green" label={sl ? 'Uspešnost ponudb' : 'Win rate'} value={kpi.rate == null ? '—' : `${kpi.rate} %`}
             sub={kpi.rateN == null ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
               : sl ? `${kpi.rateN} % po številu · ${countQuotes(lang, kpi.decidedN)}` : `${kpi.rateN} % by count · ${countQuotes(lang, kpi.decidedN)}`} />
         </div>
@@ -459,7 +459,7 @@ export default function DashboardPage() {
           {funnel.map(f => (
             <div key={f.key} className="px-4 py-3.5 min-w-0">
               <p className="text-xs font-medium text-label leading-4 min-h-8">{f.label}</p>
-              <p className={cn('text-lg font-semibold mt-0.5 tabular-nums', f.key === 'won' && f.count > 0 ? 'text-[#267a47]' : 'text-gray-900')}>{f.count}</p>
+              <p className="text-lg font-semibold mt-0.5 tabular-nums text-gray-900">{f.count}</p>
               <p className="text-xs text-[#7f7f7f] tabular-nums truncate" title={f.value ? money(f.value) : undefined}>{f.value ? money(f.value) : '—'}</p>
             </div>
           ))}
@@ -480,7 +480,7 @@ export default function DashboardPage() {
                   {hasValues && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
                   <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? BLUE.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? GREEN.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? BLUE.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasValues && emptyOverlay}</div>
             </div>
@@ -495,7 +495,7 @@ export default function DashboardPage() {
                   <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
                   {hasCounts && <Tooltip cursor={{ fill: '#f4f4f5' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? BLUE.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? GREEN.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                   <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? GREEN.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasCounts && emptyOverlay}</div>
