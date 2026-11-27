@@ -47,6 +47,43 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'grey' }:
   )
 }
 
+/** How often a channel actually ends in a job: a rate bar per row, with the counts under it so a 1-of-1 cannot pass for a trend. */
+function WinRateCard({ title, hint, rows, money, sl }: {
+  title: string; hint: string; sl: boolean; money: (n: number) => string
+  rows: { key: string; name: string; won: number; decided: number; wonValue: number; open: number }[]
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+      <p className="text-xs text-[#7f7f7f] mt-1 mb-5">{hint}</p>
+      {rows.length === 0
+        ? <div className="h-24 flex items-center justify-center text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div>
+        : <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-5">
+            {rows.map(r => {
+              const pct = r.decided ? Math.round(r.won / r.decided * 100) : null
+              return (
+                <div key={r.key}>
+                  <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                    <span className="text-sm font-medium text-gray-900 truncate" title={r.name}>{r.name}</span>
+                    <span className="text-sm font-semibold tabular-nums shrink-0" style={{ color: pct ? '#267a47' : '#7f7f7f' }}>{pct == null ? '—' : `${pct} %`}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-[#f4f4f5] overflow-hidden">
+                    {!!pct && <div className="h-full rounded-full" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: GREEN.dark }} />}
+                  </div>
+                  <p className="text-xs text-[#7f7f7f] mt-1.5 tabular-nums truncate">
+                    {pct == null
+                      ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
+                      : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}${r.wonValue ? ` · ${money(r.wonValue)}` : ''}`}
+                    {r.open > 0 && ` · ${r.open} ${sl ? 'še v igri' : 'still in play'}`}
+                  </p>
+                </div>
+              )
+            })}
+          </div>}
+    </div>
+  )
+}
+
 /** a ring card like "Ponudbe po statusu": ring with the total value, legend under it with count and value */
 function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: string; grow?: boolean; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
   const shown = parts.filter(p => p.value > 0)
@@ -257,6 +294,7 @@ export default function DashboardPage() {
   // the four numbers the page is read for
   const kpi = (() => {
     const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((a, q) => ({ value: a.value + (Number(q.total_net) || 0), count: a.count + 1 }), { value: 0, count: 0 })
+    // open = everything still undecided: povpraševanje, osnutek, izdano, poslano, preneseno, izmera
     const open = sum(q => q.status !== 'won' && q.status !== 'lost')
     const won = sum(q => q.status === 'won')
     const lost = sum(q => q.status === 'lost')
@@ -408,10 +446,10 @@ export default function DashboardPage() {
 
         {/* four cards: what is still in play, won, lost, and how often we win */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatCard icon={Send} tone="blue" label={sl ? 'Ponudbe v igri' : 'Quotes in play'} value={money(kpi.open.value)} sub={countQuotes(lang, kpi.open.count)} />
-          <StatCard icon={Trophy} tone="green" label={sl ? 'Dobljeno' : 'Won'} value={money(kpi.won.value)} sub={countQuotes(lang, kpi.won.count)} />
-          <StatCard icon={XCircle} label={sl ? 'Izgubljeno' : 'Lost'} value={money(kpi.lost.value)} sub={countQuotes(lang, kpi.lost.count)} />
-          <StatCard icon={Percent} label={sl ? 'Uspešnost' : 'Win rate'} value={kpi.rate == null ? '—' : `${kpi.rate} %`}
+          <StatCard icon={Send} tone="blue" label={sl ? 'Odprta povpraševanja in ponudbe' : 'Open enquiries and quotes'} value={money(kpi.open.value)} sub={countQuotes(lang, kpi.open.count)} />
+          <StatCard icon={Trophy} tone="green" label={sl ? 'Dobljene ponudbe' : 'Won quotes'} value={money(kpi.won.value)} sub={countQuotes(lang, kpi.won.count)} />
+          <StatCard icon={XCircle} label={sl ? 'Izgubljene ponudbe' : 'Lost quotes'} value={money(kpi.lost.value)} sub={countQuotes(lang, kpi.lost.count)} />
+          <StatCard icon={Percent} label={sl ? 'Uspešnost ponudb' : 'Win rate'} value={kpi.rate == null ? '—' : `${kpi.rate} %`}
             sub={kpi.rateN == null ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
               : sl ? `${kpi.rateN} % po številu · ${countQuotes(lang, kpi.decidedN)}` : `${kpi.rateN} % by count · ${countQuotes(lang, kpi.decidedN)}`} />
         </div>
@@ -560,6 +598,23 @@ export default function DashboardPage() {
               </div>
             </div>
           )
+        })()}
+
+        {/* which channel actually ends in a job, not only how many quotes it brings */}
+        {(() => {
+          const rows = LEAD_SOURCES.map(k => {
+            const qs = inPeriod.filter(q => (q.lead_source ?? '') === k)
+            const won = qs.filter(q => q.status === 'won')
+            const lost = qs.filter(q => q.status === 'lost').length
+            return { key: k as string, name: leadSourceLabel(k, sl ? 'sl' : 'en'), won: won.length, decided: won.length + lost,
+              wonValue: won.reduce((a, q) => a + (Number(q.total_net) || 0), 0), open: qs.length - won.length - lost }
+          }).filter(r => r.decided > 0 || r.open > 0)
+          // best rate first; a channel with nothing decided yet cannot be ranked, so it goes last
+          rows.sort((a, b) => (b.decided ? b.won / b.decided : -1) - (a.decided ? a.won / a.decided : -1) || b.decided - a.decided)
+          return <WinRateCard sl={sl} money={money} rows={rows}
+            title={sl ? 'Uspešnost po prodajnih kanalih' : 'Win rate by sales channel'}
+            hint={sl ? 'Delež dobljenih med zaključenimi ponudbami kanala. Kanal, ki prinese veliko povpraševanj, ni nujno tisti, ki prinese posle.'
+              : 'Won as a share of the decided quotes of each channel. The channel that brings the most enquiries is not always the one that brings the jobs.'} />
         })()}
 
         {/* customers, sales channel and source of the quotes made in the period */}
