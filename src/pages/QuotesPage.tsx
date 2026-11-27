@@ -338,9 +338,11 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
     setOpen(false)
     if (uid === assigneeId) return
     setSaving(true)
-    await supabase.from('quotes').update({ assignee_id: uid }).eq('id', quoteId)
-    onChange(uid)
+    // a failed write must not leave the new name on screen as if it had been saved
+    const { error } = await supabase.from('quotes').update({ assignee_id: uid }).eq('id', quoteId)
     setSaving(false)
+    if (error) { toast.error(error.message); return }
+    onChange(uid)
   }
 
   const label = assignee ? `${assignee.first_name} ${assignee.last_name}` : null
