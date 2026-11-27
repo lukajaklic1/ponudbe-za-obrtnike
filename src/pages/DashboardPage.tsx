@@ -3,7 +3,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { LayoutDashboard, Search, X, Send, Trophy, XCircle, Percent } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
 import { supabase } from '../lib/supabase'
-import { countQuotes } from '../utils/pluralize'
+import { countQuotes, countOpen } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
 import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
@@ -72,7 +72,7 @@ function WinRateCard({ title, hint, rows, money, sl }: {
                       {pct == null
                         ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
                         : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}`}
-                      {r.open > 0 && ` · ${r.open} ${sl ? 'še v igri' : 'still in play'}`}
+                      {r.open > 0 && ` · ${countOpen(sl ? 'sl' : 'en', r.open)}`}
                     </p>
                   </div>
                   <div className="flex-1 min-w-0">
