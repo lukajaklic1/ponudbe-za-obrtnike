@@ -304,7 +304,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         // opening an enquiry from the configurator: it is no longer new
         if (isNewEnquiry(quote)) {
           supabase.from('quotes').update({ viewed_at: new Date().toISOString() } as any).eq('id', quote.id).then(() => notifyQuotesChanged())
-          if (company) logQuoteEvent(company.id, quote.id, 'viewed')
         }
         loadedTotal.current = Number(quote.total_net) || 0
         if (!readOnly && !['enquiry', 'measure', 'draft', 'issued', 'sent', 'downloaded'].includes(quote.status)) { navigate(`/quotes/${id}`, { replace: true }); return }

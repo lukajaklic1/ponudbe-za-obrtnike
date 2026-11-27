@@ -6,7 +6,7 @@
 import { supabase } from './supabase'
 
 export type QuoteEventAction =
-  | 'created' | 'edited' | 'status' | 'viewed' | 'downloaded'
+  | 'created' | 'edited' | 'status'
   | 'assignee' | 'attachment_added' | 'attachment_removed'
 
 export interface QuoteEvent {

@@ -36,7 +36,8 @@ export default function QuoteHistory({ quoteId, companyId, lang, statusLabels, r
       supabase.from('users').select('id, first_name, last_name').eq('company_id', companyId),
     ]).then(([evs, us]) => {
       if (!alive) return
-      setEvents(evs)
+      // the history records changes; who looked at a quote is not one, and old rows go too
+      setEvents(evs.filter(e => e.action !== 'viewed'))
       setNames(Object.fromEntries((((us.data ?? []) as { id: string; first_name: string; last_name: string }[]))
         .map(u => [u.id, `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim()])))
       setLoading(false)
@@ -65,8 +66,6 @@ export default function QuoteHistory({ quoteId, companyId, lang, statusLabels, r
           // the amount is worth saying only when the edit moved it
           detail: before && after && before !== after ? `${before} → ${after}` : undefined }
       }
-      case 'viewed':
-        return { text: sl ? 'Povpraševanje pregledano' : 'Enquiry opened' }
       case 'assignee':
         return { text: sl ? 'Zamenjana odgovorna oseba' : 'Assignee changed',
           detail: typeof m.to === 'string' ? (names[m.to] ?? undefined) : (sl ? 'brez' : 'none') }
