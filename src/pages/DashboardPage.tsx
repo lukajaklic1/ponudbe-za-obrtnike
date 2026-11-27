@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { LayoutDashboard, Search, X, Send, Trophy, XCircle, Percent } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes, countOpen } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
@@ -47,48 +47,58 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'grey' }:
   )
 }
 
-/** How often a channel actually ends in a job: one row per channel, best first, with the counts next to the
- *  rate so a one-of-one cannot pass for a trend. */
-function WinRateCard({ title, hint, rows, money, sl }: {
-  title: string; hint: string; sl: boolean; money: (n: number) => string
-  rows: { key: string; name: string; won: number; decided: number; wonValue: number; open: number }[]
+/** One row of a breakdown card: the name and a line of context on the left, a bar across the middle,
+ *  the number and its sub-line on the right. The category and the channel card are both built from it. */
+function BreakdownRow({ name, caption, value, sub, segments, onClick, active }: {
+  name: string; caption: string; value: string; sub: string
+  /** widths in per cent of the track, drawn left to right */
+  segments: { w: number; color: string }[]
+  onClick?: () => void; active?: boolean
 }) {
-  const best = rows.find(r => r.decided > 0)
+  const body = (
+    <>
+      <div className="w-[120px] sm:w-[200px] shrink-0 min-w-0 text-left">
+        <p className="text-sm font-medium text-gray-900 truncate" title={name}>{name}</p>
+        <p className="text-xs text-[#7f7f7f] mt-0.5 truncate">{caption}</p>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="h-2.5 rounded-full bg-[#f4f4f5] overflow-hidden flex">
+          {segments.filter(x => x.w > 0).map((x, k) => (
+            <div key={k} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${Math.max(x.w, 1)}%`, backgroundColor: x.color }} />
+          ))}
+        </div>
+      </div>
+      <div className="w-[88px] sm:w-[120px] shrink-0 text-right">
+        <p className="text-base font-semibold tabular-nums text-gray-900">{value}</p>
+        <p className="text-xs text-[#7f7f7f] tabular-nums truncate">{sub}</p>
+      </div>
+    </>
+  )
+  const cls = cn('py-4 flex items-center gap-4 sm:gap-6', onClick && 'w-full cursor-pointer', active && 'opacity-100')
+  return onClick
+    ? <button type="button" onClick={onClick} className={cn(cls, 'hover:opacity-80 transition-opacity')}>{body}</button>
+    : <div className={cls}>{body}</div>
+}
+
+/** Title, one line of explanation, then the rows. */
+function BreakdownCard({ title, hint, empty, children, legend }: {
+  title: string; hint: string; empty: string; legend?: { name: string; color: string }[]; children: React.ReactNode
+}) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-      <p className="text-xs text-[#7f7f7f] mt-1 mb-1">{hint}</p>
-      {rows.length === 0
-        ? <div className="h-24 flex items-center justify-center text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div>
-        : <div className="divide-y divide-gray-100">
-            {rows.map(r => {
-              const pct = r.decided ? Math.round(r.won / r.decided * 100) : null
-              const lead = best && r.key === best.key && pct != null && pct > 0
-              return (
-                <div key={r.key} className="py-4 flex items-center gap-4 sm:gap-6">
-                  <div className="w-[120px] sm:w-[200px] shrink-0 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate" title={r.name}>{r.name}</p>
-                    <p className="text-xs text-[#7f7f7f] mt-0.5 truncate">
-                      {pct == null
-                        ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
-                        : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}`}
-                      {r.open > 0 && ` · ${countOpen(sl ? 'sl' : 'en', r.open)}`}
-                    </p>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="h-2.5 rounded-full bg-[#f4f4f5] overflow-hidden">
-                      {!!pct && <div className="h-full rounded-full transition-[width] duration-500"
-                        style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: lead ? BLUE.dark : BLUE.mid }} />}
-                    </div>
-                  </div>
-                  <div className="w-[88px] sm:w-[120px] shrink-0 text-right">
-                    <p className={cn('text-base font-semibold tabular-nums', pct == null ? 'text-[#7f7f7f]' : 'text-gray-900')}>{pct == null ? '—' : `${pct} %`}</p>
-                    <p className="text-xs text-[#7f7f7f] tabular-nums truncate">{r.wonValue ? money(r.wonValue) : '—'}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+          <p className="text-xs text-[#7f7f7f] mt-1">{hint}</p>
+        </div>
+        {legend && <div className="flex items-center gap-3 shrink-0 pt-0.5">
+          {legend.map(l => <span key={l.name} className="flex items-center gap-1.5 text-xs text-[#5e5e5e]">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />{l.name}</span>)}
+        </div>}
+      </div>
+      {children
+        ? <div className="divide-y divide-gray-100 mt-1">{children}</div>
+        : <div className="h-24 flex items-center justify-center text-sm font-medium text-gray-400">{empty}</div>}
     </div>
   )
 }
@@ -353,7 +363,6 @@ export default function DashboardPage() {
   const GHOST = [0.45, 0.7, 0.55, 0.85, 0.6, 0.75, 0.5, 0.9, 0.65, 0.8, 0.4, 0.7]
   const ghostMonths = months.map((m, i) => ({ ...m, sent_value: GHOST[i % 12] * 3000, won_value: GHOST[(i + 5) % 12] * 1600, sent_count: GHOST[i % 12] * 3, won_count: GHOST[(i + 5) % 12] * 1.6 }))
   const GREY = { light: '#eeeff1', dark: '#d4d4d8' }
-  const narrow = typeof window !== 'undefined' && window.innerWidth < 640
   // Same look as the other empty states in the app: light icon + short grey sentence
   const emptyOverlay = (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -574,35 +583,24 @@ export default function DashboardPage() {
                 </>)}
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 p-6 lg:col-span-2">
-                <div className="flex items-center justify-between gap-3 mb-5 -mt-1">
-                  <h2 className="text-sm font-semibold text-gray-900">
-                    {sl ? 'Vrednost po kategorijah' : 'Value by category'}
-                  </h2>
-                </div>
-                {/* Same look as the other charts: dashed grid, grey axis labels, rounded bars, shared tooltip; empty: the axes and grid with "Ni podatkov" */}
-                <div className="relative">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={topServices.length ? topServices : [[1300, 2300], [900, 2100], [0, 2500], [700, 1300], [0, 1500], [400, 500]].map(([w, r], i) => ({ name: ' '.repeat(i + 1), won: w, rest: r, total: 0 }))}
-                      layout="vertical" margin={{ top: 0, right: narrow ? 40 : 56, left: 0, bottom: 0 }} barCategoryGap={10}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" horizontal={false} verticalCoordinatesGenerator={({ offset }: any) => [0, 1, 2, 3, 4].map(i => offset.left + offset.width * i / 4)} />
-                      <XAxis type="number" {...(topServices.length ? {} : { domain: [0, 4000] })} tickFormatter={v => moneyK(v)} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" width={narrow ? 120 : 210} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false}
-                        tickFormatter={(n: string) => { const max = narrow ? 16 : 26; return n.length > max ? n.slice(0, max - 1) + '…' : n }} />
-                      {topServices.length > 0 && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
-                      <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                      <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : GREEN.dark} maxBarSize={22}
-                        // fully won (nothing light after it): the dark part gets the rounded end
-                        shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
-                        {topServices.length > 0 && <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />}
-                      </Bar>
-                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : GREEN.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
-                        <LabelList dataKey="total" position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                  {topServices.length === 0 && emptyOverlay}
-                </div>
+              <div className="lg:col-span-2">
+                <BreakdownCard empty={sl ? 'Ni podatkov' : 'No data'}
+                  title={sl ? 'Vrednost po kategorijah' : 'Value by category'}
+                  hint={sl ? 'Koliko ste v tem obdobju ponudili po skupinah izdelkov in koliko od tega ste dobili. Kliknite vrstico, da filtrirate stran po njej.'
+                    : 'What you offered per product group in this period and how much of it you won. Click a row to filter the page by it.'}
+                  legend={[{ name: sl ? 'Dobljeno' : 'Won', color: GREEN.dark }, { name: sl ? 'Ponujeno' : 'Offered', color: GREEN.light }]}>
+                  {topServices.length > 0 && topServices.map(c => {
+                    const max = topServices[0].total || 1
+                    const all = topServices.reduce((a, x) => a + x.total, 0) || 1
+                    return <BreakdownRow key={c.key} name={c.name}
+                      active={categoryFilter === c.key}
+                      onClick={() => setCategoryFilter(f => f === c.key ? '' : c.key)}
+                      caption={`${Math.round(c.total / all * 100)} % ${sl ? 'vrednosti' : 'of the value'}`}
+                      segments={[{ w: c.won / max * 100, color: GREEN.dark }, { w: c.rest / max * 100, color: GREEN.light }]}
+                      value={money(c.total)}
+                      sub={c.won ? `${money(c.won)} ${sl ? 'dobljeno' : 'won'}` : '—'} />
+                  })}
+                </BreakdownCard>
               </div>
             </div>
           )
@@ -619,10 +617,22 @@ export default function DashboardPage() {
           }).filter(r => r.decided > 0 || r.open > 0)
           // best rate first; a channel with nothing decided yet cannot be ranked, so it goes last
           rows.sort((a, b) => (b.decided ? b.won / b.decided : -1) - (a.decided ? a.won / a.decided : -1) || b.decided - a.decided)
-          return <WinRateCard sl={sl} money={money} rows={rows}
-            title={sl ? 'Uspešnost zaključenih ponudb po prodajnih kanalih' : 'Win rate of decided quotes by sales channel'}
-            hint={sl ? 'Graf prikazuje delež pridobljenih poslov med zaključenimi ponudbami posameznega prodajnega kanala. Iz grafa lahko razberete, kateri kanal vam prinese največji delež pridobljenih poslov med zaključenimi ponudbami.'
-              : 'The chart shows the share of won jobs among the decided quotes of each sales channel. It tells you which channel brings you the biggest share of won jobs.'} />
+          const best = rows.find(r => r.decided > 0 && r.won > 0)
+          return (
+            <BreakdownCard empty={sl ? 'Ni podatkov' : 'No data'}
+              title={sl ? 'Uspešnost zaključenih ponudb po prodajnih kanalih' : 'Win rate of decided quotes by sales channel'}
+              hint={sl ? 'Graf prikazuje delež pridobljenih poslov med zaključenimi ponudbami posameznega prodajnega kanala. Iz grafa lahko razberete, kateri kanal vam prinese največji delež pridobljenih poslov med zaključenimi ponudbami.'
+                : 'The chart shows the share of won jobs among the decided quotes of each sales channel. It tells you which channel brings you the biggest share of won jobs.'}>
+              {rows.length > 0 && rows.map(r => {
+                const pct = r.decided ? Math.round(r.won / r.decided * 100) : null
+                return <BreakdownRow key={r.key} name={r.name}
+                  caption={`${pct == null ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet') : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}`}${r.open > 0 ? ` · ${countOpen(sl ? 'sl' : 'en', r.open)}` : ''}`}
+                  segments={pct ? [{ w: pct, color: best && r.key === best.key ? BLUE.dark : BLUE.mid }] : []}
+                  value={pct == null ? '—' : `${pct} %`}
+                  sub={r.wonValue ? money(r.wonValue) : '—'} />
+              })}
+            </BreakdownCard>
+          )
         })()}
 
 
