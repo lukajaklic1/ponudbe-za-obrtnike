@@ -5,6 +5,7 @@ import { LanguageProvider } from './hooks/useLanguage'
 import { Toaster } from './components/ui/Toast'
 import AppLayout from './components/layout/AppLayout'
 import SuperAdminLayout from './components/layout/SuperAdminLayout'
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import OnboardingPage from './pages/OnboardingPage'
@@ -46,7 +47,7 @@ export default function Root() {
           <Toaster />
           <Routes>
             {/* Public */}
-            <Route path="/"                 element={<Navigate to="/login" replace />} />
+            <Route path="/"                 element={<LandingPage />} />
             <Route path="/login"            element={<LoginPage />} />
             <Route path="/register"         element={<RegisterPage />} />
             <Route path="/onboarding"       element={<OnboardingPage />} />

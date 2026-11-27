@@ -72,7 +72,7 @@ export default function TermsPage() {
 
       <div className="max-w-3xl mx-auto px-6 py-10">
         {/* Header */}
-        <H1>{sl ? 'SPLOŠNI POGOJI UPORABE STORITVE TOOLINGDESK' : 'TOOLINGDESK TERMS OF SERVICE'}</H1>
+        <H1>{sl ? 'SPLOŠNI POGOJI UPORABE STORITVE FENESTIO' : 'FENESTIO TERMS OF SERVICE'}</H1>
         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-6 text-sm text-gray-600 dark:text-gray-400 space-y-1">
           <div><strong>{sl ? 'Različica:' : 'Version:'}</strong> Beta</div>
           <div><strong>{sl ? 'Datum začetka veljavnosti:' : 'Effective date:'}</strong> {sl ? '8. avgust 2026' : '8 August 2026'}</div>
