@@ -10,6 +10,7 @@ import { useLanguage } from '../hooks/useLanguage'
 import Button from '../components/ui/Button'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
 import { cn } from '../lib/cn'
+import { logQuoteEvent } from '../lib/quoteEvents'
 import { PageHeader } from '../components/ui/PageHeader'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
@@ -283,6 +284,7 @@ export default function QuotesPage() {
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     <AssigneeCell
                       quoteId={q.id}
+                      companyId={company?.id}
                       assigneeId={q.assignee_id}
                       assignee={q.assignee}
                       users={companyUsers}
@@ -318,8 +320,9 @@ export default function QuotesPage() {
   )
 }
 
-function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigneeLabel, onChange }: {
+function AssigneeCell({ quoteId, companyId, assigneeId, assignee, users, canEdit, noAssigneeLabel, onChange }: {
   quoteId: string
+  companyId: string | undefined
   assigneeId: string | null
   assignee: { first_name: string; last_name: string } | null
   users: CompanyUser[]
@@ -345,6 +348,7 @@ function AssigneeCell({ quoteId, assigneeId, assignee, users, canEdit, noAssigne
     const { error } = await supabase.from('quotes').update({ assignee_id: uid }).eq('id', quoteId)
     setSaving(false)
     if (error) { toast.error(error.message); return }
+    if (companyId) logQuoteEvent(companyId, quoteId, 'assignee', { to: uid })
     onChange(uid)
   }
 

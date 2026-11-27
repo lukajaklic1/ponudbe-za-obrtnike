@@ -14,6 +14,8 @@ import Input from '../components/ui/Input'
 import NumberInput from '../components/ui/NumberInput'
 import Modal from '../components/ui/Modal'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
+import QuoteHistory from '../components/QuoteHistory'
+import { logQuoteEvent } from '../lib/quoteEvents'
 import { buildSnapshot } from '../lib/offerSnapshot'
 import { advanceTotal, lineTotal, quoteTotals, roomAreas } from '../lib/quoteTotals'
 import { PRICE_UNITS, VAT_RATES } from '../lib/quoteTotals'
@@ -204,6 +206,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [confirm, setConfirm] = useState<null | 'won' | 'lost' | 'measure' | 'sent' | 'back' | 'issue'>(null)
   const [backStatus, setBackStatus] = useState<'sent' | 'downloaded'>('sent')   // where Izmera goes back to: sent by the supplier, or downloaded by the customer
   const [tab, setTab] = useState<'overview' | 'pdf'>('overview')
+  // bumped after anything that writes a line of history, so the list below reloads
+  const [historyKey, setHistoryKey] = useState(0)
   const [snapshot, setSnapshot] = useState<OfferSnapshot | null>(null)
   // The PDF always shows the company's current logo (old logo files are deleted on replace)
   const pdfSnap = useMemo(() => snapshot ? { ...snapshot, company: { ...snapshot.company, logo_url: company?.logo_url ?? null } } : null, [snapshot, company?.logo_url])
@@ -249,6 +253,8 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   // the quote came in through the customer's configurator (an enquiry): its plain lines are read back once
   const [fromConfigurator, setFromConfigurator] = useState(false)
   const servicesRead = useRef(false)
+  /** the total this quote had when it was opened: an edit is reported as before → after */
+  const loadedTotal = useRef<number | null>(null)
   useEffect(() => {
     if (!cfgOpen) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCfgOpen(null) }
@@ -298,7 +304,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         // opening an enquiry from the configurator: it is no longer new
         if (isNewEnquiry(quote)) {
           supabase.from('quotes').update({ viewed_at: new Date().toISOString() } as any).eq('id', quote.id).then(() => notifyQuotesChanged())
+          if (company) logQuoteEvent(company.id, quote.id, 'viewed')
         }
+        loadedTotal.current = Number(quote.total_net) || 0
         if (!readOnly && !['enquiry', 'measure', 'draft', 'issued', 'sent', 'downloaded'].includes(quote.status)) { navigate(`/quotes/${id}`, { replace: true }); return }
         setAlreadySent(['sent', 'downloaded', 'measure', 'won', 'lost'].includes(quote.status))
         setQuoteNumber(quote.quote_number ?? '')
@@ -548,6 +556,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
       }).select().single()
       if (dbErr) { toast.error(dbErr.message); continue }
       added.push(data as QuoteAttachment)
+      logQuoteEvent(company.id, quoteId, 'attachment_added', { file_name: file.name })
     }
     setAttachments(a => [...a, ...added])
     setUploading(false)
@@ -565,6 +574,7 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     const { error } = await supabase.from('quote_attachments').delete().eq('id', att.id)
     if (error) { toast.error(error.message); return }
     setAttachments(a => a.filter(x => x.id !== att.id))
+    if (company && id) { await logQuoteEvent(company.id, id, 'attachment_removed', { file_name: att.file_name }); setHistoryKey(k => k + 1) }
   }
 
   // ── Persistence ───────────────────────────────────────────
@@ -653,6 +663,9 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     }
 
     if (newFiles.length) { await uploadFiles(quoteId!, newFiles); setNewFiles([]) }
+    if (editMode && id) await logQuoteEvent(company.id, id, 'edited', { total_net: totals.total_net, total_net_before: loadedTotal.current, lines: rows.length, discount_pct: discountPct ?? 0 })
+    loadedTotal.current = totals.total_net
+    setHistoryKey(k => k + 1)
     return { id: quoteId!, number }
   }
 
@@ -1258,6 +1271,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           <OfferPdfPreview snap={pdfSnap ?? snapshot} lang={lang} errorLabel={o.pdfError} />
         ) : <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400">{s.saveQuoteFirst}</div>
       )}
+
+      {/* what happened to this quote */}
+      {tab === 'overview' && isSaved && id && company &&
+        <QuoteHistory quoteId={id} companyId={company.id} lang={sl ? 'sl' : 'en'} statusLabels={s.status} refreshKey={historyKey} />}
 
       {/* Window configurator over the whole page */}
       {cfgOpen && cfg && (

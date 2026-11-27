@@ -276,12 +276,19 @@ class Query implements PromiseLike<{ data: any; error: any; count?: number }> {
         else {
           const row = { ...(DEFAULTS[this.table]?.() ?? {}), id: uid(), created_at: now(), updated_at: now(), ...p }
           this.rows().push(row); out.push(row)
+          if (this.table === 'quotes') { const q = row as Row; (db.quote_events ??= []).push({ id: uid(), created_at: now(), company_id: q.company_id, quote_id: q.id, actor_id: q.created_by ?? null, action: 'created', to_status: q.status, meta: { source: q.source ?? 'app' } }) }
         }
       }
       persist()
     } else if (this.op === 'update') {
       out = this.rows().filter(r => this.match(r))
+      // the real database writes a quote's status history with a trigger; the demo does the same here
+      const before = this.table === 'quotes' ? out.map(r => ({ id: r.id, company_id: r.company_id, status: r.status })) : []
       for (const r of out) Object.assign(r, this.payload)
+      for (const b of before) {
+        const now2 = out.find(r => r.id === b.id)
+        if (now2 && now2.status !== b.status) (db.quote_events ??= []).push({ id: uid(), created_at: now(), company_id: b.company_id, quote_id: b.id, actor_id: db.users?.[0]?.id ?? null, action: 'status', from_status: b.status, to_status: now2.status, meta: { total_net: now2.total_net } })
+      }
       persist()
     } else if (this.op === 'delete') {
       out = this.rows().filter(r => this.match(r))
