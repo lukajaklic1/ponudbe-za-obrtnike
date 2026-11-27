@@ -18,13 +18,13 @@ import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSou
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
 const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won', 'rest']
-/** The two charts up top are read as a pair: the first one in blue, the second one in green. Elsewhere green marks what was won. */
+/** The page alternates: quote value and the status ring in blue, quote count and the category bars in green,
+ *  then the sales channel ring in blue and the source ring in green again. */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
 /** Rings: the status and source rings are read in blue, the channels ring in green — even steps of the same
  *  colour, from a light tint to the colour itself, the last step only a little darker (no near-black slice). */
 const BLUE_RAMP = ['#d8e6fd', '#bed6fc', '#a3c4fb', '#89b4fa', '#70a4f8', '#5592f7', '#3b82f6', '#326fd1']
-const GREEN_RAMP = ['#ccf6e5', '#abf0d4', '#87e9c2', '#66e3b2', '#45dda1', '#21d78f', '#00d17e', '#00b26b']
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
@@ -513,9 +513,8 @@ export default function DashboardPage() {
             { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: BLUE_RAMP[3] },
             { key: 'downloaded', name: sl ? 'Prenesene' : 'Downloaded', color: BLUE_RAMP[4] },
             { key: 'measure', name: sl ? 'Izmere' : 'Measurements', color: BLUE_RAMP[5] },
-            // the two that are decided leave the blue ramp: green for won, grey for lost
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: GREEN.dark },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#a1a1aa' },
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: BLUE_RAMP[6] },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: BLUE_RAMP[7] },
           ].map(x => ({ ...x, count: inPeriod.filter(q => q.status === x.key).length }))
           const total = inPeriod.length
           // the value of the sent quotes by category (windows, doors, roof windows, services …): all of it (light) with the won part (dark) in one bar
@@ -588,7 +587,7 @@ export default function DashboardPage() {
                         shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
                         {topServices.length > 0 && <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />}
                       </Bar>
-                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : BLUE.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
+                      <Bar isAnimationActive={false} dataKey="rest" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Ponujeno' : 'Offered'} fill={!topServices.length ? GREY.light : GREEN.light} radius={[0, 6, 6, 0]} maxBarSize={22}>
                         <LabelList dataKey="total" position="right" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />
                       </Bar>
                     </BarChart>
@@ -641,13 +640,13 @@ export default function DashboardPage() {
             </th>
           )
           // one shade per channel, always in this order (a channel keeps its shade when another one drops out)
-          const CH_COLORS = GREEN_RAMP
+          const CH_COLORS = BLUE_RAMP
           // every quote has a channel; older ones without it are left out here
           const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
             .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           const sources = [
-            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: BLUE.dark, f: (q: Q) => q.source !== 'configurator' },
-            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: BLUE.light, f: (q: Q) => q.source === 'configurator' },
+            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: GREEN.dark, f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: GREEN.light, f: (q: Q) => q.source === 'configurator' },
           ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
