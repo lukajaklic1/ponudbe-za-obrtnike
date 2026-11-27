@@ -49,14 +49,13 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'grey' }:
 
 /** One row of a breakdown card: the name and a line of context on the left, a bar across the middle,
  *  the number and its sub-line on the right. The category and the channel card are both built from it. */
-function BreakdownRow({ name, caption, value, sub, segments, onClick, active }: {
+function BreakdownRow({ name, caption, value, sub, segments }: {
   name: string; caption: string; value: string; sub: string
   /** widths in per cent of the track, drawn left to right */
   segments: { w: number; color: string }[]
-  onClick?: () => void; active?: boolean
 }) {
-  const body = (
-    <>
+  return (
+    <div className="py-4 flex items-center gap-4 sm:gap-6">
       <div className="w-[120px] sm:w-[200px] shrink-0 min-w-0 text-left">
         <p className="text-sm font-medium text-gray-900 truncate" title={name}>{name}</p>
         <p className="text-xs text-[#7f7f7f] mt-0.5 truncate">{caption}</p>
@@ -72,12 +71,8 @@ function BreakdownRow({ name, caption, value, sub, segments, onClick, active }: 
         <p className="text-base font-semibold tabular-nums text-gray-900">{value}</p>
         <p className="text-xs text-[#7f7f7f] tabular-nums truncate">{sub}</p>
       </div>
-    </>
+    </div>
   )
-  const cls = cn('py-4 flex items-center gap-4 sm:gap-6', onClick && 'w-full cursor-pointer', active && 'opacity-100')
-  return onClick
-    ? <button type="button" onClick={onClick} className={cn(cls, 'hover:opacity-80 transition-opacity')}>{body}</button>
-    : <div className={cls}>{body}</div>
 }
 
 /** Title, one line of explanation, then the rows. */
@@ -586,15 +581,13 @@ export default function DashboardPage() {
               <div className="lg:col-span-2">
                 <BreakdownCard empty={sl ? 'Ni podatkov' : 'No data'}
                   title={sl ? 'Vrednost po kategorijah' : 'Value by category'}
-                  hint={sl ? 'Koliko ste v tem obdobju ponudili po skupinah izdelkov in koliko od tega ste dobili. Kliknite vrstico, da filtrirate stran po njej.'
-                    : 'What you offered per product group in this period and how much of it you won. Click a row to filter the page by it.'}
+                  hint={sl ? 'Koliko ste v tem obdobju ponudili po skupinah izdelkov in koliko od tega ste dobili.'
+                    : 'What you offered per product group in this period and how much of it you won.'}
                   legend={[{ name: sl ? 'Dobljeno' : 'Won', color: GREEN.dark }, { name: sl ? 'Ponujeno' : 'Offered', color: GREEN.light }]}>
                   {topServices.length > 0 && topServices.map(c => {
                     const max = topServices[0].total || 1
                     const all = topServices.reduce((a, x) => a + x.total, 0) || 1
                     return <BreakdownRow key={c.key} name={c.name}
-                      active={categoryFilter === c.key}
-                      onClick={() => setCategoryFilter(f => f === c.key ? '' : c.key)}
                       caption={`${Math.round(c.total / all * 100)} % ${sl ? 'vrednosti' : 'of the value'}`}
                       segments={[{ w: c.won / max * 100, color: GREEN.dark }, { w: c.rest / max * 100, color: GREEN.light }]}
                       value={money(c.total)}
