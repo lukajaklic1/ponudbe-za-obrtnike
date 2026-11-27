@@ -62,7 +62,7 @@ function BreakdownRow({ name, caption, value, sub, segments, onClick, active }: 
         <p className="text-xs text-[#7f7f7f] mt-0.5 truncate">{caption}</p>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="h-2.5 rounded-full bg-[#f4f4f5] overflow-hidden flex">
+        <div className="h-3.5 rounded-full bg-[#f4f4f5] overflow-hidden flex">
           {segments.filter(x => x.w > 0).map((x, k) => (
             <div key={k} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${Math.max(x.w, 1)}%`, backgroundColor: x.color }} />
           ))}
@@ -700,7 +700,7 @@ export default function DashboardPage() {
               </div>
               {/* sales channel and where the quotes came from, two rings one under the other */}
               <div className="flex flex-col gap-4 h-full">
-                <RingCard title={sl ? 'Prodajni kanal' : 'Sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'}
+                <RingCard title={sl ? 'Prejete ponudbe po prodajnem kanalu' : 'Quotes received by sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'}
                   empty={inPeriod.length ? (sl ? 'Ponudbe v tem obdobju še nimajo prodajnega kanala. Izberite ga pri urejanju ponudbe, nove ga imajo vedno.' : 'Quotes in this period have no sales channel yet. Set it when editing a quote; new ones always have it.') : undefined} />
                 <RingCard title={sl ? 'Izvor ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
               </div>
