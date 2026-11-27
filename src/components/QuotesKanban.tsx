@@ -65,7 +65,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
 
             {droppable && <div className="mx-2 mb-2 rounded-lg border border-dashed border-[#266df0] bg-white/60 py-2 text-center text-xs font-medium text-[#215bcf]">{labels.dropHere}</div>}
             {/* Cards */}
-            <div className="flex-1 flex flex-col gap-2 px-2 pb-2 min-h-[140px] overflow-y-auto nice-scroll">
+            <div className="flex-1 flex flex-col gap-2 px-2 pb-2 min-h-[140px] overflow-y-auto hide-scroll">
               {cards.map(q => {
                 const movable = canEdit && !!ALLOWED_MOVES[q.status]
                 const assignee = q.assignee ? `${q.assignee.first_name} ${q.assignee.last_name}` : null
