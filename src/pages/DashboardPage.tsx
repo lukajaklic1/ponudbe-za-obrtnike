@@ -620,7 +620,7 @@ export default function DashboardPage() {
           // best rate first; a channel with nothing decided yet cannot be ranked, so it goes last
           rows.sort((a, b) => (b.decided ? b.won / b.decided : -1) - (a.decided ? a.won / a.decided : -1) || b.decided - a.decided)
           return <WinRateCard sl={sl} money={money} rows={rows}
-            title={sl ? 'Uspešnost po prodajnih kanalih' : 'Win rate by sales channel'}
+            title={sl ? 'Uspešnost zaključenih ponudb po prodajnih kanalih' : 'Win rate of decided quotes by sales channel'}
             hint={sl ? 'Graf prikazuje delež pridobljenih poslov med zaključenimi ponudbami posameznega prodajnega kanala. Iz grafa lahko razberete, kateri kanal vam prinese največji delež pridobljenih poslov med zaključenimi ponudbami.'
               : 'The chart shows the share of won jobs among the decided quotes of each sales channel. It tells you which channel brings you the biggest share of won jobs.'} />
         })()}
