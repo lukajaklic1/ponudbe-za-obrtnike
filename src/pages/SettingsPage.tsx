@@ -161,7 +161,7 @@ export default function SettingsPage() {
         {/* Company profile */}
         <Section icon={Building2} title={s.companyProfile}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="col-span-2"><Input id="name" label={s.companyName} requiredMark {...field('name')} /></div>
+            <div className="sm:col-span-2"><Input id="name" label={s.companyName} requiredMark {...field('name')} /></div>
             <div>
               <label className={LABEL}>{o.legalForm}</label>
               <Select className="h-[37.6px]" value={form.legal_form ?? ''} placeholder={t.common.select} onChange={v => setForm(f => ({ ...f, legal_form: (v || null) as Company['legal_form'] }))}
@@ -178,7 +178,7 @@ export default function SettingsPage() {
             <Input id="address_country" label={t.common.country} {...field('address_country')} />
             {/* Companies (d.o.o., d.d.) must also state the registry and share capital on business documents */}
             {(form.legal_form === 'doo' || form.legal_form === 'dd') && <>
-              <div className="col-span-2"><Input id="registry_authority" label={o.registryAuthority} placeholder={o.registryAuthorityHint} {...field('registry_authority')} /></div>
+              <div className="sm:col-span-2"><Input id="registry_authority" label={o.registryAuthority} placeholder={o.registryAuthorityHint} {...field('registry_authority')} /></div>
               <NumberInput label={o.shareCapital} unit="€" value={form.share_capital ?? null} decimals={2} onValue={v => setForm(f => ({ ...f, share_capital: v }))} />
               <NumberInput label={o.unpaidCapital} unit="€" value={form.unpaid_capital ?? null} decimals={2} onValue={v => setForm(f => ({ ...f, unpaid_capital: v }))} />
             </>}

@@ -77,6 +77,15 @@ export default function QuotesPage() {
     try { return localStorage.getItem(VIEW_KEY) === 'kanban' ? 'kanban' : 'list' } catch { return 'list' }
   })
   function changeView(v: 'list' | 'kanban') { setView(v); try { localStorage.setItem(VIEW_KEY, v) } catch { /* private mode */ } }
+  // seven columns are unusable on a phone, so there the list is the view; the choice is kept for the desktop
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    const on = () => setPhone(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  const shownView = phone ? 'list' : view
   const [pendingMove, setPendingMove] = useState<{ quote: Row; to: QuoteStatus } | null>(null)
 
   useEffect(() => { if (company) { load(); loadUsers() } }, [company])
@@ -172,7 +181,7 @@ export default function QuotesPage() {
 
   if (!permLoading && !hasPerm('quotes', 'view')) return <Navigate to="/home" replace />
 
-  const board = view === 'kanban'
+  const board = shownView === 'kanban'
   return (
     // the board fills the screen: the page itself must not scroll, or a second scrollbar shows up on the right
     <div className={board ? 'h-full flex flex-col overflow-hidden' : undefined}>
@@ -198,7 +207,7 @@ export default function QuotesPage() {
           ]}
           onChange={v => { setAssigneeFilter(v || 'all'); setPage(1) }} />
         <DateRangeFilter label={sl ? 'Ustvarjeno' : 'Created'} from={dateFrom} to={dateTo} onChange={(f, t2) => { setDateFrom(f); setDateTo(t2); setPage(1) }} />
-        <div className="ml-auto inline-flex h-8 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
+        <div className="ml-auto hidden sm:inline-flex h-8 items-stretch gap-0.5 p-[3px] rounded-[11px] bg-[#f1f1f1]">
           {([['list', List, sl ? 'Seznam' : 'List'], ['kanban', Columns3, 'Kanban']] as const).map(([v, Icon, label]) => (
             <button key={v} type="button" title={label} aria-label={label} onClick={() => changeView(v)}
               className={`w-8 flex items-center justify-center rounded-[8px] transition-colors ${view === v ? 'bg-white text-gray-900 shadow-[0_1px_3px_rgba(0,0,0,0.06)]' : 'text-[#5e5e5e] hover:text-gray-900'}`}>
@@ -208,7 +217,7 @@ export default function QuotesPage() {
         </div>
       </div>
 
-      {view === 'kanban' && !loading ? (
+      {shownView === 'kanban' && !loading ? (
         <div className="flex-1 min-h-0"><QuotesKanban
           statuses={STATUSES.filter(st => statusFilter === 'all' || (statusFilter === 'prep' || statusFilter === 'out' ? GROUPS[statusFilter].includes(st) : st === statusFilter))}
           quotes={sortedFiltered} canEdit={canEdit} statusLabels={s.status} money={money} waitingDays={waitingDays}
