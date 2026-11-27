@@ -34,7 +34,10 @@ export default function WindowCalcTable({ calc, lang, saved }: { calc: WindowCal
         <div className="font-medium text-[#5e5e5e] pb-1 text-right whitespace-nowrap">{roof ? T.sale : T.cost}</div>
         {calc.lines.map(l => (
           <div key={l.key} className="contents">
-            <div className="py-1 border-t border-gray-200 text-gray-900">{l.label}</div>
+            <div className="py-1 border-t border-gray-200 text-gray-900">
+              {l.label}
+              {l.how && <div className="text-[11px] leading-4 text-[#7f7f7f] whitespace-normal">{l.how}</div>}
+            </div>
             <div className="py-1 border-t border-gray-200 text-right text-[#5e5e5e] whitespace-nowrap">{num(l.qty)} {unitLabel(l.unit)}</div>
             <div className="py-1 border-t border-gray-200 text-right text-[#5e5e5e] whitespace-nowrap">{eur(l.price)}</div>
             <div className="py-1 border-t border-gray-200 text-right text-gray-900 whitespace-nowrap">{eur(l.total)}</div>

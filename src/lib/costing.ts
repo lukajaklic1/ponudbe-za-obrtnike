@@ -340,7 +340,11 @@ export function layoutFor(t: WindowTemplate): Layout {
   }
 }
 
-export interface CutLine { key: string; label: string; qty: number; unit: 'm' | 'm²' | 'kos'; price: number; total: number }
+export interface CutLine {
+  key: string; label: string; qty: number; unit: 'm' | 'm²' | 'kos'; price: number; total: number
+  /** where the quantity comes from, written out with the numbers, so it can be checked by hand */
+  how?: string
+}
 export interface Costing {
   lines: CutLine[]
   profileCost: number
@@ -377,10 +381,17 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     if (gw <= 0 || gh <= 0) return
     const a = (gw + 2 * reb) * (gh + 2 * reb) / 1e6
     glassArea += a; glassBill += Math.max(a, s.glass_min_m2 ?? 0)
+    d.glass.push(`${mmTxt(gw + 2 * reb)}×${mmTxt(gh + 2 * reb)}`)
   }
   // sizes of the opening sashes added up (for shading / screens priced per sash)
   let sashWSum = 0, sashHSum = 0, sashArea = 0
-  const hw: Record<string, { n: number; total: number }> = {}
+  const hw: Record<string, { n: number; total: number; mLen: number }> = {}
+  // every piece of the calculation, written out as it is computed
+  const d = { mullion: [] as string[], sash: [] as string[], bead: [] as string[], glass: [] as string[] }
+  // millimetres are written without a thousands separator, so 1800 cannot be read as 1,8
+  const mmTxt = (x: number) => String(Math.round(x))
+  const n3 = (x: number) => x.toLocaleString('de-DE', { maximumFractionDigits: 3 })
+  const n2 = (x: number) => x.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   // a field = clear opening inside the frame / mullions
   function field(f: Field, cw: number, ch: number) {
@@ -388,6 +399,7 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     if (f.opening === 'fixed') {
       fixedFields++
       beadLen += 2 * (cw + ch)
+      d.bead.push(`2×(${mmTxt(cw)}+${mmTxt(ch)})`)
       pane(cw, ch)
       return
     }
@@ -396,12 +408,14 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     const sashW = cw + 2 * OVERLAP, sashH = ch + 2 * OVERLAP
     sashWSum += sashW; sashHSum += sashH; sashArea += sashW * sashH / 1e6
     sashLen += 2 * (sashW + sashH)
+    d.sash.push(`2×(${mmTxt(sashW)}+${mmTxt(sashH)})`)
     const gw = Math.max(0, sashW - 2 * sw), gh = Math.max(0, sashH - 2 * sw)
     beadLen += 2 * (gw + gh)
+    d.bead.push(`2×(${mmTxt(gw)}+${mmTxt(gh)})`)
     pane(gw, gh)
     const k = f.opening as keyof PricingSettings['hw']
-    const cur = hw[k] ?? { n: 0, total: 0 }
-    hw[k] = { n: cur.n + 1, total: cur.total + (s.hw[k] ?? 0) + (s.hw_m?.[k] ?? 0) * 2 * (sashW + sashH) / 1000 }
+    const cur = hw[k] ?? { n: 0, total: 0, mLen: 0 }
+    hw[k] = { n: cur.n + 1, total: cur.total + (s.hw[k] ?? 0) + (s.hw_m?.[k] ?? 0) * 2 * (sashW + sashH) / 1000, mLen: cur.mLen + 2 * (sashW + sashH) / 1000 }
   }
 
   // main row
@@ -414,12 +428,14 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const widthForFields = innerW - nMull * mw
   cols.forEach(c => field(c, widthForFields * (c.weight ?? 1) / totalWeight, mainH))
   mullionLen += nMull * mainH
+  if (nMull > 0) d.mullion.push(`${nMull}×${mmTxt(mainH)}`)
   bars += nMull
   // top light / bottom panel: transom bar across the window, then one field or one per column
   for (const band of [layout.top ? { b: layout.top, h: topH } : null, layout.bottom ? { b: layout.bottom, h: botH } : null]) {
     if (!band) continue
     const fh = band.h - fw - mw / 2, n = band.b.fields.length
     mullionLen += innerW + (n - 1) * Math.max(0, fh)
+    d.mullion.push(`${mmTxt(innerW)}${n > 1 ? ` + ${n - 1}×${mmTxt(Math.max(0, fh))}` : ''}`)
     bars += 1 + (n - 1)
     const fwid = (innerW - (n - 1) * mw) / n
     band.b.fields.forEach(f => field(f, fwid, fh))
@@ -433,21 +449,29 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
   const lines: CutLine[] = []
   // lines are shown rounded to cents, but the cost adds up the exact amounts (same as the server)
   let exact = 0
-  const add = (key: string, label: string, qty: number, unit: CutLine['unit'], price: number) => {
-    if (qty > 0) { lines.push({ key, label, qty: r2(qty), unit, price: r2(price), total: r2(qty * price) }); exact += qty * price }
+  const add = (key: string, label: string, qty: number, unit: CutLine['unit'], price: number, how?: string) => {
+    if (qty > 0) { lines.push({ key, label, qty: r2(qty), unit, price: r2(price), total: r2(qty * price), how }); exact += qty * price }
   }
-  add('frame', L('frame', 'Okvir'), m(frameLen), 'm', p.frame_m * colorF)
-  add('mullion', L('mullion', 'Steber / prečka'), m(mullionLen), 'm', p.mullion_m * colorF)
-  add('sash', L('sash', 'Krila'), m(sashLen), 'm', p.sash_m * colorF)
-  add('bead', L('bead', 'Pritrdilne letvice'), m(beadLen), 'm', p.bead_m * colorF)
+  // "5,200 m + 6 % odpadka = 5,512 m", and the colour surcharge that sits in the price
+  const wasteTxt = (mmLen: number, from: string) => {
+    const base = `${from} = ${n3(mmLen / 1000)} m`
+    const withWaste = waste > 1 ? `${base} + ${n3((waste - 1) * 100)} % ${L('waste', 'odpadka')} = ${n3(m(mmLen))} m` : base
+    return colorF > 1 ? `${withWaste} · ${L('colourPrice', 'cena z doplačilom za barvo')} ×${n3(colorF)}` : withWaste
+  }
+  add('frame', L('frame', 'Okvir'), m(frameLen), 'm', p.frame_m * colorF, wasteTxt(frameLen, `2×(${mmTxt(W)}+${mmTxt(H)})`))
+  add('mullion', L('mullion', 'Steber / prečka'), m(mullionLen), 'm', p.mullion_m * colorF, wasteTxt(mullionLen, d.mullion.join(' + ') || '0'))
+  add('sash', L('sash', 'Krila'), m(sashLen), 'm', p.sash_m * colorF, wasteTxt(sashLen, d.sash.join(' + ') || '0'))
+  add('bead', L('bead', 'Pritrdilne letvice'), m(beadLen), 'm', p.bead_m * colorF, wasteTxt(beadLen, d.bead.join(' + ') || '0'))
   const profileCost = lines.reduce((a, l) => a + l.total, 0)
   const gl = glassOf(s, opts.glassId), hd = handleOf(s, opts.handleId)
-  add('glass', gl ? `${L('glass', 'Steklo')}: ${gl.name}` : L('glass', 'Steklo'), glassBill, 'm²', (gl ? gl.cost_m2 : s.glass_m2) + (opts.glassExtraM2 ?? 0))
-  for (const [k, v] of Object.entries(hw)) add('hw_' + k, L('hw_' + k, 'Okovje ' + k), v.n, 'kos', v.total / v.n)
-  if (hd) add('handle', `${L('handle', 'Kljuke')}: ${hd.name}`, handles, 'kos', hd.cost)
+  add('glass', gl ? `${L('glass', 'Steklo')}: ${gl.name}` : L('glass', 'Steklo'), glassBill, 'm²', (gl ? gl.cost_m2 : s.glass_m2) + (opts.glassExtraM2 ?? 0),
+    `${d.glass.join(' + ') || '0'} mm = ${n3(glassArea)} m²${reb ? ` · ${L('rebate', 'steklo sega ${reb} mm v utor na vsaki strani').replace('${reb}', String(reb))}` : ''}${glassBill > glassArea ? ` · ${L('glassMin', 'najmanjša obračunana šipa')} ${n3(s.glass_min_m2 ?? 0)} m² → ${n3(glassBill)} m²` : ''}`)
+  for (const [k, v] of Object.entries(hw)) add('hw_' + k, L('hw_' + k, 'Okovje ' + k), v.n, 'kos', v.total / v.n,
+    `${v.n}× (${n2(s.hw[k as keyof PricingSettings['hw']] ?? 0)} € + ${n2(s.hw_m?.[k as keyof PricingSettings['hw']] ?? 0)} €/m × ${n3(v.mLen / v.n)} m ${L('perSash', 'obseg krila')}) = ${n2(v.total)} €`)
+  if (hd) add('handle', `${L('handle', 'Kljuke')}: ${hd.name}`, handles, 'kos', hd.cost, `${handles}× ${L('perHandle', 'kljuka na odpirajoče krilo')}`)
   // window sills: as long as the window is wide
   for (const sl of [sillOf(s, 'inner', opts.sillIn), sillOf(s, 'outer', opts.sillOut)]) {
-    if (sl) add('sill_' + sl.side, `${L('sill_' + sl.side, sl.side === 'inner' ? 'Notranja polica' : 'Zunanja polica')}: ${sl.name}`, W / 1000, 'm', sl.cost_m)
+    if (sl) add('sill_' + sl.side, `${L('sill_' + sl.side, sl.side === 'inner' ? 'Notranja polica' : 'Zunanja polica')}: ${sl.name}`, W / 1000, 'm', sl.cost_m, `${L('sillWidth', 'širina okna')} ${mmTxt(W)} mm = ${n3(W / 1000)} m`)
   }
   // shading and insect screen: per window or per opening sash; a screen built into the shading's box
   // and guides only counts its own parts (integrated prices, no lowest price)
@@ -462,8 +486,16 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     const [n, w, h, a] = sh.unit === 'sash' ? [sashes, sashWSum / 1000, sashHSum / 1000, sashArea] : [1, W / 1000, H / 1000, W * H / 1e6]
     const sum = (sh.fixed ?? 0) * n + (sh.per_w ?? 0) * w + (sh.per_h ?? 0) * h + sh.cost * a
     // the lowest sale price is turned back into a cost, so the margin added to the window brings it to exactly that price
-    const amount = Math.max((sh.min ?? 0) / (1 + (s.margin_pct ?? 0) / 100), sum)
-    add('shade_' + sh.kind, `${L('shade_' + sh.kind, sh.kind === 'shade' ? 'Senčilo' : 'Komarnik')}: ${sh.name}`, 1, 'kos', amount)
+    const minCost = (sh.min ?? 0) / (1 + (s.margin_pct ?? 0) / 100)
+    const amount = Math.max(minCost, sum)
+    const bits = [
+      (sh.fixed ?? 0) ? `${n2(sh.fixed ?? 0)} €${n > 1 ? ` × ${n}` : ''}` : '',
+      (sh.per_w ?? 0) ? `${n2(sh.per_w ?? 0)} €/m × ${n3(w)} m` : '',
+      (sh.per_h ?? 0) ? `${n2(sh.per_h ?? 0)} €/m × ${n3(h)} m` : '',
+      sh.cost ? `${n2(sh.cost)} €/m² × ${n3(a)} m²` : '',
+    ].filter(Boolean).join(' + ')
+    add('shade_' + sh.kind, `${L('shade_' + sh.kind, sh.kind === 'shade' ? 'Senčilo' : 'Komarnik')}: ${sh.name}`, 1, 'kos', amount,
+      `${bits || '0'} = ${n2(sum)} €${amount > sum ? ` · ${L('shadeMin', 'velja najnižja cena')} ${n2(sh.min ?? 0)} € (${n2(minCost)} € ${L('asCost', 'nabavno')})` : ''}`)
   }
   // chosen yes / no extras, counted per window
   for (const x of s.extras ?? []) {
@@ -471,13 +503,25 @@ export function costWindow(layout: Layout, W: number, H: number, p: ProfilePrice
     const [qty, unit]: [number, CutLine['unit']] =
       x.unit === 'sash' ? [sashes, 'kos'] : x.unit === 'window_m2' ? [W * H / 1e6, 'm²'] : x.unit === 'glass_m2' ? [glassArea, 'm²']
       : x.unit === 'width' ? [W / 1000, 'm'] : x.unit === 'perimeter' ? [2 * (W + H) / 1000, 'm'] : [1, 'kos']
-    add('x_' + x.id, x.name, qty, unit, x.cost)
+    add('x_' + x.id, x.name, qty, unit, x.cost,
+      x.unit === 'sash' ? `${sashes}× ${L('perSashShort', 'na odpirajoče krilo')}`
+      : x.unit === 'window_m2' ? `${mmTxt(W)}×${mmTxt(H)} mm = ${n3(W * H / 1e6)} m²`
+      : x.unit === 'glass_m2' ? `${L('glassArea', 'površina stekla')} ${n3(glassArea)} m²`
+      : x.unit === 'width' ? `${L('sillWidth', 'širina okna')} ${mmTxt(W)} mm`
+      : x.unit === 'perimeter' ? `2×(${mmTxt(W)}+${mmTxt(H)}) = ${n3(2 * (W + H) / 1000)} m` : undefined)
   }
   // labour: frame (fixed per window + per metre of frame and mullions) and sashes (fixed per sash + per metre of sash profile)
   // a fixed field (top light, bottom panel, fixed glass) and every transom / mullion are work too, so they never make a window cheaper
   const labour = s.labour_window + (s.labour_frame_m ?? 0) * (frameLen + mullionLen) / 1000 + sashes * s.labour_sash + (s.labour_sash_m ?? 0) * sashLen / 1000
     + fixedFields * (s.labour_field ?? 12) + bars * (s.labour_bar ?? 8)
-  add('labour', L('labour', 'Delo'), 1, 'kos', labour)
+  add('labour', L('labour', 'Delo'), 1, 'kos', labour, [
+    `${n2(s.labour_window)} € ${L('perWindow', 'na okno')}`,
+    (s.labour_frame_m ?? 0) ? `${n2(s.labour_frame_m ?? 0)} €/m × ${n3((frameLen + mullionLen) / 1000)} m ${L('frameAndBars', 'okvir in stebri')}` : '',
+    sashes ? `${sashes}× ${n2(s.labour_sash)} € ${L('perSashShort', 'na odpirajoče krilo')}` : '',
+    (s.labour_sash_m ?? 0) ? `${n2(s.labour_sash_m ?? 0)} €/m × ${n3(sashLen / 1000)} m ${L('sashProfile', 'profil krila')}` : '',
+    fixedFields ? `${fixedFields}× ${n2(s.labour_field ?? 12)} € ${L('perField', 'fiksno polje')}` : '',
+    bars ? `${bars}× ${n2(s.labour_bar ?? 8)} € ${L('perBar', 'prečka / steber')}` : '',
+  ].filter(Boolean).join(' + '))
 
   const cost = exact
   // the material margin on the material, the labour margin on the labour

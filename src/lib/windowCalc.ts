@@ -34,6 +34,12 @@ const r2 = (n: number) => Math.round(n * 100) / 100
 const LABELS_EN: Record<string, string> = {
   frame: 'Frame', mullion: 'Mullion / transom', sash: 'Sashes', bead: 'Glazing beads', glass: 'Glass', handle: 'Handles', labour: 'Labour',
   sill_inner: 'Inside sill', sill_outer: 'Outside sill', shade_shade: 'Shading', shade_screen: 'Insect screen',
+  // the words inside the explanation of a line
+  waste: 'waste', colourPrice: 'price with the colour surcharge', rebate: 'the pane reaches ${reb} mm into the rebate on every side',
+  glassMin: 'smallest billed pane', perSash: 'sash perimeter', perHandle: 'one handle per opening sash',
+  sillWidth: 'window width', shadeMin: 'the lowest price applies', asCost: 'as cost',
+  perSashShort: 'per opening sash', glassArea: 'glass area', perWindow: 'per window',
+  frameAndBars: 'frame and bars', sashProfile: 'sash profile', perField: 'fixed field', perBar: 'transom / mullion',
 }
 
 /** one window (built from sashes): the same numbers as the configurator's price, with the purchase prices opened up */
