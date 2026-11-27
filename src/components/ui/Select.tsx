@@ -23,13 +23,15 @@ interface Props<V extends string | number> {
   /** label above the field */
   label?: ReactNode
   align?: 'left' | 'right'
+  /** red border and the message under the field, the same as Input */
+  error?: string
 }
 
 /**
  * Dropdown in the app's own style: a white cloud drawn over the whole page (portal, so no card cuts it off),
  * opening upwards when there is no room below. Replaces the browser's native <select>.
  */
-export default function Select<V extends string | number>({ value, options, onChange, disabled, placeholder, size = 'md', className, label, align = 'left' }: Props<V>) {
+export default function Select<V extends string | number>({ value, options, onChange, disabled, placeholder, size = 'md', className, label, align = 'left', error }: Props<V>) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<{ left?: number; right?: number; width: number; top?: number; bottom?: number }>({ width: 0 })
   const btnRef = useRef<HTMLButtonElement>(null)
@@ -70,8 +72,9 @@ export default function Select<V extends string | number>({ value, options, onCh
 
   const button = (
     <button ref={btnRef} type="button" disabled={disabled} onClick={toggle}
-      className={cn('w-full flex items-center gap-2 rounded-lg border border-gray-200 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
-        'hover:border-gray-400 disabled:hover:border-[#eeeff1] disabled:border-[#eeeff1] disabled:bg-gray-50 disabled:text-[#5e5e5e] disabled:cursor-default', open && 'border-gray-400', h, className)}>
+      className={cn('w-full flex items-center gap-2 rounded-lg border bg-white text-left focus:outline-none focus:ring-2 transition-colors',
+        error ? 'border-red-400 bg-red-50 focus:ring-red-400' : 'border-gray-200 hover:border-gray-400 focus:ring-blue-500',
+        'disabled:hover:border-[#eeeff1] disabled:border-[#eeeff1] disabled:bg-gray-50 disabled:text-[#5e5e5e] disabled:cursor-default', open && !error && 'border-gray-400', h, className)}>
       <span className="flex-1 min-w-0 truncate">
         {current ? <span className={disabled ? '' : 'text-gray-900'}>{current.label}</span> : <span className="text-[#7f7f7f]">{placeholder ?? ''}</span>}
         {current?.hint && <span className="text-[#7f7f7f]"> {current.hint}</span>}
@@ -82,7 +85,13 @@ export default function Select<V extends string | number>({ value, options, onCh
 
   return (
     <>
-      {label ? <div className="flex flex-col gap-1"><span className="text-xs font-medium text-[#7f7f7f]">{label}</span>{button}</div> : button}
+      {label || error
+        ? <div className="flex flex-col gap-1">
+            {label && <span className="text-xs font-medium text-[#7f7f7f]">{label}</span>}
+            {button}
+            {error && <p className="text-xs text-red-600">{error}</p>}
+          </div>
+        : button}
       {open && createPortal(
         <div ref={menuRef} role="listbox"
           className="fixed z-[100] bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-max max-h-[320px] overflow-y-auto"

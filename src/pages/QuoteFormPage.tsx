@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { cn } from '../lib/cn'
 import Select from '../components/ui/Select'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -127,9 +128,11 @@ export function ServiceSearch({ items, onSelect, placeholder, money, units }: {
 }
 
 // Customer picker: type to filter (name, e-mail, phone, city), pick from the list.
-export function CustomerSearch({ customers, value, onChange, placeholder, emptyText, labels }: {
+export function CustomerSearch({ customers, value, onChange, placeholder, emptyText, labels, error }: {
   customers: Customer[]; value: string; onChange: (id: string) => void; placeholder: string; emptyText: string
   labels: { person: string; company: string }
+  /** red box: the save is waiting for this field */
+  error?: boolean
 }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -140,7 +143,8 @@ export function CustomerSearch({ customers, value, onChange, placeholder, emptyT
     .filter(c => !q || [c.name, c.email, c.phone, c.address_city, c.contact_person].some(v => (v ?? '').toLowerCase().includes(q)))
   return (
     <div className="relative">
-      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 hover:border-gray-400 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+      <div className={cn('flex items-center gap-2 rounded-lg border px-3 py-2 focus-within:ring-2 focus-within:border-transparent',
+        error ? 'border-red-400 bg-red-50 focus-within:ring-red-400' : 'border-gray-200 bg-white hover:border-gray-400 focus-within:ring-blue-500')}>
         <Search className="w-4 h-4 text-gray-400 shrink-0" />
         <input value={open ? query : (selected?.name ?? '')} placeholder={placeholder}
           onChange={e => { setQuery(e.target.value); setOpen(true) }}
@@ -219,6 +223,10 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
   const [paymentTerms, setPaymentTerms] = useState('')
   const [parity, setParity] = useState('')
   const [leadSource, setLeadSource] = useState('')
+  // a save that cannot go through says so AT the field, not only in a toast in the far corner
+  const [missing, setMissing] = useState<'customer' | 'lead' | null>(null)
+  const custRef = useRef<HTMLDivElement>(null)
+  const leadRef = useRef<HTMLDivElement>(null)
   const [validUntil, setValidUntil] = useState('')
   const [leadTime, setLeadTime] = useState('')
   const [notes, setNotes] = useState('')
@@ -574,8 +582,23 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
     setCustDirty(true)
   }
 
+  /** marks the field a save is waiting for, scrolls to it and says why */
+  function flagMissing(which: 'customer' | 'lead', msg: string): false {
+    setMissing(which)
+    ;(which === 'customer' ? custRef : leadRef).current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    toast.error(msg)
+    return false
+  }
+
+  /** the fields a quote cannot be saved without; marks the first one that is empty */
+  function requiredOk(): boolean {
+    if (!customerId) return flagMissing('customer', o.pickCustomer)
+    if (!leadSource) return flagMissing('lead', lang === 'en' ? 'Choose the sales channel.' : 'Izberite prodajni kanal.')
+    return true
+  }
+
   async function persist(): Promise<{ id: string; number: string } | null> {
-    if (!company || !customerId) { toast.error(o.pickCustomer); return null }
+    if (!company || !requiredOk()) return null
     if (custDirty) {
       const c = customers.find(x => x.id === customerId)
       if (c) {
@@ -588,7 +611,6 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
         setCustDirty(false)
       }
     }
-    if (!leadSource) { toast.error(lang === 'en' ? 'Choose the sales channel.' : 'Izberite prodajni kanal.'); return null }
     const fields = {
       // windows: no quote title in the UI; the required DB column gets the customer name
       customer_id: customerId, title: customers.find(c => c.id === customerId)?.name ?? '',
@@ -721,15 +743,15 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
             {isSaved && isAdmin && isDraftLike(status) && <Button variant="secondary" onClick={() => setDeleteQuoteOpen(true)} disabled={saving} className="text-red-600"><Trash2 className="w-4 h-4" /></Button>}
             {!isDraftLike(status) && <Button variant="secondary" onClick={() => navigate(`/quotes/${id}`)} disabled={saving}>{t.common.cancel}</Button>}
             {isDraftLike(status)
-              ? <><Button variant="secondary" loading={saving} onClick={save} disabled={!customerId}>{o.saveAsDraft}</Button>
-                  <Button loading={saving} onClick={() => setConfirm('issue')} disabled={!customerId}>{s.issueOffer}</Button></>
-              : <Button loading={saving} onClick={issue} disabled={!customerId}>{s.saveChanges}</Button>}
+              ? <><Button variant="secondary" loading={saving} onClick={save}>{o.saveAsDraft}</Button>
+                  <Button loading={saving} onClick={() => { if (requiredOk()) setConfirm('issue') }}>{s.issueOffer}</Button></>
+              : <Button loading={saving} onClick={issue}>{s.saveChanges}</Button>}
           </>}
           {ro && <>
             {hasPerm('quotes', 'create') && ['enquiry', 'measure', 'draft', 'issued', 'sent', 'downloaded'].includes(status) &&
               <Button variant="secondary" onClick={() => navigate(`/quotes/${id}/edit`)} className="gap-1.5"><Pencil className="w-3.5 h-3.5" />{s.editOffer}</Button>}
             {hasPerm('quotes', 'create') && isDraftLike(status) &&
-              <Button loading={saving} onClick={() => setConfirm('issue')} disabled={!customerId}>{s.issueOffer}</Button>}
+              <Button loading={saving} onClick={() => { if (requiredOk()) setConfirm('issue') }}>{s.issueOffer}</Button>}
             {!isDraftLike(status) && snapshot?.lines &&
               <Button variant="secondary" className="gap-1.5" loading={downloading} onClick={downloadPdf}><Download className="w-3.5 h-3.5" />{s.downloadPdf}</Button>}
             {hasPerm('quotes', 'create') && status === 'issued' &&
@@ -766,20 +788,22 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
           </fieldset>
           <fieldset disabled={ro} className="contents">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="flex flex-col gap-1">
+              <div ref={custRef} className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-[#7f7f7f]">{s.customer}</label>
                 {ro
                   ? <div className="rounded-lg border px-3 py-2 text-sm" style={{ backgroundColor: '#f9fafb', borderColor: '#eeeff1', color: '#5e5e5e' }}>{selectedCustomer?.name ?? '—'}</div>
-                  : <CustomerSearch customers={customers} value={customerId} placeholder={o.searchCustomer} emptyText={o.noCustomerMatch}
+                  : <CustomerSearch customers={customers} value={customerId} placeholder={o.searchCustomer} emptyText={o.noCustomerMatch} error={missing === 'customer'}
                       labels={{ person: o.typePerson, company: o.typeCompany }}
                       onChange={cid => {
                         setCustomerId(cid)
+                        if (cid) setMissing(m => (m === 'customer' ? null : m))
                         const c = customers.find(x => x.id === cid)
                         setContactPerson(c ? (c.contact_person ?? (c.customer_type === 'company' ? '' : c.name)) : '')
                         setContactEmail(c?.email ?? ''); setContactPhone(c?.phone ?? '')
                         if (c && !siteAddress) setSiteAddress([c.address_street, [c.address_postal_code, c.address_city].filter(Boolean).join(' ')].filter(Boolean).join(', '))
                       }} />}
                 {!ro && customers.length === 0 && <button type="button" onClick={() => navigate('/customers')} className="text-xs text-gray-900 text-left hover:underline">{o.addCustomerFirst}</button>}
+                {missing === 'customer' && <p className="text-xs text-red-600">{o.pickCustomer}</p>}
               </div>
               {(selectedCustomer?.customer_type === 'company'
                 ? <>
@@ -811,9 +835,11 @@ export default function QuoteFormPage({ readOnly = false }: { readOnly?: boolean
                     options={COUNTRIES.map(c => ({ value: c.code, label: c[lang === 'en' ? 'en' : 'sl'] }))} />
                 </div>
                 {/* sales channel: where the customer heard of the company */}
-                <div className="flex flex-col gap-1">
+                <div ref={leadRef} className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-[#7f7f7f]">{lang === 'en' ? 'Sales channel' : 'Prodajni kanal'}<span className="req-star"> *</span></label>
-                  <Select value={leadSource} onChange={setLeadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
+                  <Select value={leadSource} disabled={ro} placeholder={lang === 'en' ? 'Where did they hear of us?' : 'Kje je stranka izvedela za nas?'}
+                    onChange={v => { setLeadSource(v); setMissing(m => (m === 'lead' ? null : m)) }}
+                    error={missing === 'lead' ? (lang === 'en' ? 'Choose the sales channel.' : 'Izberite prodajni kanal.') : undefined}
                     options={leadSourceOptions(lang === 'en' ? 'en' : 'sl')} />
                 </div>
               </div>
