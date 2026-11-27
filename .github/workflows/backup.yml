@@ -1,0 +1,42 @@
+# A nightly copy of the database, kept outside Supabase.
+#
+# Set up once, in the repository settings → Secrets and variables → Actions:
+#   SUPABASE_DB_URL = the connection string from Supabase → Project settings → Database
+#                     → Connection string → URI (use the pooler URI, port 6543, and
+#                     put the real password in place of [YOUR-PASSWORD])
+#
+# The dump is kept as a workflow artifact for 90 days and can be downloaded from the
+# Actions tab. Restoring: psql "<SUPABASE_DB_URL>" -f fenestio-YYYY-MM-DD.sql
+name: Database backup
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # every night at 01:00 UTC
+  workflow_dispatch:       # and on demand, from the Actions tab
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install the PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16
+
+      - name: Dump the database
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$DB_URL" || { echo "SUPABASE_DB_URL is not set"; exit 1; }
+          name="fenestio-$(date -u +%Y-%m-%d).sql"
+          pg_dump "$DB_URL" --no-owner --no-privileges --schema=public --schema=storage -f "$name"
+          gzip -9 "$name"
+          ls -lh "$name.gz"
+
+      - name: Keep it
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup
+          path: fenestio-*.sql.gz
+          retention-days: 90
+          if-no-files-found: error
