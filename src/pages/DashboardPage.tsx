@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { LayoutDashboard, Search, X, Inbox, Ruler, FileText, FileCheck, Download, Send, Trophy, XCircle } from 'lucide-react'
+import { LayoutDashboard, Search, X, Send, Trophy, XCircle, Percent } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList, Rectangle } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes } from '../utils/pluralize'
@@ -18,7 +18,7 @@ import { leadSourceLabel, leadSourceOptions, LEAD_SOURCES } from '../lib/leadSou
 
 /** legend in the same order as the bars (the chart library sorts by name otherwise) */
 const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won', 'rest']
-/** teal family for every chart */
+/** One meaning per colour on this page: blue = still in play or offered, green = won, grey = nothing there. */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
 /** Rings: the status and source rings are read in blue, the channels ring in green — even steps of the same
@@ -28,32 +28,21 @@ const GREEN_RAMP = ['#ccf6e5', '#abf0d4', '#87e9c2', '#66e3b2', '#45dda1', '#21d
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
-const TONES = { grey: { color: '#5e5e5e', backgroundColor: '#f4f4f5' }, yellow: { color: '#8a6100', backgroundColor: '#fef3cd' }, green: { color: '#267a47', backgroundColor: '#dbfce7' } }
 const BLUE_CHIP = { bg: '#e5eeff', color: '#215bcf' }
 const GREEN_CHIP = { bg: '#dbfce7', color: '#267a47' }
-const KPI_STYLE = [
-  // blue all the way through the funnel, green only for the one that means it: won
-  { icon: Inbox, ...BLUE_CHIP },      // Povpraševanje
-  { icon: FileText, ...BLUE_CHIP },   // Osnutek
-  { icon: FileCheck, ...BLUE_CHIP },  // Izdano
-  { icon: Send, ...BLUE_CHIP },       // Poslano
-  { icon: Download, ...BLUE_CHIP },   // Preneseno
-  { icon: Ruler, ...BLUE_CHIP },      // Izmera
-  { icon: Trophy, ...GREEN_CHIP },    // Pridobljeno
-  { icon: XCircle, ...BLUE_CHIP },    // Izgubljeno
-]
-function StatCard({ label, value, badge, count, index }: { label: string; value: string; badge: string; count: number; index: number; tone?: keyof typeof TONES; sub?: string }) {
-  const k = KPI_STYLE[index] ?? KPI_STYLE[0]
+const GREY_CHIP = { bg: '#f4f4f5', color: '#5e5e5e' }
+/** One of the four numbers the page is read for: grey by default, blue for what is still in play, green for won. */
+function StatCard({ icon: Icon, label, value, sub, tone = 'grey' }:
+  { icon: typeof Send; label: string; value: string; sub: string; tone?: 'grey' | 'blue' | 'green' }) {
+  const k = tone === 'green' ? GREEN_CHIP : tone === 'blue' ? BLUE_CHIP : GREY_CHIP
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 h-full">
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: k.bg }}>
-          <k.icon className="w-4 h-4" style={{ color: k.color }} />
-        </div>
-        <span className="text-xs font-medium px-2 py-0.5 rounded-md" style={{ backgroundColor: '#e5eeff', color: '#215bcf' }} title={badge}>{count}</span>
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: k.bg }}>
+        <Icon className="w-4 h-4" style={{ color: k.color }} />
       </div>
       <p className="text-xs font-medium text-label truncate" title={label}>{label}</p>
       <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight whitespace-nowrap">{value}</p>
+      <p className="text-xs text-[#7f7f7f] mt-1 truncate" title={sub}>{sub}</p>
     </div>
   )
 }
@@ -265,26 +254,32 @@ export default function DashboardPage() {
   // quotes made in the chosen dates
   const inPeriod = base.filter(q => inRange(q.created_at))
 
-  // quotes made in the chosen dates, by their status now
-  const cards = (() => {
-    const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((acc, q) => ({ value: acc.value + (Number(q.total_net) || 0), count: acc.count + 1 }), { value: 0, count: 0 })
-    const all = sum(() => true)
-    const share = (v: number) => (all.value ? `${Math.round(v / all.value * 100)}% ${sl ? 'vrednosti' : 'of the value'}` : '')
-    const row = (label: string, x: { value: number; count: number }, tone: 'grey' | 'yellow' | 'green', sub: string) => ({ label, value: money(x.value), badge: countQuotes(lang, x.count), count: x.count, tone, sub })
-    // one card per status (8): two rows of four
-    const rowOf = (label: string, st: string) => { const x = sum(q => q.status === st); return row(label, x, 'grey', share(x.value)) }
-    return [
-      rowOf(sl ? 'Povpraševanja' : 'Enquiries', 'enquiry'),
-      rowOf(sl ? 'Osnutki ponudb' : 'Draft quotes', 'draft'),
-      rowOf(sl ? 'Izdane ponudbe' : 'Issued quotes', 'issued'),
-      rowOf(sl ? 'Poslane ponudbe' : 'Sent quotes', 'sent'),
-      rowOf(sl ? 'Prenesene ponudbe' : 'Downloaded quotes', 'downloaded'),
-      rowOf(sl ? 'Izmere' : 'Measurements', 'measure'),
-      rowOf(sl ? 'Dobljene ponudbe' : 'Won quotes', 'won'),
-      rowOf(sl ? 'Izgubljene ponudbe' : 'Lost quotes', 'lost'),
-    ]
+  // the four numbers the page is read for
+  const kpi = (() => {
+    const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((a, q) => ({ value: a.value + (Number(q.total_net) || 0), count: a.count + 1 }), { value: 0, count: 0 })
+    const open = sum(q => q.status !== 'won' && q.status !== 'lost')
+    const won = sum(q => q.status === 'won')
+    const lost = sum(q => q.status === 'lost')
+    const decided = won.value + lost.value, decidedN = won.count + lost.count
+    return { open, won, lost, decidedN,
+      rate: decided ? Math.round(won.value / decided * 100) : null,
+      rateN: decidedN ? Math.round(won.count / decidedN * 100) : null }
   })()
 
+  // the whole funnel in one strip under the cards: a status per column, count over value
+  const funnel = [
+    { key: 'enquiry', label: sl ? 'Povpraševanja' : 'Enquiries' },
+    { key: 'draft', label: sl ? 'Osnutki' : 'Drafts' },
+    { key: 'issued', label: sl ? 'Izdane' : 'Issued' },
+    { key: 'sent', label: sl ? 'Poslane' : 'Sent' },
+    { key: 'downloaded', label: sl ? 'Prenesene' : 'Downloaded' },
+    { key: 'measure', label: sl ? 'Izmere' : 'Measurements' },
+    { key: 'won', label: sl ? 'Dobljene' : 'Won' },
+    { key: 'lost', label: sl ? 'Izgubljene' : 'Lost' },
+  ].map(x => {
+    const xs = inPeriod.filter(q => q.status === x.key)
+    return { ...x, count: xs.length, value: xs.reduce((a, q) => a + (Number(q.total_net) || 0), 0) }
+  })
 
   // months of the chosen dates: sent in the month it was sent, won in the month it was won
   const months = (() => {
@@ -411,9 +406,25 @@ export default function DashboardPage() {
 
       <div className="px-6 py-5 space-y-6">
 
-        {/* four value cards: total, open (everything not won or lost), won, lost of the quotes made in the period */}
+        {/* four cards: what is still in play, won, lost, and how often we win */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {cards.map((c, i) => <div key={c.label}><StatCard {...c} index={i} /></div>)}
+          <StatCard icon={Send} tone="blue" label={sl ? 'Ponudbe v igri' : 'Quotes in play'} value={money(kpi.open.value)} sub={countQuotes(lang, kpi.open.count)} />
+          <StatCard icon={Trophy} tone="green" label={sl ? 'Dobljeno' : 'Won'} value={money(kpi.won.value)} sub={countQuotes(lang, kpi.won.count)} />
+          <StatCard icon={XCircle} label={sl ? 'Izgubljeno' : 'Lost'} value={money(kpi.lost.value)} sub={countQuotes(lang, kpi.lost.count)} />
+          <StatCard icon={Percent} label={sl ? 'Uspešnost' : 'Win rate'} value={kpi.rate == null ? '—' : `${kpi.rate} %`}
+            sub={kpi.rateN == null ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
+              : sl ? `${kpi.rateN} % po številu · ${countQuotes(lang, kpi.decidedN)}` : `${kpi.rateN} % by count · ${countQuotes(lang, kpi.decidedN)}`} />
+        </div>
+
+        {/* the funnel in one strip: every status with its count and value */}
+        <div className="bg-white rounded-xl border border-gray-200 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 divide-x divide-y lg:divide-y-0 divide-gray-100 overflow-hidden">
+          {funnel.map(f => (
+            <div key={f.key} className="px-4 py-3.5 min-w-0">
+              <p className="text-xs font-medium text-label truncate" title={f.label}>{f.label}</p>
+              <p className={cn('text-lg font-semibold mt-0.5 tabular-nums', f.key === 'won' && f.count > 0 ? 'text-[#267a47]' : 'text-gray-900')}>{f.count}</p>
+              <p className="text-xs text-[#7f7f7f] tabular-nums truncate">{f.value ? moneyK(f.value) : '—'}</p>
+            </div>
+          ))}
         </div>
 
 
@@ -431,7 +442,7 @@ export default function DashboardPage() {
                   {hasValues && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
                   <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? BLUE.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? BLUE.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? GREEN.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasValues && emptyOverlay}</div>
             </div>
@@ -446,7 +457,7 @@ export default function DashboardPage() {
                   <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
                   {hasCounts && <Tooltip cursor={{ fill: '#f4f4f5' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                   <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? GREEN.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
+                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? BLUE.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                   <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? GREEN.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
                 </BarChart>
               </ResponsiveContainer>{!hasCounts && emptyOverlay}</div>
@@ -464,8 +475,9 @@ export default function DashboardPage() {
             { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: BLUE_RAMP[3] },
             { key: 'downloaded', name: sl ? 'Prenesene' : 'Downloaded', color: BLUE_RAMP[4] },
             { key: 'measure', name: sl ? 'Izmere' : 'Measurements', color: BLUE_RAMP[5] },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: BLUE_RAMP[6] },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: BLUE_RAMP[7] },
+            // the two that are decided leave the blue ramp: green for won, grey for lost
+            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: GREEN.dark },
+            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: '#a1a1aa' },
           ].map(x => ({ ...x, count: inPeriod.filter(q => q.status === x.key).length }))
           const total = inPeriod.length
           // the value of the sent quotes by category (windows, doors, roof windows, services …): all of it (light) with the won part (dark) in one bar
@@ -533,7 +545,7 @@ export default function DashboardPage() {
                         tickFormatter={(n: string) => { const max = narrow ? 16 : 26; return n.length > max ? n.slice(0, max - 1) + '…' : n }} />
                       {topServices.length > 0 && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v, n, item) => [money(Number((item as { dataKey?: string }).dataKey === 'rest' ? (item as { payload: { total: number } }).payload.total : v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
                       <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                      <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : BLUE.dark} maxBarSize={22}
+                      <Bar isAnimationActive={false} dataKey="won" stackId="s" cursor="pointer" onClick={(d: any) => d?.key && setCategoryFilter(f => f === d.key ? '' : d.key)} name={sl ? 'Dobljeno' : 'Won'} fill={!topServices.length ? GREY.dark : GREEN.dark} maxBarSize={22}
                         // fully won (nothing light after it): the dark part gets the rounded end
                         shape={(p: any) => <Rectangle {...p} radius={p.payload?.rest > 0 ? 0 : [0, 6, 6, 0]} />}>
                         {topServices.length > 0 && <LabelList position="inside" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#ffffff' }} />}
