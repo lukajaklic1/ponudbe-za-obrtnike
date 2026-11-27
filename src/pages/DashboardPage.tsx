@@ -307,13 +307,13 @@ export default function DashboardPage() {
   // the whole funnel in one strip under the cards: a status per column, count over value
   const funnel = [
     { key: 'enquiry', label: sl ? 'Povpraševanja' : 'Enquiries' },
-    { key: 'draft', label: sl ? 'Osnutki' : 'Drafts' },
-    { key: 'issued', label: sl ? 'Izdane' : 'Issued' },
-    { key: 'sent', label: sl ? 'Poslane' : 'Sent' },
-    { key: 'downloaded', label: sl ? 'Prenesene' : 'Downloaded' },
+    { key: 'draft', label: sl ? 'Osnutki ponudb' : 'Draft quotes' },
+    { key: 'issued', label: sl ? 'Izdane ponudbe' : 'Issued quotes' },
+    { key: 'sent', label: sl ? 'Poslane ponudbe' : 'Sent quotes' },
+    { key: 'downloaded', label: sl ? 'Prenesene ponudbe' : 'Downloaded quotes' },
     { key: 'measure', label: sl ? 'Izmere' : 'Measurements' },
-    { key: 'won', label: sl ? 'Dobljene' : 'Won' },
-    { key: 'lost', label: sl ? 'Izgubljene' : 'Lost' },
+    { key: 'won', label: sl ? 'Dobljene ponudbe' : 'Won quotes' },
+    { key: 'lost', label: sl ? 'Izgubljene ponudbe' : 'Lost quotes' },
   ].map(x => {
     const xs = inPeriod.filter(q => q.status === x.key)
     return { ...x, count: xs.length, value: xs.reduce((a, q) => a + (Number(q.total_net) || 0), 0) }
@@ -458,9 +458,9 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border border-gray-200 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 divide-x divide-y lg:divide-y-0 divide-gray-100 overflow-hidden">
           {funnel.map(f => (
             <div key={f.key} className="px-4 py-3.5 min-w-0">
-              <p className="text-xs font-medium text-label truncate" title={f.label}>{f.label}</p>
+              <p className="text-xs font-medium text-label leading-4 min-h-8">{f.label}</p>
               <p className={cn('text-lg font-semibold mt-0.5 tabular-nums', f.key === 'won' && f.count > 0 ? 'text-[#267a47]' : 'text-gray-900')}>{f.count}</p>
-              <p className="text-xs text-[#7f7f7f] tabular-nums truncate">{f.value ? moneyK(f.value) : '—'}</p>
+              <p className="text-xs text-[#7f7f7f] tabular-nums truncate" title={f.value ? money(f.value) : undefined}>{f.value ? money(f.value) : '—'}</p>
             </div>
           ))}
         </div>
