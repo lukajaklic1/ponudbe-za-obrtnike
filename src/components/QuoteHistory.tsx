@@ -87,10 +87,9 @@ export default function QuoteHistory({ quoteId, companyId, lang, statusLabels, r
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 mb-5">
-      <h2 className="flex items-center gap-2 text-base font-semibold tracking-[-0.01em] text-gray-900 mb-1">
+      <h2 className="flex items-center gap-2 text-base font-semibold tracking-[-0.01em] text-gray-900 mb-4">
         <History className="w-4 h-4 text-[#7f7f7f]" />{sl ? 'Zgodovina ponudbe' : 'Quote history'}
       </h2>
-      <p className="text-xs text-[#7f7f7f] mb-4">{sl ? 'Kaj se je dogajalo s to ponudbo, od najnovejšega.' : 'What happened to this quote, newest first.'}</p>
       <ol className="relative">
         {events.map((e, i) => {
           const { text, detail } = line(e)
