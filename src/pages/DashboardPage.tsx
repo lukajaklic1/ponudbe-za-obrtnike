@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { LayoutDashboard, Search, X, Send, Trophy, XCircle, Percent } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LabelList } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { countQuotes, countOpen } from '../utils/pluralize'
 import { toast } from '../components/ui/Toast'
@@ -22,9 +22,6 @@ const LEGEND_ORDER = ['sent_value', 'won_value', 'sent_count', 'won_count', 'won
  *  then the sales channel ring in blue and the source ring in green again. */
 const BLUE = { light: '#bfdbfe', mid: '#93c5fd', dark: '#3b82f6', faint: '#dbeafe' }
 const GREEN = { light: '#bbf7d0', dark: '#00d17e' }
-/** Rings: the status and source rings are read in blue, the channels ring in green — even steps of the same
- *  colour, from a light tint to the colour itself, the last step only a little darker (no near-black slice). */
-const BLUE_RAMP = ['#d8e6fd', '#bed6fc', '#a3c4fb', '#89b4fa', '#70a4f8', '#5592f7', '#3b82f6', '#326fd1']
 type Q = { id: string; status: string; total_net: number; customer_id: string; assignee_id: string | null; created_at: string; sent_at: string | null; updated_at: string; closed_at?: string | null; source?: string | null; lead_source?: string | null }
 
 /** a value card like Levelpath: label, big number, a badge with the number of quotes (status colours), share of the total */
@@ -32,8 +29,8 @@ const BLUE_CHIP = { bg: '#e5eeff', color: '#215bcf' }
 const GREEN_CHIP = { bg: '#dbfce7', color: '#267a47' }
 const GREY_CHIP = { bg: '#f4f4f5', color: '#5e5e5e' }
 /** One of the four numbers the page is read for: grey by default, blue for what is still in play, green for won. */
-function StatCard({ icon: Icon, label, value, sub, tone = 'grey' }:
-  { icon: typeof Send; label: string; value: string; sub: string; tone?: 'grey' | 'blue' | 'green' }) {
+function StatCard({ icon: Icon, label, value, sub, delta, tone = 'grey' }:
+  { icon: typeof Send; label: string; value: string; sub: string; delta?: string; tone?: 'grey' | 'blue' | 'green' }) {
   const k = tone === 'green' ? GREEN_CHIP : tone === 'blue' ? BLUE_CHIP : GREY_CHIP
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 h-full">
@@ -43,6 +40,7 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'grey' }:
       <p className="text-xs font-medium text-label truncate" title={label}>{label}</p>
       <p className="text-2xl font-semibold text-gray-900 mt-0.5 tracking-tight whitespace-nowrap">{value}</p>
       <p className="text-xs text-[#7f7f7f] mt-1 truncate" title={sub}>{sub}</p>
+      {delta && <p className="text-xs text-[#7f7f7f] mt-0.5 truncate" title={delta}>{delta}</p>}
     </div>
   )
 }
@@ -98,46 +96,6 @@ function BreakdownCard({ title, hint, empty, children, legend }: {
   )
 }
 
-/** a ring card like "Ponudbe po statusu": ring with the total value, legend under it with count and value */
-function RingCard({ title, parts, money, lang, empty, grow = true }: { empty?: string; grow?: boolean; title: string; parts: { key: string; name: string; color: string; count: number; value: number }[]; money: (n: number) => string; lang: 'sl' | 'en' }) {
-  const shown = parts.filter(p => p.value > 0)
-  const total = parts.reduce((a, p) => a + p.value, 0)
-  return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-6 flex flex-col${grow ? " flex-1" : ""}`}>
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">{title}</h2>
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative w-[200px] h-[200px] shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              {total === 0
-                ? <Pie isAnimationActive={false} data={[{ name: '', value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#eeeff1" /></Pie>
-                : <Pie isAnimationActive={false} data={shown} dataKey="value" nameKey="name" innerRadius={66} outerRadius={94} stroke="#ffffff" strokeWidth={2}>
-                    {shown.map(p => <Cell key={p.key} fill={p.color} />)}
-                  </Pie>}
-              {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [money(Number(v)), n]} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            {total === 0 ? <span className="text-sm font-medium text-gray-400">{lang === 'sl' ? 'Ni podatkov' : 'No data'}</span>
-              : <span className="text-[20px] font-bold tracking-[-0.02em] text-gray-900">{money(total)}</span>}
-          </div>
-        </div>
-        <div className="w-full flex flex-col gap-2">
-          {[...parts].filter(p => p.count > 0 || p.value > 0).sort((x, y) => y.value - x.value).map(p => (
-            <div key={p.key} className="flex items-center gap-2 text-sm font-medium">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-              <span className="text-[#5e5e5e] flex-1 min-w-0 truncate" title={p.name}>{p.name}</span>
-              <span className="text-[#5e5e5e] tabular-nums">{p.count}</span>
-              <span className={`tabular-nums w-[92px] text-right text-gray-900`}>{money(p.value)}</span>
-            </div>
-          ))}
-        </div>
-        {total === 0 && empty && <p className="text-xs text-gray-400 text-center">{empty}</p>}
-      </div>
-    </div>
-  )
-}
-
 interface Stats {
   pipeline_value: number
   win_rate: number
@@ -170,6 +128,8 @@ export default function DashboardPage() {
   const [customers, setCustomers] = useState<CustomerStat[]>([])
   const [loading, setLoading] = useState(true)
   // filters: date range (default last 90 days), status, where the quote came from, customer type
+  // the time chart is read either in euros or in the number of quotes
+  const [timeMetric, setTimeMetric] = useState<'value' | 'count'>('value')
   const [dateFrom, setDateFrom] = useState('')   // no period by default: everything
   const [dateTo, setDateTo] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -285,7 +245,8 @@ export default function DashboardPage() {
     if (!date.includes('-')) return date
     const parts = date.split('-')
     const [y, m, d] = parts
-    return parts.length === 3 ? `${d}.${m}.${y.slice(2)}` : `${m}/${y.slice(2)}`
+    // a day or a week bucket inside a chosen period needs no year
+    return parts.length === 3 ? `${Number(d)}. ${Number(m)}.` : `${m}/${y.slice(2)}`
   }
 
   const sl = lang === 'sl'
@@ -305,9 +266,9 @@ export default function DashboardPage() {
   // quotes made in the chosen dates
   const inPeriod = base.filter(q => inRange(q.created_at))
 
-  // the four numbers the page is read for
-  const kpi = (() => {
-    const sum = (f: (q: Q) => boolean) => inPeriod.filter(f).reduce((a, q) => ({ value: a.value + (Number(q.total_net) || 0), count: a.count + 1 }), { value: 0, count: 0 })
+  // the four numbers the page is read for, for any set of quotes
+  const figures = (qs: Q[]) => {
+    const sum = (f: (q: Q) => boolean) => qs.filter(f).reduce((a, q) => ({ value: a.value + (Number(q.total_net) || 0), count: a.count + 1 }), { value: 0, count: 0 })
     // open = everything still undecided: povpraševanje, osnutek, izdano, poslano, preneseno, izmera
     const open = sum(q => q.status !== 'won' && q.status !== 'lost')
     const won = sum(q => q.status === 'won')
@@ -316,7 +277,26 @@ export default function DashboardPage() {
     return { open, won, lost, decidedN,
       rate: decided ? Math.round(won.value / decided * 100) : null,
       rateN: decidedN ? Math.round(won.count / decidedN * 100) : null }
+  }
+  const kpi = figures(inPeriod)
+
+  // the same length of time right before the chosen period; with no period chosen there is nothing to compare to
+  const before = (() => {
+    if (!dateFrom) return null
+    const from = +new Date(dateFrom + 'T00:00:00')
+    const to = dateTo ? +new Date(dateTo + 'T23:59:59') : Date.now()
+    const len = to - from
+    const qs = base.filter(q => { const t = +new Date(q.created_at); return t >= from - len - 1 && t < from })
+    return figures(qs)
   })()
+  /** "↑ 18 % proti prejšnjemu obdobju"; pp = the difference in percentage points, for the win rate */
+  const vsBefore = (now: number | null, then: number | null | undefined, pp = false) => {
+    if (!before || then == null || now == null) return ''
+    if (!then) return now ? (sl ? 'prej brez' : 'none before') : ''
+    const d = pp ? Math.round(now - then) : Math.round((now - then) / then * 100)
+    if (!d) return sl ? 'enako kot prej' : 'same as before'
+    return `${d > 0 ? '↑' : '↓'} ${Math.abs(d)}${pp ? (sl ? ' o. t.' : ' pp') : ' %'} ${sl ? 'proti prejšnjemu obdobju' : 'vs the period before'}`
+  }
 
   // the whole funnel in one strip under the cards: a status per column, count over value
   const funnel = [
@@ -333,26 +313,37 @@ export default function DashboardPage() {
     return { ...x, count: xs.length, value: xs.reduce((a, q) => a + (Number(q.total_net) || 0), 0) }
   })
 
-  // months of the chosen dates: sent in the month it was sent, won in the month it was won
+  // The chart follows the chosen period: a bar per day for up to a month, per week for up to half a year,
+  // per month beyond that. A quote counts as sent in the bucket it was sent in, as won in the one it was won in.
   const months = (() => {
-    const first = dateFrom ? new Date(dateFrom) : new Date(Math.min(Date.now(), ...base.map(q => +new Date(q.created_at))))
-    const last = dateTo ? new Date(dateTo) : new Date()
+    const first = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date(Math.min(Date.now(), ...base.map(q => +new Date(q.created_at))))
+    const last = dateTo ? new Date(dateTo + 'T23:59:59') : new Date()
+    const days = Math.max(1, Math.round((+last - +first) / 86400000) + 1)
+    const unit: 'day' | 'week' | 'month' = days <= 31 ? 'day' : days <= 182 ? 'week' : 'month'
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const dayKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    const monday = (d: Date) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x }
+    const keyOf = (d: Date) => unit === 'month' ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}` : dayKey(unit === 'week' ? monday(d) : d)
+    const step = (d: Date) => unit === 'month' ? new Date(d.getFullYear(), d.getMonth() + 1, 1)
+      : new Date(d.getFullYear(), d.getMonth(), d.getDate() + (unit === 'week' ? 7 : 1))
+    const start = unit === 'month' ? new Date(first.getFullYear(), first.getMonth(), 1)
+      : unit === 'week' ? monday(first) : new Date(first.getFullYear(), first.getMonth(), first.getDate())
     const keys: string[] = []
-    for (let d = new Date(first.getFullYear(), first.getMonth(), 1); d <= last && keys.length < 24; d = new Date(d.getFullYear(), d.getMonth() + 1, 1))
-      keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
-    if (!keys.length) keys.push(`${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, '0')}`)
+    for (let d = start; d <= last && keys.length < 40; d = step(d)) keys.push(keyOf(d))
+    if (!keys.length) keys.push(keyOf(last))
     const rows = keys.map(k => ({ period: k, sent_value: 0, won_value: 0, sent_count: 0, won_count: 0 }))
-    const at = (d: string | null | undefined) => (d && inRange(d) ? rows.find(r => r.period === d.slice(0, 7)) : undefined)
+    const at = (d: string | null | undefined) => (d && inRange(d) ? rows.find(r => r.period === keyOf(new Date(d))) : undefined)
     for (const q of base) {
       if (isDraftLike(q.status)) continue
       const v = Number(q.total_net) || 0
       const sentRow = at(q.sent_at ?? q.created_at)
       if (sentRow) { sentRow.sent_value += v; sentRow.sent_count++ }
-      // won in the month it was won
       if (q.status === 'won') { const w = at(q.closed_at ?? q.updated_at); if (w) { w.won_value += v; w.won_count++ } }
     }
     return rows
   })()
+  /** too many bars to write a number over each one */
+  const dense = months.length > 12
   const hasValues = months.some(t => t.sent_value > 0 || t.won_value > 0)
   const hasCounts = months.some(t => t.sent_count > 0 || t.won_count > 0)
   const GHOST = [0.45, 0.7, 0.55, 0.85, 0.6, 0.75, 0.5, 0.9, 0.65, 0.8, 0.4, 0.7]
@@ -459,12 +450,13 @@ export default function DashboardPage() {
 
         {/* four cards: what is still in play, won, lost, and how often we win */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatCard icon={Send} tone="blue" label={sl ? 'Odprta povpraševanja in ponudbe' : 'Open enquiries and quotes'} value={money(kpi.open.value)} sub={countQuotes(lang, kpi.open.count)} />
-          <StatCard icon={Trophy} tone="blue" label={sl ? 'Dobljene ponudbe' : 'Won quotes'} value={money(kpi.won.value)} sub={countQuotes(lang, kpi.won.count)} />
-          <StatCard icon={XCircle} tone="blue" label={sl ? 'Izgubljene ponudbe' : 'Lost quotes'} value={money(kpi.lost.value)} sub={countQuotes(lang, kpi.lost.count)} />
+          <StatCard icon={Send} tone="blue" label={sl ? 'Odprta povpraševanja in ponudbe' : 'Open enquiries and quotes'} value={money(kpi.open.value)} sub={countQuotes(lang, kpi.open.count)} delta={vsBefore(kpi.open.value, before?.open.value)} />
+          <StatCard icon={Trophy} tone="blue" label={sl ? 'Dobljene ponudbe' : 'Won quotes'} value={money(kpi.won.value)} sub={countQuotes(lang, kpi.won.count)} delta={vsBefore(kpi.won.value, before?.won.value)} />
+          <StatCard icon={XCircle} tone="blue" label={sl ? 'Izgubljene ponudbe' : 'Lost quotes'} value={money(kpi.lost.value)} sub={countQuotes(lang, kpi.lost.count)} delta={vsBefore(kpi.lost.value, before?.lost.value)} />
           <StatCard icon={Percent} tone="green" label={sl ? 'Uspešnost ponudb' : 'Win rate'} value={kpi.rate == null ? '—' : `${kpi.rate} %`}
             sub={kpi.rateN == null ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet')
-              : sl ? `${kpi.rateN} % po številu · ${countQuotes(lang, kpi.decidedN)}` : `${kpi.rateN} % by count · ${countQuotes(lang, kpi.decidedN)}`} />
+              : sl ? `${kpi.rateN} % po številu · ${countQuotes(lang, kpi.decidedN)}` : `${kpi.rateN} % by count · ${countQuotes(lang, kpi.decidedN)}`}
+            delta={vsBefore(kpi.rate, before?.rate, true)} />
         </div>
 
         {/* the funnel in one strip: every status with its count and value */}
@@ -479,57 +471,47 @@ export default function DashboardPage() {
         </div>
 
 
-        {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-            {/* Values chart */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-sm font-semibold text-gray-900 mb-4">{sl ? 'Vrednost ponudb po času' : 'Quote value over time'}</h2>
-              <div className="relative"><ResponsiveContainer width="100%" height={260}>
-                <BarChart data={hasValues ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4000]} tickFormatter={v => moneyK(v)} width={64} tick={hasValues ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
-                  {hasValues && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v) => money(v as number)} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
-                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_value" name={sl ? 'Poslano' : 'Sent'} fill={hasValues ? BLUE.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_value" name={sl ? 'Dobljeno' : 'Won'} fill={hasValues ? BLUE.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasValues && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? kShort(Number(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                </BarChart>
-              </ResponsiveContainer>{!hasValues && emptyOverlay}</div>
-            </div>
-
-            {/* Count chart */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-sm font-semibold text-gray-900 mb-4">{sl ? 'Število ponudb po času' : 'Quotes over time'}</h2>
-              <div className="relative"><ResponsiveContainer width="100%" height={260}>
-                <BarChart data={hasCounts ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
-                  <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, (m: number) => m || 4]} allowDecimals={false} width={36} tick={hasCounts ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
-                  {hasCounts && <Tooltip cursor={{ fill: '#f4f4f5' }} labelFormatter={l => formatPeriod(String(l))} contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
-                  <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
-                  <Bar isAnimationActive={false} dataKey="sent_count" name={sl ? 'Poslane' : 'Sent'} fill={hasCounts ? GREEN.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                  <Bar isAnimationActive={false} dataKey="won_count" name={sl ? 'Dobljene' : 'Won'} fill={hasCounts ? GREEN.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>{hasCounts && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? String(v) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}</Bar>
-                </BarChart>
-              </ResponsiveContainer>{!hasCounts && emptyOverlay}</div>
+        {/* one chart, read in euros or in quotes; the colour follows the measure: value blue, count green */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <h2 className="text-sm font-semibold text-gray-900">
+              {timeMetric === 'value' ? (sl ? 'Vrednost ponudb po času' : 'Quote value over time') : (sl ? 'Število ponudb po času' : 'Quotes over time')}
+            </h2>
+            <div className="shrink-0 inline-flex rounded-[10px] border border-gray-200 p-0.5">
+              {([['value', sl ? 'Vrednost' : 'Value'], ['count', sl ? 'Število' : 'Count']] as const).map(([k, lbl]) => (
+                <button key={k} type="button" onClick={() => setTimeMetric(k)}
+                  className={cn('h-7 px-3 rounded-lg text-xs font-medium transition-colors',
+                    timeMetric === k ? 'bg-gray-900 text-white' : 'text-[#5e5e5e] hover:text-gray-900')}>{lbl}</button>
+              ))}
             </div>
           </div>
+          {(() => {
+            const isValue = timeMetric === 'value'
+            const has = isValue ? hasValues : hasCounts
+            const tone = isValue ? BLUE : GREEN
+            const fmt = (v: number) => (isValue ? moneyK(v) : String(v))
+            return <div className="relative"><ResponsiveContainer width="100%" height={300}>
+              <BarChart data={has ? months : ghostMonths} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="24%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#eeeff1" vertical={false} />
+                <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#5e5e5e' }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, (m: number) => m || (isValue ? 4000 : 4)]} allowDecimals={isValue} tickFormatter={fmt} width={isValue ? 64 : 36}
+                  tick={has ? { fontSize: 12, fill: '#5e5e5e' } : false} axisLine={false} tickLine={false} />
+                {has && <Tooltip cursor={{ fill: '#f4f4f5' }} formatter={(v) => (isValue ? money(v as number) : String(v))} labelFormatter={l => formatPeriod(String(l))}
+                  contentStyle={{ borderRadius: 10, border: '1px solid #eeeff1', fontSize: 13, fontWeight: 500 }} />}
+                <Legend iconType="square" iconSize={8} itemSorter={(it: any) => LEGEND_ORDER.indexOf(it.dataKey)} wrapperStyle={{ fontSize: 12, color: '#5e5e5e', paddingTop: 8 }} />
+                <Bar isAnimationActive={false} dataKey={isValue ? 'sent_value' : 'sent_count'} name={sl ? 'Poslano' : 'Sent'} fill={has ? tone.light : GREY.light} radius={[6, 6, 0, 0]} maxBarSize={40}>
+                  {has && !dense && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? (isValue ? kShort(Number(v)) : String(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}
+                </Bar>
+                <Bar isAnimationActive={false} dataKey={isValue ? 'won_value' : 'won_count'} name={sl ? 'Dobljeno' : 'Won'} fill={has ? tone.dark : GREY.dark} radius={[6, 6, 0, 0]} maxBarSize={40}>
+                  {has && !dense && <LabelList position="top" formatter={(v: unknown) => (Number(v) ? (isValue ? kShort(Number(v)) : String(v)) : '')} style={{ fontSize: 11, fontWeight: 400, fill: '#5e5e5e' }} />}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>{!has && emptyOverlay}</div>
+          })()}
+        </div>
 
-
-        {/* Status breakdown (donut) + top services — the quotes made in the period, like the cards */}
+        {/* what was offered per category, of the quotes made in the period */}
         {(() => {
-          const slices = [
-            // every status in the colour of its badge, a little stronger so the ring reads well
-            { key: 'enquiry', name: sl ? 'Povpraševanja' : 'Enquiries', color: BLUE_RAMP[0] },
-            { key: 'draft', name: sl ? 'Osnutki' : 'Drafts', color: BLUE_RAMP[1] },
-            { key: 'issued', name: sl ? 'Izdane' : 'Issued', color: BLUE_RAMP[2] },
-            { key: 'sent', name: sl ? 'Poslane' : 'Sent', color: BLUE_RAMP[3] },
-            { key: 'downloaded', name: sl ? 'Prenesene' : 'Downloaded', color: BLUE_RAMP[4] },
-            { key: 'measure', name: sl ? 'Izmere' : 'Measurements', color: BLUE_RAMP[5] },
-            { key: 'won', name: sl ? 'Dobljene' : 'Won', color: BLUE_RAMP[6] },
-            { key: 'lost', name: sl ? 'Izgubljene' : 'Lost', color: BLUE_RAMP[7] },
-          ].map(x => ({ ...x, count: inPeriod.filter(q => q.status === x.key).length }))
-          const total = inPeriod.length
           // the value of the sent quotes by category (windows, doors, roof windows, services …): all of it (light) with the won part (dark) in one bar
           const statusOfQ = new Map(inPeriod.filter(q => !isDraftLike(q.status)).map(q => [q.id, q.status]))
           const byCat = new Map<string, { key: string; name: string; total: number; won: number }>()
@@ -540,44 +522,16 @@ export default function DashboardPage() {
             row.total += l.value; if (stq === 'won') row.won += l.value
             byCat.set(l.cat, row)
           }
+          // where the quotes came from: made here, or sent in through the public configurator
+          const srcAll = inPeriod.reduce((t, q) => t + (Number(q.total_net) || 0), 0)
+          const sources = [
+            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: GREEN.dark, f: (q: Q) => q.source !== 'configurator' },
+            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: GREEN.light, f: (q: Q) => q.source === 'configurator' },
+          ].map(x => { const qs = inPeriod.filter(x.f); return { ...x, count: qs.length, value: qs.reduce((t, q) => t + (Number(q.total_net) || 0), 0) } }).filter(x => x.count > 0)
           const topServices = [...byCat.values()].sort((a, b) => b.total - a.total)
             .map(x => ({ ...x, rest: Math.max(0, x.total - x.won), label: `${moneyK(x.total)} · ${x.total ? Math.round(x.won / x.total * 100) : 0}% ${sl ? 'dobljeno' : 'won'}` }))
           return (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-sm font-semibold text-gray-900 mb-4">{sl ? 'Ponudbe po statusu' : 'Quotes by status'}</h2>
-                {(<>
-                  <div className="flex flex-col items-center gap-4">
-                  <div className="relative w-[200px] h-[200px] shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        {total === 0
-                          ? <Pie isAnimationActive={false} data={[{ value: 1 }]} dataKey="value" innerRadius={66} outerRadius={94} stroke="none"><Cell fill="#eeeff1" /></Pie>
-                          : <Pie isAnimationActive={false} data={slices.filter(x => x.count > 0)} dataKey="count" nameKey="name" innerRadius={66} outerRadius={94} stroke="#ffffff" strokeWidth={2}>
-                              {slices.filter(x => x.count > 0).map(x => <Cell key={x.key} fill={x.color} />)}
-                            </Pie>}
-                        {total > 0 && <Tooltip wrapperStyle={{ zIndex: 20 }} formatter={(v, n) => [countQuotes(lang, Number(v)), n]} contentStyle={{ borderRadius: 8, border: '1px solid #eeeff1', fontSize: 13 }} />}
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      {total === 0 ? <span className="text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</span> : <>
-                      <span className="text-[26px] font-bold tracking-[-0.02em] text-gray-900">{total}</span>
-                      <span className="text-xs font-medium text-[#7f7f7f]">{countQuotes(lang, total).replace(/^\d+ /, '')}</span></>}
-                    </div>
-                  </div>
-                  <div className="w-full flex flex-col gap-2">
-                    {slices.filter(x => x.count > 0).map(x => (
-                      <div key={x.key} className="flex items-center gap-2 text-sm font-medium">
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: x.color }} />
-                        <span className="text-[#5e5e5e] flex-1">{x.name}</span>
-                        <span className="text-gray-900 font-medium tabular-nums">{x.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                  </div>
-                </>)}
-              </div>
-
               <div className="lg:col-span-2">
                 <BreakdownCard empty={sl ? 'Ni podatkov' : 'No data'}
                   title={sl ? 'Vrednost po kategorijah' : 'Value by category'}
@@ -595,41 +549,54 @@ export default function DashboardPage() {
                   })}
                 </BreakdownCard>
               </div>
+              <BreakdownCard empty={sl ? 'Ni podatkov' : 'No data'}
+                title={sl ? 'Izvor ponudb' : 'Quote source'}
+                hint={sl ? 'Koliko ponudb ste naredili sami in koliko jih je prišlo skozi spletni konfigurator.'
+                  : 'How many quotes you made here and how many came in through the public configurator.'}>
+                {sources.length > 0 && sources.map(x => (
+                  <BreakdownRow key={x.key} name={x.name}
+                    caption={countQuotes(lang, x.count)}
+                    segments={[{ w: srcAll ? x.value / srcAll * 100 : 0, color: x.color }]}
+                    value={money(x.value)}
+                    sub={`${srcAll ? Math.round(x.value / srcAll * 100) : 0} % ${sl ? 'vrednosti' : 'of the value'}`} />
+                ))}
+              </BreakdownCard>
             </div>
           )
         })()}
 
-        {/* which channel actually ends in a job, not only how many quotes it brings */}
+        {/* each channel: how much it brings, and how much of what it brings ends in a job */}
         {(() => {
           const rows = LEAD_SOURCES.map(k => {
             const qs = inPeriod.filter(q => (q.lead_source ?? '') === k)
             const won = qs.filter(q => q.status === 'won')
             const lost = qs.filter(q => q.status === 'lost').length
             return { key: k as string, name: leadSourceLabel(k, sl ? 'sl' : 'en'), won: won.length, decided: won.length + lost,
+              count: qs.length, value: qs.reduce((a, q) => a + (Number(q.total_net) || 0), 0),
               wonValue: won.reduce((a, q) => a + (Number(q.total_net) || 0), 0), open: qs.length - won.length - lost }
-          }).filter(r => r.decided > 0 || r.open > 0)
+          }).filter(r => r.count > 0)
           // best rate first; a channel with nothing decided yet cannot be ranked, so it goes last
           rows.sort((a, b) => (b.decided ? b.won / b.decided : -1) - (a.decided ? a.won / a.decided : -1) || b.decided - a.decided)
           const best = rows.find(r => r.decided > 0 && r.won > 0)
           return (
             <BreakdownCard empty={sl ? 'Ni podatkov' : 'No data'}
-              title={sl ? 'Uspešnost zaključenih ponudb po prodajnih kanalih' : 'Win rate of decided quotes by sales channel'}
-              hint={sl ? 'Graf prikazuje delež pridobljenih poslov med zaključenimi ponudbami posameznega prodajnega kanala. Iz grafa lahko razberete, kateri kanal vam prinese največji delež pridobljenih poslov med zaključenimi ponudbami.'
-                : 'The chart shows the share of won jobs among the decided quotes of each sales channel. It tells you which channel brings you the biggest share of won jobs.'}>
+              title={sl ? 'Prodajni kanali' : 'Sales channels'}
+              hint={sl ? 'Koliko ponudb prinese posamezen prodajni kanal in kolikšen delež pridobljenih poslov imate med njegovimi zaključenimi ponudbami. Iz grafa lahko razberete, kateri kanal vam prinese največ ponudb in kateri največji delež poslov.'
+                : 'How many quotes each sales channel brings and the share of won jobs among its decided quotes. It tells you which channel brings the most quotes and which the biggest share of jobs.'}>
               {rows.length > 0 && rows.map(r => {
                 const pct = r.decided ? Math.round(r.won / r.decided * 100) : null
                 return <BreakdownRow key={r.key} name={r.name}
-                  caption={`${pct == null ? (sl ? 'Ni zaključenih ponudb' : 'Nothing decided yet') : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}`}${r.open > 0 ? ` · ${countOpen(sl ? 'sl' : 'en', r.open)}` : ''}`}
+                  caption={`${countQuotes(lang, r.count)} · ${money(r.value)}`}
                   segments={pct ? [{ w: pct, color: best && r.key === best.key ? BLUE.dark : BLUE.mid }] : []}
                   value={pct == null ? '—' : `${pct} %`}
-                  sub={r.wonValue ? money(r.wonValue) : '—'} />
+                  sub={pct == null ? countOpen(sl ? 'sl' : 'en', r.open) : `${r.won} ${sl ? 'od' : 'of'} ${r.decided} ${sl ? 'zaključenih' : 'decided'}`} />
               })}
             </BreakdownCard>
           )
         })()}
 
 
-        {/* customers, sales channel and source of the quotes made in the period */}
+        {/* the customers of the quotes made in the period */}
         {(() => {
           const val = (q: Q) => Number(q.total_net) || 0
           const byCustomer = new Map<string, { id: string; name: string; count: number; value: number; won: number }>()
@@ -652,18 +619,8 @@ export default function DashboardPage() {
               <span className="inline-flex items-center gap-0.5">{label}<SortIcon active={cSort.key === key} dir={cSort.dir} /></span>
             </th>
           )
-          // one shade per channel, always in this order (a channel keeps its shade when another one drops out)
-          const CH_COLORS = BLUE_RAMP
-          // every quote has a channel; older ones without it are left out here
-          const channels = LEAD_SOURCES.map((k, i) => ({ key: k as string, color: CH_COLORS[i] }))
-            .map(c => { const qs = inPeriod.filter(q => (q.lead_source ?? 'none') === c.key); return { ...c, name: leadSourceLabel(c.key === 'none' ? null : c.key, sl ? 'sl' : 'en'), count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
-          const sources = [
-            { key: 'app', name: sl ? 'Ročno kreirane' : 'Created manually', color: GREEN.dark, f: (q: Q) => q.source !== 'configurator' },
-            { key: 'configurator', name: sl ? 'Prek konfiguratorja' : 'Via configurator', color: GREEN.light, f: (q: Q) => q.source === 'configurator' },
-          ].map(x => { const qs = inPeriod.filter(x.f); return { key: x.key, name: x.name, color: x.color, count: qs.length, value: qs.reduce((a, q) => a + val(q), 0) } })
           return (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 flex flex-col">
+            <div>
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex-1 flex flex-col lg:min-h-[789px]">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 px-6 pt-6 pb-4">{sl ? 'Stranke' : 'Customers'}
                   <span className="inline-flex items-center h-[22px] px-2 rounded-md bg-[#f4f4f5] text-[#7f7f7f] text-xs font-medium tabular-nums">{sorted.length}</span></h2>
@@ -689,13 +646,6 @@ export default function DashboardPage() {
                 </table></div>
                 {top.length === 0 && <div className="flex-1 flex items-center justify-center min-h-[220px] text-sm font-medium text-gray-400">{sl ? 'Ni podatkov' : 'No data'}</div>}
                 <Pagination total={sorted.length} page={cPage} pageSize={cPageSize} onChange={setCPage} fixedSize />
-              </div>
-              </div>
-              {/* sales channel and where the quotes came from, two rings one under the other */}
-              <div className="flex flex-col gap-4 h-full">
-                <RingCard title={sl ? 'Prejete ponudbe po prodajnem kanalu' : 'Quotes received by sales channel'} parts={channels} money={money} lang={sl ? 'sl' : 'en'}
-                  empty={inPeriod.length ? (sl ? 'Ponudbe v tem obdobju še nimajo prodajnega kanala. Izberite ga pri urejanju ponudbe, nove ga imajo vedno.' : 'Quotes in this period have no sales channel yet. Set it when editing a quote; new ones always have it.') : undefined} />
-                <RingCard title={sl ? 'Izvor ponudb' : 'Quote source'} parts={sources} money={money} lang={sl ? 'sl' : 'en'} />
               </div>
             </div>
           )
