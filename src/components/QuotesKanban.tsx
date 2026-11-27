@@ -42,7 +42,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
   }
 
   return (
-    <div className="flex gap-2.5 overflow-x-auto pb-2 nice-scroll">
+    <div className="h-full flex gap-2.5 overflow-x-auto pb-3 slim-scroll">
       {statuses.map(st => {
         const cards = quotes.filter(q => q.status === st)
         const total = cards.reduce((sum, q) => sum + (Number(q.total_net) || 0), 0)
@@ -53,7 +53,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
             onDragOver={e => { if (droppable) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setOverCol(st) } }}
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol(c => (c === st ? null : c)) }}
             onDrop={e => { e.preventDefault(); drop(st) }}
-            className={`flex flex-col flex-1 basis-0 min-w-[240px] h-[calc(100vh-155px)] min-h-[420px] rounded-xl border transition-all duration-150
+            className={`flex flex-col flex-1 basis-0 min-w-[240px] h-full min-h-[420px] rounded-xl border transition-all duration-150
               ${overCol === st ? 'bg-[#eaf1fe] border-[#266df0]' : droppable ? 'bg-[#f5f8ff] border-dashed border-[#266df0]/60' : 'bg-[#f7f7f7] border-transparent'}
               ${dimmed ? 'opacity-50' : ''}`}>
             {/* Column header: status badge, count, total */}
@@ -65,7 +65,7 @@ export default function QuotesKanban({ statuses, quotes, canEdit, statusLabels, 
 
             {droppable && <div className="mx-2 mb-2 rounded-lg border border-dashed border-[#266df0] bg-white/60 py-2 text-center text-xs font-medium text-[#215bcf]">{labels.dropHere}</div>}
             {/* Cards */}
-            <div className="flex-1 flex flex-col gap-2 px-2 pb-2 min-h-[140px] overflow-y-auto hide-scroll">
+            <div className="flex-1 flex flex-col gap-2 px-2 pb-2 min-h-[140px] overflow-y-auto hide-scroll fade-bottom">
               {cards.map(q => {
                 const movable = canEdit && !!ALLOWED_MOVES[q.status]
                 const assignee = q.assignee ? `${q.assignee.first_name} ${q.assignee.last_name}` : null

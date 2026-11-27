@@ -9,6 +9,7 @@ import { useCompany } from '../hooks/useCompany'
 import { useLanguage } from '../hooks/useLanguage'
 import Button from '../components/ui/Button'
 import Pagination, { usePageSize } from '../components/ui/Pagination'
+import { cn } from '../lib/cn'
 import { PageHeader } from '../components/ui/PageHeader'
 import { SortIcon } from '../components/ui/SortIcon'
 import { FilterSelect } from '../components/ui/FilterSelect'
@@ -170,10 +171,12 @@ export default function QuotesPage() {
 
   if (!permLoading && !hasPerm('quotes', 'view')) return <Navigate to="/home" replace />
 
+  const board = view === 'kanban'
   return (
-    <div>
+    // the board fills the screen: the page itself must not scroll, or a second scrollbar shows up on the right
+    <div className={board ? 'h-full flex flex-col overflow-hidden' : undefined}>
       <PageHeader title={s.quotes} icon={FileText} count={filtered.length} action={canEdit && <Button onClick={() => navigate('/quotes/new')} className="gap-2"><Plus className="w-4 h-4" />{s.newQuote}</Button>} />
-      <div className="px-6 py-5">
+      <div className={cn('px-6 py-5', board && 'flex-1 flex flex-col min-h-0')}>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <div className="relative">
@@ -205,7 +208,7 @@ export default function QuotesPage() {
       </div>
 
       {view === 'kanban' && !loading ? (
-        <QuotesKanban
+        <div className="flex-1 min-h-0"><QuotesKanban
           statuses={STATUSES.filter(st => statusFilter === 'all' || (statusFilter === 'prep' || statusFilter === 'out' ? GROUPS[statusFilter].includes(st) : st === statusFilter))}
           quotes={sortedFiltered} canEdit={canEdit} statusLabels={s.status} money={money} waitingDays={waitingDays}
           labels={{
@@ -213,7 +216,7 @@ export default function QuotesPage() {
             created: t.common.created, validUntil: sl ? 'Velja do' : 'Valid until', value: t.od.totalNet,
             assignee: s.assignee, noAssignee: s.noAssignee, customer: s.customer, site: t.od.siteAddress, phone: t.common.phone, inStatus: sl ? 'Dni v trenutnem statusu' : 'Days in current status',
           }}
-          onOpen={openQuote} onMove={requestMove} />
+          onOpen={openQuote} onMove={requestMove} /></div>
       ) : (<>
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {loading ? (
