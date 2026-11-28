@@ -365,10 +365,20 @@ export default function LandingPage() {
                 {sl ? 'Spletni konfigurator oken, avtomatizirana priprava ponudb in upravljanje prodaje'
                     : 'An online window configurator, automated quotes and sales management'}
               </h1>
-              <p className={`mt-7 ${LEAD} max-w-[46ch]`} style={{ color: ON_DARK_MUTED }}>
-                {sl ? 'Stranka na vaši spletni strani sama sestavi okno in odda povpraševanje. Pri vas se odpre kot skonfigurirana ponudba — pregledate, popravite, izdate.'
-                    : 'On your website the customer builds the window and sends an enquiry. It opens on your side as a configured quote — you review it, adjust it, issue it.'}
-              </p>
+              {/* the reference stacks short lines here rather than running a paragraph */}
+              <div className="mt-7 space-y-1.5 text-[17px] leading-[1.5] sm:text-[18px] sm:leading-[1.55] max-w-[56ch]" style={{ color: ON_DARK_MUTED }}>
+                {(sl ? [
+                  'Stranke lahko same konfigurirajo okna na vaši spletni strani.',
+                  'Fenestio samodejno izračuna cene in omogoči takojšen prenos ponudbe.',
+                  'Vse pripravljene ponudbe so dostopne v spletni aplikaciji.',
+                  'Ponudbe lahko urejate, prilagajate in spremljate njihov status v vseh fazah prodajnega procesa.',
+                ] : [
+                  'Customers can configure the windows themselves on your website.',
+                  'Fenestio prices them automatically and lets the customer download the offer at once.',
+                  'Every prepared quote is available in the web app.',
+                  'You can edit and adjust the quotes and follow their status through every stage of the sale.',
+                ]).map(line => <p key={line}>{line}</p>)}
+              </div>
               <div className="mt-10 flex flex-col sm:flex-row gap-3">
                 <Cta to="/register">{sl ? 'Začnite brezplačno' : 'Start for free'}</Cta>
                 <Ghost href="#konfigurator" on="dark">{sl ? 'Poglejte aplikacijo' : 'See the app'}</Ghost>
