@@ -272,9 +272,9 @@ export default function LandingPage() {
 
   /* ── content ────────────────────────────────────────────────────── */
   const stats = [
-    { n: '15', l: sl ? 'korakov konfiguratorja, od izdelka do senčil' : 'configurator steps, from product to shading' },
-    { n: '4', l: sl ? 'načini objave: s cenami ali brez, povpraševanje ali PDF' : 'ways to publish: with or without prices, enquiry or PDF' },
-    { n: '1', l: sl ? 'cenik za konfigurator in za ponudbe' : 'price list for the configurator and the quotes' },
+    { n: '100 %', l: sl ? 'ponudb za povpraševanja prek vaše spletne strani je pripravljenih avtomatsko' : 'of the quotes for enquiries from your website are prepared automatically' },
+    { n: '5 minut', l: sl ? 'od obiska stranke na vaši spletni strani do ponudbe' : 'from a visit on your website to a finished quote' },
+    { n: '1', l: sl ? 'platforma za celoten prodajni proces' : 'platform for the whole sales process' },
   ]
 
   const audience = [
@@ -405,12 +405,10 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-20 sm:mt-28 grid gap-10 sm:grid-cols-3 sm:gap-12">
-            {stats.map((s, i) => (
-              <div key={s.n} className={i > 0 ? 'sm:pl-12 sm:border-l' : ''} style={i > 0 ? { borderColor: ON_DARK_HAIR } : undefined}>
-                <div className="flex items-baseline gap-4">
-                  <span className="text-[60px] leading-none font-medium tracking-[-0.04em]" style={{ color: LIME }}>{s.n}</span>
-                  <span className="text-[15px] leading-6 max-w-[24ch]" style={{ color: ON_DARK_MUTED }}>{s.l}</span>
-                </div>
+            {stats.map((st, i) => (
+              <div key={st.n} className={i > 0 ? 'sm:pl-12 sm:border-l' : ''} style={i > 0 ? { borderColor: ON_DARK_HAIR } : undefined}>
+                <p className="text-[52px] leading-none font-medium tracking-[-0.04em] whitespace-nowrap" style={{ color: LIME }}>{st.n}</p>
+                <p className="mt-4 text-[16px] leading-[1.5] max-w-[26ch]" style={{ color: ON_DARK_MUTED }}>{st.l}</p>
               </div>
             ))}
           </div>
