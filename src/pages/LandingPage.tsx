@@ -32,7 +32,6 @@ const LIME = '#a1ed86'
 const GREEN = '#81de60'
 const PANEL = '#eef4fd'
 const SOFT = '#f4f3f0'        // warm neutral; the cold grey made the page feel sterile
-const CARD = 'rounded-[20px] bg-white p-6 sm:p-7 transition-transform duration-200 hover:-translate-y-0.5'
 const BLUE = '#266df0'
 const SHADOW = '0 12px 40px rgba(60,79,109,0.10), 0 2px 8px rgba(60,79,109,0.05)'
 const SHADOW_LIFT = '0 40px 90px rgba(0,0,0,0.45)'
@@ -72,6 +71,29 @@ function Ghost({ href, children, on = 'light' }: { href: string; children: React
   )
 }
 
+/** fades a block in the first time it comes into view; honours prefers-reduced-motion */
+function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setShown(true); return }
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { setShown(true); io.disconnect() }
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return (
+    <div ref={ref} className={className} style={{
+      opacity: shown ? 1 : 0,
+      transform: shown ? 'none' : 'translateY(16px)',
+      transition: `opacity 600ms ease ${delay}ms, transform 700ms cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
+    }}>{children}</div>
+  )
+}
+
 /** the language picker in the bar: same height as the buttons, opens a small menu */
 function LangMenu({ lang, setLang, onDark }: { lang: 'sl' | 'en'; setLang: (l: 'sl' | 'en') => void; onDark: boolean }) {
   const [open, setOpen] = useState(false)
@@ -108,9 +130,11 @@ function LangMenu({ lang, setLang, onDark }: { lang: 'sl' | 'en'; setLang: (l: '
 /** a real screen of the app: one hairline, one soft shadow, nothing else */
 function Shot({ src, alt, className = '' }: { src: string; alt: string; className?: string }) {
   return (
-    <figure className={`rounded-[24px] overflow-hidden bg-white ${className}`} style={{ border: `1px solid ${HAIR}`, boxShadow: SHADOW }}>
-      <img src={src} alt={alt} loading="lazy" className="block w-full" />
-    </figure>
+    <Reveal className={className}>
+      <figure className="rounded-[24px] overflow-hidden bg-white" style={{ border: `1px solid ${HAIR}`, boxShadow: SHADOW }}>
+        <img src={src} alt={alt} loading="lazy" className="block w-full" />
+      </figure>
+    </Reveal>
   )
 }
 
@@ -119,6 +143,13 @@ export default function LandingPage() {
   const sl = lang === 'sl'
   // the bar rides on the green while the hero is on screen, then turns light
   const [scrolled, setScrolled] = useState(false)
+  // the public page glides between anchors; the app keeps its instant jumps
+  useEffect(() => {
+    const root = document.documentElement
+    const before = root.style.scrollBehavior
+    root.style.scrollBehavior = 'smooth'
+    return () => { root.style.scrollBehavior = before }
+  }, [])
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 120)
     on()
@@ -129,20 +160,46 @@ export default function LandingPage() {
   /* ── drawn pieces of the interface ──────────────────────────────── */
   const PositionCard = () => (
     <div className="rounded-[24px] bg-white p-6 sm:p-7" style={{ border: `1px solid ${HAIR}`, boxShadow: SHADOW_LIFT }}>
-      <div className="flex items-center justify-between text-[13px]" style={{ color: MUTED }}>
-        <span className="font-medium" style={{ color: INK }}>{sl ? 'Pozicija 1' : 'Position 1'}</span>
-        <span>1800 × 1400 mm</span>
+      {/* header: which position this is, and where it stands */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[14px] font-medium">{sl ? 'Pozicija 1 od 3' : 'Position 1 of 3'}</span>
+        <span className="inline-flex items-center h-6 px-2.5 rounded-md text-[11px] font-medium" style={{ color: '#215bcf', backgroundColor: '#e5eeff' }}>
+          {sl ? 'Izdano' : 'Issued'}
+        </span>
       </div>
-      <div className="my-6 flex justify-center"><WindowDrawing template="double_mullion" width={1800} height={1400} size={220} showDims /></div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-[14px]">
-        {[[sl ? 'Profil' : 'Profile', 'PVC 82 mm'], [sl ? 'Barva' : 'Colour', sl ? 'Antracit / bela' : 'Anthracite / white'],
-          [sl ? 'Steklo' : 'Glass', 'Ug 0,7'], [sl ? 'Odpiranje' : 'Opening', sl ? 'Kip in odpiranje' : 'Tilt and turn']].map(([k, v]) => (
-          <div key={k} className="contents"><dt style={{ color: MUTED }}>{k}</dt><dd className="text-right font-medium">{v}</dd></div>
+
+      <div className="my-6 flex justify-center"><WindowDrawing template="double_mullion" width={1800} height={1400} size={210} showDims /></div>
+
+      {/* what the window is */}
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2.5 text-[13.5px]">
+        {[[sl ? 'Mere' : 'Size', '1800 × 1400 mm'],
+          [sl ? 'Profil' : 'Profile', sl ? 'PVC 82 mm, 6-komorni' : 'PVC 82 mm, 6 chambers'],
+          [sl ? 'Barva' : 'Colour', sl ? 'Antracit zunaj / bela znotraj' : 'Anthracite out / white in'],
+          [sl ? 'Steklo' : 'Glass', sl ? 'Troslojno, Ug 0,7 W/m²K' : 'Triple, Ug 0.7 W/m²K'],
+          [sl ? 'Levo krilo' : 'Left sash', sl ? 'Kip in odpiranje' : 'Tilt and turn'],
+          [sl ? 'Desno krilo' : 'Right sash', sl ? 'Fiksna zasteklitev' : 'Fixed glazing']].map(([k, v]) => (
+          <div key={k} className="contents">
+            <dt style={{ color: MUTED }}>{k}</dt><dd className="text-right font-medium">{v}</dd>
+          </div>
         ))}
       </dl>
-      <div className="mt-6 pt-5 flex items-baseline justify-between border-t" style={{ borderColor: HAIR }}>
-        <span className="text-[14px]" style={{ color: MUTED }}>{sl ? 'Cena pozicije' : 'Position price'}</span>
-        <span className="text-[24px] font-medium tabular-nums tracking-[-0.02em]">1.284 €</span>
+
+      {/* what is on it, and what each part costs */}
+      <div className="mt-5 pt-5 border-t" style={{ borderColor: HAIR }}>
+        {[[sl ? 'Okno' : 'Window', '1.052,00 €'],
+          [sl ? 'Roleta z motorjem' : 'Roller shutter, motorised', '184,00 €'],
+          [sl ? 'Notranja polica, 1800 mm' : 'Inside sill, 1800 mm', '48,00 €']].map(([n, v]) => (
+          <div key={n} className="flex items-baseline justify-between gap-4 py-1 text-[13.5px]">
+            <span className="truncate">{n}</span>
+            <span className="shrink-0 tabular-nums" style={{ color: MUTED }}>1 {sl ? 'kos' : 'pc'}</span>
+            <span className="w-[88px] text-right font-medium tabular-nums">{v}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-4 flex items-baseline justify-between border-t" style={{ borderColor: HAIR }}>
+        <span className="text-[13.5px]" style={{ color: MUTED }}>{sl ? 'Skupaj brez DDV' : 'Total excl. VAT'}</span>
+        <span className="text-[24px] font-medium tabular-nums tracking-[-0.02em]">1.284,00 €</span>
       </div>
     </div>
   )
@@ -344,7 +401,7 @@ export default function LandingPage() {
           ? { backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${HAIR}` }
           : { backgroundColor: 'transparent', borderBottom: '1px solid transparent' }}>
         <div className={`${WRAP} h-16 sm:h-20 flex items-center justify-between gap-4`}>
-          <Link to="/" className="shrink-0"><AppLogo size="md" showName dark={!scrolled} /></Link>
+          <Link to="/" className="shrink-0" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><AppLogo size="md" showName dark={!scrolled} /></Link>
           <div className="flex items-center gap-1 sm:gap-3">
             <LangMenu lang={sl ? 'sl' : 'en'} setLang={setLang} onDark={!scrolled} />
             <Link to="/login" className="hidden sm:inline-flex h-10 px-3 items-center rounded-lg text-[15px] font-medium transition-colors"
@@ -406,10 +463,10 @@ export default function LandingPage() {
 
           <div className="mt-20 sm:mt-28 grid gap-10 sm:grid-cols-3 sm:gap-12">
             {stats.map((st, i) => (
-              <div key={st.n} className={i > 0 ? 'sm:pl-12 sm:border-l' : ''} style={i > 0 ? { borderColor: ON_DARK_HAIR } : undefined}>
+              <Reveal key={st.n} delay={i * 90} className={i > 0 ? 'sm:pl-12 sm:border-l' : ''}>
                 <p className="text-[52px] leading-none font-medium tracking-[-0.04em] whitespace-nowrap" style={{ color: LIME }}>{st.n}</p>
                 <p className="mt-4 text-[16px] leading-[1.5] max-w-[26ch]" style={{ color: ON_DARK_MUTED }}>{st.l}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -460,8 +517,8 @@ export default function LandingPage() {
               { t: sl ? 'Povpraševanja' : 'Enquiries', d: sl ? 'Pridejo kot skonfigurirana okna, ne kot opis v e-pošti.' : 'They arrive as configured windows, not as an e-mail.', k: 'chip' },
               { t: sl ? 'Ponudbe' : 'Quotes', d: sl ? 'Izdate, pošljete in spremljate po statusih do naročila.' : 'Issue, send and follow them through to the order.', k: 'status' },
               { t: sl ? 'Poročila' : 'Reports', d: sl ? 'Kaj je odprto, kaj dobljeno in kateri kanal prinese posle.' : 'What is open, what is won, which channel brings the jobs.', k: 'bars' },
-            ].map(c => (
-              <div key={c.t} className="rounded-[20px] p-6 flex flex-col transition-transform duration-200 hover:-translate-y-0.5"
+            ].map((c, i) => (
+              <Reveal key={c.t} delay={i * 80}><div className="rounded-[20px] p-6 h-full flex flex-col transition-transform duration-200 hover:-translate-y-0.5"
                 style={{ backgroundColor: 'rgba(223,249,249,0.06)', border: `1px solid ${ON_DARK_HAIR}` }}>
                 <div className="h-[72px] flex items-center">
                   {c.k === 'win' && <div className="flex items-end gap-2">
@@ -492,7 +549,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="mt-6 text-[18px] leading-6 font-medium tracking-[-0.01em]">{c.t}</h3>
                 <p className="mt-2 text-[15px] leading-[1.6]" style={{ color: ON_DARK_MUTED }}>{c.d}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -816,15 +873,13 @@ export default function LandingPage() {
           <Eyebrow>{sl ? 'Kaj je notri' : 'What is inside'}</Eyebrow>
           <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Vse od povpraševanja do naročila' : 'Everything from the enquiry to the order'}</h2>
         </div>
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {grid.map(g => (
-            <div key={g.t} className={CARD} style={{ border: `1px solid ${HAIR}`, boxShadow: SHADOW }}>
-              <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: PANEL }}>
-                <g.icon className="w-[18px] h-[18px]" style={{ color: BLUE }} strokeWidth={1.7} />
-              </span>
+        <div className="mt-14 grid gap-x-14 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          {grid.map((g, i) => (
+            <Reveal key={g.t} delay={(i % 3) * 80} className="pl-6 border-l border-[rgba(4,24,24,0.10)]">
+              <g.icon className="w-5 h-5" style={{ color: INK }} strokeWidth={1.5} />
               <h3 className="mt-4 text-[17px] leading-6 font-medium tracking-[-0.01em]">{g.t}</h3>
               <p className="mt-2 text-[15px] leading-[1.6]" style={{ color: MUTED }}>{g.d}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
