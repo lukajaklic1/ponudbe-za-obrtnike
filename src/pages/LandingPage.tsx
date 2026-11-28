@@ -358,10 +358,10 @@ export default function LandingPage() {
       <div className="relative overflow-hidden -mt-16 sm:-mt-20 pt-16 sm:pt-20" style={{ backgroundColor: DARK }}>
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(1200px 560px at 76% 6%, rgba(161,237,134,0.16), rgba(7,41,40,0) 72%)' }} />
         <section className={`relative ${WRAP} pt-8 sm:pt-12 pb-20 sm:pb-24`}>
-          <div className="grid gap-14 lg:grid-cols-[minmax(0,780px)_minmax(0,1fr)] lg:gap-20 lg:items-center">
+          <div className="grid gap-14 lg:grid-cols-[minmax(0,680px)_minmax(0,1fr)] lg:gap-20 lg:items-center">
             <div>
               <Eyebrow on="dark">{sl ? 'Programska oprema za ponudnike oken' : 'Software for window suppliers'}</Eyebrow>
-              <h1 className="mt-6 text-[34px] leading-[1.08] sm:text-[44px] lg:text-[50px] lg:leading-[1.07] font-medium tracking-[-0.03em]" style={{ color: ON_DARK }}>
+              <h1 className="mt-6 text-[36px] leading-[1.08] sm:text-[48px] lg:text-[58px] lg:leading-[1.06] tracking-[-0.03em]" style={{ color: ON_DARK, fontWeight: 450 }}>
                 {sl ? 'Spletni konfigurator oken, avtomatizirana priprava ponudb in upravljanje prodaje'
                     : 'An online window configurator, automated quotes and sales management'}
               </h1>
