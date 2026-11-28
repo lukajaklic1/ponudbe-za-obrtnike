@@ -366,7 +366,7 @@ export default function LandingPage() {
                     : 'An online window configurator, automated quotes and sales management'}
               </h1>
               {/* the reference stacks short lines here rather than running a paragraph */}
-              <div className="mt-7 space-y-1.5 text-[17px] leading-[1.5] sm:text-[18px] sm:leading-[1.55] max-w-[56ch]" style={{ color: ON_DARK_MUTED }}>
+              <div className="mt-7 space-y-2 text-[18px] leading-[1.5] sm:text-[20px] sm:leading-[1.5] max-w-[56ch]" style={{ color: 'rgba(223,249,249,0.88)' }}>
                 {(sl ? [
                   'Stranke lahko same konfigurirajo okna na vaši spletni strani.',
                   'Fenestio samodejno izračuna cene in omogoči takojšen prenos ponudbe.',
