@@ -384,7 +384,8 @@ export default function LandingPage() {
                 <Ghost href="#konfigurator" on="dark">{sl ? 'Poglejte aplikacijo' : 'See the app'}</Ghost>
               </div>
               <div className="mt-9 inline-flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl px-4 py-3" style={{ backgroundColor: 'rgba(223,249,249,0.07)' }}>
-                {(sl ? ['Brez namestitve', 'Brez kartice', 'Podatki v EU'] : ['No installation', 'No card', 'Data in the EU']).map(x => (
+                {(sl ? ['14 dni brezplačno', 'Brez kreditne kartice', 'Brez namestitve']
+                     : ['14 days free', 'No credit card', 'No installation']).map(x => (
                   <span key={x} className="flex items-center gap-2 text-[13px]" style={{ color: ON_DARK }}>
                     <Check className="w-3.5 h-3.5" style={{ color: LIME }} />{x}
                   </span>
