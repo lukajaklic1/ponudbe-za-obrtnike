@@ -417,6 +417,38 @@ export default function LandingPage() {
         </section>
       </div>
 
+      {/* ══ before / with ═════════════════════════════════════════════ */}
+      <section style={{ backgroundColor: SOFT }}>
+        <div className={`${WRAP} ${SECTION}`}>
+          <div className="max-w-[46ch]">
+            <Eyebrow>{sl ? 'Zakaj Fenestio' : 'Why Fenestio'}</Eyebrow>
+            <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Ista ponudba, dve poti' : 'The same quote, two ways'}</h2>
+          </div>
+          <div className="mt-12 grid gap-5 md:grid-cols-2">
+            <div className="rounded-[24px] bg-white p-8 sm:p-10" style={{ borderTop: '3px solid rgba(4,24,24,0.2)', boxShadow: SHADOW }}>
+              <h3 className={H3}>{sl ? 'Brez Fenestia' : 'Without Fenestio'}</h3>
+              <ul className="mt-6 space-y-3.5">
+                {before.map(x => (
+                  <li key={x} className={`flex items-start gap-3 ${BODY}`} style={{ color: MUTED }}>
+                    <X className="w-[18px] h-[18px] mt-1 shrink-0" style={{ color: 'rgba(4,24,24,0.35)' }} />{x}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-[24px] p-8 sm:p-10" style={{ backgroundColor: PANEL, borderTop: `3px solid ${GREEN}` }}>
+              <h3 className={H3}>{sl ? 'S Fenestiom' : 'With Fenestio'}</h3>
+              <ul className="mt-6 space-y-3.5">
+                {after.map(x => (
+                  <li key={x} className={`flex items-start gap-3 ${BODY}`}>
+                    <Check className="w-[18px] h-[18px] mt-1 shrink-0" style={{ color: '#00a35f' }} />{x}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══ four parts, as cards on the band ══════════════════════════ */}
       <section style={{ backgroundColor: DARK, color: ON_DARK }}>
         <div className={`${WRAP} pb-20 sm:pb-28`}>
@@ -483,38 +515,6 @@ export default function LandingPage() {
                 <p className="mt-2 text-[15px] leading-[1.6]" style={{ color: MUTED }}>{a.d}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ before / with ═════════════════════════════════════════════ */}
-      <section style={{ backgroundColor: SOFT }}>
-        <div className={`${WRAP} ${SECTION}`}>
-          <div className="max-w-[46ch]">
-            <Eyebrow>{sl ? 'Zakaj Fenestio' : 'Why Fenestio'}</Eyebrow>
-            <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Ista ponudba, dve poti' : 'The same quote, two ways'}</h2>
-          </div>
-          <div className="mt-12 grid gap-5 md:grid-cols-2">
-            <div className="rounded-[24px] bg-white p-8 sm:p-10" style={{ borderTop: '3px solid rgba(4,24,24,0.2)', boxShadow: SHADOW }}>
-              <h3 className={H3}>{sl ? 'Brez' : 'Before'}</h3>
-              <ul className="mt-6 space-y-3.5">
-                {before.map(x => (
-                  <li key={x} className={`flex items-start gap-3 ${BODY}`} style={{ color: MUTED }}>
-                    <X className="w-[18px] h-[18px] mt-1 shrink-0" style={{ color: 'rgba(4,24,24,0.35)' }} />{x}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-[24px] p-8 sm:p-10" style={{ backgroundColor: PANEL, borderTop: `3px solid ${GREEN}` }}>
-              <h3 className={H3}>{sl ? 'S Fenestiom' : 'With Fenestio'}</h3>
-              <ul className="mt-6 space-y-3.5">
-                {after.map(x => (
-                  <li key={x} className={`flex items-start gap-3 ${BODY}`}>
-                    <Check className="w-[18px] h-[18px] mt-1 shrink-0" style={{ color: '#00a35f' }} />{x}
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
         </div>
       </section>
