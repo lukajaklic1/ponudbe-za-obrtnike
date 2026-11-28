@@ -10,10 +10,10 @@
 // stay sharp; anything that would be unreadable at that size is drawn in markup instead.
 import '@fontsource-variable/geist'
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowUpRight, Check, X, MonitorSmartphone, FileText, Calculator, BarChart3, History, Users,
-  Ruler, Layers, Globe, ShieldCheck, Database, Lock, Pencil, Send, Trophy, Inbox, Download,
+  Ruler, Layers, Globe, ShieldCheck, Database, Lock, Pencil, Send, Trophy, Inbox, Download, ChevronDown,
 } from 'lucide-react'
 import AppLogo from '../components/ui/AppLogo'
 import WindowDrawing from '../components/WindowDrawing'
@@ -57,7 +57,7 @@ function Cta({ to, children, tone = 'green', small = false }: { to: string; chil
   const style = tone === 'green' ? { backgroundColor: GREEN, color: INK } : { backgroundColor: INK, color: '#ffffff' }
   return (
     <Link to={to} style={style}
-      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-[opacity,transform] hover:opacity-90 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#266df0] ${small ? 'h-9 pl-4 pr-3 text-sm' : 'h-12 pl-6 pr-5 text-[16px]'}`}>
+      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-[opacity,transform] hover:opacity-90 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#266df0] ${small ? 'h-10 pl-4 pr-3.5 text-[15px]' : 'h-12 pl-6 pr-5 text-[16px]'}`}>
       {children}<ArrowUpRight className={small ? 'w-4 h-4' : 'w-[18px] h-[18px]'} />
     </Link>
   )
@@ -69,6 +69,39 @@ function Ghost({ href, children, on = 'light' }: { href: string; children: React
       style={on === 'dark' ? { borderColor: 'rgba(223,249,249,0.28)', color: ON_DARK } : { borderColor: 'rgba(4,24,24,0.18)', color: INK }}>
       {children}<ArrowUpRight className="w-[18px] h-[18px]" />
     </a>
+  )
+}
+
+/** the language picker in the bar: same height as the buttons, opens a small menu */
+function LangMenu({ lang, setLang, onDark }: { lang: 'sl' | 'en'; setLang: (l: 'sl' | 'en') => void; onDark: boolean }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const down = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false) }
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', down); document.addEventListener('keydown', key)
+    return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key) }
+  }, [open])
+  return (
+    <div ref={ref} className="relative hidden sm:block">
+      <button type="button" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open}
+        className="h-10 px-3 inline-flex items-center gap-1.5 rounded-lg text-[15px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#266df0]"
+        style={{ color: onDark ? ON_DARK : INK }}>
+        {lang === 'sl' ? 'SL' : 'EN'}<ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 mt-1.5 w-44 rounded-xl bg-white py-1.5" style={{ border: `1px solid ${HAIR}`, boxShadow: SHADOW }}>
+          {([['sl', 'Slovensko'], ['en', 'English']] as const).map(([k, label]) => (
+            <button key={k} type="button" role="menuitem" onClick={() => { setLang(k); setOpen(false) }}
+              className="w-full flex items-center justify-between px-3.5 py-2 text-[15px] text-left transition-colors hover:bg-black/5"
+              style={{ color: INK }}>
+              {label}{lang === k && <Check className="w-4 h-4" style={{ color: '#00a35f' }} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -313,9 +346,7 @@ export default function LandingPage() {
         <div className={`${WRAP} h-16 sm:h-20 flex items-center justify-between gap-4`}>
           <Link to="/" className="shrink-0"><AppLogo size="md" showName dark={!scrolled} /></Link>
           <div className="flex items-center gap-1 sm:gap-3">
-            <button type="button" onClick={() => setLang(sl ? 'en' : 'sl')}
-              className="hidden sm:inline-flex h-10 px-3 rounded-lg text-[15px] font-medium transition-colors"
-              style={{ color: scrolled ? INK : ON_DARK }}>{sl ? 'EN' : 'SL'}</button>
+            <LangMenu lang={sl ? 'sl' : 'en'} setLang={setLang} onDark={!scrolled} />
             <Link to="/login" className="hidden sm:inline-flex h-10 px-3 items-center rounded-lg text-[15px] font-medium transition-colors"
               style={{ color: scrolled ? INK : ON_DARK }}>{sl ? 'Prijava' : 'Log in'}</Link>
             <Cta to="/register" tone={scrolled ? 'ink' : 'green'} small>{sl ? 'Preizkusite' : 'Try it'}</Cta>
