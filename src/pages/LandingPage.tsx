@@ -381,7 +381,7 @@ export default function LandingPage() {
               </div>
               <div className="mt-10 flex flex-col sm:flex-row gap-3">
                 <Cta to="/register">{sl ? 'Začnite brezplačno' : 'Start for free'}</Cta>
-                <Ghost href="#konfigurator" on="dark">{sl ? 'Poglejte aplikacijo' : 'See the app'}</Ghost>
+                <Ghost href="#konfigurator" on="dark">{sl ? 'Oglejte si konfigurator' : 'See the configurator'}</Ghost>
               </div>
               <div className="mt-9 inline-flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl px-4 py-3" style={{ backgroundColor: 'rgba(223,249,249,0.07)' }}>
                 {(sl ? ['14 dni brezplačno', 'Brez kreditne kartice', 'Brez namestitve']
