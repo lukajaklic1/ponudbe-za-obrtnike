@@ -360,7 +360,7 @@ export default function LandingPage() {
         <section className={`relative ${WRAP} pt-8 sm:pt-12 pb-20 sm:pb-24`}>
           <div className="grid gap-14 lg:grid-cols-[minmax(0,660px)_minmax(0,1fr)] lg:gap-20 lg:items-center">
             <div>
-              <Eyebrow on="dark">{sl ? 'Aplikacija za ponudnike oken' : 'An app for window suppliers'}</Eyebrow>
+              <Eyebrow on="dark">{sl ? 'Programska oprema za ponudnike oken' : 'Software for window suppliers'}</Eyebrow>
               <h1 className="mt-6 text-[42px] leading-[1.04] sm:text-[58px] lg:text-[68px] lg:leading-[1.02] font-medium tracking-[-0.03em]" style={{ color: ON_DARK }}>
                 {sl ? <>Konfigurator oken,<br />ki piše ponudbe</> : <>A window configurator<br />that writes the quotes</>}
               </h1>
