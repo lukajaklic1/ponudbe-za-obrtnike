@@ -369,12 +369,12 @@ export default function LandingPage() {
               <div className="mt-7 space-y-2 text-[18px] leading-[1.5] sm:text-[20px] sm:leading-[1.5] max-w-[56ch]" style={{ color: 'rgba(223,249,249,0.88)' }}>
                 {(sl ? [
                   'Stranke lahko same konfigurirajo okna na vaši spletni strani.',
-                  'Fenestio samodejno izračuna cene in omogoči takojšen prenos ponudbe.',
+                  'Fenestio samodejno izračuna cene in pošlje informativno ponudbo.',
                   'Vse pripravljene ponudbe so dostopne v spletni aplikaciji.',
                   'Ponudbe lahko urejate, prilagajate in spremljate njihov status v vseh fazah prodajnega procesa.',
                 ] : [
                   'Customers can configure the windows themselves on your website.',
-                  'Fenestio prices them automatically and lets the customer download the offer at once.',
+                  'Fenestio prices them automatically and sends an informative offer.',
                   'Every prepared quote is available in the web app.',
                   'You can edit and adjust the quotes and follow their status through every stage of the sale.',
                 ]).map(line => <p key={line}>{line}</p>)}
