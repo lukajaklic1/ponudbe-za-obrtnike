@@ -365,8 +365,8 @@ export default function LandingPage() {
                 {sl ? <>Konfigurator oken,<br />ki piše ponudbe</> : <>A window configurator<br />that writes the quotes</>}
               </h1>
               <p className={`mt-7 ${LEAD} max-w-[46ch]`} style={{ color: ON_DARK_MUTED }}>
-                {sl ? 'Stranka na vaši spletni strani sama sestavi okno in odda povpraševanje. Pri vas se odpre kot skonfigurirana ponudba — pregledate, popravite, izdate.'
-                    : 'On your website the customer builds the window and sends an enquiry. It opens on your side as a configured quote — you review it, adjust it, issue it.'}
+                {sl ? 'Spletni konfigurator oken, avtomatizirana priprava ponudb in upravljanje prodaje. Stranka sestavi okno na vaši strani, pri vas pa se odpre kot ponudba — pregledate, popravite, izdate.'
+                    : 'An online window configurator, quotes prepared for you and your sales in one place. The customer builds the window on your site; it opens on yours as a quote — review it, adjust it, issue it.'}
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-3">
                 <Cta to="/register">{sl ? 'Začnite brezplačno' : 'Start for free'}</Cta>
