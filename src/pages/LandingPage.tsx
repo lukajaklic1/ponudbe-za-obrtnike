@@ -57,7 +57,7 @@ function Cta({ to, children, tone = 'green', small = false }: { to: string; chil
   const style = tone === 'green' ? { backgroundColor: GREEN, color: INK } : { backgroundColor: INK, color: '#ffffff' }
   return (
     <Link to={to} style={style}
-      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-[opacity,transform] hover:opacity-90 active:scale-[0.99] ${small ? 'h-9 pl-4 pr-3 text-sm' : 'h-12 pl-6 pr-5 text-[16px]'}`}>
+      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-[opacity,transform] hover:opacity-90 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#266df0] ${small ? 'h-9 pl-4 pr-3 text-sm' : 'h-12 pl-6 pr-5 text-[16px]'}`}>
       {children}<ArrowUpRight className={small ? 'w-4 h-4' : 'w-[18px] h-[18px]'} />
     </Link>
   )
@@ -65,7 +65,7 @@ function Cta({ to, children, tone = 'green', small = false }: { to: string; chil
 
 function Ghost({ href, children, on = 'light' }: { href: string; children: React.ReactNode; on?: 'light' | 'dark' }) {
   return (
-    <a href={href} className="inline-flex h-12 items-center gap-2 rounded-lg px-6 text-[16px] font-medium border transition-colors"
+    <a href={href} className="inline-flex h-12 items-center gap-2 rounded-lg px-6 text-[16px] font-medium border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#266df0]"
       style={on === 'dark' ? { borderColor: 'rgba(223,249,249,0.28)', color: ON_DARK } : { borderColor: 'rgba(4,24,24,0.18)', color: INK }}>
       {children}<ArrowUpRight className="w-[18px] h-[18px]" />
     </a>
@@ -329,7 +329,7 @@ export default function LandingPage() {
         <section className={`relative ${WRAP} pt-16 sm:pt-20 pb-20 sm:pb-24`}>
           <div className="grid gap-14 lg:grid-cols-[minmax(0,660px)_minmax(0,1fr)] lg:gap-20 lg:items-center">
             <div>
-              <Eyebrow on="dark">{sl ? 'Za ponudnike oken' : 'For window suppliers'}</Eyebrow>
+              <Eyebrow on="dark">{sl ? 'Aplikacija za ponudnike oken' : 'An app for window suppliers'}</Eyebrow>
               <h1 className="mt-6 text-[42px] leading-[1.04] sm:text-[58px] lg:text-[68px] lg:leading-[1.02] font-medium tracking-[-0.03em]" style={{ color: ON_DARK }}>
                 {sl ? <>Konfigurator oken,<br />ki piše ponudbe</> : <>A window configurator<br />that writes the quotes</>}
               </h1>
@@ -379,7 +379,7 @@ export default function LandingPage() {
         <div className={`${WRAP} pb-20 sm:pb-28`}>
           <div className="max-w-[46ch]">
             <Eyebrow on="dark">{sl ? 'Kaj dela Fenestio' : 'What Fenestio does'}</Eyebrow>
-            <h2 className={`mt-5 ${H2}`}>{sl ? 'Štirje deli, en sam cenik' : 'Four parts, one price list'}</h2>
+            <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Štirje deli, en sam cenik' : 'Four parts, one price list'}</h2>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
@@ -430,7 +430,7 @@ export default function LandingPage() {
         <div className="grid gap-12 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-20">
           <div>
             <Eyebrow>{sl ? 'Za koga je' : 'Who it is for'}</Eyebrow>
-            <h2 className={`mt-5 ${H2}`}>{sl ? 'Za vse, ki prodajajo okna' : 'For everyone who sells windows'}</h2>
+            <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Za vse, ki prodajajo okna' : 'For everyone who sells windows'}</h2>
           </div>
           <div className="grid gap-x-14 gap-y-10 sm:grid-cols-3">
             {audience.map(a => (
@@ -449,7 +449,7 @@ export default function LandingPage() {
         <div className={`${WRAP} ${SECTION}`}>
           <div className="max-w-[46ch]">
             <Eyebrow>{sl ? 'Zakaj Fenestio' : 'Why Fenestio'}</Eyebrow>
-            <h2 className={`mt-5 ${H2}`}>{sl ? 'Ista ponudba, dve poti' : 'The same quote, two ways'}</h2>
+            <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Ista ponudba, dve poti' : 'The same quote, two ways'}</h2>
           </div>
           <div className="mt-12 grid gap-5 md:grid-cols-2">
             <div className="rounded-[24px] bg-white p-8 sm:p-10" style={{ borderTop: '3px solid rgba(4,24,24,0.2)', boxShadow: SHADOW }}>
@@ -477,7 +477,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══ configurator ══════════════════════════════════════════════ */}
-      <section id="konfigurator" className={`${WRAP} ${SECTION}`}>
+      <section id="konfigurator" className={`${WRAP} ${SECTION} scroll-mt-24`}>
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 lg:items-center">
           <div className="max-w-[52ch]">
             <Tag>{sl ? 'Spletni konfigurator' : 'Online configurator'}</Tag>
@@ -517,7 +517,7 @@ export default function LandingPage() {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div className="max-w-[40ch]">
               <Eyebrow on="dark">{sl ? 'Pot ponudbe' : 'The path of a quote'}</Eyebrow>
-              <h2 className={`mt-5 ${H2}`}>{sl ? 'Osem statusov, nobenega ugibanja' : 'Eight statuses, no guessing'}</h2>
+              <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Osem statusov, nobenega ugibanja' : 'Eight statuses, no guessing'}</h2>
             </div>
             <p className="text-[15px] leading-6 max-w-[42ch]" style={{ color: ON_DARK_MUTED }}>
               {sl ? 'Vsak status ima svojo barvo in svoje dejanje. Vrednost in število se seštevata nad stolpcem, prehodi pa se zapišejo v zgodovino.'
@@ -539,7 +539,7 @@ export default function LandingPage() {
       <section className={`${WRAP} ${SECTION}`}>
         <div className="max-w-[48ch]">
           <Eyebrow>{sl ? 'Delo, ki ga prevzame' : 'The work it takes over'}</Eyebrow>
-          <h2 className={`mt-5 ${H2}`}>{sl ? 'Štiri stvari, ki jih danes delate ročno' : 'Four things you still do by hand'}</h2>
+          <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Štiri stvari, ki jih danes delate ročno' : 'Four things you still do by hand'}</h2>
         </div>
         <div className="mt-12 grid gap-5 lg:grid-cols-2">
           {/* 1 — the calculation */}
@@ -656,12 +656,12 @@ export default function LandingPage() {
       </section>
 
       {/* ══ calculation ═══════════════════════════════════════════════ */}
-      <section id="kalkulacija" style={{ backgroundColor: DARKER, color: ON_DARK }}>
+      <section id="kalkulacija" className="scroll-mt-24" style={{ backgroundColor: DARKER, color: ON_DARK }}>
         <div className={`${WRAP} ${SECTION}`}>
           <div className="grid gap-12 lg:grid-cols-[minmax(0,480px)_minmax(0,1fr)] lg:gap-20 lg:items-center">
             <div>
               <Eyebrow on="dark">{sl ? 'Kalkulacija' : 'The calculation'}</Eyebrow>
-              <h2 className={`mt-5 ${H2}`}>{sl ? 'Vsaka številka pove, od kod je' : 'Every number says where it came from'}</h2>
+              <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Vsaka številka pove, od kod je' : 'Every number says where it came from'}</h2>
               <p className={`mt-6 ${LEAD} max-w-[46ch]`} style={{ color: ON_DARK_MUTED }}>
                 {sl ? 'Cena okna ni črna skrinjica. Pri vsaki postavki vidite dolžino, površino in ceno, iz katerih je sestavljena: obseg okvirja z odpadkom, obseg kril, letvice, šipe z vstopom v utor, okovje po krilu in delo.'
                     : 'The price of a window is not a black box. Every line shows the length, the area and the price behind it: the frame perimeter with waste, the sash perimeters, the beads, the panes with the rebate, hardware per sash and labour.'}
@@ -755,7 +755,7 @@ export default function LandingPage() {
         <div className={`${WRAP} ${SECTION}`}>
           <div className="max-w-[46ch]">
             <Eyebrow>{sl ? 'Kako deluje' : 'How it works'}</Eyebrow>
-            <h2 className={`mt-5 ${H2}`}>{sl ? 'Trije koraki do prve ponudbe' : 'Three steps to your first quote'}</h2>
+            <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Trije koraki do prve ponudbe' : 'Three steps to your first quote'}</h2>
           </div>
           <div className="mt-14 grid gap-10 sm:grid-cols-3 sm:gap-12">
             {steps.map(s => (
@@ -773,7 +773,7 @@ export default function LandingPage() {
       <section className={`${WRAP} ${SECTION}`}>
         <div className="max-w-[46ch]">
           <Eyebrow>{sl ? 'Kaj je notri' : 'What is inside'}</Eyebrow>
-          <h2 className={`mt-5 ${H2}`}>{sl ? 'Vse od povpraševanja do naročila' : 'Everything from the enquiry to the order'}</h2>
+          <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Vse od povpraševanja do naročila' : 'Everything from the enquiry to the order'}</h2>
         </div>
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {grid.map(g => (
@@ -794,7 +794,7 @@ export default function LandingPage() {
           <div className="grid gap-12 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-20">
             <div>
               <Eyebrow>{sl ? 'Podatki' : 'Data'}</Eyebrow>
-              <h2 className={`mt-5 ${H2}`}>{sl ? 'Vaši ceniki ostanejo vaši' : 'Your price list stays yours'}</h2>
+              <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Vaši ceniki ostanejo vaši' : 'Your price list stays yours'}</h2>
             </div>
             <div className="grid gap-10 sm:grid-cols-3">
               {security.map(s => (
@@ -810,11 +810,11 @@ export default function LandingPage() {
       </section>
 
       {/* ══ pricing ═══════════════════════════════════════════════════ */}
-      <section id="cena" className={`${WRAP} ${SECTION}`}>
+      <section id="cena" className={`${WRAP} ${SECTION} scroll-mt-24`}>
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 lg:items-center">
           <div className="max-w-[46ch]">
             <Eyebrow>{sl ? 'Cena' : 'Pricing'}</Eyebrow>
-            <h2 className={`mt-5 ${H2}`}>{sl ? 'Dogovorimo se za vaše podjetje' : 'Agreed for your company'}</h2>
+            <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Dogovorimo se za vaše podjetje' : 'Agreed for your company'}</h2>
             <p className={`mt-6 ${LEAD}`} style={{ color: MUTED }}>
               {sl ? 'Ceno postavimo glede na velikost ekipe in obseg cenika, račun prejmete mesečno. Pri vnosu cenika vam pomagamo, da so prve ponudbe takoj prave.'
                   : 'The price follows the size of your team and your price list, and you are invoiced monthly. We help you set the list up so the first quotes are right away correct.'}
@@ -845,7 +845,7 @@ export default function LandingPage() {
           <div className="grid gap-12 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-20">
             <div>
               <Eyebrow>{sl ? 'Vprašanja' : 'Questions'}</Eyebrow>
-              <h2 className={`mt-5 ${H2}`}>{sl ? 'Kar ljudje najprej vprašajo' : 'What people ask first'}</h2>
+              <h2 className={`mt-5 ${H2} max-w-[22ch]`}>{sl ? 'Kar ljudje najprej vprašajo' : 'What people ask first'}</h2>
             </div>
             <div className="grid gap-x-14 gap-y-9 sm:grid-cols-2">
               {faq.map(f => (
