@@ -371,12 +371,12 @@ export default function LandingPage() {
                   'Stranke lahko same konfigurirajo okna na vaši spletni strani.',
                   'Fenestio samodejno izračuna cene in pošlje informativno ponudbo.',
                   'Vse pripravljene ponudbe so dostopne v spletni aplikaciji.',
-                  'Ponudbe lahko urejate, prilagajate in spremljate njihov status v vseh fazah prodajnega procesa.',
+                  'Ponudbe lahko urejate, prilagajate in spremljate njihov status.',
                 ] : [
                   'Customers can configure the windows themselves on your website.',
                   'Fenestio prices them automatically and sends an informative offer.',
                   'Every prepared quote is available in the web app.',
-                  'You can edit and adjust the quotes and follow their status through every stage of the sale.',
+                  'You can edit and adjust the quotes and follow their status.',
                 ]).map(line => <p key={line}>{line}</p>)}
               </div>
               <div className="mt-10 flex flex-col sm:flex-row gap-3">
