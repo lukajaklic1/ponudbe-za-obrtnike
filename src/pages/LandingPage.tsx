@@ -314,9 +314,9 @@ export default function LandingPage() {
           <Link to="/" className="shrink-0"><AppLogo size="md" showName dark={!scrolled} /></Link>
           <div className="flex items-center gap-1 sm:gap-3">
             <button type="button" onClick={() => setLang(sl ? 'en' : 'sl')}
-              className="h-10 px-3 rounded-lg text-[15px] font-medium transition-colors"
+              className="hidden sm:inline-flex h-10 px-3 rounded-lg text-[15px] font-medium transition-colors"
               style={{ color: scrolled ? INK : ON_DARK }}>{sl ? 'EN' : 'SL'}</button>
-            <Link to="/login" className="h-10 px-3 inline-flex items-center rounded-lg text-[15px] font-medium transition-colors"
+            <Link to="/login" className="hidden sm:inline-flex h-10 px-3 items-center rounded-lg text-[15px] font-medium transition-colors"
               style={{ color: scrolled ? INK : ON_DARK }}>{sl ? 'Prijava' : 'Log in'}</Link>
             <Cta to="/register" tone={scrolled ? 'ink' : 'green'} small>{sl ? 'Preizkusite' : 'Try it'}</Cta>
           </div>
