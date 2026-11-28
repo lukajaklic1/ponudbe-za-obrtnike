@@ -38,7 +38,7 @@ const SHADOW = '0 12px 40px rgba(60,79,109,0.10), 0 2px 8px rgba(60,79,109,0.05)
 const SHADOW_LIFT = '0 40px 90px rgba(0,0,0,0.45)'
 const FONT = "'Geist Variable', Inter, ui-sans-serif, system-ui, sans-serif"
 
-const WRAP = 'max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-16'
+const WRAP = 'max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16'
 const SECTION = 'py-20 sm:py-28'
 const H2 = 'text-[30px] leading-[1.14] sm:text-[40px] sm:leading-[1.12] font-medium tracking-[-0.025em]'
 const H3 = 'text-[20px] leading-7 sm:text-[24px] sm:leading-8 font-medium tracking-[-0.015em]'
@@ -46,7 +46,7 @@ const LEAD = 'text-[18px] leading-[1.6] sm:text-[20px] sm:leading-[1.55]'
 const BODY = 'text-[16px] leading-[1.65] sm:text-[17px]'
 
 function Eyebrow({ children, on = 'light' }: { children: React.ReactNode; on?: 'light' | 'dark' }) {
-  return <p className="text-[13px] font-medium uppercase" style={{ letterSpacing: '0.12em', color: on === 'dark' ? LIME : MUTED }}>{children}</p>
+  return <p className="text-[14px] font-medium uppercase" style={{ letterSpacing: '0.12em', color: on === 'dark' ? LIME : MUTED }}>{children}</p>
 }
 
 function Tag({ children }: { children: React.ReactNode }) {
@@ -326,7 +326,7 @@ export default function LandingPage() {
       {/* ══ hero on the green ═════════════════════════════════════════ */}
       <div className="relative overflow-hidden -mt-16 sm:-mt-20 pt-16 sm:pt-20" style={{ backgroundColor: DARK }}>
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(1200px 560px at 76% 6%, rgba(161,237,134,0.16), rgba(7,41,40,0) 72%)' }} />
-        <section className={`relative ${WRAP} pt-16 sm:pt-20 pb-20 sm:pb-24`}>
+        <section className={`relative ${WRAP} pt-8 sm:pt-12 pb-20 sm:pb-24`}>
           <div className="grid gap-14 lg:grid-cols-[minmax(0,660px)_minmax(0,1fr)] lg:gap-20 lg:items-center">
             <div>
               <Eyebrow on="dark">{sl ? 'Aplikacija za ponudnike oken' : 'An app for window suppliers'}</Eyebrow>
